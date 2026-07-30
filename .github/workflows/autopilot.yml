@@ -12,6 +12,11 @@ on:
         description: 'Tylko wygeneruj, bez publikacji'
         type: boolean
         default: false
+      kind:
+        description: 'Wymuś typ posta'
+        type: choice
+        default: auto
+        options: [auto, single, carousel, reel]
 
 concurrency:
   group: zovu-autopilot
@@ -38,6 +43,10 @@ jobs:
       - name: Chromium dla Playwright
         run: npx playwright install --with-deps chromium
 
+      # рилсы собираются ffmpeg'ом; на образе runner'а его может не быть
+      - name: ffmpeg
+        run: ffmpeg -version >/dev/null 2>&1 || sudo apt-get install -y --no-install-recommends ffmpeg
+
       - name: Zrób i opublikuj post
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -51,7 +60,7 @@ jobs:
           RAW_BASE: https://raw.githubusercontent.com/${{ github.repository }}/main
           ZOVU_BG_DIR: ${{ github.workspace }}/bg
           ZOVU_READY_DIR: ${{ github.workspace }}/out
-        run: node run-once.mjs ${{ inputs.dry && '--dry' || '' }}
+        run: node run-once.mjs ${{ inputs.dry && '--dry' || '' }} ${{ (inputs.kind && inputs.kind != 'auto') && format('--kind={0}', inputs.kind) || '' }}
 
       # состояние ротации (тема, формат, счётчик) храним в репозитории,
       # иначе каждый запуск начинал бы с нуля

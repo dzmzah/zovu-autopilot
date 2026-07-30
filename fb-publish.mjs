@@ -56,9 +56,63 @@ export async function resolvePage(userToken) {
   return { id: page.id, name: page.name, token: page.access_token };
 }
 
+// Рилс на страницу Facebook. Три шага по документации Meta:
+//   start   → получаем video_id и адрес загрузчика
+//   upload  → загрузчик сам скачивает mp4 по нашей публичной ссылке (заголовок file_url)
+//   finish  → публикуем
+// Если рилсы для страницы недоступны, откатываемся на обычное видео в ленту —
+// лучше опубликовать видео, чем не опубликовать ничего.
+async function publishReel(pageId, pageToken, videoUrl, caption) {
+  try {
+    const start = await call(`${pageId}/video_reels`, {
+      upload_phase: 'start',
+      access_token: pageToken,
+    });
+    if (!start.video_id) throw new Error('brak video_id');
+
+    const uploadUrl =
+      start.upload_url || `https://rupload.facebook.com/video-upload/v23.0/${start.video_id}`;
+    const up = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: { Authorization: `OAuth ${pageToken}`, file_url: videoUrl },
+    });
+    const upJson = await up.json().catch(() => ({}));
+    if (!up.ok || upJson.success === false) {
+      throw new Error(`upload: ${JSON.stringify(upJson).slice(0, 200)}`);
+    }
+
+    // Загрузчик отдал ответ сразу, но кодирование идёт ещё несколько секунд.
+    // Публикуем с повторами: пока видео не готово, finish отвечает ошибкой.
+    let fin = null;
+    for (let attempt = 1; attempt <= 8; attempt++) {
+      try {
+        fin = await call(`${pageId}/video_reels`, {
+          video_id: start.video_id,
+          upload_phase: 'finish',
+          video_state: 'PUBLISHED',
+          description: caption || '',
+          access_token: pageToken,
+        });
+        break;
+      } catch (e) {
+        if (attempt === 8) throw e;
+        await new Promise((r) => setTimeout(r, 5000));
+      }
+    }
+    return { postId: fin.post_id || start.video_id, reel: true };
+  } catch (e) {
+    const r = await call(`${pageId}/videos`, {
+      file_url: videoUrl,
+      description: caption || '',
+      access_token: pageToken,
+    });
+    return { postId: r.id, video: true, reelFallback: e.message.slice(0, 120) };
+  }
+}
+
 // Публикация. Одна картинка — обычный пост с фото.
 // Несколько — сначала грузим их неопубликованными, потом одним постом.
-export async function publishToFacebook({ imageUrls, caption }) {
+export async function publishToFacebook({ imageUrls, caption, kind }) {
   const raw = await env('FACEBOOK_PAGE_TOKEN');
   if (!raw) return { skipped: true, reason: 'brak FACEBOOK_PAGE_TOKEN' };
 
@@ -67,6 +121,8 @@ export async function publishToFacebook({ imageUrls, caption }) {
   const page = await resolvePage(raw);
   const pageId = page.id;
   const pageToken = page.token || raw;
+
+  if (kind === 'reel') return publishReel(pageId, pageToken, imageUrls[0], caption);
 
   if (imageUrls.length === 1) {
     const r = await call(`${pageId}/photos`, {

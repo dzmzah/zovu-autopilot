@@ -458,10 +458,14 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
   const topicIdx = topic ? -1 : (state.topic + 1) % TOPICS.length;
   const formatIdx = (state.format + 1) % FORMATS.length;
 
-  // Ротация типов: пять одиночных постов, каждый шестой — карусель.
-  // Так лента не выглядит однообразной.
+  // Ротация типов на цикл из шести постов:
+  //   №6 — карусель, №3 — рилс, остальные четыре — обычные посты.
+  // Рилс и карусель делаются из одних и тех же данных (обложка + 5 пунктов + финал),
+  // разница только в том, чем это станет на выходе: слайдами или видео.
   const counter = (state.counter || 0) + 1;
-  const isCarousel = kind === 'carousel' || (kind !== 'single' && counter % 6 === 0);
+  const isReel = kind === 'reel' || (!kind && counter % 6 === 3);
+  const isCarousel = kind === 'carousel' || (!kind && counter % 6 === 0);
+  const multiSlide = isReel || isCarousel;
 
   // Тренд берём ОДИН РАЗ В СУТКИ. Иначе три поста за день выйдут про одно и то же.
   // Остальные запуски идут по списку тем — так лента остаётся разной.
@@ -476,7 +480,7 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
         + `Nie streszczaj newsa. Zrób z niego praktyczny post dla właściciela małej firmy w Polsce: `
         + `co ta zmiana oznacza dla jego marketingu i co ma zrobić w tym tygodniu.`
       : TOPICS[topicIdx]);
-  const chosenFormat = isCarousel
+  const chosenFormat = multiSlide
     ? (format ? FORMATS.find((f) => f.key === format) || FORMATS[0] : FORMATS[formatIdx])
     : { key: 'single', label: 'Pojedynczy post', single: true,
         brief: 'Jedna myśl, trzy krótkie punkty. Bez rozwlekania — post ma działać w dwie sekundy.' };
@@ -493,7 +497,7 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
       const res = await askModel(system, user);
       provider = res.provider;
       const parsed = clean(parseJson(res.raw));
-      const problems = validate(parsed, !isCarousel);
+      const problems = validate(parsed, !multiSlide);
       attempts.push({ attempt: i + 1, problems });
       if (!problems.length) {
         out = parsed;
@@ -520,14 +524,14 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
   if (genImages) {
     try {
       const { generateForItems } = await import('./image-gen.mjs');
-      const list = isCarousel ? out.items : [{ bgIdea: out.bgIdea, heading: out.title }];
+      const list = multiSlide ? out.items : [{ bgIdea: out.bgIdea, heading: out.title }];
       generated = await generateForItems(list, baseName);
     } catch {
       generated = [];
     }
   }
 
-  if (isCarousel) {
+  if (multiSlide) {
     out.items = out.items.map((it, i) => ({
       ...it,
       bg: generated[i] || BG_TAGS[(bgStart + i) % BG_TAGS.length],
@@ -542,7 +546,7 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
     trendDay: trendSeed ? today : state.trendDay,
   });
 
-  const data = isCarousel
+  const data = multiSlide
     ? {
         name: baseName,
         eyebrow: out.eyebrow || 'ZOVU · SOCIAL MEDIA',
@@ -564,7 +568,7 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
       };
 
   return {
-    kind: isCarousel ? 'carousel' : 'single',
+    kind: isReel ? 'reel' : isCarousel ? 'carousel' : 'single',
     data,
     caption: out.caption + (out.hashtags.length ? '\n\n' + out.hashtags.map((h) => '#' + h).join(' ') : ''),
     meta: {

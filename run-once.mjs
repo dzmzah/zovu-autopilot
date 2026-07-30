@@ -7,7 +7,7 @@
 // Секреты берутся из переменных окружения (на ПК — из файла .env):
 //   INSTAGRAM_TOKEN  — обязательный
 //   GEMINI_API_KEY   — текст (бесплатный тир). Без него на сервере работать нечему
-import { readFile, copyFile, mkdir, writeFile } from 'node:fs/promises';
+import { readFile, copyFile, mkdir, writeFile, readdir, stat, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -16,6 +16,9 @@ import { renderPost, renderCarousel } from './render.mjs';
 
 const execFileAsync = promisify(execFile);
 const DRY = process.argv.includes('--dry');
+// --kind=reel|carousel|single — принудительно задать тип поста (для проверок).
+// Без него тип выбирает ротация в движке.
+const KIND = (process.argv.find((a) => a.startsWith('--kind=')) || '').split('=')[1] || undefined;
 
 const IG_API = 'https://graph.instagram.com/v23.0';
 // На сервере GitHub Actions картинки кладём в этот же репозиторий (он публичный),
@@ -59,9 +62,26 @@ async function waitPublic(url) {
   throw new Error(`${url} не отдаётся публично`);
 }
 
+// Старые слайды и видео из posts/ убираем: Instagram их уже забрал себе,
+// а репозиторий иначе пухнет и каждый запуск дольше выкачивается.
+async function prunePosts(dir, days = 30) {
+  const limit = Date.now() - days * 86400_000;
+  let removed = 0;
+  for (const name of await readdir(dir).catch(() => [])) {
+    const p = path.join(dir, name);
+    const s = await stat(p).catch(() => null);
+    if (s?.isFile() && s.mtimeMs < limit) {
+      await unlink(p).catch(() => {});
+      removed++;
+    }
+  }
+  if (removed) console.log(`[autopilot] sprzątanie: usunięto ${removed} starych plików`);
+}
+
 async function pushToCdn(files) {
   const dir = path.join(CDN_REPO, CDN_SUBDIR);
   await mkdir(dir, { recursive: true });
+  await prunePosts(dir);
   for (const f of files) await copyFile(f.file, path.join(dir, f.name));
 
   await git(['add', '--all']);
@@ -92,7 +112,7 @@ async function igPost(endpoint, body) {
 // Если публиковать сразу, прилетает «Media ID is not available» (код 9007).
 // Ждём, пока контейнер перейдёт в FINISHED.
 async function waitReady(containerId, token, label = '') {
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 90; i++) {
     try {
       const r = await fetch(
         `${IG_API}/${containerId}?fields=status_code,status&access_token=${token}`
@@ -130,12 +150,21 @@ async function instagramToken() {
   }
 }
 
-async function publish(urls, caption) {
+async function publish(urls, caption, kind) {
   const token = await instagramToken();
   if (!token) throw new Error('нет INSTAGRAM_TOKEN');
 
   let container;
-  if (urls.length === 1) {
+  if (kind === 'reel') {
+    // рилс — отдельный тип медиа, отдаём ссылку на mp4
+    container = await igPost('me/media', {
+      media_type: 'REELS',
+      video_url: urls[0],
+      caption,
+      share_to_feed: true,
+      access_token: token,
+    });
+  } else if (urls.length === 1) {
     container = await igPost('me/media', { image_url: urls[0], caption, access_token: token });
   } else {
     const children = [];
@@ -181,12 +210,22 @@ async function publish(urls, caption) {
 const started = Date.now();
 console.log(`[autopilot] start ${new Date().toISOString()}${DRY ? ' (dry run)' : ''}`);
 
-const post = await makePost({ trends: true });
+const post = await makePost({ trends: true, kind: KIND });
 console.log(`[autopilot] #${post.meta.counter} ${post.kind} | ${post.meta.format} | ${post.meta.provider}`);
 console.log(`[autopilot] ${post.data.title}`);
 
-const files = post.kind === 'carousel' ? await renderCarousel(post.data) : [await renderPost(post.data)];
-console.log(`[autopilot] obrazki: ${files.length}`);
+// обычный пост — одна картинка; карусель и рилс собираются из одного набора слайдов
+const slides = post.kind === 'single' ? [await renderPost(post.data)] : await renderCarousel(post.data);
+console.log(`[autopilot] obrazki: ${slides.length}`);
+
+// рилс: из тех же слайдов делаем вертикальное видео
+let files = slides;
+if (post.kind === 'reel') {
+  const { makeReel } = await import('./make-reel.mjs');
+  const reel = await makeReel({ images: slides.map((s) => s.file), name: post.data.name });
+  console.log(`[autopilot] rolka: ${(reel.bytes / 1048576).toFixed(1)} MB${reel.withMusic ? ' z muzyką' : ' bez muzyki'}`);
+  files = [{ file: reel.file, name: reel.name }];
+}
 
 if (DRY) {
   console.log('[autopilot] dry run — nie publikuję');
@@ -195,14 +234,14 @@ if (DRY) {
 }
 
 const urls = await pushToCdn(files);
-const result = await publish(urls, post.caption);
+const result = await publish(urls, post.caption, post.kind);
 console.log(`[autopilot] Instagram: ${result.permalink || result.mediaId}`);
 
 // Facebook — тем же контентом. Если токена нет, шаг пропускается,
 // и это не ломает публикацию в Instagram.
 try {
   const { publishToFacebook } = await import('./fb-publish.mjs');
-  const fb = await publishToFacebook({ imageUrls: urls, caption: post.caption });
+  const fb = await publishToFacebook({ imageUrls: urls, caption: post.caption, kind: post.kind });
   console.log(fb.skipped ? `[autopilot] Facebook: pominięty (${fb.reason})` : `[autopilot] Facebook: ${fb.postId}`);
 } catch (e) {
   console.warn(`[autopilot] Facebook nie wyszedł: ${e.message}`);
