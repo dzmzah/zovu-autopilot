@@ -214,20 +214,20 @@ const post = await makePost({ trends: true, kind: KIND });
 console.log(`[autopilot] #${post.meta.counter} ${post.kind} | ${post.meta.format} | ${post.meta.provider}`);
 console.log(`[autopilot] ${post.data.title}`);
 
-// обычный пост — одна картинка; карусель и рилс собираются из одного набора слайдов
-const slides =
-  post.kind === 'single'
-    ? [await renderPost(post.data)]
-    : await renderCarousel({ ...post.data, reel: post.kind === 'reel' });
-console.log(`[autopilot] obrazki: ${slides.length}`);
-
-// рилс: из тех же слайдов делаем вертикальное видео
-let files = slides;
+// У рилса свой вертикальный макет — слайды карусели ему не нужны вовсе.
+let files;
 if (post.kind === 'reel') {
   const { makeReel } = await import('./make-reel.mjs');
-  const reel = await makeReel({ images: slides.map((s) => s.file), name: post.data.name });
-  console.log(`[autopilot] rolka: ${(reel.bytes / 1048576).toFixed(1)} MB${reel.withMusic ? ' z muzyką' : ' bez muzyki'}`);
+  const reel = await makeReel({ data: post.data, name: post.data.name });
+  console.log(
+    `[autopilot] rolka: ${reel.seconds.toFixed(1)}s, ${(reel.bytes / 1048576).toFixed(1)} MB` +
+      (reel.withMusic ? `, montaż pod ${reel.bpm} BPM` : ', bez muzyki')
+  );
   files = [{ file: reel.file, name: reel.name }];
+} else {
+  const slides = post.kind === 'single' ? [await renderPost(post.data)] : await renderCarousel(post.data);
+  console.log(`[autopilot] obrazki: ${slides.length}`);
+  files = slides;
 }
 
 if (DRY) {
