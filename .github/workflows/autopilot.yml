@@ -44,6 +44,8 @@ jobs:
           INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
           FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
           FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          # ключ, которым расшифровывается самообновляющийся токен Instagrama
+          TOKEN_KEY: ${{ secrets.TOKEN_KEY }}
           # картинки кладём в этот же репозиторий, он публичный
           CDN_REPO: ${{ github.workspace }}
           RAW_BASE: https://raw.githubusercontent.com/${{ github.repository }}/main
@@ -58,6 +60,6 @@ jobs:
         run: |
           git config user.name "zovu-autopilot"
           git config user.email "zovu.pl@gmail.com"
-          git add state.json posts || true
+          git add state.json posts token.enc || true
           git diff --staged --quiet || git commit -m "post + stan rotacji [skip ci]"
           git push || true

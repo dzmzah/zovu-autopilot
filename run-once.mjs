@@ -107,8 +107,31 @@ async function waitReady(containerId, token, label = '') {
   throw new Error(`kontener ${label} nie zdążył się przetworzyć`);
 }
 
+// Токен Instagram берём из самообновляющегося хранилища и по дороге продлеваем,
+// чтобы он не умер через 60 дней и автопилот не замолчал.
+async function instagramToken() {
+  try {
+    const store = await import('./token-store.mjs');
+    const { token, refreshedAt } = await store.loadInstagramToken();
+    if (store.needsRefresh(refreshedAt)) {
+      try {
+        const fresh = await store.refreshInstagramToken(token);
+        await store.saveInstagramToken(fresh.token);
+        const days = Math.round((fresh.expiresIn || 0) / 86400);
+        console.log(`[autopilot] token Instagrama przedłużony o ${days} dni`);
+        return fresh.token;
+      } catch (e) {
+        console.warn(`[autopilot] nie udało się przedłużyć tokenu: ${e.message}`);
+      }
+    }
+    return token;
+  } catch {
+    return env('INSTAGRAM_TOKEN');
+  }
+}
+
 async function publish(urls, caption) {
-  const token = await env('INSTAGRAM_TOKEN');
+  const token = await instagramToken();
   if (!token) throw new Error('нет INSTAGRAM_TOKEN');
 
   let container;
