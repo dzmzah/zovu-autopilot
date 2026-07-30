@@ -260,7 +260,9 @@ async function askModel(system, user) {
   }
 
   if (geminiKey) {
-    const model = 'gemini-2.5-flash';
+    // «latest» — псевдоним на текущую Flash. Конкретные версии Google
+    // закрывает для новых ключей (gemini-2.5-flash уже отдаёт 404).
+    const model = process.env.GEMINI_MODEL || 'gemini-flash-latest';
     const r = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
       {
