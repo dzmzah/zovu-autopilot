@@ -300,7 +300,15 @@ body { background:transparent; color:#fff; overflow:hidden; position:relative;
    середине работает как удар и делит ролик пополам. */
 .sc.inv .scrim { background:linear-gradient(165deg, rgba(124,58,237,.62) 0%, rgba(76,29,149,.68) 55%, rgba(45,14,96,.76) 100%); }
 .sc.inv h1.big .w { background-image:linear-gradient(180deg,#ffffff 0%,#ffffff 100%); }
-.sc.inv h1.big .w.key { background-image:linear-gradient(180deg,#0b0418 0%,#140829 100%); }
+/* На фиолетовой сцене тёмная вырубка не читается: под текстом ещё и съёмка,
+   а чёрная тень от букв добивает остатки контраста. Поэтому здесь акцент —
+   не цвет буквы, а плашка под ней. */
+.sc.inv h1.big .w.key {
+  background-image:none; background-color:#12061f;
+  -webkit-background-clip:border-box; background-clip:border-box;
+  -webkit-text-fill-color:#ffffff; color:#ffffff;
+  padding:0 .10em; border-radius:12px;
+  filter:drop-shadow(0 10px 34px rgba(0,0,0,.5)); }
 .sc.inv .rule { background:linear-gradient(90deg,#ffffff,rgba(255,255,255,0)); }
 .sc.inv .num { background:#0f0722; color:#e9dcff; }
 
