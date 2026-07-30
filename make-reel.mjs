@@ -137,7 +137,7 @@ async function brollLibrary() {
 // ── сцены ─────────────────────────────────────────────────────────
 // Раскладка меняется от сцены к сцене, способ появления текста тоже,
 // ритм рваный. Одинаковая сетка шесть раз подряд читается как слайдшоу.
-const LAYOUTS = ['bottom', 'panel', 'center'];
+const LAYOUTS = ['bottom', 'top', 'center'];
 const ANIMS = ['stack', 'wipe', 'pop'];
 const PACE = [2.6, 2.2, 2.6];
 // В карусель идут пять пунктов, в рилс — три. Пять штук за десять секунд
@@ -238,7 +238,7 @@ function pageHtml(scenes, beat, logo, site, person) {
           : '';
 
       return `<section class="sc l-${s.layout}${s.inv ? ' inv' : ''}" data-anim="${s.anim}" data-i="${i}">
-        <div class="scrim"></div>${s.layout === 'panel' ? '<div class="panel"></div>' : ''}
+        <div class="scrim"></div>
         ${chip}${num}${count}${face}${head}${mark}
       </section>`;
     })
@@ -274,13 +274,10 @@ body { background:transparent; color:#fff; overflow:hidden; position:relative;
 .l-bottom .scrim { background:linear-gradient(180deg, rgba(6,4,14,.34) 0%, rgba(6,4,14,0) 24%, rgba(6,4,14,.42) 56%, rgba(6,4,14,.88) 100%); }
 .l-bottom .body { left:88px; right:88px; bottom:380px; }
 
-/* стеклянная плашка под текстом — читаемо даже на пёстром кадре */
-.l-panel .scrim { background:linear-gradient(180deg, rgba(6,4,14,.30) 0%, rgba(6,4,14,0) 30%, rgba(6,4,14,.45) 100%); }
-.panel { position:absolute; left:70px; right:70px; bottom:330px; height:440px; border-radius:44px;
-  border:1px solid rgba(167,139,250,.32);
-  background:linear-gradient(150deg, rgba(20,10,44,.80), rgba(10,5,24,.72));
-  box-shadow:0 40px 120px rgba(0,0,0,.6); }
-.l-panel .body { left:118px; right:118px; bottom:392px; }
+/* текст вверху кадра: съёмка работает в нижних двух третях */
+.l-top .scrim { background:linear-gradient(180deg, rgba(6,4,14,.88) 0%, rgba(6,4,14,.55) 34%, rgba(6,4,14,.08) 58%, rgba(6,4,14,.55) 100%); }
+/* ниже номера и счётчика: они живут на 250px, иначе заголовок налезает на них */
+.l-top .body { left:88px; right:88px; top:400px; }
 
 /* крупно по центру, съёмка работает фоном целиком */
 .l-center .scrim { background:linear-gradient(180deg, rgba(6,4,14,.44) 0%, rgba(6,4,14,.30) 45%, rgba(6,4,14,.62) 100%); }
@@ -303,8 +300,7 @@ body { background:transparent; color:#fff; overflow:hidden; position:relative;
    середине работает как удар и делит ролик пополам. */
 .sc.inv .scrim { background:linear-gradient(165deg, rgba(124,58,237,.62) 0%, rgba(76,29,149,.68) 55%, rgba(45,14,96,.76) 100%); }
 .sc.inv h1.big .w { background-image:linear-gradient(180deg,#ffffff 0%,#ffffff 100%); }
-/* тёмная вырубка только там, где под словом фиолетовый фон, а не плашка */
-.sc.inv:not(.l-panel) h1.big .w.key { background-image:linear-gradient(180deg,#0b0418 0%,#140829 100%); }
+.sc.inv h1.big .w.key { background-image:linear-gradient(180deg,#0b0418 0%,#140829 100%); }
 .sc.inv .rule { background:linear-gradient(90deg,#ffffff,rgba(255,255,255,0)); }
 .sc.inv .num { background:#0f0722; color:#e9dcff; }
 
@@ -391,7 +387,7 @@ window.__fitAll = () => {
     const cls = s.className;
     if (cls.includes('l-cold')) fit(h, 240, 80, 1000);
     else if (cls.includes('l-center')) fit(h, 180, 56, 900);
-    else if (cls.includes('l-panel')) fit(h, 116, 48, 300);
+    else if (cls.includes('l-top')) fit(h, 148, 56, 540);
     else fit(h, 152, 56, 560);
   });
 };
@@ -467,12 +463,6 @@ window.setT = (t) => {
     });
 
     const after = 0.04 + ws.length * step;
-    const panel = el.querySelector('.panel');
-    if (panel) {
-      const p = easeOut(clamp01(local / 0.3));
-      panel.style.opacity = p;
-      panel.style.transform = 'translateY(' + Math.round(26 * (1 - p)) + 'px)';
-    }
     const count = el.querySelector('.count');
     if (count) {
       const p = easeOut(clamp01(local / 0.34));
