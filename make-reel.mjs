@@ -127,8 +127,14 @@ export async function detectTempo(file) {
 }
 
 // ── сцены ─────────────────────────────────────────────────────────
-// Макеты чередуются: одинаковая сетка семь раз подряд читается как слайдшоу.
-const LAYOUTS = ['full', 'card', 'split', 'huge'];
+// Три вещи против однообразия:
+//   LAYOUTS — разная раскладка кадра
+//   ANIMS   — разный способ появления текста
+//   PACE    — рваный ритм: короткие пункты вперемешку с длинными
+// Плюс одна сцена-перебивка (inv): сплошной фиолетовый вместо тёмного.
+const LAYOUTS = ['full', 'card', 'split', 'huge', 'full'];
+const ANIMS = ['stack', 'wipe', 'pop', 'slam', 'stack'];
+const PACE = [2.6, 1.9, 2.5, 1.9, 2.8];
 
 function buildScenes(data, beat) {
   const beatsFor = (seconds) => Math.max(2, Math.round(seconds / beat));
@@ -138,6 +144,7 @@ function buildScenes(data, beat) {
     {
       kind: 'hook',
       layout: 'full',
+      anim: 'slam',
       eyebrow: data.eyebrow,
       title: data.title,
       sub: data.subtitle,
@@ -146,14 +153,18 @@ function buildScenes(data, beat) {
     ...items.map((it, i) => ({
       kind: 'item',
       layout: LAYOUTS[i % LAYOUTS.length],
+      anim: ANIMS[i % ANIMS.length],
+      inv: i === 3, // четвёртый пункт выбивается из ряда — глазу нужен толчок
       index: i + 1,
+      total: items.length,
       heading: it.heading,
       text: it.text,
-      beats: beatsFor(2.4),
+      beats: beatsFor(PACE[i % PACE.length]),
     })),
     {
       kind: 'cta',
       layout: 'face',
+      anim: 'stack',
       headline: (data.cta && data.cta.headline) || 'Zrobimy to za Ciebie',
       line: (data.cta && data.cta.line) || 'zovu.pl',
       beats: beatsFor(3.2),
@@ -173,12 +184,17 @@ function buildScenes(data, beat) {
 function pageHtml(scenes, beat, logo, site, person) {
   const esc = (s) =>
     String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const words = (s) =>
-    esc(s)
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((w) => `<span class="w">${w}</span>`)
+  // Последнее слово заголовка красим в акцент: глазу нужна точка, за которую
+  // зацепиться, иначе семь сцен читаются как одна стена букв.
+  const words = (s) => {
+    const list = esc(s).split(/\s+/).filter(Boolean);
+    return list
+      .map(
+        (w, i) =>
+          `<span class="w${i === list.length - 1 && list.length > 1 ? ' key' : ''}">${w}</span>`
+      )
       .join(' ');
+  };
 
   const media = (s) =>
     s.image
@@ -212,14 +228,18 @@ function pageHtml(scenes, beat, logo, site, person) {
           ? `<div class="mark">${logo ? `<img src="${logo}" alt="">` : ''}<span>ZOVU</span></div>`
           : '';
 
-      return `<section class="sc l-${s.layout}" data-i="${i}">
-        ${media(s)}${chip}${num}${face}${head}${mark}
+      // счётчик «3/5» держит внимание: видно, сколько осталось
+      const count =
+        s.kind === 'item' ? `<div class="count">${s.index}<span>/${s.total}</span></div>` : '';
+
+      return `<section class="sc l-${s.layout}${s.inv ? ' inv' : ''}" data-anim="${s.anim}" data-i="${i}">
+        ${media(s)}${chip}${num}${count}${face}${head}${mark}
       </section>`;
     })
     .join('\n');
 
   const meta = JSON.stringify(
-    scenes.map((s) => ({ start: s.start, dur: s.dur, kind: s.kind, layout: s.layout }))
+    scenes.map((s) => ({ start: s.start, dur: s.dur, kind: s.kind, layout: s.layout, anim: s.anim }))
   );
 
   return `<!doctype html><html><head><meta charset="utf-8">
@@ -311,8 +331,33 @@ h1.big .w { display:inline-block; will-change:transform,opacity;
   -webkit-background-clip:text; background-clip:text;
   -webkit-text-fill-color:transparent; color:transparent;
   filter:drop-shadow(0 6px 30px rgba(0,0,0,.75)); }
+h1.big .w.key { background-image:linear-gradient(180deg,#c9a6ff 0%,#a78bfa 100%); }
 .rule { height:5px; width:0; margin:38px 0 32px; border-radius:4px;
   background:linear-gradient(90deg,#a78bfa,rgba(167,139,250,0)); }
+
+/* счётчик пунктов — правый верхний угол, вне зоны кнопок Instagram */
+.count { position:absolute; right:90px; top:258px; font-family:'Oswald', sans-serif;
+  font-weight:700; font-size:52px; letter-spacing:.04em; color:#fff;
+  text-shadow:0 4px 22px rgba(0,0,0,.85); }
+.count span { font-size:30px; color:rgba(255,255,255,.62); }
+
+/* ── сцена-перебивка: сплошной фиолетовый вместо тёмного ── */
+/* Шесть тёмных кадров подряд глаз перестаёт различать. Один яркий
+   в середине работает как удар и делит ролик пополам. */
+.sc.inv .media { opacity:.30; mix-blend-mode:luminosity; }
+.sc.inv .scrim { background:linear-gradient(165deg,#7c3aed 0%,#5b21b6 55%,#3b1180 100%);
+  mix-blend-mode:multiply; }
+.sc.inv::after { content:''; position:absolute; inset:0;
+  background:linear-gradient(165deg, rgba(124,58,237,.85) 0%, rgba(59,17,128,.9) 100%);
+  mix-blend-mode:color; }
+.sc.inv h1.big .w { background-image:linear-gradient(180deg,#ffffff 0%,#ffffff 100%); }
+/* на фиолетовом акцентное слово работает вырубкой — но только если почти чёрное */
+.sc.inv h1.big .w.key { background-image:linear-gradient(180deg,#0b0418 0%,#140829 100%); }
+.sc.inv .rule { background:linear-gradient(90deg,#ffffff,rgba(255,255,255,0)); }
+.sc.inv .sub { color:#f3ecff; }
+.sc.inv .num { background:#0f0722; color:#e9dcff; box-shadow:0 0 50px rgba(0,0,0,.5); }
+.sc.inv .ghost { color:rgba(255,255,255,.14); }
+.sc.inv .body, .sc.inv .num, .sc.inv .count, .sc.inv .ghost { position:absolute; z-index:2; }
 .sub { font-size:42px; line-height:1.42; color:#efeafd; max-width:92%;
   text-shadow:0 4px 24px rgba(0,0,0,.8); }
 
@@ -418,16 +463,49 @@ window.setT = (t) => {
       media.style.opacity = enter;
     }
 
-    // слова вылетают по одному; на хуке быстрее — первую секунду нельзя тянуть
+    // Способ появления текста меняется от сцены к сцене. Одинаковый вылет
+    // семь раз подряд и есть та самая однотипность.
     const ws = el.querySelectorAll('h1.big .w');
-    const step = BEAT / (hook ? 3.4 : 2.2);
+    const anim = s.anim || 'stack';
+    const step = anim === 'slam' ? BEAT / 5 : BEAT / (hook ? 3.4 : 2.2);
     ws.forEach((w, k) => {
-      const p = easeOut(clamp01((local - 0.04 - k * step) / (hook ? 0.26 : 0.34)));
-      w.style.opacity = p;
-      w.style.transform = 'translateY(' + (62 * (1 - p)) + 'px) scale(' + (0.96 + 0.04 * p) + ')';
+      const delay = 0.04 + k * step;
+      if (anim === 'wipe') {
+        // строка открывается шторкой слева направо
+        const p = easeOut(clamp01((local - delay) / 0.34));
+        w.style.opacity = 1;
+        w.style.clipPath = 'inset(-10% ' + (100 - 100 * p).toFixed(1) + '% -10% 0)';
+        w.style.transform = 'none';
+      } else if (anim === 'pop') {
+        // слово выскакивает с перелётом — самый заметный из четырёх
+        const raw = clamp01((local - delay) / 0.3);
+        const p = easeOut(raw);
+        const over = 1 + 0.16 * Math.sin(Math.PI * raw);
+        w.style.opacity = p;
+        w.style.clipPath = 'none';
+        w.style.transform = 'scale(' + (0.55 + 0.45 * p) * over + ')';
+      } else if (anim === 'slam') {
+        // весь заголовок падает почти разом и упирается — удар, а не вылет
+        const p = easeOut(clamp01((local - delay) / 0.2));
+        w.style.opacity = p;
+        w.style.clipPath = 'none';
+        w.style.transform = 'translateY(' + (28 * (1 - p)) + 'px) scale(' + (1.1 - 0.1 * p) + ')';
+      } else {
+        const p = easeOut(clamp01((local - delay) / (hook ? 0.26 : 0.34)));
+        w.style.opacity = p;
+        w.style.clipPath = 'none';
+        w.style.transform = 'translateY(' + (62 * (1 - p)) + 'px) scale(' + (0.96 + 0.04 * p) + ')';
+      }
     });
 
     const after = 0.04 + ws.length * step;
+    // счётчик пунктов подъезжает сверху
+    const count = el.querySelector('.count');
+    if (count) {
+      const p = easeOut(clamp01(local / 0.34));
+      count.style.opacity = p;
+      count.style.transform = 'translateY(' + Math.round(-30 * (1 - p)) + 'px)';
+    }
     const chip = el.querySelector('.chip');
     if (chip) {
       const p = easeOut(clamp01(local / 0.26));
