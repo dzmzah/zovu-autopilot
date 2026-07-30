@@ -143,7 +143,17 @@ if (DRY) {
 
 const urls = await pushToCdn(files);
 const result = await publish(urls, post.caption);
-console.log(`[autopilot] opublikowano: ${result.permalink || result.mediaId}`);
+console.log(`[autopilot] Instagram: ${result.permalink || result.mediaId}`);
+
+// Facebook — тем же контентом. Если токена нет, шаг пропускается,
+// и это не ломает публикацию в Instagram.
+try {
+  const { publishToFacebook } = await import('./fb-publish.mjs');
+  const fb = await publishToFacebook({ imageUrls: urls, caption: post.caption });
+  console.log(fb.skipped ? `[autopilot] Facebook: pominięty (${fb.reason})` : `[autopilot] Facebook: ${fb.postId}`);
+} catch (e) {
+  console.warn(`[autopilot] Facebook nie wyszedł: ${e.message}`);
+}
 
 // состояние ротации возвращаем в репозиторий, чтобы следующий запуск его увидел
 try {
