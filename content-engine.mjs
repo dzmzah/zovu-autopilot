@@ -40,6 +40,49 @@ const TOPICS = [
   'Wygląd profilu: bio, link, wyróżnione relacje',
   'Content, który pracuje latami',
   'Kiedy warto zatrudnić agencję, a kiedy jeszcze za wcześnie',
+  // ── branże, pod które piszemy konkretnie ──
+  'Profil restauracji, który przyciąga gości z okolicy',
+  'Salon urody: jak pokazywać efekty pracy, żeby zapisywali się sami',
+  'Warsztat samochodowy w internecie: czego szuka klient',
+  'Sklep internetowy: opisy produktów, które sprzedają',
+  'Gabinet i klinika: zaufanie zanim pacjent zadzwoni',
+  'Fryzjer i barber: portfolio zamiast cennika',
+  'Firma budowlana: zdjęcia z placu zamiast sloganów',
+  'Kwiaciarnia i mała gastronomia: sezonowość w treściach',
+  'Trener i fizjoterapeuta: jak nie wyglądać jak wszyscy',
+  'Sklep stacjonarny: jak internet przyprowadza ludzi do drzwi',
+  // ── konkretne problemy dnia codziennego ──
+  'Nie odpisujesz na wiadomości w weekend. Ile to kosztuje',
+  'Zdjęcia z telefonu kontra zdjęcia z sesji: kiedy co',
+  'Cennik na stronie: argumenty za i przeciw',
+  'Klient pyta o cenę w komentarzu. Co odpisać',
+  'Konkurencja skopiowała Twój post. I co teraz',
+  'Ile postów trzeba, zanim coś się zacznie dziać',
+  'Dlaczego posty mają zasięg, a telefon milczy',
+  'Jak wygląda dobre zdjęcie profilowe firmy',
+  'Bio na Instagramie: trzy linijki, które muszą sprzedać',
+  'Wyróżnione relacje: co tam trzymać',
+  'Kiedy usunąć stary post, a kiedy zostawić',
+  'Jak pisać o podwyżce cen, żeby klienci zostali',
+  'Post z okazji święta: kiedy ma sens, a kiedy to zapychacz',
+  'Jak zbierać opinie, żeby ludzie faktycznie je pisali',
+  'Odpowiedzi na komentarze: szablon czy własnymi słowami',
+  'Współpraca z lokalnym twórcą: na co uważać',
+  'Reels bez pokazywania twarzy: czy da się',
+  'Jak zaplanować content na miesiąc w dwie godziny',
+  'Statystyki Instagrama: na które trzy liczby patrzeć',
+  'Kiedy przestać publikować i naprawić fundamenty',
+  // ── AI i automatyzacja, praktycznie ──
+  'AI napisze post, ale nie wie, co u Ciebie w firmie',
+  'Co AI robi lepiej od człowieka w małej firmie',
+  'Gdzie AI szkodzi treściom marki',
+  'Automatyczne odpowiedzi: pomagają czy irytują',
+  'Jak wygląda dzień firmy, która zautomatyzowała powtarzalne zadania',
+  'Ile realnie kosztuje wdrożenie automatyzacji w małej firmie',
+  'Chatbot na stronie: kiedy ma sens',
+  'Czy warto generować zdjęcia produktów przez AI',
+  'AI w obsłudze klienta: gdzie postawić granicę',
+  'Jeden system zamiast pięciu narzędzi',
 ];
 
 const FORMATS = [
@@ -211,8 +254,25 @@ Zwróć WYŁĄCZNIE obiekt JSON:
   "bullets": ["dokładnie trzy punkty, każdy 25-48 znaków, konkretna korzyść lub fakt, bez kropki"],
   "bgIdea": "PO ANGIELSKU, 4-8 słów: KONKRETNE PRZEDMIOTY do tła. Zacznij od floating i dodaj materiał: violet glass, chrome, neon. Bez ludzi i bez napisów",
   "caption": "opis pod post, 300-550 znaków, trzy krótkie akapity rozdzielone podwójną nową linią, maksymalnie dwa emoji",
-  "hashtags": ["maksymalnie pięć hashtagów po polsku, bez znaku #"]
+  "hashtags": ["pięć hashtagów wg zasad poniżej, bez znaku #"]
 }` : `Zwróć WYŁĄCZNIE obiekt JSON:`}
+
+━━━ ZASADY HASHTAGÓW ━━━
+Ogólne tagi (#marketing, #biznes, #reklama) mają miliony postów — mała firma
+nigdy się przez nie nie przebije. Dlatego mieszamy:
+- DWA lokalne: katowice, slask, firmakatowice, biznesslask, katowicebiznes
+- DWA niszowe i konkretne: mala firma + branża, np. malafirma, lokalnybiznes,
+  salonurody, gastronomiapl, warsztatsamochodowy, sklepinternetowy
+- JEDEN tematyczny, pasujący do treści posta
+Bez ogólników typu marketing, biznes, sukces, motywacja.
+
+━━━ ZASADY NAGŁÓWKA ━━━
+Nagłówek decyduje, czy ktoś się zatrzyma. Musi:
+- mówić o STRACIE albo o konkretnej sytuacji, nie o korzyści ogólnej
+- dać się zobaczyć oczami: „Numer telefonu ukryty w stopce" — tak.
+  „Zadbaj o wizerunek" — nie
+- działać bez czytania reszty
+Nie zaczynaj od „Czy wiesz, że", „W dzisiejszych czasach", „Jak zwiększyć".
 {
   "eyebrow": "etykieta WIELKIMI LITERAMI, max 26 znaków, zaczyna się od: ZOVU ·",
   "title": "nagłówek okładki, 30-62 znaki, mocny, bez kropki na końcu",
