@@ -42,6 +42,8 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+          FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
           # картинки кладём в этот же репозиторий, он публичный
           CDN_REPO: ${{ github.workspace }}
           RAW_BASE: https://raw.githubusercontent.com/${{ github.repository }}/main
