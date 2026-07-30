@@ -221,7 +221,7 @@ if (post.kind === 'reel') {
   const reel = await makeReel({ data: post.data, name: post.data.name, photo: post.data.photoCta || 'mat' });
   console.log(
     `[autopilot] rolka: ${reel.seconds.toFixed(1)}s, ${(reel.bytes / 1048576).toFixed(1)} MB` +
-      `, ${reel.images} kadrów` + (reel.withMusic ? `, montaż pod ${reel.bpm} BPM` : ', bez muzyki')
+      `, ${reel.clips.length} ujęć` + (reel.withMusic ? `, montaż pod ${reel.bpm} BPM` : ', bez muzyki')
   );
   files = [{ file: reel.file, name: reel.name }];
 } else {

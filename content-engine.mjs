@@ -279,6 +279,7 @@ Nie zaczynaj od „Czy wiesz, że", „W dzisiejszych czasach", „Jak zwiększy
   "eyebrow": "etykieta WIELKIMI LITERAMI, max 26 znaków, zaczyna się od: ZOVU ·",
   "title": "nagłówek okładki, 30-62 znaki, mocny, bez kropki na końcu",
   "hook": "DWA DO CZTERECH SŁÓW wielkimi literami. To pierwsze, co widz zobaczy na ekranie — ma zatrzymać kciuk. Nazwij stratę albo błąd, nie zapowiadaj tematu. Dobrze: „TRACISZ KLIENTÓW", „TO KOSZTUJE CIĘ TYSIĄCE". Źle: „O CZYM DZIŚ MÓWIMY"",
+  "broll": "JEDEN tag z listy, pasujący do tematu całego postu (użyjemy go jako tła wideo)",
   "subtitle": "jedno zdanie pod nagłówkiem, 40-80 znaków, bez wymyślonych liczb",
   "items": [
     {
@@ -291,7 +292,12 @@ Nie zaczynaj od „Czy wiesz, że", „W dzisiejszych czasach", „Jak zwiększy
   "caption": "opis pod post, 300-550 znaków, trzy krótkie akapity rozdzielone podwójną nową linią, maksymalnie dwa emoji",
   "hashtags": ["maksymalnie pięć hashtagów po polsku, bez znaku #"]
 }
-Pole items musi mieć DOKŁADNIE pięć elementów.`;
+Pole items musi mieć DOKŁADNIE pięć elementów.
+Każdy punkt ma też pole "broll" — JEDEN tag z tej listy, najbliższy treści punktu:
+${BROLL_TAGS.join(', ')}
+To nazwa gotowego nagrania, które puścimy w tle. Wybieraj po sensie: punkt o
+zdjęciach jedzenia — "jedzenie", o salonie — "uroda", o czasie — "czas",
+o pieniądzach — "finanse", o technologii — "ekrany" albo "ai".`;
 }
 
 // ── вызов модели ──────────────────────────────────────────────────
@@ -441,6 +447,12 @@ function clean(out) {
     .slice(0, 34)
     .toUpperCase();
   if (out.hook.split(/\s+/).filter(Boolean).length > 5) out.hook = '';
+
+  // Тег живого футажа. Модель иногда выдумывает своё название — тогда тег
+  // просто отбрасываем, и движок возьмёт клип по кругу.
+  const okTag = (v) => (BROLL_TAGS.includes(String(v || '').trim().toLowerCase()) ? String(v).trim().toLowerCase() : '');
+  out.broll = okTag(out.broll);
+  if (Array.isArray(out.items)) out.items = out.items.map((i) => ({ ...i, broll: okTag(i.broll) }));
   out.items = (out.items || []).slice(0, 5).map((i) => ({
     heading: shorten(strip(i.heading), 44).replace(/[.\s]+$/, ''),
     text: shorten(strip(i.text), 86),
@@ -462,6 +474,10 @@ function clean(out) {
 }
 
 // ── главное: собрать готовый пост ────────────────────────────────
+// Теги живого футажа из папки broll/. Держим списком здесь, чтобы промпт и
+// подстановка запасного клипа не разъезжались.
+const BROLL_TAGS = ['ai','architektura','auto','auto2','auto3','barber','bieganie','bizuteria','czas','czekolada','deser','detailing','ekrany','finanse','fotostudio','gadzety','gaming','jedzenie','joga','kawa','koktajl','kosmetyki','ksiazki','kwiaty','marka','marka2','marka3','moda','muzyka','nieruchomosci','nowoczesne','perfumy','podroze','rosliny','spa','sport','swiece','swieta','uroda','wnetrza','wyprzedaz'];
+
 export async function makePost({ topic, format, kind, trends = false, genImages = true, photo = 'zah', photoCta = 'mat' } = {}) {
   const state = await readState();
 
@@ -563,6 +579,7 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
         title: out.title,
         subtitle: out.subtitle,
         hook: out.hook,
+        broll: out.broll,
         items: out.items,
         cta: out.cta,
         photo,

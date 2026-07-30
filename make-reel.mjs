@@ -1,17 +1,15 @@
-// Вертикальный рилс 1080x1920 — собственный макет, а не карусель в рамке.
+// Вертикальный рилс 1080x1920 на ЖИВОМ футаже.
 //
-// Как устроено. Открываем ОДНУ html-страницу, где вся анимация — чистая функция
-// времени: `setT(t)` расставляет элементы для момента t. Дальше прогоняем время
-// по кадрам и снимаем скриншот каждого. Так кадры получаются точные и
-// повторяемые — в отличие от записи видео браузером, где тайминг «плывёт».
+// Устройство. Кадр собирается из двух слоёв:
+//   1. видеоподложка — реальные съёмки из папки broll/, склеенные по сценам
+//   2. текстовый слой — html-страница, снятая покадрово с прозрачным фоном
+// Дальше ffmpeg накладывает второе на первое. Разделение важное: видео умеет
+// ffmpeg, а типографику и анимацию — браузер, и каждый делает своё.
 //
-// Что делает картинку не «текстом на градиенте»:
-//   • под каждую сцену генерится свой вертикальный кадр (Pollinations, бесплатно)
-//   • макеты чередуются: полный кадр, карточка, раскол, крупный текст
-//   • на финале — лицо из команды, а не очередная надпись
-//   • монтаж привязан к темпу дорожки, на склейках звучит удар
+// Анимация — чистая функция времени `setT(t)`: прогоняем время по кадрам и
+// снимаем скриншот каждого. Точнее и повторяемее, чем запись видео браузером.
 //
-//   node make-reel.mjs --demo      — собрать пример из тестовых данных
+//   node make-reel.mjs           — собрать пример из тестовых данных
 import { chromium } from 'playwright';
 import { mkdir, readdir, readFile, writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
@@ -22,6 +20,7 @@ import sharp from 'sharp';
 const execFileAsync = promisify(execFile);
 const OUT_DIR = path.join(import.meta.dirname, 'out');
 const MUSIC_DIR = path.join(import.meta.dirname, 'music');
+const BROLL_DIR = path.join(import.meta.dirname, 'broll');
 const LOGO_FILE = path.join(import.meta.dirname, 'logo-white.b64');
 const W = 1080;
 const H = 1920;
@@ -47,12 +46,12 @@ async function logoUri() {
   }
 }
 
-async function fileUri(file, { width, height } = {}) {
-  if (!file) return '';
+async function faceUri(file) {
   try {
-    let img = sharp(file);
-    if (width) img = img.resize(width, height, { fit: 'cover', position: sharp.strategy.attention });
-    const buf = await img.jpeg({ quality: 86 }).toBuffer();
+    const buf = await sharp(file)
+      .resize(460, 460, { fit: 'cover', position: sharp.strategy.attention })
+      .jpeg({ quality: 88 })
+      .toBuffer();
     return 'data:image/jpeg;base64,' + buf.toString('base64');
   } catch {
     return '';
@@ -72,8 +71,7 @@ async function pickMusic() {
 // ── темп дорожки ──────────────────────────────────────────────────
 // Раскладываем звук на огибающую громкости и ищем период, на котором она
 // повторяется чаще всего (автокорреляция). Для электронной музыки с ровной
-// бочкой это работает надёжно; если не нашли — вернём null и смонтируем
-// по фиксированным секундам.
+// бочкой это работает надёжно; не нашли — смонтируем по фиксированным секундам.
 export async function detectTempo(file) {
   const SR = 11025;
   const HOP = 256; // ~43 значения огибающей в секунду
@@ -126,45 +124,55 @@ export async function detectTempo(file) {
   }
 }
 
+// ── живой футаж ───────────────────────────────────────────────────
+async function brollLibrary() {
+  try {
+    const files = (await readdir(BROLL_DIR)).filter((f) => f.endsWith('.mp4'));
+    return new Map(files.map((f) => [f.replace(/\.mp4$/, ''), path.join(BROLL_DIR, f)]));
+  } catch {
+    return new Map();
+  }
+}
+
 // ── сцены ─────────────────────────────────────────────────────────
-// Три вещи против однообразия:
-//   LAYOUTS — разная раскладка кадра
-//   ANIMS   — разный способ появления текста
-//   PACE    — рваный ритм: короткие пункты вперемешку с длинными
-// Плюс одна сцена-перебивка (inv): сплошной фиолетовый вместо тёмного.
-const LAYOUTS = ['full', 'card', 'split', 'huge', 'full'];
-const ANIMS = ['stack', 'wipe', 'pop', 'slam', 'stack'];
-const PACE = [2.6, 1.9, 2.5, 1.9, 2.8];
+// Раскладка меняется от сцены к сцене, способ появления текста тоже,
+// ритм рваный. Одинаковая сетка шесть раз подряд читается как слайдшоу.
+const LAYOUTS = ['bottom', 'panel', 'center'];
+const ANIMS = ['stack', 'wipe', 'pop'];
+const PACE = [2.6, 2.2, 2.6];
+// В карусель идут пять пунктов, в рилс — три. Пять штук за десять секунд
+// физически не прочитать: выходит не пост, а бегущая строка.
+const REEL_ITEMS = 3;
 
 function buildScenes(data, beat) {
   const beatsFor = (seconds) => Math.max(2, Math.round(seconds / beat));
-  const items = (data.items || []).slice(0, 5);
+  const items = (data.items || []).slice(0, REEL_ITEMS);
 
   // Холодное открытие: два-три слова во весь экран и жёсткий переход.
-  // Решение, смотреть дальше или нет, зритель принимает за первые полсекунды —
-  // за это время обычная заставка успевает только проявиться.
+  // Смотреть дальше или нет зритель решает за первые полсекунды — за это время
+  // обычная заставка успевает только проявиться.
   const cold = (data.hook || '').trim() || data.title.split(/\s+/).slice(0, 3).join(' ').toUpperCase();
 
   const scenes = [
-    { kind: 'cold', layout: 'cold', anim: 'slam', title: cold, beats: Math.max(2, beatsFor(0.85)) },
+    { kind: 'cold', layout: 'cold', anim: 'slam', title: cold, broll: data.broll, beats: beatsFor(1.1) },
     {
       kind: 'hook',
-      layout: 'full',
+      layout: 'bottom',
       anim: 'slam',
       eyebrow: data.eyebrow,
       title: data.title,
-      sub: data.subtitle,
+      broll: data.broll,
       beats: beatsFor(3.0),
     },
     ...items.map((it, i) => ({
       kind: 'item',
       layout: LAYOUTS[i % LAYOUTS.length],
       anim: ANIMS[i % ANIMS.length],
-      inv: i === 3, // четвёртый пункт выбивается из ряда — глазу нужен толчок
+      inv: i === 2, // последний пункт выбивается из ряда — глазу нужен толчок
       index: i + 1,
       total: items.length,
       heading: it.heading,
-      text: it.text,
+      broll: it.broll,
       beats: beatsFor(PACE[i % PACE.length]),
     })),
     {
@@ -173,6 +181,7 @@ function buildScenes(data, beat) {
       anim: 'stack',
       headline: (data.cta && data.cta.headline) || 'Zrobimy to za Ciebie',
       line: (data.cta && data.cta.line) || 'zovu.pl',
+      broll: 'marka2',
       beats: beatsFor(3.2),
     },
   ];
@@ -186,12 +195,12 @@ function buildScenes(data, beat) {
   return { scenes, total: t };
 }
 
-// ── страница ──────────────────────────────────────────────────────
+// ── текстовый слой ────────────────────────────────────────────────
 function pageHtml(scenes, beat, logo, site, person) {
   const esc = (s) =>
     String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   // Последнее слово заголовка красим в акцент: глазу нужна точка, за которую
-  // зацепиться, иначе семь сцен читаются как одна стена букв.
+  // зацепиться, иначе сцены читаются как одна стена букв.
   const words = (s) => {
     const list = esc(s).split(/\s+/).filter(Boolean);
     return list
@@ -202,36 +211,21 @@ function pageHtml(scenes, beat, logo, site, person) {
       .join(' ');
   };
 
-  const media = (s) =>
-    s.image
-      ? `<div class="media"><img src="${s.image}" alt=""></div><div class="scrim"></div>`
-      : '<div class="scrim soft"></div>';
-
-  // Пояснение тоже разбираем на слова: строка, проявляющаяся куском, читается
-  // как титр, а по словам — как живая подпись, за которой идёт глаз.
-  const subWords = (s) =>
-    esc(s)
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((w) => `<span class="sw">${w}</span>`)
-      .join(' ');
-
   const sections = scenes
     .map((s, i) => {
-      const subText =
-        s.kind === 'item' ? s.text : s.kind === 'hook' ? s.sub : s.kind === 'cta' ? s.line : '';
+      // На экране только то, что читается за секунду. Пояснения к пунктам
+      // ушли в подпись под постом: на видео их всё равно не успевают прочесть.
       const head = `<div class="body">
         <h1 class="big">${words(s.kind === 'item' ? s.heading : s.kind === 'cta' ? s.headline : s.title)}</h1>
         ${s.kind === 'cold' ? '' : '<div class="rule"></div>'}
-        ${subText ? `<p class="sub">${subWords(subText)}</p>` : ''}
+        ${s.kind === 'cta' ? `<p class="sub">${esc(s.line)}</p>` : ''}
       </div>`;
 
       const chip = s.kind === 'hook' ? `<div class="chip"><i></i>${esc(s.eyebrow || 'ZOVU')}</div>` : '';
       const num =
-        s.kind === 'item'
-          ? `<div class="num">${String(s.index).padStart(2, '0')}</div>
-             <div class="ghost">${String(s.index).padStart(2, '0')}</div>`
-          : '';
+        s.kind === 'item' ? `<div class="num">${String(s.index).padStart(2, '0')}</div>` : '';
+      const count =
+        s.kind === 'item' ? `<div class="count">${s.index}<span>/${s.total}</span></div>` : '';
       const face =
         s.kind === 'cta' && person
           ? `<div class="face"><img src="${person.uri}" alt="">
@@ -243,12 +237,9 @@ function pageHtml(scenes, beat, logo, site, person) {
           ? `<div class="mark">${logo ? `<img src="${logo}" alt="">` : ''}<span>ZOVU</span></div>`
           : '';
 
-      // счётчик «3/5» держит внимание: видно, сколько осталось
-      const count =
-        s.kind === 'item' ? `<div class="count">${s.index}<span>/${s.total}</span></div>` : '';
-
       return `<section class="sc l-${s.layout}${s.inv ? ' inv' : ''}" data-anim="${s.anim}" data-i="${i}">
-        ${media(s)}${chip}${num}${count}${face}${head}${mark}
+        <div class="scrim"></div>${s.layout === 'panel' ? '<div class="panel"></div>' : ''}
+        ${chip}${num}${count}${face}${head}${mark}
       </section>`;
     })
     .join('\n');
@@ -264,82 +255,63 @@ function pageHtml(scenes, beat, logo, site, person) {
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { width:${W}px; height:${H}px; }
-body { background:#050505; color:#fff; overflow:hidden; position:relative;
+/* фон прозрачный: под этим слоем идёт живое видео */
+body { background:transparent; color:#fff; overflow:hidden; position:relative;
   font-family:'JetBrains Mono', monospace; }
 
-/* ── постоянный фон под всем: он виден там, где картинка не закрывает кадр ── */
-#bg { position:absolute; inset:0; overflow:hidden; z-index:0; }
-#glowA, #glowB { position:absolute; border-radius:50%; }
-#glowA { width:1500px; height:1500px;
-  background:radial-gradient(circle at center, rgba(124,58,237,.50), rgba(124,58,237,0) 62%); }
-#glowB { width:1200px; height:1200px;
-  background:radial-gradient(circle at center, rgba(167,139,250,.30), rgba(167,139,250,0) 60%); }
-#grid { position:absolute; left:-200px; right:-200px; top:-400px; height:3000px; opacity:.18;
-  background-image:
-    linear-gradient(to right, rgba(167,139,250,.18) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(167,139,250,.18) 1px, transparent 1px);
-  background-size:110px 110px;
-  mask-image:radial-gradient(ellipse 70% 45% at 50% 42%, #000 15%, transparent 80%);
-  -webkit-mask-image:radial-gradient(ellipse 70% 45% at 50% 42%, #000 15%, transparent 80%); }
-#noise { position:absolute; inset:0; opacity:.06; mix-blend-mode:overlay;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E"); }
-
-/* ── сцена ── */
-#stage { position:absolute; inset:0; z-index:2; transform-origin:50% 46%; }
+#stage { position:absolute; inset:0; }
 .sc { position:absolute; inset:0; visibility:hidden; }
-.media { position:absolute; overflow:hidden; will-change:transform; }
-.media img { width:100%; height:100%; object-fit:cover; }
+/* Затемнение поверх съёмки. Без него белый текст на светлом кадре пропадает,
+   а с ним видео всё ещё видно — в этом вся разница с плашкой. */
 .scrim { position:absolute; inset:0; }
-.body { position:absolute; left:90px; right:90px; display:flex; flex-direction:column; }
+.body { position:absolute; left:88px; right:88px; display:flex; flex-direction:column; }
 
-/* холодное открытие: почти чёрный кадр, два-три слова по центру */
-.l-cold .media { inset:0; filter:saturate(1.2); opacity:.22; }
-.l-cold .scrim { background:radial-gradient(ellipse 70% 45% at 50% 50%, rgba(5,5,5,.55) 0%, rgba(5,5,5,.97) 100%); }
-.l-cold .body { left:80px; right:80px; top:0; bottom:0; justify-content:center; align-items:center;
-  text-align:center; }
+.l-cold .scrim { background:radial-gradient(ellipse 72% 46% at 50% 50%, rgba(6,4,14,.42) 0%, rgba(6,4,14,.86) 100%); }
+.l-cold .body { top:0; bottom:0; justify-content:center; align-items:center; text-align:center; }
 .l-cold h1.big { letter-spacing:-3px; }
 
-/* макет «во весь кадр»: картинка на весь экран, текст внизу */
-.l-full .media { inset:0; }
-.l-full .scrim { background:
-  linear-gradient(180deg, rgba(5,5,5,.55) 0%, rgba(5,5,5,.10) 26%, rgba(5,5,5,.72) 62%, rgba(5,5,5,.96) 100%); }
-.l-full .body { left:90px; right:90px; bottom:400px; }
+/* текст внизу кадра, съёмка дышит сверху */
+.l-bottom .scrim { background:linear-gradient(180deg, rgba(6,4,14,.34) 0%, rgba(6,4,14,0) 24%, rgba(6,4,14,.42) 56%, rgba(6,4,14,.88) 100%); }
+.l-bottom .body { left:88px; right:88px; bottom:380px; }
 
-/* макет «карточка»: картинка в скруглённой рамке сверху, текст под ней */
-.l-card .media { left:90px; right:90px; top:170px; height:800px; border-radius:40px;
-  box-shadow:0 40px 120px rgba(0,0,0,.6), 0 0 0 1px rgba(167,139,250,.28); }
-.l-card .scrim { background:linear-gradient(180deg, rgba(5,5,5,0) 55%, rgba(5,5,5,.55) 100%); }
-.l-card .body { top:1000px; bottom:400px; justify-content:center; }
+/* стеклянная плашка под текстом — читаемо даже на пёстром кадре */
+.l-panel .scrim { background:linear-gradient(180deg, rgba(6,4,14,.30) 0%, rgba(6,4,14,0) 30%, rgba(6,4,14,.45) 100%); }
+.panel { position:absolute; left:70px; right:70px; bottom:330px; height:440px; border-radius:44px;
+  border:1px solid rgba(167,139,250,.32);
+  background:linear-gradient(150deg, rgba(20,10,44,.80), rgba(10,5,24,.72));
+  box-shadow:0 40px 120px rgba(0,0,0,.6); }
+.l-panel .body { left:118px; right:118px; bottom:392px; }
 
-/* макет «раскол»: картинка в правой половине, текст в левой */
-.l-split .media { left:520px; right:0; top:0; bottom:0;
-  mask-image:linear-gradient(to right, transparent 0%, rgba(0,0,0,.4) 22%, #000 52%);
-  -webkit-mask-image:linear-gradient(to right, transparent 0%, rgba(0,0,0,.4) 22%, #000 52%); }
-.l-split .scrim { background:linear-gradient(180deg, rgba(5,5,5,.35) 0%, rgba(5,5,5,0) 40%, rgba(5,5,5,.85) 100%); }
-.l-split .body { left:90px; right:420px; top:0; bottom:0; justify-content:center; }
+/* крупно по центру, съёмка работает фоном целиком */
+.l-center .scrim { background:linear-gradient(180deg, rgba(6,4,14,.44) 0%, rgba(6,4,14,.30) 45%, rgba(6,4,14,.62) 100%); }
+.l-center .body { top:0; bottom:0; justify-content:center; }
 
-/* макет «крупный текст»: картинка уходит в размытое свечение позади слов */
-.l-huge .media { inset:0; filter:saturate(1.3) contrast(1.06); opacity:.52; }
-.l-huge .scrim { background:linear-gradient(180deg, rgba(5,5,5,.62) 0%, rgba(5,5,5,.34) 38%, rgba(5,5,5,.92) 100%); }
-.l-huge .body { left:90px; right:90px; top:0; bottom:0; justify-content:center; }
-
-/* финал: лицо крупно, под ним обещание */
-.l-face .media { inset:0; }
-.l-face .scrim { background:linear-gradient(180deg, rgba(5,5,5,.5) 0%, rgba(5,5,5,.2) 20%, rgba(5,5,5,.9) 60%, rgba(5,5,5,.99) 100%); }
-.l-face .body { left:90px; right:90px; bottom:430px; }
-.face { position:absolute; left:90px; top:330px; display:flex; align-items:center; gap:28px; }
-.face img { width:230px; height:230px; border-radius:44px; object-fit:cover;
+/* финал: лицо и предложение */
+.l-face .scrim { background:linear-gradient(180deg, rgba(6,4,14,.42) 0%, rgba(6,4,14,.18) 18%, rgba(6,4,14,.72) 58%, rgba(6,4,14,.95) 100%); }
+.l-face .body { left:88px; right:88px; bottom:420px; }
+.face { position:absolute; left:88px; top:340px; display:flex; align-items:center; gap:28px; }
+.face img { width:220px; height:220px; border-radius:42px; object-fit:cover;
   border:2px solid rgba(167,139,250,.6);
   box-shadow:0 30px 90px rgba(0,0,0,.7), 0 0 70px 12px rgba(124,58,237,.4); }
 .face .who { display:flex; flex-direction:column; gap:10px; }
-.face .nm { font-family:'Oswald', sans-serif; font-weight:700; font-size:56px; letter-spacing:.06em;
+.face .nm { font-family:'Oswald', sans-serif; font-weight:700; font-size:54px; letter-spacing:.06em;
   text-transform:uppercase; }
-.face .rl { font-size:24px; color:#c4b5fd; letter-spacing:.14em; text-transform:uppercase; }
+.face .rl { font-size:23px; color:#c4b5fd; letter-spacing:.14em; text-transform:uppercase; }
 
-.chip { position:absolute; left:90px; top:250px; display:inline-flex; align-items:center; gap:14px;
+/* сцена-перебивка: фиолетовая заливка поверх съёмки */
+/* Шесть тёмных кадров подряд глаз перестаёт различать. Один цветной в
+   середине работает как удар и делит ролик пополам. */
+.sc.inv .scrim { background:linear-gradient(165deg, rgba(124,58,237,.62) 0%, rgba(76,29,149,.68) 55%, rgba(45,14,96,.76) 100%); }
+.sc.inv h1.big .w { background-image:linear-gradient(180deg,#ffffff 0%,#ffffff 100%); }
+/* тёмная вырубка только там, где под словом фиолетовый фон, а не плашка */
+.sc.inv:not(.l-panel) h1.big .w.key { background-image:linear-gradient(180deg,#0b0418 0%,#140829 100%); }
+.sc.inv .rule { background:linear-gradient(90deg,#ffffff,rgba(255,255,255,0)); }
+.sc.inv .num { background:#0f0722; color:#e9dcff; }
+
+.chip { position:absolute; left:88px; top:250px; display:inline-flex; align-items:center; gap:14px;
   border:1px solid rgba(167,139,250,.5); border-radius:999px; padding:14px 30px;
   font-size:24px; letter-spacing:.22em; text-transform:uppercase; color:#c4b5fd;
-  background:rgba(124,58,237,.16); backdrop-filter:blur(6px); }
+  background:rgba(124,58,237,.24); }
 .chip i { width:11px; height:11px; border-radius:50%; background:#a78bfa;
   box-shadow:0 0 16px 4px rgba(167,139,250,.9); }
 
@@ -352,75 +324,49 @@ h1.big .w { display:inline-block; will-change:transform,opacity;
   background-image:linear-gradient(180deg,#ffffff 0%,#ffffff 46%,#c9bcff 100%);
   -webkit-background-clip:text; background-clip:text;
   -webkit-text-fill-color:transparent; color:transparent;
-  filter:drop-shadow(0 6px 30px rgba(0,0,0,.75)); }
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,.95)) drop-shadow(0 8px 44px rgba(0,0,0,.8)); }
 h1.big .w.key { background-image:linear-gradient(180deg,#c9a6ff 0%,#a78bfa 100%); }
-.rule { height:5px; width:0; margin:38px 0 32px; border-radius:4px;
+.rule { height:5px; width:0; margin:34px 0 28px; border-radius:4px;
   background:linear-gradient(90deg,#a78bfa,rgba(167,139,250,0)); }
+.sub { font-size:40px; line-height:1.42; color:#efeafd; max-width:92%;
+  text-shadow:0 4px 24px rgba(0,0,0,.85); }
 
-/* счётчик пунктов — правый верхний угол, вне зоны кнопок Instagram */
-.count { position:absolute; right:90px; top:258px; font-family:'Oswald', sans-serif;
-  font-weight:700; font-size:52px; letter-spacing:.04em; color:#fff;
-  text-shadow:0 4px 22px rgba(0,0,0,.85); }
-.count span { font-size:30px; color:rgba(255,255,255,.62); }
-
-/* ── сцена-перебивка: сплошной фиолетовый вместо тёмного ── */
-/* Шесть тёмных кадров подряд глаз перестаёт различать. Один яркий
-   в середине работает как удар и делит ролик пополам. */
-.sc.inv .media { opacity:.30; mix-blend-mode:luminosity; }
-.sc.inv .scrim { background:linear-gradient(165deg,#7c3aed 0%,#5b21b6 55%,#3b1180 100%);
-  mix-blend-mode:multiply; }
-.sc.inv::after { content:''; position:absolute; inset:0;
-  background:linear-gradient(165deg, rgba(124,58,237,.85) 0%, rgba(59,17,128,.9) 100%);
-  mix-blend-mode:color; }
-.sc.inv h1.big .w { background-image:linear-gradient(180deg,#ffffff 0%,#ffffff 100%); }
-/* на фиолетовом акцентное слово работает вырубкой — но только если почти чёрное */
-.sc.inv h1.big .w.key { background-image:linear-gradient(180deg,#0b0418 0%,#140829 100%); }
-.sc.inv .rule { background:linear-gradient(90deg,#ffffff,rgba(255,255,255,0)); }
-.sc.inv .sub { color:#f3ecff; }
-.sc.inv .num { background:#0f0722; color:#e9dcff; box-shadow:0 0 50px rgba(0,0,0,.5); }
-.sc.inv .ghost { color:rgba(255,255,255,.14); }
-.sc.inv .body, .sc.inv .num, .sc.inv .count, .sc.inv .ghost { position:absolute; z-index:2; }
-.sub { font-size:42px; line-height:1.42; color:#efeafd; max-width:92%;
-  text-shadow:0 4px 24px rgba(0,0,0,.8); }
-.sub .sw { display:inline-block; will-change:opacity,transform; }
-
-.num { position:absolute; left:90px; top:250px; font-family:'Oswald', sans-serif;
+.num { position:absolute; left:88px; top:250px; font-family:'Oswald', sans-serif;
   font-weight:700; font-size:60px; letter-spacing:.08em; color:#0b0b0f;
   background:#a78bfa; border-radius:20px; padding:8px 26px;
   box-shadow:0 0 50px rgba(124,58,237,.75); }
-.ghost { position:absolute; right:-30px; top:120px; font-family:'Oswald', sans-serif;
-  font-weight:700; font-size:520px; line-height:.8; color:rgba(255,255,255,.07); }
-.l-split .ghost, .l-card .ghost { display:none; }
-.mark { position:absolute; left:90px; bottom:290px; display:flex; align-items:center; gap:22px; }
+/* счётчик пунктов — видно, сколько осталось, и это удерживает до конца */
+.count { position:absolute; right:88px; top:258px; font-family:'Oswald', sans-serif;
+  font-weight:700; font-size:52px; letter-spacing:.04em; color:#fff;
+  text-shadow:0 4px 22px rgba(0,0,0,.9); }
+.count span { font-size:30px; color:rgba(255,255,255,.62); }
+.mark { position:absolute; left:88px; bottom:290px; display:flex; align-items:center; gap:22px; }
 .mark img { width:88px; height:88px; object-fit:contain;
   filter:drop-shadow(0 0 26px rgba(167,139,250,.7)); }
 .mark span { font-family:'Oswald', sans-serif; font-weight:700; font-size:62px; letter-spacing:.2em; }
 
 /* подвал держим выше зоны, где Instagram рисует подпись и кнопки */
-#foot { position:absolute; left:90px; right:90px; bottom:250px; z-index:3;
-  padding-top:34px; border-top:1px solid rgba(255,255,255,.16);
+#foot { position:absolute; left:88px; right:88px; bottom:250px; z-index:3;
+  padding-top:34px; border-top:1px solid rgba(255,255,255,.18);
   display:flex; align-items:center; justify-content:space-between; }
 #foot .brand { display:flex; align-items:center; gap:18px; }
 #foot img { width:56px; height:56px; object-fit:contain;
   filter:drop-shadow(0 0 18px rgba(167,139,250,.55)); }
-#foot .wm { font-family:'Oswald', sans-serif; font-weight:700; font-size:38px; letter-spacing:.18em; }
-#foot .site { font-size:26px; color:#a78bfa; letter-spacing:.06em; }
-/* полоска прогресса — глазами видно, сколько осталось, и это удерживает */
+#foot .wm { font-family:'Oswald', sans-serif; font-weight:700; font-size:38px; letter-spacing:.18em;
+  text-shadow:0 4px 20px rgba(0,0,0,.9); }
+#foot .site { font-size:26px; color:#c4b5fd; letter-spacing:.06em;
+  text-shadow:0 4px 20px rgba(0,0,0,.9); }
 #prog { position:absolute; left:0; top:0; height:6px; z-index:5;
   background:linear-gradient(90deg,#a78bfa,#e9d5ff); box-shadow:0 0 20px rgba(167,139,250,.8); }
-#flash { position:absolute; inset:0; z-index:4; background:#e9e2ff; opacity:0; }
+#fade { position:absolute; inset:0; z-index:6; background:#050308; opacity:0; }
 </style></head><body>
-<div id="bg">
-  <div id="glowA"></div><div id="glowB"></div>
-  <div id="grid"></div><div id="noise"></div>
-</div>
 <div id="stage">${sections}</div>
 <div id="foot">
   <div class="brand">${logo ? `<img src="${logo}" alt="">` : ''}<span class="wm">ZOVU</span></div>
   <span class="site">${esc(site || 'zovu.pl')}</span>
 </div>
 <div id="prog"></div>
-<div id="flash"></div>
+<div id="fade"></div>
 <script>
 const SCENES = ${meta};
 const BEAT = ${beat};
@@ -444,10 +390,9 @@ window.__fitAll = () => {
     if (!h) return;
     const cls = s.className;
     if (cls.includes('l-cold')) fit(h, 240, 80, 1000);
-    else if (cls.includes('l-huge')) fit(h, 190, 56, 900);
-    else if (cls.includes('l-split')) fit(h, 120, 52, 780);
-    else if (cls.includes('l-card')) fit(h, 130, 48, 320);
-    else fit(h, 156, 56, 620);
+    else if (cls.includes('l-center')) fit(h, 180, 56, 900);
+    else if (cls.includes('l-panel')) fit(h, 116, 48, 300);
+    else fit(h, 152, 56, 560);
   });
 };
 
@@ -455,21 +400,12 @@ const easeOut = (x) => 1 - Math.pow(1 - x, 3);
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
 
 window.setT = (t) => {
-  document.getElementById('glowA').style.transform =
-    'translate(' + Math.round(-320 + Math.sin(t * 0.32) * 70) + 'px,' +
-    Math.round(-380 + Math.cos(t * 0.24) * 90) + 'px)';
-  document.getElementById('glowB').style.transform =
-    'translate(' + Math.round(420 + Math.cos(t * 0.28) * 80) + 'px,' +
-    Math.round(1080 + Math.sin(t * 0.21) * 70) + 'px)';
-  document.getElementById('grid').style.transform =
-    'translateY(' + (Math.round(t * 8) % 110) + 'px)';
   document.getElementById('prog').style.width = (100 * clamp01(t / TOTAL)) + '%';
 
   // Чистая петля: Instagram крутит рилс по кругу. Хвост уводим в чёрное —
   // ровно то, с чего начинается холодное открытие, и стык не бросается в глаза.
   const tail = clamp01((t - (TOTAL - 0.34)) / 0.34);
-  document.getElementById('stage').style.opacity = 1 - tail;
-  document.getElementById('prog').style.opacity = 1 - tail;
+  document.getElementById('fade').style.opacity = tail;
 
   let cur = 0;
   for (let i = 0; i < SCENES.length; i++) if (t >= SCENES[i].start) cur = i;
@@ -482,20 +418,15 @@ window.setT = (t) => {
     el.style.visibility = 'visible';
     const s = SCENES[i];
     const local = t - s.start;
-    const hook = s.kind === 'hook';
+    const fast = s.kind === 'cold' || s.kind === 'hook';
 
-    // картинка живёт: медленный наезд, чтобы кадр не стоял
-    const media = el.querySelector('.media');
-    if (media) {
-      const p = clamp01(local / s.dur);
-      const enter = easeOut(clamp01(local / 0.5));
-      media.style.transform = 'scale(' + (1.05 + 0.06 * p).toFixed(4) + ')';
-      media.style.opacity = enter;
-    }
+    // затемнение въезжает быстро — иначе первые кадры сцены нечитаемы
+    const scrim = el.querySelector('.scrim');
+    if (scrim) scrim.style.opacity = easeOut(clamp01(local / 0.22));
 
     // Толчок на склейке: содержимое входит чуть крупнее и осаживается.
-    // Это НЕ тот пульс, что дрожал раньше, — он срабатывает семь раз за ролик,
-    // ровно в момент монтажной склейки, а не по два раза в секунду.
+    // Срабатывает шесть раз за ролик, ровно в момент монтажной склейки, —
+    // это не тот пульс в каждую долю, который читался как дрожание.
     const body = el.querySelector('.body');
     if (body) {
       const punch = 1 + 0.045 * (1 - easeOut(clamp01(local / 0.22)));
@@ -503,34 +434,32 @@ window.setT = (t) => {
     }
 
     // Способ появления текста меняется от сцены к сцене. Одинаковый вылет
-    // семь раз подряд и есть та самая однотипность.
+    // шесть раз подряд и есть та самая однотипность.
     const ws = el.querySelectorAll('h1.big .w');
     const anim = s.anim || 'stack';
-    const step = anim === 'slam' ? BEAT / 5 : BEAT / (hook ? 3.4 : 2.2);
+    const step = anim === 'slam' ? BEAT / 5 : BEAT / (fast ? 3.4 : 2.2);
     ws.forEach((w, k) => {
       const delay = 0.04 + k * step;
       if (anim === 'wipe') {
-        // строка открывается шторкой слева направо
         const p = easeOut(clamp01((local - delay) / 0.34));
         w.style.opacity = 1;
         w.style.clipPath = 'inset(-10% ' + (100 - 100 * p).toFixed(1) + '% -10% 0)';
         w.style.transform = 'none';
       } else if (anim === 'pop') {
-        // слово выскакивает с перелётом — самый заметный из четырёх
         const raw = clamp01((local - delay) / 0.3);
         const p = easeOut(raw);
         const over = 1 + 0.16 * Math.sin(Math.PI * raw);
         w.style.opacity = p;
         w.style.clipPath = 'none';
-        w.style.transform = 'scale(' + (0.55 + 0.45 * p) * over + ')';
+        // скобки обязательны: без них строка склеивается раньше умножения
+        w.style.transform = 'scale(' + ((0.55 + 0.45 * p) * over).toFixed(3) + ')';
       } else if (anim === 'slam') {
-        // весь заголовок падает почти разом и упирается — удар, а не вылет
         const p = easeOut(clamp01((local - delay) / 0.2));
         w.style.opacity = p;
         w.style.clipPath = 'none';
         w.style.transform = 'translateY(' + (28 * (1 - p)) + 'px) scale(' + (1.1 - 0.1 * p) + ')';
       } else {
-        const p = easeOut(clamp01((local - delay) / (hook ? 0.26 : 0.34)));
+        const p = easeOut(clamp01((local - delay) / (fast ? 0.26 : 0.34)));
         w.style.opacity = p;
         w.style.clipPath = 'none';
         w.style.transform = 'translateY(' + (62 * (1 - p)) + 'px) scale(' + (0.96 + 0.04 * p) + ')';
@@ -538,7 +467,12 @@ window.setT = (t) => {
     });
 
     const after = 0.04 + ws.length * step;
-    // счётчик пунктов подъезжает сверху
+    const panel = el.querySelector('.panel');
+    if (panel) {
+      const p = easeOut(clamp01(local / 0.3));
+      panel.style.opacity = p;
+      panel.style.transform = 'translateY(' + Math.round(26 * (1 - p)) + 'px)';
+    }
     const count = el.querySelector('.count');
     if (count) {
       const p = easeOut(clamp01(local / 0.34));
@@ -549,68 +483,89 @@ window.setT = (t) => {
     if (chip) {
       const p = easeOut(clamp01(local / 0.26));
       chip.style.opacity = p;
-      chip.style.transform = 'translateX(' + (-40 * (1 - p)) + 'px)';
+      chip.style.transform = 'translateX(' + Math.round(-40 * (1 - p)) + 'px)';
     }
     const rule = el.querySelector('.rule');
     if (rule) rule.style.width = 46 * easeOut(clamp01((local - after) / 0.42)) + '%';
-    // подпись проявляется по словам — глаз идёт за ней, как за субтитрами
-    const sws = el.querySelectorAll('.sub .sw');
-    sws.forEach((w, k) => {
-      const p = easeOut(clamp01((local - after - 0.08 - k * 0.045) / 0.26));
-      w.style.opacity = p;
-      w.style.transform = 'translateY(' + Math.round(14 * (1 - p)) + 'px)';
-    });
+    const sub = el.querySelector('.sub');
+    if (sub) {
+      const p = easeOut(clamp01((local - after - 0.1) / 0.4));
+      sub.style.opacity = p;
+      sub.style.transform = 'translateY(' + Math.round(24 * (1 - p)) + 'px)';
+    }
     const num = el.querySelector('.num');
     if (num) {
       const p = easeOut(clamp01(local / 0.3));
       num.style.opacity = p;
       num.style.transform = 'scale(' + (0.7 + 0.3 * p) + ')';
     }
-    const ghost = el.querySelector('.ghost');
-    if (ghost) {
-      const p = easeOut(clamp01(local / 0.9));
-      ghost.style.opacity = p;
-      ghost.style.transform = 'translateX(' + (70 * (1 - p)) + 'px)';
-    }
     const face = el.querySelector('.face');
     if (face) {
       const p = easeOut(clamp01(local / 0.42));
       face.style.opacity = p;
-      face.style.transform = 'translateY(' + (40 * (1 - p)) + 'px) scale(' + (0.94 + 0.06 * p) + ')';
+      face.style.transform = 'translateY(' + Math.round(40 * (1 - p)) + 'px)';
     }
     const mark = el.querySelector('.mark');
     if (mark) {
       const p = easeOut(clamp01((local - after - 0.2) / 0.38));
       mark.style.opacity = p;
-      mark.style.transform = 'translateY(' + (30 * (1 - p)) + 'px)';
+      mark.style.transform = 'translateY(' + Math.round(30 * (1 - p)) + 'px)';
     }
   });
 
-  // На финальной сцене логотип уже стоит крупно — подвал прячем.
+  // на финальной сцене логотип уже стоит крупно — подвал прячем
   document.getElementById('foot').style.opacity = SCENES[cur].kind === 'cta' ? 0 : 1;
-
-  // вспышка на стыке сцен — «склейка», без неё смена читается как подвисание
-  const since = t - SCENES[cur].start;
-  document.getElementById('flash').style.opacity =
-    cur === 0 ? 0 : String(0.2 * Math.max(0, 1 - since / 0.13));
 };
 </script></body></html>`;
 }
 
-// ── звук склеек ───────────────────────────────────────────────────
-// Синтезируем удар сами: низкий «тумк» плюс короткий шумовой всплеск.
-// Так не нужен ни чужой файл, ни его лицензия.
-function hitFilters(starts, total) {
-  // источник удара один, размножаем его задержками и складываем с музыкой
-  const parts = starts.map(
-    (s, i) => `[hit]adelay=${Math.round(s * 1000)}|${Math.round(s * 1000)},volume=0.9[h${i}]`
-  );
-  const mix = starts.map((_, i) => `[h${i}]`).join('') + `amix=inputs=${starts.length}:normalize=0[hits]`;
-  return { parts, mix, total };
+// ── видеоподложка ─────────────────────────────────────────────────
+// Каждой сцене — свой клип. Тег приходит от модели, чего нет в библиотеке,
+// добираем по кругу, чтобы соседние сцены не оказались одинаковыми.
+async function buildBed(scenes, base) {
+  const lib = await brollLibrary();
+  if (!lib.size) return null;
+  const all = [...lib.keys()];
+  const parts = [];
+  let spare = 0;
+  const used = new Set();
+
+  for (const [i, s] of scenes.entries()) {
+    let tag = s.broll && lib.has(s.broll) ? s.broll : null;
+    while (!tag || used.has(tag)) {
+      tag = all[spare++ % all.length];
+      if (spare > all.length * 2) break;
+    }
+    used.add(tag);
+    const clip = path.join(OUT_DIR, `${base}-bed${i}.mp4`);
+    await ffmpeg([
+      '-stream_loop', '-1', // клип короче сцены — крутим по кругу
+      '-i', lib.get(tag),
+      '-t', s.dur.toFixed(3),
+      // Лёгкая общая коррекция: съёмки из разных источников надо свести к
+      // одному характеру. Но именно лёгкая — сильная превращает живой кадр
+      // в тёмное пятно, и тогда незачем было брать живой.
+      '-vf',
+      `scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,` +
+        `eq=brightness=-0.03:saturation=0.96:contrast=1.04,` +
+        `colorbalance=bs=0.05:bm=0.04,fps=${FPS},setsar=1`,
+      '-an',
+      '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'veryfast', '-crf', '20',
+      clip,
+    ]);
+    parts.push(clip);
+    s.brollUsed = tag;
+  }
+
+  const list = path.join(OUT_DIR, `${base}-bed.txt`);
+  await writeFile(list, parts.map((p) => `file '${p.replace(/\\/g, '/')}'`).join('\n'), 'utf8');
+  const bed = path.join(OUT_DIR, `${base}-bed.mp4`);
+  await ffmpeg(['-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', bed]);
+  for (const p of [...parts, list]) await rm(p, { force: true });
+  return bed;
 }
 
 // ── сборка ────────────────────────────────────────────────────────
-// data — те же поля, что у карусели: eyebrow, title, subtitle, items[], cta, footer
 export async function makeReel({ data, name, photo = 'mat' }) {
   if (!data || !data.title) throw new Error('nie ma z czego zrobić rolki');
 
@@ -622,48 +577,20 @@ export async function makeReel({ data, name, photo = 'mat' }) {
 
   const music = await pickMusic();
   const tempo = music ? await detectTempo(music) : null;
-  const beat = tempo ? tempo.beat : 0.55;
+  const beat = tempo ? tempo.beat : 0.5;
 
   const { scenes, total } = buildScenes(data, beat);
-
-  // Картинки: своя под каждую сцену. Просим по смыслу пункта, а не «что-нибудь».
-  const prompts = scenes.map((s) => {
-    if (s.kind === 'hook') return data.bgIdea || `floating violet glass shapes about ${data.title}`;
-    if (s.kind === 'item') {
-      const it = (data.items || [])[s.index - 1] || {};
-      return it.bgIdea || `floating violet glass objects about ${it.heading || ''}`;
-    }
-    return 'floating violet glass studio lights and camera lens';
-  });
-  let images = [];
-  try {
-    const { generateVerticals, GEN_DIR } = await import('./image-gen.mjs');
-    // ZOVU_REUSE_BG=1 — брать уже сгенерированные кадры. Нужно, когда правим
-    // вёрстку: иначе каждая правка это пять минут ожидания картинок.
-    if (process.env.ZOVU_REUSE_BG === '1') {
-      const have = await readdir(GEN_DIR).catch(() => []);
-      images = prompts.map((_, i) => {
-        const f = have.find((x) => x === `${base}-v${i + 1}.jpg`);
-        return f ? path.join(GEN_DIR, f) : null;
-      });
-      if (images.every((x) => !x)) images = await generateVerticals(prompts, base);
-    } else {
-      images = await generateVerticals(prompts, base);
-    }
-  } catch {
-    images = [];
-  }
-  for (const [i, s] of scenes.entries()) s.image = await fileUri(images[i], { width: 1080, height: 1920 });
+  const bed = await buildBed(scenes, base);
 
   const who = PEOPLE[String(photo).toLowerCase()];
-  const person = who
-    ? { ...who, uri: await fileUri(who.file, { width: 460, height: 460 }) }
-    : null;
+  const person = who ? { ...who, uri: await faceUri(who.file) } : null;
 
   const html = pageHtml(scenes, beat, await logoUri(), data.footer, person && person.uri ? person : null);
   const htmlPath = path.join(OUT_DIR, `${base}.html`);
   await writeFile(htmlPath, html, 'utf8');
 
+  // Текстовый слой снимаем с прозрачным фоном (omitBackground) — иначе он
+  // закрыл бы видео сплошной заливкой.
   const frames = Math.round(total * FPS);
   const browser = await chromium.launch();
   try {
@@ -674,9 +601,9 @@ export async function makeReel({ data, name, photo = 'mat' }) {
     for (let i = 0; i < frames; i++) {
       await page.evaluate((t) => window.setT(t), i / FPS);
       await page.screenshot({
-        path: path.join(framesDir, `f${String(i).padStart(5, '0')}.jpg`),
-        type: 'jpeg',
-        quality: 94,
+        path: path.join(framesDir, `f${String(i).padStart(5, '0')}.png`),
+        type: 'png',
+        omitBackground: true,
       });
     }
   } finally {
@@ -684,28 +611,42 @@ export async function makeReel({ data, name, photo = 'mat' }) {
   }
 
   const silent = path.join(OUT_DIR, `${base}-mute.mp4`);
-  await ffmpeg([
-    '-framerate', String(FPS),
-    '-i', path.join(framesDir, 'f%05d.jpg'),
-    '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-profile:v', 'high',
-    '-preset', 'veryfast', '-crf', '19', '-r', String(FPS),
-    silent,
-  ]);
+  if (bed) {
+    await ffmpeg([
+      '-i', bed,
+      '-framerate', String(FPS), '-i', path.join(framesDir, 'f%05d.png'),
+      '-filter_complex', '[0:v][1:v]overlay=0:0:format=auto,format=yuv420p[v]',
+      '-map', '[v]',
+      '-c:v', 'libx264', '-profile:v', 'high', '-preset', 'veryfast', '-crf', '20',
+      '-r', String(FPS), '-shortest',
+      silent,
+    ]);
+  } else {
+    // библиотеки футажа нет — собираем хотя бы текст на чёрном
+    await ffmpeg([
+      '-f', 'lavfi', '-i', `color=c=#050308:s=${W}x${H}:r=${FPS}:d=${total.toFixed(2)}`,
+      '-framerate', String(FPS), '-i', path.join(framesDir, 'f%05d.png'),
+      '-filter_complex', '[0:v][1:v]overlay=0:0:format=auto,format=yuv420p[v]',
+      '-map', '[v]',
+      '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'veryfast', '-crf', '20',
+      '-r', String(FPS), '-shortest',
+      silent,
+    ]);
+  }
 
   const final = path.join(OUT_DIR, `${base}.mp4`);
   const cuts = scenes.slice(1).map((s) => s.start);
-  const { parts, mix } = hitFilters(cuts, total);
 
   if (music) {
     // loudnorm приводит любую дорожку к -14 LUFS — уровню, под который
     // Instagram и так пересчитывает звук. Иначе один трек орёт, другой шепчет.
     const fadeOut = Math.max(0, total - 2).toFixed(2);
-    const filter = [
+    const chain = [
       `[1:a]atrim=0:${total.toFixed(2)},asetpts=N/SR/TB,loudnorm=I=-14:TP=-1.5:LRA=11,` +
-        `afade=t=in:st=0:d=0.6,afade=t=out:st=${fadeOut}:d=2[mus]`,
+        `afade=t=in:st=0:d=0.5,afade=t=out:st=${fadeOut}:d=2[mus]`,
       `[2:a]asplit=${cuts.length}` + cuts.map((_, i) => `[hs${i}]`).join(''),
       ...cuts.map(
-        (s, i) => `[hs${i}]adelay=${Math.round(s * 1000)}|${Math.round(s * 1000)},volume=0.85[h${i}]`
+        (s, i) => `[hs${i}]adelay=${Math.round(s * 1000)}|${Math.round(s * 1000)},volume=0.8[h${i}]`
       ),
       cuts.map((_, i) => `[h${i}]`).join('') + `amix=inputs=${cuts.length}:normalize=0[hits]`,
       `[mus][hits]amix=inputs=2:normalize=0:duration=first,alimiter=limit=0.95[a]`,
@@ -714,10 +655,12 @@ export async function makeReel({ data, name, photo = 'mat' }) {
     await ffmpeg([
       '-i', silent,
       '-i', music,
+      // Удар на склейке синтезируем прямо здесь: низкий «тумк» плюс короткий
+      // шумовой всплеск. Ни чужого файла, ни лицензии.
       '-f', 'lavfi',
       '-i',
       `aevalsrc='0.55*exp(-t*20)*sin(2*PI*68*t)+0.22*(random(0)*2-1)*exp(-t*46)':d=0.6:s=44100:c=stereo`,
-      '-filter_complex', filter,
+      '-filter_complex', chain,
       '-map', '0:v', '-map', '[a]',
       '-c:v', 'copy', '-c:a', 'aac', '-b:a', '128k', '-shortest',
       final,
@@ -734,6 +677,7 @@ export async function makeReel({ data, name, photo = 'mat' }) {
 
   await rm(framesDir, { recursive: true, force: true });
   await rm(silent, { force: true });
+  if (bed) await rm(bed, { force: true });
   const bytes = (await readFile(final)).length;
   return {
     file: final,
@@ -741,7 +685,7 @@ export async function makeReel({ data, name, photo = 'mat' }) {
     bytes,
     seconds: total,
     bpm: tempo ? Math.round(tempo.bpm) : null,
-    images: images.filter(Boolean).length,
+    clips: scenes.map((s) => s.brollUsed).filter(Boolean),
     withMusic: Boolean(music),
   };
 }
@@ -751,15 +695,12 @@ if (process.argv[1] && process.argv[1].endsWith('make-reel.mjs')) {
   const demo = {
     eyebrow: 'ZOVU · WIDEO DLA FIRMY',
     title: 'Płacisz za studio zamiast nagrać telefonem',
-    subtitle: 'Sprawdź prostą zamianę, która oszczędzi Twój budżet.',
     hook: 'PRZEPALASZ BUDŻET',
-    bgIdea: 'floating violet glass smartphone on a tripod and studio light',
+    broll: 'fotostudio',
     items: [
-      { heading: 'Nagrywaj przy oknie', text: 'Światło dzienne robi za cały sprzęt oświetleniowy.', bgIdea: 'floating violet glass window frame and sunbeam' },
-      { heading: 'Mów do jednej osoby', text: 'Wtedy widz czuje, że mówisz do niego.', bgIdea: 'floating chrome speech bubble and violet glass microphone' },
-      { heading: 'Pierwsze trzy sekundy', text: 'Tu decyduje się, czy ktoś zostanie.', bgIdea: 'floating violet glass stopwatch and neon countdown rings' },
-      { heading: 'Jeden temat na film', text: 'Dwa tematy w jednym nagraniu gubią oba.', bgIdea: 'floating violet glass film clapperboard' },
-      { heading: 'Napisy zawsze', text: 'Większość ogląda bez dźwięku.', bgIdea: 'floating chrome speech lines and violet glass phone' },
+      { heading: 'Nagrywaj przy oknie', broll: 'kawa' },
+      { heading: 'Mów do jednej osoby', broll: 'barber' },
+      { heading: 'Pierwsze trzy sekundy', broll: 'czas' },
     ],
     cta: { headline: 'Nagramy wideo dla Ciebie', line: 'Robimy rolki, które przyciągają klientów.' },
     footer: 'zovu.pl',
@@ -773,8 +714,7 @@ if (process.argv[1] && process.argv[1].endsWith('make-reel.mjs')) {
         mb: (r.bytes / 1048576).toFixed(1),
         sek: r.seconds.toFixed(1),
         bpm: r.bpm,
-        obrazki: r.images,
-        muzyka: r.withMusic,
+        klipy: r.clips,
         czas: Math.round((Date.now() - t0) / 1000) + 's',
       },
       null,
