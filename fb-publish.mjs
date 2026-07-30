@@ -33,15 +33,26 @@ async function call(endpoint, params, method = 'POST') {
   return j;
 }
 
-// Находит страницу, которой можно управлять этим токеном.
-// Если задан FACEBOOK_PAGE_ID — берём именно её.
+// Находит страницу и её токен.
+// ВАЖНО: у новых страниц Meta список me/accounts приходит ПУСТЫМ,
+// хотя доступ есть. Поэтому если знаем ID — спрашиваем страницу напрямую,
+// и только как запасной путь идём через me/accounts.
 export async function resolvePage(userToken) {
-  const wanted = await env('FACEBOOK_PAGE_ID');
+  const wanted = (await env('FACEBOOK_PAGE_ID')) || '1104225396116061'; // ZOVU
+
+  if (wanted) {
+    try {
+      const p = await call(wanted, { access_token: userToken, fields: 'id,name,access_token' }, 'GET');
+      if (p.access_token) return { id: p.id, name: p.name, token: p.access_token };
+    } catch {
+      /* пробуем запасной путь */
+    }
+  }
+
   const list = await call('me/accounts', { access_token: userToken, fields: 'id,name,access_token' }, 'GET');
   const pages = list.data || [];
   if (!pages.length) throw new Error('token nie widzi żadnej strony');
-  const page = wanted ? pages.find((p) => p.id === wanted) : pages[0];
-  if (!page) throw new Error(`nie znaleziono strony ${wanted}`);
+  const page = wanted ? pages.find((p) => p.id === wanted) || pages[0] : pages[0];
   return { id: page.id, name: page.name, token: page.access_token };
 }
 
@@ -51,15 +62,11 @@ export async function publishToFacebook({ imageUrls, caption }) {
   const raw = await env('FACEBOOK_PAGE_TOKEN');
   if (!raw) return { skipped: true, reason: 'brak FACEBOOK_PAGE_TOKEN' };
 
-  // токен может быть пользовательский (тогда достаём из него страницу)
-  // или уже страничный — пробуем оба варианта
-  let pageId = await env('FACEBOOK_PAGE_ID');
-  let pageToken = raw;
-  if (!pageId) {
-    const page = await resolvePage(raw);
-    pageId = page.id;
-    pageToken = page.token;
-  }
+  // Токен может быть пользовательский — тогда меняем его на страничный.
+  // Определяем по тому, отдаёт ли страница свой access_token.
+  const page = await resolvePage(raw);
+  const pageId = page.id;
+  const pageToken = page.token || raw;
 
   if (imageUrls.length === 1) {
     const r = await call(`${pageId}/photos`, {
