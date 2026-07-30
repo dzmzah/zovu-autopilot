@@ -140,7 +140,13 @@ function buildScenes(data, beat) {
   const beatsFor = (seconds) => Math.max(2, Math.round(seconds / beat));
   const items = (data.items || []).slice(0, 5);
 
+  // Холодное открытие: два-три слова во весь экран и жёсткий переход.
+  // Решение, смотреть дальше или нет, зритель принимает за первые полсекунды —
+  // за это время обычная заставка успевает только проявиться.
+  const cold = (data.hook || '').trim() || data.title.split(/\s+/).slice(0, 3).join(' ').toUpperCase();
+
   const scenes = [
+    { kind: 'cold', layout: 'cold', anim: 'slam', title: cold, beats: Math.max(2, beatsFor(0.85)) },
     {
       kind: 'hook',
       layout: 'full',
@@ -148,7 +154,7 @@ function buildScenes(data, beat) {
       eyebrow: data.eyebrow,
       title: data.title,
       sub: data.subtitle,
-      beats: beatsFor(3.4),
+      beats: beatsFor(3.0),
     },
     ...items.map((it, i) => ({
       kind: 'item',
@@ -201,14 +207,23 @@ function pageHtml(scenes, beat, logo, site, person) {
       ? `<div class="media"><img src="${s.image}" alt=""></div><div class="scrim"></div>`
       : '<div class="scrim soft"></div>';
 
+  // Пояснение тоже разбираем на слова: строка, проявляющаяся куском, читается
+  // как титр, а по словам — как живая подпись, за которой идёт глаз.
+  const subWords = (s) =>
+    esc(s)
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((w) => `<span class="sw">${w}</span>`)
+      .join(' ');
+
   const sections = scenes
     .map((s, i) => {
+      const subText =
+        s.kind === 'item' ? s.text : s.kind === 'hook' ? s.sub : s.kind === 'cta' ? s.line : '';
       const head = `<div class="body">
         <h1 class="big">${words(s.kind === 'item' ? s.heading : s.kind === 'cta' ? s.headline : s.title)}</h1>
-        <div class="rule"></div>
-        ${s.kind === 'item' ? `<p class="sub">${esc(s.text)}</p>` : ''}
-        ${s.kind === 'hook' && s.sub ? `<p class="sub">${esc(s.sub)}</p>` : ''}
-        ${s.kind === 'cta' ? `<p class="sub">${esc(s.line)}</p>` : ''}
+        ${s.kind === 'cold' ? '' : '<div class="rule"></div>'}
+        ${subText ? `<p class="sub">${subWords(subText)}</p>` : ''}
       </div>`;
 
       const chip = s.kind === 'hook' ? `<div class="chip"><i></i>${esc(s.eyebrow || 'ZOVU')}</div>` : '';
@@ -276,6 +291,13 @@ body { background:#050505; color:#fff; overflow:hidden; position:relative;
 .media img { width:100%; height:100%; object-fit:cover; }
 .scrim { position:absolute; inset:0; }
 .body { position:absolute; left:90px; right:90px; display:flex; flex-direction:column; }
+
+/* холодное открытие: почти чёрный кадр, два-три слова по центру */
+.l-cold .media { inset:0; filter:saturate(1.2); opacity:.22; }
+.l-cold .scrim { background:radial-gradient(ellipse 70% 45% at 50% 50%, rgba(5,5,5,.55) 0%, rgba(5,5,5,.97) 100%); }
+.l-cold .body { left:80px; right:80px; top:0; bottom:0; justify-content:center; align-items:center;
+  text-align:center; }
+.l-cold h1.big { letter-spacing:-3px; }
 
 /* макет «во весь кадр»: картинка на весь экран, текст внизу */
 .l-full .media { inset:0; }
@@ -360,6 +382,7 @@ h1.big .w.key { background-image:linear-gradient(180deg,#c9a6ff 0%,#a78bfa 100%)
 .sc.inv .body, .sc.inv .num, .sc.inv .count, .sc.inv .ghost { position:absolute; z-index:2; }
 .sub { font-size:42px; line-height:1.42; color:#efeafd; max-width:92%;
   text-shadow:0 4px 24px rgba(0,0,0,.8); }
+.sub .sw { display:inline-block; will-change:opacity,transform; }
 
 .num { position:absolute; left:90px; top:250px; font-family:'Oswald', sans-serif;
   font-weight:700; font-size:60px; letter-spacing:.08em; color:#0b0b0f;
@@ -420,7 +443,8 @@ window.__fitAll = () => {
     const h = s.querySelector('h1.big');
     if (!h) return;
     const cls = s.className;
-    if (cls.includes('l-huge')) fit(h, 190, 56, 900);
+    if (cls.includes('l-cold')) fit(h, 240, 80, 1000);
+    else if (cls.includes('l-huge')) fit(h, 190, 56, 900);
     else if (cls.includes('l-split')) fit(h, 120, 52, 780);
     else if (cls.includes('l-card')) fit(h, 130, 48, 320);
     else fit(h, 156, 56, 620);
@@ -441,6 +465,12 @@ window.setT = (t) => {
     'translateY(' + (Math.round(t * 8) % 110) + 'px)';
   document.getElementById('prog').style.width = (100 * clamp01(t / TOTAL)) + '%';
 
+  // Чистая петля: Instagram крутит рилс по кругу. Хвост уводим в чёрное —
+  // ровно то, с чего начинается холодное открытие, и стык не бросается в глаза.
+  const tail = clamp01((t - (TOTAL - 0.34)) / 0.34);
+  document.getElementById('stage').style.opacity = 1 - tail;
+  document.getElementById('prog').style.opacity = 1 - tail;
+
   let cur = 0;
   for (let i = 0; i < SCENES.length; i++) if (t >= SCENES[i].start) cur = i;
 
@@ -454,13 +484,22 @@ window.setT = (t) => {
     const local = t - s.start;
     const hook = s.kind === 'hook';
 
-    // картинка живёт: медленный наезд плюс сдвиг, чтобы кадр не стоял
+    // картинка живёт: медленный наезд, чтобы кадр не стоял
     const media = el.querySelector('.media');
     if (media) {
       const p = clamp01(local / s.dur);
       const enter = easeOut(clamp01(local / 0.5));
       media.style.transform = 'scale(' + (1.05 + 0.06 * p).toFixed(4) + ')';
       media.style.opacity = enter;
+    }
+
+    // Толчок на склейке: содержимое входит чуть крупнее и осаживается.
+    // Это НЕ тот пульс, что дрожал раньше, — он срабатывает семь раз за ролик,
+    // ровно в момент монтажной склейки, а не по два раза в секунду.
+    const body = el.querySelector('.body');
+    if (body) {
+      const punch = 1 + 0.045 * (1 - easeOut(clamp01(local / 0.22)));
+      body.style.transform = 'scale(' + punch.toFixed(4) + ')';
     }
 
     // Способ появления текста меняется от сцены к сцене. Одинаковый вылет
@@ -514,12 +553,13 @@ window.setT = (t) => {
     }
     const rule = el.querySelector('.rule');
     if (rule) rule.style.width = 46 * easeOut(clamp01((local - after) / 0.42)) + '%';
-    const sub = el.querySelector('.sub');
-    if (sub) {
-      const p = easeOut(clamp01((local - after - 0.1) / 0.4));
-      sub.style.opacity = p;
-      sub.style.transform = 'translateY(' + (26 * (1 - p)) + 'px)';
-    }
+    // подпись проявляется по словам — глаз идёт за ней, как за субтитрами
+    const sws = el.querySelectorAll('.sub .sw');
+    sws.forEach((w, k) => {
+      const p = easeOut(clamp01((local - after - 0.08 - k * 0.045) / 0.26));
+      w.style.opacity = p;
+      w.style.transform = 'translateY(' + Math.round(14 * (1 - p)) + 'px)';
+    });
     const num = el.querySelector('.num');
     if (num) {
       const p = easeOut(clamp01(local / 0.3));
@@ -712,6 +752,7 @@ if (process.argv[1] && process.argv[1].endsWith('make-reel.mjs')) {
     eyebrow: 'ZOVU · WIDEO DLA FIRMY',
     title: 'Płacisz za studio zamiast nagrać telefonem',
     subtitle: 'Sprawdź prostą zamianę, która oszczędzi Twój budżet.',
+    hook: 'PRZEPALASZ BUDŻET',
     bgIdea: 'floating violet glass smartphone on a tripod and studio light',
     items: [
       { heading: 'Nagrywaj przy oknie', text: 'Światło dzienne robi za cały sprzęt oświetleniowy.', bgIdea: 'floating violet glass window frame and sunbeam' },

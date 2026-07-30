@@ -278,6 +278,7 @@ Nie zaczynaj od „Czy wiesz, że", „W dzisiejszych czasach", „Jak zwiększy
 {
   "eyebrow": "etykieta WIELKIMI LITERAMI, max 26 znaków, zaczyna się od: ZOVU ·",
   "title": "nagłówek okładki, 30-62 znaki, mocny, bez kropki na końcu",
+  "hook": "DWA DO CZTERECH SŁÓW wielkimi literami. To pierwsze, co widz zobaczy na ekranie — ma zatrzymać kciuk. Nazwij stratę albo błąd, nie zapowiadaj tematu. Dobrze: „TRACISZ KLIENTÓW", „TO KOSZTUJE CIĘ TYSIĄCE". Źle: „O CZYM DZIŚ MÓWIMY"",
   "subtitle": "jedno zdanie pod nagłówkiem, 40-80 znaków, bez wymyślonych liczb",
   "items": [
     {
@@ -433,6 +434,13 @@ function clean(out) {
   out.eyebrow = strip(out.eyebrow).slice(0, 28).toUpperCase();
   out.title = shorten(strip(out.title), 66).replace(/[.\s]+$/, '');
   out.subtitle = shorten(strip(out.subtitle), 88);
+  // Хук нужен только рилсу. Модель его иногда не отдаёт — тогда берём первые
+  // слова заголовка: это всё равно живее, чем пустой первый кадр.
+  out.hook = strip(out.hook || '')
+    .replace(/[.,;:!?]+$/, '')
+    .slice(0, 34)
+    .toUpperCase();
+  if (out.hook.split(/\s+/).filter(Boolean).length > 5) out.hook = '';
   out.items = (out.items || []).slice(0, 5).map((i) => ({
     heading: shorten(strip(i.heading), 44).replace(/[.\s]+$/, ''),
     text: shorten(strip(i.text), 86),
@@ -554,6 +562,7 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
         eyebrow: out.eyebrow || 'ZOVU · SOCIAL MEDIA',
         title: out.title,
         subtitle: out.subtitle,
+        hook: out.hook,
         items: out.items,
         cta: out.cta,
         photo,
