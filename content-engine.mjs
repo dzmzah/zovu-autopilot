@@ -492,7 +492,11 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
   // Рилс и карусель делаются из одних и тех же данных (обложка + 5 пунктов + финал),
   // разница только в том, чем это станет на выходе: слайдами или видео.
   const counter = (state.counter || 0) + 1;
-  const isReel = kind === 'reel' || (!kind && counter % 6 === 3);
+  // Рилсы ВЫКЛЮЧЕНЫ из автоматической ротации (31.07.2026). Движок работает и
+  // вызывается через --kind=reel, но сам по расписанию больше не срабатывает:
+  // автособранный рилс не дотягивает до уровня, который агентство может
+  // показывать у себя в ленте. Вернуть — дописать `|| (!kind && counter % 6 === 3)`.
+  const isReel = kind === 'reel';
   const isCarousel = kind === 'carousel' || (!kind && counter % 6 === 0);
   const multiSlide = isReel || isCarousel;
 
