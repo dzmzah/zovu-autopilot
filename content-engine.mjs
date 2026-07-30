@@ -297,7 +297,10 @@ Każdy punkt ma też pole "broll" — JEDEN tag z tej listy, najbliższy treści
 ${BROLL_TAGS.join(', ')}
 To nazwa gotowego nagrania, które puścimy w tle. Wybieraj po sensie: punkt o
 zdjęciach jedzenia — "jedzenie", o salonie — "uroda", o czasie — "czas",
-o pieniądzach — "finanse", o technologii — "ekrany" albo "ai".`;
+o pieniądzach — "finanse", o technologii — "ekrany" albo "ai".
+WAŻNE: jeśli punkt nie dotyczy konkretnej branży, weź tag neutralny —
+"ekrany", "ai", "nowoczesne", "gadzety", "czas" albo "architektura".
+Nagranie z barberem pod punktem o częstotliwości publikacji wygląda przypadkowo.`;
 }
 
 // ── вызов модели ──────────────────────────────────────────────────

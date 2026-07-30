@@ -154,7 +154,7 @@ function buildScenes(data, beat) {
   const cold = (data.hook || '').trim() || data.title.split(/\s+/).slice(0, 3).join(' ').toUpperCase();
 
   const scenes = [
-    { kind: 'cold', layout: 'cold', anim: 'slam', title: cold, broll: data.broll, beats: beatsFor(1.1) },
+    { kind: 'cold', layout: 'cold', anim: 'slam', title: cold, broll: data.broll, beats: beatsFor(2.1) },
     {
       kind: 'hook',
       layout: 'bottom',
@@ -284,7 +284,7 @@ body { background:transparent; color:#fff; overflow:hidden; position:relative;
 .l-center .body { top:0; bottom:0; justify-content:center; }
 
 /* финал: лицо и предложение */
-.l-face .scrim { background:linear-gradient(180deg, rgba(6,4,14,.42) 0%, rgba(6,4,14,.18) 18%, rgba(6,4,14,.72) 58%, rgba(6,4,14,.95) 100%); }
+.l-face .scrim { background:linear-gradient(180deg, rgba(6,4,14,.55) 0%, rgba(6,4,14,.30) 16%, rgba(6,4,14,.86) 52%, rgba(6,4,14,.97) 100%); }
 .l-face .body { left:88px; right:88px; bottom:420px; }
 .face { position:absolute; left:88px; top:340px; display:flex; align-items:center; gap:28px; }
 .face img { width:220px; height:220px; border-radius:42px; object-fit:cover;
@@ -400,8 +400,8 @@ window.setT = (t) => {
 
   // Чистая петля: Instagram крутит рилс по кругу. Хвост уводим в чёрное —
   // ровно то, с чего начинается холодное открытие, и стык не бросается в глаза.
-  const tail = clamp01((t - (TOTAL - 0.34)) / 0.34);
-  document.getElementById('fade').style.opacity = tail;
+  const tail = clamp01((t - (TOTAL - 0.18)) / 0.18);
+  document.getElementById('fade').style.opacity = tail * 0.55;
 
   let cur = 0;
   for (let i = 0; i < SCENES.length; i++) if (t >= SCENES[i].start) cur = i;
@@ -515,18 +515,24 @@ window.setT = (t) => {
 async function buildBed(scenes, base) {
   const lib = await brollLibrary();
   if (!lib.size) return null;
-  const all = [...lib.keys()];
+  // Запасные кадры берём НЕ случайно. Случайный тег из библиотеки — это
+  // «браслеты» под пунктом о частоте публикаций, и всё сразу выглядит
+  // не к месту. Нейтральные кадры подходят к любому разговору о работе.
+  const NEUTRAL = ['ekrany', 'ai', 'nowoczesne', 'marka', 'gadzety', 'czas', 'architektura', 'fotostudio'];
+  const spareList = NEUTRAL.filter((t) => lib.has(t));
   const parts = [];
   let spare = 0;
   const used = new Set();
 
   for (const [i, s] of scenes.entries()) {
     let tag = s.broll && lib.has(s.broll) ? s.broll : null;
-    while (!tag || used.has(tag)) {
-      tag = all[spare++ % all.length];
-      if (spare > all.length * 2) break;
+    // Холодное открытие и заголовок — про одно и то же, пусть кадр будет тот
+    // же: это читается как один план, а не как два случайных куска.
+    const sameAsPrev = i === 1 && tag && tag === scenes[0].brollUsed;
+    while (!tag || (used.has(tag) && !sameAsPrev)) {
+      tag = spareList[spare++ % spareList.length] || [...lib.keys()][0];
+      if (spare > spareList.length * 2) break;
     }
-    used.add(tag);
     const clip = path.join(OUT_DIR, `${base}-bed${i}.mp4`);
     await ffmpeg([
       '-stream_loop', '-1', // клип короче сцены — крутим по кругу
@@ -545,6 +551,7 @@ async function buildBed(scenes, base) {
     ]);
     parts.push(clip);
     s.brollUsed = tag;
+    used.add(tag);
   }
 
   const list = path.join(OUT_DIR, `${base}-bed.txt`);
@@ -688,8 +695,8 @@ if (process.argv[1] && process.argv[1].endsWith('make-reel.mjs')) {
     hook: 'PRZEPALASZ BUDŻET',
     broll: 'fotostudio',
     items: [
-      { heading: 'Nagrywaj przy oknie', broll: 'kawa' },
-      { heading: 'Mów do jednej osoby', broll: 'barber' },
+      { heading: 'Nagrywaj przy oknie', broll: 'nowoczesne' },
+      { heading: 'Mów do jednej osoby', broll: 'ekrany' },
       { heading: 'Pierwsze trzy sekundy', broll: 'czas' },
     ],
     cta: { headline: 'Nagramy wideo dla Ciebie', line: 'Robimy rolki, które przyciągają klientów.' },
