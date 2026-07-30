@@ -89,9 +89,19 @@ export async function makeReel({ images, name, secondsPerSlide = 2.6 }) {
   const final = path.join(OUT_DIR, `${base}.mp4`);
 
   if (music) {
+    // Дорожки в music/ длиннее ролика, поэтому обрезаем по видео и гасим хвост.
+    // Момент затухания считаем от реальной длины, а не от угаданного числа:
+    // ролик меняет длину вместе с числом слайдов.
+    const total = images.reduce((s, _, i) => s + (i === 0 ? secondsPerSlide + 1.2 : secondsPerSlide), 0);
+    const fadeOut = Math.max(0, total - 2).toFixed(2);
     await ffmpeg([
       '-i', silent, '-i', music,
-      '-filter_complex', '[1:a]afade=t=out:st=14:d=3,volume=0.75[a]',
+      '-filter_complex',
+      // loudnorm приводит любую дорожку к -14 LUFS — уровню, под который
+      // Instagram и так пересчитывает звук. Иначе один трек орёт, другой шепчет.
+      `[1:a]atrim=0:${total.toFixed(2)},asetpts=N/SR/TB,` +
+        `loudnorm=I=-14:TP=-1.5:LRA=11,` +
+        `afade=t=in:st=0:d=0.8,afade=t=out:st=${fadeOut}:d=2[a]`,
       '-map', '0:v', '-map', '[a]',
       '-c:v', 'copy', '-c:a', 'aac', '-b:a', '128k', '-shortest',
       final,
