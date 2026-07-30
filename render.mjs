@@ -280,7 +280,7 @@ function singleHtml({ eyebrow, title, bullets, footer: site }, logoUri, bgUri) {
 }
 
 // ── слайд карусели: обложка ──────────────────────────────────────
-function coverHtml({ eyebrow, title, subtitle, total, footer: site }, logoUri, person) {
+function coverHtml({ eyebrow, title, subtitle, total, reel, footer: site }, logoUri, person) {
   const len = String(title).length;
   const size = len > 40 ? 116 : len > 26 ? 140 : 168;
   return `<!doctype html><html><head>${head()}<style>${baseCss()}
@@ -310,13 +310,13 @@ function coverHtml({ eyebrow, title, subtitle, total, footer: site }, logoUri, p
         : ''
     }
     <div class="count">1/${total}</div>
-    <div class="swipe">przesuń<span class="arrow">→</span></div>
+    ${reel ? '' : '<div class="swipe">przesuń<span class="arrow">→</span></div>'}
     ${footer(logoUri, site)}
   </div></body></html>`;
 }
 
 // ── обложка с крупным фото человека в край кадра ─────────────────
-function coverHeroHtml({ eyebrow, title, subtitle, total, footer: site }, logoUri, person) {
+function coverHeroHtml({ eyebrow, title, subtitle, total, reel, footer: site }, logoUri, person) {
   const len = String(title).length;
   // колонка узкая (фото занимает правую часть), поэтому кегль мельче обычной обложки
   const size = len > 52 ? 74 : len > 40 ? 84 : len > 28 ? 98 : 118;
@@ -362,7 +362,7 @@ function coverHeroHtml({ eyebrow, title, subtitle, total, footer: site }, logoUr
         : ''
     }
     <div class="count">1/${total}</div>
-    <div class="swipe">przesuń<span class="arrow">→</span></div>
+    ${reel ? '' : '<div class="swipe">przesuń<span class="arrow">→</span></div>'}
     ${footer(logoUri, site)}
   </div></body></html>`;
 }
@@ -499,7 +499,7 @@ export async function renderCarousel(data) {
 
   const coverFn = hero && person ? coverHeroHtml : coverHtml;
   const pages = [
-    { name: `${base}-01`, html: coverFn({ ...data, total }, uri, person) },
+    { name: `${base}-01`, html: coverFn({ ...data, total, reel: data.reel }, uri, person) },
     ...items.map((it, i) => ({
       name: `${base}-${String(i + 2).padStart(2, '0')}`,
       html: itemHtml(

@@ -210,7 +210,7 @@ async function singleFeedIdea() {
 }
 
 // ── системный промпт собирается из KONTENT.md ────────────────────
-async function buildSystemPrompt(format) {
+async function buildSystemPrompt(format, reel = false) {
   let rules = '';
   try {
     const md = await readFile(KONTENT_FILE, 'utf8');
@@ -237,7 +237,9 @@ Każdy punkt da się zobaczyć oczami. „Numer telefonu ukryty w stopce" — to
 „Wykorzystaj potencjał AI" — tego nie widać, więc tak NIE piszemy.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-FORMAT TEGO POSTU: ${format.label}. ${format.brief}
+FORMAT TEGO POSTU: ${format.label}. ${format.brief}${reel ? `
+
+TO BĘDZIE ROLKA: pionowe wideo, w którym slajdy zmieniają się same co niecałe trzy sekundy. Widz nic nie przesuwa, tylko patrzy. Dlatego każdy punkt musi być czytelny od razu, bez wracania. W opisie pod rolką nie pisz „przesuń" ani „sprawdź slajdy".` : ''}
 
 TWARDE ZASADY TECHNICZNE:
 - Piszesz po polsku z pełną diakrytyką: ą ć ę ł ń ó ś ź ż
@@ -485,7 +487,7 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
     : { key: 'single', label: 'Pojedynczy post', single: true,
         brief: 'Jedna myśl, trzy krótkie punkty. Bez rozwlekania — post ma działać w dwie sekundy.' };
 
-  const system = await buildSystemPrompt(chosenFormat);
+  const system = await buildSystemPrompt(chosenFormat, isReel);
   const user = `Temat postu: ${chosenTopic}`;
 
   let out = null;

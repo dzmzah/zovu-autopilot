@@ -215,7 +215,10 @@ console.log(`[autopilot] #${post.meta.counter} ${post.kind} | ${post.meta.format
 console.log(`[autopilot] ${post.data.title}`);
 
 // обычный пост — одна картинка; карусель и рилс собираются из одного набора слайдов
-const slides = post.kind === 'single' ? [await renderPost(post.data)] : await renderCarousel(post.data);
+const slides =
+  post.kind === 'single'
+    ? [await renderPost(post.data)]
+    : await renderCarousel({ ...post.data, reel: post.kind === 'reel' });
 console.log(`[autopilot] obrazki: ${slides.length}`);
 
 // рилс: из тех же слайдов делаем вертикальное видео
