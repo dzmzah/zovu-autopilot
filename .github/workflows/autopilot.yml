@@ -1,0 +1,61 @@
+name: ZOVU autopilot
+
+# Запускается на серверах GitHub — компьютер Захара не нужен.
+# Время в UTC: 07:00 = 9:00 в Польше летом, 16:00 = 18:00.
+on:
+  schedule:
+    - cron: '0 7 * * *'
+    - cron: '0 16 * * *'
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: 'Tylko wygeneruj, bez publikacji'
+        type: boolean
+        default: false
+
+concurrency:
+  group: zovu-autopilot
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Zależności
+        run: npm ci || npm install
+
+      - name: Chromium dla Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Zrób i opublikuj post
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+          # картинки кладём в этот же репозиторий, он публичный
+          CDN_REPO: ${{ github.workspace }}
+          RAW_BASE: https://raw.githubusercontent.com/${{ github.repository }}/main
+          ZOVU_BG_DIR: ${{ github.workspace }}/bg
+          ZOVU_READY_DIR: ${{ github.workspace }}/out
+        run: node run-once.mjs ${{ inputs.dry && '--dry' || '' }}
+
+      # состояние ротации (тема, формат, счётчик) храним в репозитории,
+      # иначе каждый запуск начинал бы с нуля
+      - name: Zapisz stan rotacji
+        if: ${{ !inputs.dry }}
+        run: |
+          git config user.name "zovu-autopilot"
+          git config user.email "zovu.pl@gmail.com"
+          git add state.json posts || true
+          git diff --staged --quiet || git commit -m "post + stan rotacji [skip ci]"
+          git push || true

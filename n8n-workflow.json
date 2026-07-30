@@ -1,0 +1,145 @@
+{
+  "name": "ZOVU Content → Instagram",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1000000-0000-4000-8000-000000000001",
+      "name": "Klik start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-560, 0]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// ====== KONFIGURACJA — tu zmieniasz ustawienia ======\n\n// ID konta Instagram (Instagram Business Account ID). Wklej po konfiguracji aplikacji Meta.\nconst IG_ID = 'WKLEJ_TU_IG_ID';\n\n// Model lokalny (Ollama). gemma2:9b pisze najlepszą polszczyznę z tych, które masz.\nconst MODEL = 'gemma2:9b';\n\n// Temat posta. Później zamienimy to na automatyczne trendy.\nconst TOPIC = 'Temat posta: dlaczego małe firmy tracą pieniądze, prowadząc social media ręcznie, i co realnie zmienia automatyzacja.';\n\n// ====== INSTRUKCJA DLA MODELU ======\nconst SYSTEM = `Jesteś starszym copywriterem polskiej agencji kreatywnej ZOVU z Katowic.\nZOVU tworzy strony internetowe, wideo, treści, reklamy i automatyzacje AI dla małych i średnich firm.\n\nZASADY JĘZYKA — najważniejsze:\n- Piszesz wyłącznie po polsku, poprawną polszczyzną.\n- OBOWIĄZKOWO używasz polskich znaków diakrytycznych: ą, ć, ę, ł, ń, ó, ś, ź, ż.\n- Zero anglicyzmów i zero kalek z angielskiego.\n- Ton: konkretny, rzeczowy, bez korporacyjnej waty i bez wykrzykników. Mówisz jak praktyk do właściciela firmy.\n\nZwróć WYŁĄCZNIE obiekt JSON o dokładnie takich polach:\n{\n  \"eyebrow\": \"krótka etykieta WIELKIMI LITERAMI, maksymalnie 24 znaki, na przykład: ZOVU · AUTOMATYZACJA\",\n  \"title\": \"nagłówek na obrazek, od 40 do 65 znaków, mocny i konkretny, bez kropki na końcu\",\n  \"bullets\": [\"dokładnie trzy punkty, każdy od 35 do 55 znaków, konkretna korzyść, bez kropki na końcu\"],\n  \"caption\": \"opis pod post na Instagramie, od 350 do 600 znaków, od dwóch do czterech akapitów rozdzielonych podwójną nową linią, na końcu jedno pytanie do odbiorcy, w całym tekście maksymalnie dwa emoji\",\n  \"hashtags\": [\"maksymalnie pięć hashtagów po polsku, bez znaku #, bez wymyślonych słów\"]\n}`;\n\nreturn [{\n  json: {\n    ig_id: IG_ID,\n    model: MODEL,\n    topic: TOPIC,\n    system: SYSTEM,\n  },\n}];"
+      },
+      "id": "a1000000-0000-4000-8000-000000000002",
+      "name": "Konfiguracja",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-340, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $json.model, stream: false, format: 'json', options: { temperature: 0.6, num_ctx: 4096 }, messages: [ { role: 'system', content: $json.system }, { role: 'user', content: $json.topic } ] }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "a1000000-0000-4000-8000-000000000003",
+      "name": "AI pisze tekst (Ollama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-120, 0]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Sprawdzamy, co przysłał model, i sklejamy gotowy post.\nconst cfg = $('Konfiguracja').first().json;\nconst raw = $input.first().json;\n\nlet out;\ntry {\n  out = JSON.parse(raw.message.content);\n} catch (e) {\n  throw new Error('Model nie zwrócił poprawnego JSON. Uruchom jeszcze raz. Surowa odpowiedź: ' + String(raw.message && raw.message.content).slice(0, 300));\n}\n\nconst clean = (s) => String(s || '').replace(/\\s+/g, ' ').replace(/[.\\s]+$/, '').trim();\n\nconst title = clean(out.title);\nif (!title) throw new Error('Brak pola title');\n\n// dokładnie trzy punkty, każdy do 48 znaków — dłuższe łamią się na dwie linie na obrazku\nconst bullets = (Array.isArray(out.bullets) ? out.bullets : [])\n  .map(clean)\n  .filter(Boolean)\n  .slice(0, 3)\n  .map((b) => {\n    if (b.length <= 48) return b;\n    const cut = b.slice(0, 48);\n    const sp = cut.lastIndexOf(' ');\n    return (sp > 28 ? cut.slice(0, sp) : cut).trim();\n  });\n\n// maksymalnie pięć hashtagów, bez śmieci i bez duplikatów\nconst hashtags = [...new Set((Array.isArray(out.hashtags) ? out.hashtags : [])\n  .map((h) => String(h).replace(/^#/, '').replace(/[^\\p{L}\\p{N}]/gu, '').toLowerCase())\n  .filter((h) => h.length >= 4 && h.length <= 24))]\n  .slice(0, 5);\n\nconst caption = String(out.caption || '').trim()\n  + '\\n\\n'\n  + hashtags.map((h) => '#' + h).join(' ');\n\nreturn [{\n  json: {\n    ig_id: cfg.ig_id,\n    eyebrow: (clean(out.eyebrow) || 'ZOVU · AI & MARKETING').slice(0, 28),\n    title,\n    bullets,\n    caption,\n    footer: 'zovu.pl',\n  },\n}];"
+      },
+      "id": "a1000000-0000-4000-8000-000000000004",
+      "name": "Sprawdź i posklej",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [100, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8899/make-post",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ eyebrow: $json.eyebrow, title: $json.title, bullets: $json.bullets, footer: $json.footer }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "a1000000-0000-4000-8000-000000000005",
+      "name": "Zrób obrazek + publiczny URL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $('Sprawdź i posklej').first().json.ig_id }}/media",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "queryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "image_url",
+              "value": "={{ $json.url }}"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $('Sprawdź i posklej').first().json.caption }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000006",
+      "name": "Instagram — przygotuj post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [540, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $('Sprawdź i posklej').first().json.ig_id }}/media_publish",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "queryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "creation_id",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000007",
+      "name": "Instagram — PUBLIKUJ",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [760, 0]
+    }
+  ],
+  "connections": {
+    "Klik start": {
+      "main": [[{ "node": "Konfiguracja", "type": "main", "index": 0 }]]
+    },
+    "Konfiguracja": {
+      "main": [[{ "node": "AI pisze tekst (Ollama)", "type": "main", "index": 0 }]]
+    },
+    "AI pisze tekst (Ollama)": {
+      "main": [[{ "node": "Sprawdź i posklej", "type": "main", "index": 0 }]]
+    },
+    "Sprawdź i posklej": {
+      "main": [[{ "node": "Zrób obrazek + publiczny URL", "type": "main", "index": 0 }]]
+    },
+    "Zrób obrazek + publiczny URL": {
+      "main": [[{ "node": "Instagram — przygotuj post", "type": "main", "index": 0 }]]
+    },
+    "Instagram — przygotuj post": {
+      "main": [[{ "node": "Instagram — PUBLIKUJ", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
