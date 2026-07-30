@@ -88,6 +88,25 @@ async function igPost(endpoint, body) {
   return j;
 }
 
+// Instagram обрабатывает загруженную картинку не мгновенно.
+// Если публиковать сразу, прилетает «Media ID is not available» (код 9007).
+// Ждём, пока контейнер перейдёт в FINISHED.
+async function waitReady(containerId, token, label = '') {
+  for (let i = 0; i < 30; i++) {
+    try {
+      const r = await fetch(
+        `${IG_API}/${containerId}?fields=status_code,status&access_token=${token}`
+      ).then((x) => x.json());
+      if (r.status_code === 'FINISHED') return true;
+      if (r.status_code === 'ERROR') throw new Error(`kontener ${label} w błędzie: ${r.status || ''}`);
+    } catch (e) {
+      if (String(e.message).includes('w błędzie')) throw e;
+    }
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  throw new Error(`kontener ${label} nie zdążył się przetworzyć`);
+}
+
 async function publish(urls, caption) {
   const token = await env('INSTAGRAM_TOKEN');
   if (!token) throw new Error('нет INSTAGRAM_TOKEN');
@@ -97,8 +116,9 @@ async function publish(urls, caption) {
     container = await igPost('me/media', { image_url: urls[0], caption, access_token: token });
   } else {
     const children = [];
-    for (const url of urls) {
+    for (const [i, url] of urls.entries()) {
       const c = await igPost('me/media', { image_url: url, is_carousel_item: true, access_token: token });
+      await waitReady(c.id, token, `slajd ${i + 1}`);
       children.push(c.id);
     }
     container = await igPost('me/media', {
@@ -109,10 +129,20 @@ async function publish(urls, caption) {
     });
   }
 
-  const published = await igPost('me/media_publish', {
-    creation_id: container.id,
-    access_token: token,
-  });
+  await waitReady(container.id, token, 'główny');
+
+  // даже после FINISHED Instagram иногда просит подождать — пробуем несколько раз
+  let published = null;
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    try {
+      published = await igPost('me/media_publish', { creation_id: container.id, access_token: token });
+      break;
+    } catch (e) {
+      if (attempt === 5 || !/9007|not ready|not available/i.test(e.message)) throw e;
+      console.log(`[autopilot] Instagram jeszcze nie gotowy, próba ${attempt + 1} za 5s`);
+      await new Promise((r) => setTimeout(r, 5000));
+    }
+  }
 
   let permalink = null;
   try {
