@@ -82,6 +82,74 @@ export async function generateBackground(scene, { name, seed } = {}) {
   }
 }
 
+// Вертикальный кадр под рилс: 1080x1920, БЕЗ раскладки по сторонам.
+// В видео объект живёт во весь экран, а текст читается за счёт затемняющей
+// вуали в CSS — поэтому здесь картинку только слегка притемняем.
+export async function generateVertical(scene, { name, seed } = {}) {
+  const s = seed ?? Math.floor(Math.random() * 1e6);
+  const url =
+    'https://image.pollinations.ai/prompt/' +
+    encodeURIComponent(wrap(scene)) +
+    `?width=1080&height=1920&nologo=true&model=flux&seed=${s}`;
+
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 90000);
+  try {
+    const r = await fetch(url, {
+      signal: ctrl.signal,
+      headers: { 'user-agent': 'Mozilla/5.0 (compatible; ZOVU-bot)' },
+    });
+    if (!r.ok) throw new Error('Pollinations ' + r.status);
+    const buf = Buffer.from(await r.arrayBuffer());
+    if (buf.length < 20000) throw new Error('картинка подозрительно мелкая');
+
+    await mkdir(GEN_DIR, { recursive: true });
+    const safe = (name || `v-${Date.now()}`).replace(/[^a-zA-Z0-9._-]/g, '-');
+    const file = path.join(GEN_DIR, `${safe}.jpg`);
+    await sharp(buf)
+      .resize(1080, 1920, { fit: 'cover', position: 'centre' })
+      .modulate({ brightness: 0.88, saturation: 1.12 })
+      .jpeg({ quality: 88 })
+      .toFile(file);
+    return { file, scene, seed: s };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Пачкой, по одному вертикальному кадру на сцену рилса.
+// Строго по одному: на две и больше параллельных запросов Pollinations
+// отвечает 429, и половина кадров теряется. Семь картинок — около пяти минут,
+// это самая долгая часть прогона, но она внутри лимита задания.
+export async function generateVerticals(scenes, baseName, { lanes = 1 } = {}) {
+  const out = new Array(scenes.length).fill(null);
+  let next = 0;
+
+  async function worker(lane) {
+    await new Promise((r) => setTimeout(r, lane * 6000)); // разводим старты
+    for (;;) {
+      const i = next++;
+      if (i >= scenes.length) return;
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          const r = await generateVertical(scenes[i], { name: `${baseName}-v${i + 1}` });
+          out[i] = r.file;
+          break;
+        } catch (e) {
+          if (attempt === 2) {
+            console.warn(`[bg-gen] kadr ${i + 1} nie wyszedł: ${e.message}`);
+            break;
+          }
+          await new Promise((r) => setTimeout(r, 15000));
+        }
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: lanes }, (_, l) => worker(l)));
+  return out;
+}
+
 // Пачкой, по одному фону на пункт. Что не получилось — вернётся null,
 // и вызывающий код подставит фон из библиотеки.
 export async function generateForItems(items, baseName) {

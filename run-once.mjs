@@ -218,10 +218,10 @@ console.log(`[autopilot] ${post.data.title}`);
 let files;
 if (post.kind === 'reel') {
   const { makeReel } = await import('./make-reel.mjs');
-  const reel = await makeReel({ data: post.data, name: post.data.name });
+  const reel = await makeReel({ data: post.data, name: post.data.name, photo: post.data.photoCta || 'mat' });
   console.log(
     `[autopilot] rolka: ${reel.seconds.toFixed(1)}s, ${(reel.bytes / 1048576).toFixed(1)} MB` +
-      (reel.withMusic ? `, montaż pod ${reel.bpm} BPM` : ', bez muzyki')
+      `, ${reel.images} kadrów` + (reel.withMusic ? `, montaż pod ${reel.bpm} BPM` : ', bez muzyki')
   );
   files = [{ file: reel.file, name: reel.name }];
 } else {
