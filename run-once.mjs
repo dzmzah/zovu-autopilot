@@ -37,7 +37,10 @@ async function env(key) {
 }
 
 async function git(args, cwd = CDN_REPO) {
-  const { stdout, stderr } = await execFileAsync('git', ['-C', cwd, ...args], {
+  // Имя автора задаём прямо в команде: на серверах GitHub Actions
+  // глобальной настройки git нет, и коммит падает с «Author identity unknown».
+  const ident = ['-c', 'user.name=zovu-autopilot', '-c', 'user.email=zovu.pl@gmail.com'];
+  const { stdout, stderr } = await execFileAsync('git', ['-C', cwd, ...ident, ...args], {
     maxBuffer: 10 * 1024 * 1024,
   });
   return (stdout || '') + (stderr || '');
