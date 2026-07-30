@@ -7,10 +7,12 @@
 
 ## Что лежит сейчас
 
-| Файл | Автор | Источник |
-|---|---|---|
-| `pixabay-creative-technology-showreel.mp3` | Ivan Ohanezov (Pumpupthemind) | Pixabay |
-| `pixabay-dark-cyberpunk.mp3` | FreeMusicLab | Pixabay |
+| Файл | Автор | Источник | BPM |
+|---|---|---|---|
+| `pixabay-creative-technology-showreel.mp3` | Ivan Ohanezov (Pumpupthemind) | Pixabay | 152 |
+
+В `zapas/` лежит `pixabay-dark-cyberpunk.mp3` (FreeMusicLab, 123 BPM) — Захару
+не зашла, в ротацию не берётся. Чтобы вернуть, просто перенести на уровень выше.
 
 Обе — **Pixabay Content License**: коммерческое использование разрешено,
 указание автора не требуется. Обе выбраны БЕЗ пометки «registered with
