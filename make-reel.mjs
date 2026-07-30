@@ -387,15 +387,14 @@ const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
 
 window.setT = (t) => {
   document.getElementById('glowA').style.transform =
-    'translate(' + (-320 + Math.sin(t * 0.32) * 70) + 'px,' + (-380 + Math.cos(t * 0.24) * 90) + 'px)';
+    'translate(' + Math.round(-320 + Math.sin(t * 0.32) * 70) + 'px,' +
+    Math.round(-380 + Math.cos(t * 0.24) * 90) + 'px)';
   document.getElementById('glowB').style.transform =
-    'translate(' + (420 + Math.cos(t * 0.28) * 80) + 'px,' + (1080 + Math.sin(t * 0.21) * 70) + 'px)';
-  document.getElementById('grid').style.transform = 'translateY(' + ((t * 16) % 110) + 'px)';
+    'translate(' + Math.round(420 + Math.cos(t * 0.28) * 80) + 'px,' +
+    Math.round(1080 + Math.sin(t * 0.21) * 70) + 'px)';
+  document.getElementById('grid').style.transform =
+    'translateY(' + (Math.round(t * 8) % 110) + 'px)';
   document.getElementById('prog').style.width = (100 * clamp01(t / TOTAL)) + '%';
-
-  // лёгкий пульс всей сцены в долю — то, что делает картинку «музыкальной»
-  const ph = (t % BEAT) / BEAT;
-  document.getElementById('stage').style.transform = 'scale(' + (1 + 0.006 * Math.pow(1 - ph, 4)) + ')';
 
   let cur = 0;
   for (let i = 0; i < SCENES.length; i++) if (t >= SCENES[i].start) cur = i;
@@ -415,9 +414,7 @@ window.setT = (t) => {
     if (media) {
       const p = clamp01(local / s.dur);
       const enter = easeOut(clamp01(local / 0.5));
-      const dir = i % 2 ? -1 : 1;
-      media.style.transform =
-        'scale(' + (1.04 + 0.07 * p) + ') translate(' + (dir * 14 * p) + 'px,' + (-10 * p) + 'px)';
+      media.style.transform = 'scale(' + (1.05 + 0.06 * p).toFixed(4) + ')';
       media.style.opacity = enter;
     }
 
