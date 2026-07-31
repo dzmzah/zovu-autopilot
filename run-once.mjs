@@ -78,11 +78,18 @@ async function prunePosts(dir, days = 30) {
   if (removed) console.log(`[autopilot] sprzątanie: usunięto ${removed} starych plików`);
 }
 
-async function pushToCdn(files) {
+async function pushToCdn(files, caption) {
   const dir = path.join(CDN_REPO, CDN_SUBDIR);
   await mkdir(dir, { recursive: true });
   await prunePosts(dir);
   for (const f of files) await copyFile(f.file, path.join(dir, f.name));
+
+  // Подпись кладём рядом с картинкой. Если публикация не пройдёт, пост уже
+  // готов к выкладке руками: файл и текст лежат вместе, ничего не потеряно.
+  if (caption) {
+    const txt = files[0].name.replace(/\.[^.]+$/, '') + '.txt';
+    await writeFile(path.join(dir, txt), caption, 'utf8');
+  }
 
   await git(['add', '--all']);
   try {
@@ -270,18 +277,39 @@ if (DRY) {
   process.exit(0);
 }
 
-const urls = await pushToCdn(files);
-const result = await publish(urls, post.caption, post.kind);
-console.log(`[autopilot] Instagram: ${result.permalink || result.mediaId}`);
+const urls = await pushToCdn(files, post.caption);
 
-// Facebook — тем же контентом. Если токена нет, шаг пропускается,
-// и это не ломает публикацию в Instagram.
+// Meta умеет закрыть доступ к API целиком — так было 31.07, когда аккаунт
+// разработчика попал на проверку личности. Пост в этом случае НЕ теряется:
+// картинка и подпись уже лежат в репозитории, останется выложить руками.
+// Падать с ошибкой смысла нет — расписание только копило бы красные прогоны.
+const ZABLOKOWANE = /API access blocked|Cannot call API for app|OAuthException/i;
+
+let result = null;
 try {
-  const { publishToFacebook } = await import('./fb-publish.mjs');
-  const fb = await publishToFacebook({ imageUrls: urls, caption: post.caption, kind: post.kind });
-  console.log(fb.skipped ? `[autopilot] Facebook: pominięty (${fb.reason})` : `[autopilot] Facebook: ${fb.postId}`);
+  result = await publish(urls, post.caption, post.kind);
+  console.log(`[autopilot] Instagram: ${result.permalink || result.mediaId}`);
 } catch (e) {
-  console.warn(`[autopilot] Facebook nie wyszedł: ${e.message}`);
+  if (!ZABLOKOWANE.test(e.message)) throw e;
+  console.log('[autopilot] ──────────────────────────────────────────────');
+  console.log('[autopilot] Meta zablokowała dostęp do API — post NIE został wysłany.');
+  console.log(`[autopilot] Powód od Meta: ${e.message.slice(0, 160)}`);
+  console.log('[autopilot] Gotowy post czeka w repozytorium:');
+  for (const u of urls) console.log(`[autopilot]   ${u}`);
+  console.log(`[autopilot]   ${urls[0].replace(/\.[^.]+$/, '.txt')}  (podpis)`);
+  console.log('[autopilot] ──────────────────────────────────────────────');
+}
+
+// Facebook — тем же контентом. Если токена нет или доступ закрыт, шаг
+// пропускается, и это не ломает остальное.
+if (result) {
+  try {
+    const { publishToFacebook } = await import('./fb-publish.mjs');
+    const fb = await publishToFacebook({ imageUrls: urls, caption: post.caption, kind: post.kind });
+    console.log(fb.skipped ? `[autopilot] Facebook: pominięty (${fb.reason})` : `[autopilot] Facebook: ${fb.postId}`);
+  } catch (e) {
+    console.warn(`[autopilot] Facebook nie wyszedł: ${e.message}`);
+  }
 }
 
 // слот закрыт — повторные попытки того же расписания больше ничего не выложат
