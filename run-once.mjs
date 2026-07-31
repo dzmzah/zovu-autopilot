@@ -206,9 +206,43 @@ async function publish(urls, caption, kind) {
   return { mediaId: published.id, permalink };
 }
 
+// ── защита от повторной публикации ────────────────────────────────
+// Планировщик GitHub умеет задержать и уронить запуск, поэтому в расписании
+// стоит несколько попыток на слот. Чтобы они не превратились в три поста
+// подряд, помечаем выполненный слот в state.json и на повторе выходим.
+const STATE_FILE = path.join(import.meta.dirname, 'state.json');
+
+function slotId(d = new Date()) {
+  // до полудня UTC — утренний слот, после — вечерний
+  return `${d.toISOString().slice(0, 10)}-${d.getUTCHours() < 12 ? 'am' : 'pm'}`;
+}
+
+async function readState() {
+  try {
+    return JSON.parse(await readFile(STATE_FILE, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+async function markSlot(id) {
+  const s = await readState();
+  s.posted = id;
+  await writeFile(STATE_FILE, JSON.stringify(s, null, 1) + '\n', 'utf8');
+}
+
 // ── поехали ───────────────────────────────────────────────────────
 const started = Date.now();
 console.log(`[autopilot] start ${new Date().toISOString()}${DRY ? ' (dry run)' : ''}`);
+
+const slot = slotId();
+if (!DRY && !KIND) {
+  const s = await readState();
+  if (s.posted === slot) {
+    console.log(`[autopilot] slot ${slot} już opublikowany — kończę bez postu`);
+    process.exit(0);
+  }
+}
 
 const post = await makePost({ trends: true, kind: KIND });
 console.log(`[autopilot] #${post.meta.counter} ${post.kind} | ${post.meta.format} | ${post.meta.provider}`);
@@ -248,6 +282,14 @@ try {
   console.log(fb.skipped ? `[autopilot] Facebook: pominięty (${fb.reason})` : `[autopilot] Facebook: ${fb.postId}`);
 } catch (e) {
   console.warn(`[autopilot] Facebook nie wyszedł: ${e.message}`);
+}
+
+// слот закрыт — повторные попытки того же расписания больше ничего не выложат
+try {
+  await markSlot(slot);
+  console.log(`[autopilot] slot ${slot} zamknięty`);
+} catch (e) {
+  console.warn(`[autopilot] nie zapisałem slotu: ${e.message}`);
 }
 
 // состояние ротации возвращаем в репозиторий, чтобы следующий запуск его увидел
