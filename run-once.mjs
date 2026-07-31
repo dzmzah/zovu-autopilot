@@ -244,6 +244,9 @@ async function markSlot(id) {
 // запуск, в обычном ритме. Разом их выкладывать нельзя: десять постов подряд
 // это ровно та «необычная активность», из-за которой нас и заблокировали.
 const QUEUE_FILE = path.join(import.meta.dirname, 'pending.json');
+// Сколько постов держим про запас при блокировке. Десять — это пять дней
+// нормального ритма; дольше копить бессмысленно, темы протухают.
+const LIMIT_KOLEJKI = 10;
 
 async function readQueue() {
   try {
@@ -324,9 +327,16 @@ if (!DRY && !KIND) {
       process.exit(0);
     } catch (e) {
       if (!ZABLOKOWANE_RE.test(e.message)) throw e;
-      console.log(`[autopilot] dostęp wciąż zablokowany — kolejka bez zmian (${kolejka.length})`);
-      console.log(`[autopilot] gotowe w ${Math.round((Date.now() - started) / 1000)}s`);
-      process.exit(0);
+      // Доступа по-прежнему нет. Не выходим: делаем новый пост в запас, чтобы
+      // на странице готовых было что публиковать руками. Но не бесконечно —
+      // при длинной блокировке смысла копить сотню постов нет.
+      console.log(`[autopilot] dostęp wciąż zablokowany (w kolejce ${kolejka.length})`);
+      if (kolejka.length >= LIMIT_KOLEJKI) {
+        console.log(`[autopilot] kolejka pełna (${LIMIT_KOLEJKI}) — nie robię nowego postu`);
+        console.log(`[autopilot] gotowe w ${Math.round((Date.now() - started) / 1000)}s`);
+        process.exit(0);
+      }
+      console.log('[autopilot] robię nowy post do zapasu');
     }
   }
 }
