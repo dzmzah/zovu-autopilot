@@ -235,6 +235,11 @@ async function readState() {
 async function markSlot(id) {
   const s = await readState();
   s.posted = id;
+  // Первая удачная публикация после блокировки запускает отсчёт щадящей недели.
+  if (!s.wznowiono) {
+    s.wznowiono = new Date().toISOString();
+    console.log('[autopilot] dostęp wrócił — włączam tryb łagodny na 7 dni');
+  }
   await writeFile(STATE_FILE, JSON.stringify(s, null, 1) + '\n', 'utf8');
 }
 
@@ -297,6 +302,22 @@ if (!DRY && !KIND) {
   if (s.posted === slot) {
     console.log(`[autopilot] slot ${slot} już opublikowany — kończę bez postu`);
     process.exit(0);
+  }
+
+  // ── щадящий режим после блокировки ──
+  // Meta закрыла доступ 31.07 именно за резкий старт. Поэтому первую неделю
+  // после восстановления идём по одному посту в день — вечерний слот
+  // пропускаем. Дата первой удачной публикации ставится сама, решать ничего
+  // не нужно; через семь дней режим отключается тоже сам.
+  if (s.wznowiono && slot.endsWith('-pm')) {
+    const dni = (Date.now() - Date.parse(s.wznowiono)) / 86400_000;
+    if (dni < 7) {
+      console.log(
+        `[autopilot] tryb łagodny: ${dni.toFixed(1)} dnia od wznowienia, ` +
+          'wieczorny slot pomijam (jeden post dziennie przez tydzień)'
+      );
+      process.exit(0);
+    }
   }
 }
 
