@@ -1,0 +1,173 @@
+{
+  "name": "ZOVU — publikacja (Instagram + Facebook)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "zovu-publikacja",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Post z autopilota",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-460, 300],
+      "webhookId": "zovu-publikacja"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "t1",
+              "name": "igToken",
+              "value": "={{ $env.INSTAGRAM_TOKEN }}",
+              "type": "string"
+            },
+            {
+              "id": "t2",
+              "name": "fbToken",
+              "value": "={{ $env.FACEBOOK_PAGE_TOKEN }}",
+              "type": "string"
+            },
+            {
+              "id": "t3",
+              "name": "fbPageId",
+              "value": "1104225396116061",
+              "type": "string"
+            },
+            {
+              "id": "t4",
+              "name": "mediaUrl",
+              "value": "={{ $json.body.mediaUrl }}",
+              "type": "string"
+            },
+            {
+              "id": "t5",
+              "name": "caption",
+              "value": "={{ $json.body.caption }}",
+              "type": "string"
+            },
+            {
+              "id": "t6",
+              "name": "kind",
+              "value": "={{ $json.body.kind || 'single' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dane",
+      "name": "Dane i tokeny",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-240, 300],
+      "notes": "Tokeny bierzemy ze zmiennych środowiskowych n8n, żeby nie leżały w pliku workflow."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v23.0/me/media",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "access_token", "value": "={{ $json.igToken }}" },
+            { "name": "caption", "value": "={{ $json.caption }}" },
+            {
+              "name": "image_url",
+              "value": "={{ $json.kind === 'reel' ? '' : $json.mediaUrl }}"
+            },
+            {
+              "name": "video_url",
+              "value": "={{ $json.kind === 'reel' ? $json.mediaUrl : '' }}"
+            },
+            {
+              "name": "media_type",
+              "value": "={{ $json.kind === 'reel' ? 'REELS' : '' }}"
+            }
+          ]
+        },
+        "options": { "response": { "response": { "neverError": true } } }
+      },
+      "id": "ig-kontener",
+      "name": "Instagram: kontener",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-20, 300]
+    },
+    {
+      "parameters": { "amount": 8 },
+      "id": "czekaj",
+      "name": "Czekaj na przetworzenie",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [200, 300],
+      "notes": "Instagram nie publikuje kontenera od razu — bez pauzy leci błąd 9007 „Media ID is not available”."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v23.0/me/media_publish",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "creation_id", "value": "={{ $json.id }}" },
+            { "name": "access_token", "value": "={{ $('Dane i tokeny').item.json.igToken }}" }
+          ]
+        },
+        "options": { "response": { "response": { "neverError": true } } }
+      },
+      "id": "ig-publikuj",
+      "name": "Instagram: publikuj",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v23.0/{{ $('Dane i tokeny').item.json.fbPageId }}/photos",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "url", "value": "={{ $('Dane i tokeny').item.json.mediaUrl }}" },
+            { "name": "caption", "value": "={{ $('Dane i tokeny').item.json.caption }}" },
+            { "name": "published", "value": "true" },
+            { "name": "access_token", "value": "={{ $('Dane i tokeny').item.json.fbToken }}" }
+          ]
+        },
+        "options": { "response": { "response": { "neverError": true } } }
+      },
+      "id": "fb-publikuj",
+      "name": "Facebook: publikuj",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [640, 300],
+      "notes": "Dla rolki trzeba zamienić /photos na /videos i url na file_url."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ instagram: $('Instagram: publikuj').item.json, facebook: $json }) }}",
+        "options": {}
+      },
+      "id": "odpowiedz",
+      "name": "Odpowiedź do autopilota",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [860, 300]
+    }
+  ],
+  "connections": {
+    "Post z autopilota": { "main": [[{ "node": "Dane i tokeny", "type": "main", "index": 0 }]] },
+    "Dane i tokeny": { "main": [[{ "node": "Instagram: kontener", "type": "main", "index": 0 }]] },
+    "Instagram: kontener": { "main": [[{ "node": "Czekaj na przetworzenie", "type": "main", "index": 0 }]] },
+    "Czekaj na przetworzenie": { "main": [[{ "node": "Instagram: publikuj", "type": "main", "index": 0 }]] },
+    "Instagram: publikuj": { "main": [[{ "node": "Facebook: publikuj", "type": "main", "index": 0 }]] },
+    "Facebook: publikuj": { "main": [[{ "node": "Odpowiedź do autopilota", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}
