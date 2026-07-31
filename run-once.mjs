@@ -238,6 +238,52 @@ async function markSlot(id) {
   await writeFile(STATE_FILE, JSON.stringify(s, null, 1) + '\n', 'utf8');
 }
 
+// ── очередь неопубликованного ─────────────────────────────────────
+// Когда Meta закрывает доступ, посты не пропадают: они встают в очередь и
+// ждут. Как только доступ вернётся, очередь расходится сама — по одному за
+// запуск, в обычном ритме. Разом их выкладывать нельзя: десять постов подряд
+// это ровно та «необычная активность», из-за которой нас и заблокировали.
+const QUEUE_FILE = path.join(import.meta.dirname, 'pending.json');
+
+async function readQueue() {
+  try {
+    const q = JSON.parse(await readFile(QUEUE_FILE, 'utf8'));
+    return Array.isArray(q) ? q : [];
+  } catch {
+    return [];
+  }
+}
+
+async function writeQueue(q) {
+  await writeFile(QUEUE_FILE, JSON.stringify(q, null, 1) + '\n', 'utf8');
+}
+
+async function pushQueue(entry) {
+  const q = await readQueue();
+  if (q.some((x) => x.urls[0] === entry.urls[0])) return q.length;
+  q.push(entry);
+  await writeQueue(q);
+  return q.length;
+}
+
+async function shiftQueue() {
+  const q = await readQueue();
+  q.shift();
+  await writeQueue(q);
+  return q.length;
+}
+
+// Состояние ротации возвращается в репозиторий, иначе каждый запуск
+// начинал бы темы и форматы с нуля.
+async function zapiszStan() {
+  try {
+    const state = await readFile(STATE_FILE, 'utf8');
+    await writeFile(STATE_FILE, state, 'utf8');
+  } catch {
+    /* нечего сохранять */
+  }
+}
+
 // ── поехали ───────────────────────────────────────────────────────
 const started = Date.now();
 console.log(`[autopilot] start ${new Date().toISOString()}${DRY ? ' (dry run)' : ''}`);
@@ -248,6 +294,40 @@ if (!DRY && !KIND) {
   if (s.posted === slot) {
     console.log(`[autopilot] slot ${slot} już opublikowany — kończę bez postu`);
     process.exit(0);
+  }
+}
+
+// Есть накопленное — выкладываем его, а не делаем новое. Так лента идёт
+// по порядку и в прежнем ритме, а очередь потихоньку рассасывается.
+const ZABLOKOWANE_RE = /API access blocked|Cannot call API for app|OAuthException/i;
+
+if (!DRY && !KIND) {
+  const kolejka = await readQueue();
+  if (kolejka.length) {
+    const czeka = kolejka[0];
+    console.log(`[autopilot] w kolejce: ${kolejka.length}. Próbuję najstarszy: ${czeka.name}`);
+    try {
+      const r = await publish(czeka.urls, czeka.caption, czeka.kind);
+      console.log(`[autopilot] Instagram: ${r.permalink || r.mediaId}`);
+      try {
+        const { publishToFacebook } = await import('./fb-publish.mjs');
+        const fb = await publishToFacebook({ imageUrls: czeka.urls, caption: czeka.caption, kind: czeka.kind });
+        console.log(fb.skipped ? `[autopilot] Facebook: pominięty (${fb.reason})` : `[autopilot] Facebook: ${fb.postId}`);
+      } catch (e) {
+        console.warn(`[autopilot] Facebook nie wyszedł: ${e.message}`);
+      }
+      const zostalo = await shiftQueue();
+      await markSlot(slot);
+      await zapiszStan();
+      console.log(`[autopilot] kolejka: zostało ${zostalo}`);
+      console.log(`[autopilot] gotowe w ${Math.round((Date.now() - started) / 1000)}s`);
+      process.exit(0);
+    } catch (e) {
+      if (!ZABLOKOWANE_RE.test(e.message)) throw e;
+      console.log(`[autopilot] dostęp wciąż zablokowany — kolejka bez zmian (${kolejka.length})`);
+      console.log(`[autopilot] gotowe w ${Math.round((Date.now() - started) / 1000)}s`);
+      process.exit(0);
+    }
   }
 }
 
@@ -281,22 +361,25 @@ const urls = await pushToCdn(files, post.caption);
 
 // Meta умеет закрыть доступ к API целиком — так было 31.07, когда аккаунт
 // разработчика попал на проверку личности. Пост в этом случае НЕ теряется:
-// картинка и подпись уже лежат в репозитории, останется выложить руками.
-// Падать с ошибкой смысла нет — расписание только копило бы красные прогоны.
-const ZABLOKOWANE = /API access blocked|Cannot call API for app|OAuthException/i;
-
+// он встаёт в очередь и уйдёт сам, как только доступ вернётся.
 let result = null;
 try {
   result = await publish(urls, post.caption, post.kind);
   console.log(`[autopilot] Instagram: ${result.permalink || result.mediaId}`);
 } catch (e) {
-  if (!ZABLOKOWANE.test(e.message)) throw e;
+  if (!ZABLOKOWANE_RE.test(e.message)) throw e;
+  const dlugosc = await pushQueue({
+    name: files[0].name,
+    urls,
+    caption: post.caption,
+    kind: post.kind,
+    dodano: new Date().toISOString(),
+  });
   console.log('[autopilot] ──────────────────────────────────────────────');
-  console.log('[autopilot] Meta zablokowała dostęp do API — post NIE został wysłany.');
-  console.log(`[autopilot] Powód od Meta: ${e.message.slice(0, 160)}`);
-  console.log('[autopilot] Gotowy post czeka w repozytorium:');
-  for (const u of urls) console.log(`[autopilot]   ${u}`);
-  console.log(`[autopilot]   ${urls[0].replace(/\.[^.]+$/, '.txt')}  (podpis)`);
+  console.log('[autopilot] Meta zablokowała dostęp — post trafił do kolejki.');
+  console.log(`[autopilot] W kolejce czeka: ${dlugosc}`);
+  console.log('[autopilot] Wyjdzie sam, gdy dostęp wróci. Nic nie ginie.');
+  console.log(`[autopilot]   ${urls[0]}`);
   console.log('[autopilot] ──────────────────────────────────────────────');
 }
 
@@ -321,13 +404,6 @@ if (result) try {
   console.warn(`[autopilot] nie zapisałem slotu: ${e.message}`);
 }
 
-// состояние ротации возвращаем в репозиторий, чтобы следующий запуск его увидел
-try {
-  const stateFile = path.join(import.meta.dirname, 'state.json');
-  const state = await readFile(stateFile, 'utf8');
-  await writeFile(stateFile, state, 'utf8');
-} catch {
-  /* нечего сохранять */
-}
+await zapiszStan();
 
 console.log(`[autopilot] gotowe w ${Math.round((Date.now() - started) / 1000)}s`);
