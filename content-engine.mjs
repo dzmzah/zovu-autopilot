@@ -488,7 +488,16 @@ function napraw(out, single) {
   const o = JSON.parse(JSON.stringify(out));
   // свой strip: тот, что в clean(), объявлен внутри неё и сюда не виден
   const oczysc = (s) => String(s || '').replace(/!/g, '').replace(/\s+/g, ' ').trim();
-  const przytnij = (s, n) => shorten(oczysc(s), n);
+  // shorten намеренно не режет посреди слова и возвращает строку как есть,
+  // если знака препинания не нашлось. В обычном пути это правильно, но здесь
+  // мы уже спасаем прогон — поэтому дорезаем по границе слова.
+  const przytnij = (s, n) => {
+    const t = shorten(oczysc(s), n);
+    if (t.length <= n) return t;
+    const cut = t.slice(0, n);
+    const sp = cut.lastIndexOf(' ');
+    return (sp > n * 0.5 ? cut.slice(0, sp) : cut).replace(/[\s,;:—-]+$/, '');
+  };
 
   if (single) {
     let b = Array.isArray(o.bullets) ? o.bullets.filter(Boolean) : [];
