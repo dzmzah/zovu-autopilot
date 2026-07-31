@@ -1,0 +1,110 @@
+// Собирает страницу с готовыми к публикации постами.
+//
+// Зачем: пока доступ к Graph API закрыт, автопилот всё равно делает посты и
+// кладёт их в repo. Эта страница показывает их в один экран — с телефона
+// достаточно нажать «скопировать подпись» и сохранить картинку.
+//
+// Страница живёт на GitHub Pages того же репозитория, поэтому обновляется
+// сама при каждом прогоне.
+import { readdir, stat, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+
+const DIR = process.env.CDN_REPO || import.meta.dirname;
+const POSTS = path.join(DIR, 'posts');
+const RAW = process.env.RAW_BASE || 'https://raw.githubusercontent.com/dzmzah/zovu-autopilot/main';
+
+const pliki = await readdir(POSTS).catch(() => []);
+const obrazki = pliki.filter((f) => /\.(jpe?g|png|mp4)$/i.test(f));
+
+const posty = [];
+for (const obraz of obrazki) {
+  const baza = obraz.replace(/\.[^.]+$/, '');
+  const podpis = pliki.includes(`${baza}.txt`) ? `${baza}.txt` : null;
+  const s = await stat(path.join(POSTS, obraz)).catch(() => null);
+  posty.push({ obraz, podpis, czas: s ? s.mtimeMs : 0, wideo: /\.mp4$/i.test(obraz) });
+}
+// свежие сверху — их и публикуют
+posty.sort((a, b) => b.czas - a.czas);
+
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+const karty = posty
+  .slice(0, 40)
+  .map((p) => {
+    const data = new Date(p.czas).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' });
+    const media = p.wideo
+      ? `<video src="${RAW}/posts/${p.obraz}" controls playsinline></video>`
+      : `<img src="${RAW}/posts/${p.obraz}" alt="" loading="lazy">`;
+    return `<article class="post" data-podpis="${p.podpis ? `${RAW}/posts/${p.podpis}` : ''}">
+      ${media}
+      <div class="pod">
+        <div class="data">${esc(data)}</div>
+        <pre class="tekst">ładowanie…</pre>
+        <div class="akcje">
+          <button class="kopiuj">Kopiuj podpis</button>
+          <a class="pobierz" href="${RAW}/posts/${p.obraz}" download>Pobierz${p.wideo ? ' wideo' : ' zdjęcie'}</a>
+        </div>
+      </div>
+    </article>`;
+  })
+  .join('\n');
+
+const html = `<!doctype html><html lang="pl"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ZOVU — posty gotowe do publikacji</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0a0a0a; color:#fff; font-family:system-ui,-apple-system,sans-serif;
+    padding:16px; max-width:760px; margin:0 auto; }
+  h1 { font-size:20px; letter-spacing:-.02em; }
+  .info { color:#9a9a9a; font-size:13px; margin:6px 0 18px; line-height:1.5; }
+  .post { background:#141414; border:1px solid #262626; border-radius:16px;
+    overflow:hidden; margin-bottom:18px; }
+  .post img, .post video { width:100%; display:block; }
+  .pod { padding:12px 14px 14px; }
+  .data { font-size:12px; color:#7a7a7a; margin-bottom:8px; }
+  .tekst { white-space:pre-wrap; font-size:13px; line-height:1.5; color:#e4e4e4;
+    font-family:inherit; max-height:190px; overflow:auto; }
+  .akcje { display:flex; gap:8px; margin-top:12px; }
+  button, .pobierz { flex:1; text-align:center; border:0; border-radius:10px;
+    padding:11px 12px; font-size:14px; font-weight:600; cursor:pointer;
+    text-decoration:none; }
+  button { background:#d4ff3f; color:#0a0a0a; }
+  button.ok { background:#2f7d32; color:#fff; }
+  .pobierz { background:#242424; color:#fff; }
+</style></head><body>
+<h1>Posty gotowe do publikacji</h1>
+<p class="info">Autopilot robi je dalej, mimo blokady API po stronie Meta.
+Skopiuj podpis, pobierz zdjęcie i wrzuć do Instagrama lub na stronę.
+Najnowsze na górze.</p>
+${karty || '<p class="info">Na razie pusto.</p>'}
+<script>
+for (const el of document.querySelectorAll('.post')) {
+  const url = el.dataset.podpis;
+  const pre = el.querySelector('.tekst');
+  const btn = el.querySelector('.kopiuj');
+  if (!url) { pre.textContent = '(bez podpisu)'; btn.disabled = true; continue; }
+  fetch(url).then(r => r.text()).then(t => { pre.textContent = t.trim(); })
+    .catch(() => { pre.textContent = '(nie udało się wczytać)'; });
+  btn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(pre.textContent);
+      btn.textContent = 'Skopiowane';
+      btn.classList.add('ok');
+      setTimeout(() => { btn.textContent = 'Kopiuj podpis'; btn.classList.remove('ok'); }, 1600);
+    } catch {
+      // на części telefonów schowek wymaga zaznaczenia ręcznego
+      const r = document.createRange();
+      r.selectNodeContents(pre);
+      getSelection().removeAllRanges();
+      getSelection().addRange(r);
+      btn.textContent = 'Zaznaczone — skopiuj';
+    }
+  });
+}
+</script></body></html>`;
+
+await writeFile(path.join(DIR, 'index.html'), html, 'utf8');
+console.log(`[gotowe] strona zbudowana, postów: ${posty.length}`);

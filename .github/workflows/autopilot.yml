@@ -71,11 +71,19 @@ jobs:
 
       # состояние ротации (тема, формат, счётчик) храним в репозитории,
       # иначе каждый запуск начинал бы с нуля
+      # страница с готовыми постами: пока API закрыт, публикуем руками с неё
+      - name: Strona z gotowymi postami
+        if: ${{ !inputs.dry }}
+        run: node gotowe.mjs
+        env:
+          CDN_REPO: ${{ github.workspace }}
+          RAW_BASE: https://raw.githubusercontent.com/${{ github.repository }}/main
+
       - name: Zapisz stan rotacji
         if: ${{ !inputs.dry }}
         run: |
           git config user.name "zovu-autopilot"
           git config user.email "zovu.pl@gmail.com"
-          git add state.json posts token.enc || true
+          git add state.json posts token.enc index.html || true
           git diff --staged --quiet || git commit -m "post + stan rotacji [skip ci]"
           git push || true
