@@ -481,6 +481,35 @@ function clean(out) {
 // подстановка запасного клипа не разъезжались.
 const BROLL_TAGS = ['ai','architektura','auto','auto2','auto3','barber','bieganie','bizuteria','czas','czekolada','deser','detailing','ekrany','finanse','fotostudio','gadzety','gaming','jedzenie','joga','kawa','koktajl','kosmetyki','ksiazki','kwiaty','marka','marka2','marka3','moda','muzyka','nieruchomosci','nowoczesne','perfumy','podroze','rosliny','spa','sport','swiece','swieta','uroda','wnetrza','wyprzedaz'];
 
+// Правит то, что чинится механически: число пунктов, длину строк, хвосты.
+// Смысл текста не трогаем — если модель написала ерунду, ерунда и останется,
+// поэтому после починки текст всё равно проходит через validate().
+function napraw(out, single) {
+  const o = JSON.parse(JSON.stringify(out));
+  // свой strip: тот, что в clean(), объявлен внутри неё и сюда не виден
+  const oczysc = (s) => String(s || '').replace(/!/g, '').replace(/\s+/g, ' ').trim();
+  const przytnij = (s, n) => shorten(oczysc(s), n);
+
+  if (single) {
+    let b = Array.isArray(o.bullets) ? o.bullets.filter(Boolean) : [];
+    b = b.map((t) => przytnij(t, 56)).filter((t) => t.length > 8);
+    // больше трёх — берём первые, меньше — добираем из подзаголовка и заголовка
+    if (b.length > 3) b = b.slice(0, 3);
+    while (b.length < 3) {
+      const zapas = [o.subtitle, o.title, o.eyebrow].map((x) => przytnij(x, 56)).filter((x) => x && !b.includes(x));
+      if (!zapas.length) break;
+      b.push(zapas[0]);
+    }
+    o.bullets = b;
+  } else if (Array.isArray(o.items)) {
+    o.items = o.items.filter((i) => i && i.heading).slice(0, 5);
+  }
+
+  if (o.title) o.title = przytnij(o.title, 70);
+  if (o.subtitle) o.subtitle = przytnij(o.subtitle, 88);
+  return o;
+}
+
 export async function makePost({ topic, format, kind, trends = false, genImages = true, photo = 'zah', photoCta = 'mat' } = {}) {
   const state = await readState();
 
@@ -524,8 +553,9 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
   let out = null;
   let provider = null;
   const attempts = [];
+  let ostatniKandydat = null;
 
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 4; i++) {
     try {
       const res = await askModel(system, user);
       provider = res.provider;
@@ -536,8 +566,27 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
         out = parsed;
         break;
       }
+      // держим лучшее из неудачных — по нему потом чиним
+      if (!ostatniKandydat || problems.length < (validate(ostatniKandydat, !multiSlide).length || 99)) {
+        ostatniKandydat = parsed;
+      }
     } catch (e) {
       attempts.push({ attempt: i + 1, problems: [String(e.message).slice(0, 160)] });
+    }
+  }
+
+  // Последняя попытка починить, а не упасть. Полностью автоматическая система
+  // не имеет права умирать из-за того, что модель вернула четыре пункта вместо
+  // трёх: это правится кодом за одну строку. Падаем только если чинить нечего.
+  if (!out) {
+    const kandydat = ostatniKandydat;
+    if (kandydat) {
+      const naprawiony = napraw(kandydat, !multiSlide);
+      const zostalo = validate(naprawiony, !multiSlide);
+      if (!zostalo.length) {
+        console.warn('[engine] tekst naprawiony po nieudanych próbach: ' + attempts.at(-1).problems.join('; '));
+        out = naprawiony;
+      }
     }
   }
 
