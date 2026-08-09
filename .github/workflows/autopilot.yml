@@ -57,6 +57,8 @@ jobs:
       - name: Zrób i opublikuj post
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # живые фото под посты; без него движок молча откатится на 3D-рендер
+          PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
           INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
           FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
           FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}

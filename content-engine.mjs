@@ -254,6 +254,7 @@ Zwróć WYŁĄCZNIE obiekt JSON:
   "eyebrow": "etykieta WIELKIMI LITERAMI, max 26 znaków, zaczyna się od: ZOVU ·",
   "title": "nagłówek, 30-62 znaki, mocny, bez kropki na końcu",
   "bullets": ["dokładnie trzy punkty, każdy 25-48 znaków, konkretna korzyść lub fakt, bez kropki"],
+  "photoQuery": "PO ANGIELSKU, 2-4 słowa: PRAWDZIWA SCENA na zdjęcie stockowe — żywi ludzie przy pracy albo prawdziwe przedmioty. Przykłady: „barista coffee shop counter", „woman using smartphone", „mechanic car workshop", „florist arranging flowers". Bez grafik 3D, bez abstrakcji, bez napisów",
   "bgIdea": "PO ANGIELSKU, 4-8 słów: KONKRETNE PRZEDMIOTY do tła. Zacznij od floating i dodaj materiał: violet glass, chrome, neon. Bez ludzi i bez napisów",
   "caption": "opis pod post, 300-550 znaków, trzy krótkie akapity rozdzielone podwójną nową linią, maksymalnie dwa emoji",
   "hashtags": ["pięć hashtagów wg zasad poniżej, bez znaku #"]
@@ -285,6 +286,7 @@ Nie zaczynaj od „Czy wiesz, że", „W dzisiejszych czasach", „Jak zwiększy
     {
       "heading": "nagłówek punktu, 18-42 znaki, bez kropki",
       "text": "jedno zdanie, 40-62 znaki",
+      "photoQuery": "PO ANGIELSKU, 2-4 słowa: PRAWDZIWA SCENA na zdjęcie stockowe pasująca do tego punktu — żywi ludzie przy pracy albo prawdziwe przedmioty. Przykłady: „barista coffee shop", „mechanic car workshop", „woman using laptop". Bez grafik 3D, bez abstrakcji, bez napisów",
       "bgIdea": "PO ANGIELSKU, 4-8 słów: KONKRETNE PRZEDMIOTY do zilustrowania tego punktu. Zawsze zaczynaj od słowa floating i dodaj materiał: violet glass, chrome, neon. Przykłady: „floating violet glass smartphone with app icons", „floating chrome shopping cart and glowing coins", „floating glass calendar pages and clock", „floating neon bar charts and arrow". Bez ludzi, bez zwierząt, bez napisów, bez abstrakcji"
     }
   ],
@@ -456,15 +458,21 @@ function clean(out) {
   const okTag = (v) => (BROLL_TAGS.includes(String(v || '').trim().toLowerCase()) ? String(v).trim().toLowerCase() : '');
   out.broll = okTag(out.broll);
   if (Array.isArray(out.items)) out.items = out.items.map((i) => ({ ...i, broll: okTag(i.broll) }));
+  // Пересобираем пункт поля за полем — поэтому всё, что нужно дальше, надо
+  // перечислить здесь явно. broll так и терялся: строкой выше его проверяли,
+  // а тут отбрасывали, и рилс оставался без тега подложки.
   out.items = (out.items || []).slice(0, 5).map((i) => ({
     heading: shorten(strip(i.heading), 44).replace(/[.\s]+$/, ''),
     text: shorten(strip(i.text), 86),
     bgIdea: strip(i.bgIdea).slice(0, 90),
+    photoQuery: strip(i.photoQuery).slice(0, 60),
+    broll: i.broll || '',
   }));
   if (Array.isArray(out.bullets)) {
     out.bullets = out.bullets.slice(0, 3).map((b) => shorten(strip(b), 52).replace(/[.\s]+$/, ''));
   }
   if (out.bgIdea) out.bgIdea = strip(out.bgIdea).slice(0, 90);
+  if (out.photoQuery) out.photoQuery = strip(out.photoQuery).slice(0, 60);
   if (out.cta) {
     out.cta.headline = shorten(strip(out.cta.headline), 32).replace(/[.\s]+$/, '');
     out.cta.line = shorten(strip(out.cta.line), 80);
@@ -502,14 +510,16 @@ function napraw(out, single) {
   if (single) {
     let b = Array.isArray(o.bullets) ? o.bullets.filter(Boolean) : [];
     b = b.map((t) => przytnij(t, 56)).filter((t) => t.length > 8);
-    // больше трёх — берём первые, меньше — добираем из подзаголовка и заголовка
     if (b.length > 3) b = b.slice(0, 3);
-    while (b.length < 3) {
-      const zapas = [o.subtitle, o.title, o.eyebrow].map((x) => przytnij(x, 56)).filter((x) => x && !b.includes(x));
-      if (!zapas.length) break;
-      b.push(zapas[0]);
-    }
-    o.bullets = b;
+    // Раньше недостающие пункты добирались из subtitle, title и eyebrow — и в
+    // ленту ушёл пост, где пункт 2 слово в слово повторял заголовок, а пункт 3
+    // был служебной плашką «ZOVU · AI W MARKETINGU», уже стоящей сверху.
+    // Дубль того, что человек и так видит, хуже короткого списка: он кричит
+    // «сгенерировано автоматом». Лучше два честных пункта, чем три с подделкой.
+    o.bullets = b.filter((t) => {
+      const inne = [o.title, o.subtitle, o.eyebrow].filter(Boolean).map((x) => x.toLowerCase());
+      return !inne.some((x) => x.includes(t.toLowerCase()) || t.toLowerCase().includes(x));
+    });
   } else if (Array.isArray(o.items)) {
     o.items = o.items.filter((i) => i && i.heading).slice(0, 5);
   }
@@ -612,20 +622,56 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
   const baseName = `auto-${stamp}-${counter}-${chosenFormat.key}`;
 
   let generated = [];
+  let zdjecie = null;
+  let fotoSlajdow = [];
   if (genImages) {
+    // Сначала живое фото. Митя про наши посты: «ещё бы настоящих фоток с
+    // реальными телефонами или людьми и топово будет» — тот же фидбek, что
+    // он давал по сайтам. Рендер 3D-объекта читается как заглушка.
     try {
-      const { generateForItems } = await import('./image-gen.mjs');
-      const list = multiSlide ? out.items : [{ bgIdea: out.bgIdea, heading: out.title }];
-      generated = await generateForItems(list, baseName);
+      const { findPhoto } = await import('./photo.mjs');
+      if (multiSlide) {
+        // Карусель: своё фото на каждый слайд, по одному запросу за слайд.
+        // Ищем последовательно, а не пачкой: Pexels даёт 200 запросов в час,
+        // семь слайдов в это укладываются с большим запасом.
+        fotoSlajdow = [];
+        for (const [i, it] of out.items.entries()) {
+          const f = it.photoQuery ? await findPhoto(it.photoQuery, { name: `${baseName}-${i}` }) : null;
+          fotoSlajdow.push(f?.file || null);
+        }
+        // Либо живые фото на всех слайдах, либо ни на одном: карусель, где
+        // половина кадров съёмка, а половина 3D-рендер, выглядит как сборная
+        // солянка. Единый стиль важнее того, чтобы протащить пару фото.
+        const ile = fotoSlajdow.filter(Boolean).length;
+        if (ile < out.items.length) {
+          if (ile) console.log(`[engine] zdjęcia tylko na ${ile}/${out.items.length} slajdów — biorę spójny komplet renderów`);
+          fotoSlajdow = [];
+        } else {
+          console.log(`[engine] zdjęcia do karuzeli: ${ile}/${out.items.length}`);
+        }
+      } else if (out.photoQuery) {
+        zdjecie = await findPhoto(out.photoQuery, { name: baseName });
+        if (zdjecie) console.log(`[engine] zdjęcie: ${out.photoQuery} (fot. ${zdjecie.autor})`);
+      }
     } catch {
-      generated = [];
+      zdjecie = null;
+    }
+    // Фото не нашлось — откатываемся на генерацию, пост важнее источника кадра.
+    if (!zdjecie && !fotoSlajdow.some(Boolean)) {
+      try {
+        const { generateForItems } = await import('./image-gen.mjs');
+        const list = multiSlide ? out.items : [{ bgIdea: out.bgIdea, heading: out.title }];
+        generated = await generateForItems(list, baseName);
+      } catch {
+        generated = [];
+      }
     }
   }
 
   if (multiSlide) {
     out.items = out.items.map((it, i) => ({
       ...it,
-      bg: generated[i] || BG_TAGS[(bgStart + i) % BG_TAGS.length],
+      bg: fotoSlajdow[i] || generated[i] || BG_TAGS[(bgStart + i) % BG_TAGS.length],
     }));
   }
 
@@ -656,7 +702,7 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
         eyebrow: out.eyebrow || 'ZOVU · SOCIAL MEDIA',
         title: out.title,
         bullets: out.bullets,
-        bg: generated[0] || BG_TAGS[bgStart],
+        bg: zdjecie?.file || generated[0] || BG_TAGS[bgStart],
         footer: 'zovu.pl',
       };
 
