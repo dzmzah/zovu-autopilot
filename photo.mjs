@@ -107,6 +107,53 @@ async function zloz(buf) {
     .toBuffer();
 }
 
+// Чужой логотип в нашем посте — отдельная неприятность: первый же кадр из
+// поиска пришёл с читаемой надписью «dermalogica» на футболке. Стоки полны
+// брендов, глазами это не отсмотришь, поэтому спрашиваем зрение модели.
+// Нет ключа или модель молчит — пропускаем кадр дальше: проверка страхует,
+// но не имеет права остановить публикацию.
+async function maObcyLogotyp(buf) {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) return false;
+
+  const pytanie =
+    'Czy na tym zdjęciu widać czytelne logo marki, nazwę firmy albo napis ' +
+    'reklamowy — na ubraniu, opakowaniu, szyldzie lub ekranie? ' +
+    'Odpowiedz jednym słowem: TAK albo NIE.';
+
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 20000);
+  try {
+    const r = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' + key,
+      {
+        method: 'POST',
+        signal: ctrl.signal,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { text: pytanie },
+                { inline_data: { mime_type: 'image/jpeg', data: buf.toString('base64') } },
+              ],
+            },
+          ],
+          generationConfig: { temperature: 0, maxOutputTokens: 5 },
+        }),
+      }
+    );
+    if (!r.ok) return false;
+    const j = await r.json();
+    const tekst = j.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    return /\btak\b/i.test(tekst);
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // Ищем кадр под запрос. Возвращаем null (а не бросаем), чтобы вызывающий
 // спокойно откатился на генерацию: пост важнее источника картинки.
 export async function findPhoto(query, { name } = {}) {
@@ -135,28 +182,42 @@ export async function findPhoto(query, { name } = {}) {
 
   // из подходящих берём самый тёмный — он лучше всех держит белый заголовок
   kandydaci.sort((a, b) => jasnosc(a.avg_color) - jasnosc(b.avg_color));
-  const wybrany = kandydaci[0];
-  const zrodlo = wybrany.src?.large2x || wybrany.src?.large || wybrany.src?.original;
-  if (!zrodlo) return null;
 
-  const ctrl2 = new AbortController();
-  const timer2 = setTimeout(() => ctrl2.abort(), 45000);
-  try {
-    const r = await fetch(zrodlo, { signal: ctrl2.signal });
-    if (!r.ok) throw new Error('pobranie ' + r.status);
-    const buf = Buffer.from(await r.arrayBuffer());
-    if (buf.length < 20000) throw new Error('zdjęcie podejrzanie małe');
+  // Идём по кандидатам, пока не попадётся кадр без чужого логотипа. Четырёх
+  // хватает: дальше начинаются заметно светлые кадры, а каждая проверка —
+  // это ещё один вызов модели.
+  for (const wybrany of kandydaci.slice(0, 4)) {
+    const zrodlo = wybrany.src?.large2x || wybrany.src?.large || wybrany.src?.original;
+    if (!zrodlo) continue;
 
-    await mkdir(PHOTO_DIR, { recursive: true });
-    const safe = (name || `foto-${Date.now()}`).replace(/[^a-zA-Z0-9._-]/g, '-');
-    const file = path.join(PHOTO_DIR, `${safe}.jpg`);
-    await writeFile(file, await zloz(buf));
-    return { file, query, autor: wybrany.photographer, zrodlo: wybrany.url };
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer2);
+    const ctrl2 = new AbortController();
+    const timer2 = setTimeout(() => ctrl2.abort(), 45000);
+    try {
+      const r = await fetch(zrodlo, { signal: ctrl2.signal });
+      if (!r.ok) throw new Error('pobranie ' + r.status);
+      const buf = Buffer.from(await r.arrayBuffer());
+      if (buf.length < 20000) throw new Error('zdjęcie podejrzanie małe');
+
+      const gotowy = await zloz(buf);
+      // проверяем УЖЕ сложенный кадр: часть снимка растворяется к центру,
+      // и логотип из отрезанной половины до поста всё равно не доедет
+      if (await maObcyLogotyp(gotowy)) {
+        console.log(`[photo] pomijam kadr z obcym logo (${wybrany.photographer})`);
+        continue;
+      }
+
+      await mkdir(PHOTO_DIR, { recursive: true });
+      const safe = (name || `foto-${Date.now()}`).replace(/[^a-zA-Z0-9._-]/g, '-');
+      const file = path.join(PHOTO_DIR, `${safe}.jpg`);
+      await writeFile(file, gotowy);
+      return { file, query, autor: wybrany.photographer, zrodlo: wybrany.url };
+    } catch {
+      continue;
+    } finally {
+      clearTimeout(timer2);
+    }
   }
+  return null;
 }
 
 // node photo.mjs "small business owner phone" — проверить поиск руками
