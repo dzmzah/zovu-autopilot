@@ -240,7 +240,30 @@ async function markSlot(id) {
     s.wznowiono = new Date().toISOString();
     console.log('[autopilot] dostęp wrócił — włączam tryb łagodny na 7 dni');
   }
+  // Пост вышел — значит доступ есть, счётчик блокировки обнуляем.
+  delete s.blokadaOd;
+  delete s.alarmDnia;
   await writeFile(STATE_FILE, JSON.stringify(s, null, 1) + '\n', 'utf8');
+}
+
+// Тревога о блокировке — раз в сутки, начиная с ПЕРВОГО дня.
+// Раньше ран оставался зелёным, пока очередь не набьётся до потолка: блокировку
+// 31.07 заметили только через девять дней. Теперь письмо от GitHub приходит в тот
+// же день, а дальше по одному в сутки, пока доступ не вернётся.
+async function alarmBlokady(dlugoscKolejki) {
+  const dzis = new Date().toISOString().slice(0, 10);
+  const s = await readState();
+  if (!s.blokadaOd) s.blokadaOd = dzis;
+  const pierwszyRazDzis = s.alarmDnia !== dzis;
+  s.alarmDnia = dzis;
+  await writeFile(STATE_FILE, JSON.stringify(s, null, 1) + '\n', 'utf8');
+  if (!pierwszyRazDzis) return false;
+  const dni = Math.round((Date.parse(dzis) - Date.parse(s.blokadaOd)) / 86400_000) + 1;
+  console.log(
+    `::error::Meta blokuje dostęp do API — dzień ${dni}, w kolejce ${dlugoscKolejki} postów. ` +
+      'Publikacja stoi. Wejdź na developers.facebook.com i przejdź weryfikację konta.'
+  );
+  return true;
 }
 
 // ── очередь неопубликованного ─────────────────────────────────────
@@ -294,6 +317,8 @@ async function zapiszStan() {
 
 // ── поехали ───────────────────────────────────────────────────────
 const started = Date.now();
+// Крикнули ли сегодня про блокировку — от этого зависит код выхода в самом конце.
+let zablokowane = false;
 console.log(`[autopilot] start ${new Date().toISOString()}${DRY ? ' (dry run)' : ''}`);
 
 const slot = slotId();
@@ -352,17 +377,12 @@ if (!DRY && !KIND) {
       // на странице готовых было что публиковать руками. Но не бесконечно —
       // при длинной блокировке смысла копить сотню постов нет.
       console.log(`[autopilot] dostęp wciąż zablokowany (w kolejce ${kolejka.length})`);
+      zablokowane = await alarmBlokady(kolejka.length);
       if (kolejka.length >= LIMIT_KOLEJKI) {
         console.log(`[autopilot] kolejka pełna (${LIMIT_KOLEJKI}) — nie robię nowego postu`);
         console.log(`[autopilot] gotowe w ${Math.round((Date.now() - started) / 1000)}s`);
-        // Очередь упёрлась в потолок — значит блокировка тянется уже дней пять,
-        // а тихий зелёный запуск это скрывает. Валим ран, чтобы GitHub прислал
-        // письмо: дальше без человека всё равно не разблокируется.
-        console.log(
-          '::error::Meta zablokowała dostęp do API. Kolejka pełna, publikacja stoi. ' +
-            'Wejdź na developers.facebook.com i przejdź weryfikację konta.'
-        );
-        process.exit(1);
+        // Красный ран = письмо от GitHub. Без человека блокировка не снимется.
+        process.exit(zablokowane ? 1 : 0);
       }
       console.log('[autopilot] robię nowy post do zapasu');
     }
@@ -419,6 +439,7 @@ try {
   console.log('[autopilot] Wyjdzie sam, gdy dostęp wróci. Nic nie ginie.');
   console.log(`[autopilot]   ${urls[0]}`);
   console.log('[autopilot] ──────────────────────────────────────────────');
+  zablokowane = (await alarmBlokady(dlugosc)) || zablokowane;
 }
 
 // Facebook — тем же контентом. Если токена нет или доступ закрыт, шаг
@@ -443,5 +464,8 @@ if (result) try {
 }
 
 await zapiszStan();
+
+// Ран красный только когда сегодня уже крикнули: одно письмо в сутки, не шесть.
+if (zablokowane) process.exit(1);
 
 console.log(`[autopilot] gotowe w ${Math.round((Date.now() - started) / 1000)}s`);
