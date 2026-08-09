@@ -382,7 +382,11 @@ function parseJson(raw) {
 }
 
 // ── проверка: то, что не прошло, не публикуется ──────────────────
-function validate(out, single = false) {
+// po = проверка ПОСЛЕ аварийной починки. От модели по-прежнему требуем ровно
+// три пункта, но чинёный текст пропускаем и с двумя: раньше недостающий пункт
+// добирался из заголовка, и в ленту уходил дубль того, что человек уже видит.
+// Два честных пункта лучше и подделки, и упавшего прогона без поста.
+function validate(out, single = false, po = false) {
   const problems = [];
   const all = [
     out.eyebrow, out.title, out.subtitle, out.caption,
@@ -401,8 +405,22 @@ function validate(out, single = false) {
 
   if (single) {
     const b = out.bullets;
-    if (!Array.isArray(b) || b.length !== 3) problems.push('bullets musi mieć 3 elementy');
-    else b.forEach((t, i) => { if (!t || t.length > 56) problems.push(`punkt ${i + 1}: za długi`); });
+    const min = po ? 2 : 3;
+    if (!Array.isArray(b) || b.length < min || b.length > 3) {
+      problems.push(po ? 'bullets musi mieć 2-3 elementy' : 'bullets musi mieć 3 elementy');
+    } else {
+      b.forEach((t, i) => { if (!t || t.length > 56) problems.push(`punkt ${i + 1}: za długi`); });
+      // Пункт, повторяющий заголовок или плашку, — это дубль того, что человек
+      // уже прочитал сверху. Ловим здесь, чтобы модель переписала сама; если
+      // не выйдет, лишний пункт выбросит аварийная починка.
+      const inne = [out.title, out.subtitle, out.eyebrow].filter(Boolean).map((x) => x.toLowerCase());
+      b.forEach((t, i) => {
+        const low = String(t || '').toLowerCase();
+        if (low && inne.some((x) => x.includes(low) || low.includes(x))) {
+          problems.push(`punkt ${i + 1}: powtarza nagłówek`);
+        }
+      });
+    }
     return problems;
   }
 
@@ -601,7 +619,7 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
     const kandydat = ostatniKandydat;
     if (kandydat) {
       const naprawiony = napraw(kandydat, !multiSlide);
-      const zostalo = validate(naprawiony, !multiSlide);
+      const zostalo = validate(naprawiony, !multiSlide, true);
       if (!zostalo.length) {
         console.warn('[engine] tekst naprawiony po nieudanych próbach: ' + attempts.at(-1).problems.join('; '));
         out = naprawiony;
