@@ -51,19 +51,42 @@ async function zloz(buf) {
   const H = 1350;
   const artW = 760;
 
-  const foto = await sharp(buf)
+  // Дуотон в меру. Живой кадр рядом с фиолетовым логотипом выглядел как
+  // случайная картинка из интернета, полный дуотон синил лица. Смесь держит
+  // палитру бренда и не убивает естественность кожи.
+  const naturalny = await sharp(buf)
     // 'attention' оставляет в кадре главное — лицо или предмет, а не угол стены
     .resize(artW, H, { fit: 'cover', position: 'attention' })
     .modulate({ brightness: 0.94, saturation: 0.9 })
     .linear(1.04, -4)
     .toBuffer();
 
+  const szary = await sharp(naturalny).grayscale().toBuffer();
+  const duo = await sharp(szary)
+    .composite([
+      {
+        input: { create: { width: artW, height: H, channels: 4, background: { r: 139, g: 92, b: 246, alpha: 0.55 } } },
+        blend: 'overlay',
+      },
+      {
+        input: { create: { width: artW, height: H, channels: 4, background: { r: 255, g: 255, b: 255, alpha: 0.55 } } },
+        blend: 'dest-in',
+      },
+    ])
+    .png()
+    .toBuffer();
+  const foto = await sharp(naturalny).composite([{ input: duo, blend: 'over' }]).toBuffer();
+
+  // Растворяем кадр ПО ДИАГОНАЛИ: пусто в левом верхнем углу, плотно в правом
+  // нижнем. Заголовок живёт сверху слева, поэтому буквы больше не ложатся на
+  // лицо — текст и снимок расходятся по разным углам вместо драки за середину.
   const rozmycie = Buffer.from(
     `<svg width="${artW}" height="${H}">
-       <defs><linearGradient id="g" x1="0" x2="1">
+       <defs><linearGradient id="g" x1="0.1" y1="0" x2="0.62" y2="1">
          <stop offset="0" stop-color="#fff" stop-opacity="0"/>
-         <stop offset="0.3" stop-color="#fff" stop-opacity="0.75"/>
-         <stop offset="0.62" stop-color="#fff" stop-opacity="1"/>
+         <stop offset="0.42" stop-color="#fff" stop-opacity="0.12"/>
+         <stop offset="0.66" stop-color="#fff" stop-opacity="0.7"/>
+         <stop offset="0.88" stop-color="#fff" stop-opacity="1"/>
        </linearGradient></defs>
        <rect width="${artW}" height="${H}" fill="url(#g)"/>
      </svg>`
