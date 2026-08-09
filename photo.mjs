@@ -49,7 +49,7 @@ function jasnosc(hex) {
 async function zloz(buf) {
   const W = 1080;
   const H = 1350;
-  const artW = 760;
+  const artW = W;
 
   // Дуотон в меру. Живой кадр рядом с фиолетовым логотипом выглядел как
   // случайная картинка из интернета, полный дуотон синил лица. Смесь держит
@@ -80,24 +80,12 @@ async function zloz(buf) {
     .toBuffer();
   const foto = await sharp(naturalny).composite([{ input: duo, blend: 'over' }]).toBuffer();
 
-  // Растворяем кадр ПО ДИАГОНАЛИ: пусто в левом верхнем углу, плотно в правом
-  // нижнем. Заголовок живёт сверху слева, поэтому буквы больше не ложатся на
-  // лицо — текст и снимок расходятся по разным углам вместо драки за середину.
-  const rozmycie = Buffer.from(
-    `<svg width="${artW}" height="${H}">
-       <defs><linearGradient id="g" x1="0.1" y1="0" x2="0.62" y2="1">
-         <stop offset="0" stop-color="#fff" stop-opacity="0"/>
-         <stop offset="0.42" stop-color="#fff" stop-opacity="0.12"/>
-         <stop offset="0.66" stop-color="#fff" stop-opacity="0.7"/>
-         <stop offset="0.88" stop-color="#fff" stop-opacity="1"/>
-       </linearGradient></defs>
-       <rect width="${artW}" height="${H}" fill="url(#g)"/>
-     </svg>`
-  );
-  const zmiekczone = await sharp(foto)
-    .composite([{ input: rozmycie, blend: 'dest-in' }])
-    .png()
-    .toBuffer();
+  // Кадр занимает ВЕСЬ пост, а не правую треть. Растворение к левому краю
+  // оставляло там чёрную плиту: сколько ни осветляй снимок, половина поста
+  // всё равно оставалась пустой — Захар на две правки подряд честно сказал,
+  // что разницы не видит. Читаемость букв держит мягкая вуаль шаблона
+  // (.has-foto), поэтому своё затемнение здесь почти не нужно.
+  const zmiekczone = foto;
 
   // Свечение ПОД фотографией: фиолетовое пятно в правом нижнем углу и холодный
   // отсвет сверху. Без него кадр висит в пустой черноте — именно это читалось
@@ -127,14 +115,14 @@ async function zloz(buf) {
     `<svg width="${W}" height="${H}">
        <defs>
          <linearGradient id="l" x1="0" x2="1">
-           <stop offset="0" stop-color="#050505" stop-opacity="0.42"/>
-           <stop offset="0.38" stop-color="#050505" stop-opacity="0.26"/>
-           <stop offset="0.62" stop-color="#050505" stop-opacity="0.06"/>
+           <stop offset="0" stop-color="#050505" stop-opacity="0.18"/>
+           <stop offset="0.38" stop-color="#050505" stop-opacity="0.1"/>
+           <stop offset="0.62" stop-color="#050505" stop-opacity="0.02"/>
            <stop offset="1" stop-color="#050505" stop-opacity="0"/>
          </linearGradient>
          <linearGradient id="d" x1="0" y1="0" x2="0" y2="1">
-           <stop offset="0.76" stop-color="#050505" stop-opacity="0"/>
-           <stop offset="1" stop-color="#050505" stop-opacity="0.6"/>
+           <stop offset="0.8" stop-color="#050505" stop-opacity="0"/>
+           <stop offset="1" stop-color="#050505" stop-opacity="0.4"/>
          </linearGradient>
        </defs>
        <rect width="${W}" height="${H}" fill="url(#l)"/>

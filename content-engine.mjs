@@ -721,6 +721,9 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
         title: out.title,
         bullets: out.bullets,
         bg: zdjecie?.file || generated[0] || BG_TAGS[bgStart],
+        // живому кадру шаблон даёт мягкую вуаль вместо штатной, иначе фото
+        // гасится дважды и осветлять его бессмысленно
+        foto: Boolean(zdjecie),
         footer: 'zovu.pl',
       };
 

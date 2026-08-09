@@ -217,6 +217,17 @@ function baseCss() {
     background:
       linear-gradient(to right, rgba(5,5,5,.94) 0%, rgba(5,5,5,.82) 38%, rgba(5,5,5,.28) 72%, rgba(5,5,5,.12) 100%),
       linear-gradient(to top, rgba(5,5,5,.96) 0%, rgba(5,5,5,.15) 34%, rgba(5,5,5,0) 60%); }
+  /* Живое фото уже приходит со своей раскладкой и вуалью из photo.mjs.
+     Штатная затемняла его ещё раз — слева на 94% — и осветлять кадр было
+     бессmысленно: подложка всё равно уходила в чёрное. Здесь гасим мягко
+     и только там, где реально лежат буквы. */
+  .has-foto .scrim {
+    background:
+      /* колонка под буквами: держим её плотной до 78% ширины, иначе пункты
+         тонут в светлых местах кадра — на клавиатуре и на рукавах */
+      linear-gradient(to right, rgba(5,5,5,.88) 0%, rgba(5,5,5,.76) 42%, rgba(5,5,5,.42) 78%, rgba(5,5,5,.1) 100%),
+      /* нижняя треть под логотипом и адресом */
+      linear-gradient(to top, rgba(5,5,5,.85) 0%, rgba(5,5,5,.1) 30%, rgba(5,5,5,0) 55%); }
   .has-bg .wrap { z-index:3; }
   .has-bg .foot { z-index:4; }
   .has-bg .count { z-index:4; }
@@ -244,8 +255,9 @@ function layers(logoUri, bgUri) {
   ${blobs}<div class="streak"></div><div class="grid-lines"></div><div class="noise"></div>`;
 }
 
-function bodyTag(bgUri) {
-  return bgUri ? '<body class="has-bg">' : '<body>';
+function bodyTag(bgUri, foto = false) {
+  if (!bgUri) return '<body>';
+  return foto ? '<body class="has-bg has-foto">' : '<body class="has-bg">';
 }
 
 function footer(logoUri, site) {
@@ -257,7 +269,7 @@ function footer(logoUri, site) {
 }
 
 // ── одиночный пост: заголовок + максимум 3 КОРОТКИХ пункта ───────
-function singleHtml({ eyebrow, title, bullets, footer: site }, logoUri, bgUri) {
+function singleHtml({ eyebrow, title, bullets, footer: site, foto }, logoUri, bgUri) {
   const items = (bullets || []).slice(0, 3).map((b) => `<li>${esc(b)}</li>`).join('');
   const len = String(title).length;
   const size = len > 68 ? 78 : len > 46 ? 94 : 112;
@@ -269,7 +281,7 @@ function singleHtml({ eyebrow, title, bullets, footer: site }, logoUri, bgUri) {
   li::before { content:''; position:absolute; left:0; top:12px; width:19px; height:19px;
     border-radius:6px; background:linear-gradient(135deg,#7c3aed,#a78bfa);
     box-shadow:0 0 18px 3px rgba(124,58,237,.65); }
-  </style></head>${bodyTag(bgUri)}
+  </style></head>${bodyTag(bgUri, foto)}
   ${layers(logoUri, bgUri)}
   <div class="wrap">
     <div class="eyebrow"><span class="dot"></span>${esc(eyebrow || 'ZOVU')}</div>
