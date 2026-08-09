@@ -57,8 +57,11 @@ async function zloz(buf) {
   const naturalny = await sharp(buf)
     // 'attention' оставляет в кадре главное — лицо или предмет, а не угол стены
     .resize(artW, H, { fit: 'cover', position: 'attention' })
-    .modulate({ brightness: 0.94, saturation: 0.9 })
-    .linear(1.04, -4)
+    // Светлее, чем кажется правильным. Первая версия утонула в чёрном: Захар
+    // сказал «темновато». В ленте пост конкурирует за взгляд, а тёмное пятно
+    // пролистывают не читая.
+    .modulate({ brightness: 1.12, saturation: 1.06 })
+    .linear(1.1, -8)
     .toBuffer();
 
   const szary = await sharp(naturalny).grayscale().toBuffer();
@@ -96,22 +99,42 @@ async function zloz(buf) {
     .png()
     .toBuffer();
 
-  // Две вуали поверх кадра: слева под заголовок, снизу под логотип.
-  // Длина заголовка заранее неизвестна — он может уехать на две трети ширины
-  // и лечь прямо на лицо. Слабая вуаль до 62% ширины держит контраст букв,
-  // но правую часть снимка не трогает, поэтому кадр остаётся живым.
+  // Свечение ПОД фотографией: фиолетовое пятно в правом нижнем углу и холодный
+  // отсвет сверху. Без него кадр висит в пустой черноте — именно это читалось
+  // как «темновато». Пятно даёт глубину и цепляет взгляд в ленте.
+  const poswiata = Buffer.from(
+    `<svg width="${W}" height="${H}">
+       <defs>
+         <radialGradient id="cieplo" cx="0.78" cy="0.72" r="0.62">
+           <stop offset="0" stop-color="#7c3aed" stop-opacity="0.55"/>
+           <stop offset="0.45" stop-color="#6d28d9" stop-opacity="0.24"/>
+           <stop offset="1" stop-color="#050505" stop-opacity="0"/>
+         </radialGradient>
+         <radialGradient id="chlod" cx="0.72" cy="0.12" r="0.5">
+           <stop offset="0" stop-color="#a78bfa" stop-opacity="0.22"/>
+           <stop offset="1" stop-color="#050505" stop-opacity="0"/>
+         </radialGradient>
+       </defs>
+       <rect width="${W}" height="${H}" fill="url(#cieplo)"/>
+       <rect width="${W}" height="${H}" fill="url(#chlod)"/>
+     </svg>`
+  );
+
+  // Вуали поверх кадра: слева под заголовок, снизу под логотип. Обе слабее,
+  // чем были — свет важнее идеальной чистоты фона, буквы и так держатся на
+  // двойной тени из шаблона.
   const dol = Buffer.from(
     `<svg width="${W}" height="${H}">
        <defs>
          <linearGradient id="l" x1="0" x2="1">
-           <stop offset="0" stop-color="#050505" stop-opacity="0.62"/>
-           <stop offset="0.38" stop-color="#050505" stop-opacity="0.42"/>
-           <stop offset="0.62" stop-color="#050505" stop-opacity="0.1"/>
+           <stop offset="0" stop-color="#050505" stop-opacity="0.42"/>
+           <stop offset="0.38" stop-color="#050505" stop-opacity="0.26"/>
+           <stop offset="0.62" stop-color="#050505" stop-opacity="0.06"/>
            <stop offset="1" stop-color="#050505" stop-opacity="0"/>
          </linearGradient>
          <linearGradient id="d" x1="0" y1="0" x2="0" y2="1">
-           <stop offset="0.72" stop-color="#050505" stop-opacity="0"/>
-           <stop offset="1" stop-color="#050505" stop-opacity="0.72"/>
+           <stop offset="0.76" stop-color="#050505" stop-opacity="0"/>
+           <stop offset="1" stop-color="#050505" stop-opacity="0.6"/>
          </linearGradient>
        </defs>
        <rect width="${W}" height="${H}" fill="url(#l)"/>
@@ -120,9 +143,10 @@ async function zloz(buf) {
   );
 
   return sharp({
-    create: { width: W, height: H, channels: 4, background: { r: 5, g: 5, b: 5, alpha: 1 } },
+    create: { width: W, height: H, channels: 4, background: { r: 10, g: 8, b: 18, alpha: 1 } },
   })
     .composite([
+      { input: poswiata, blend: 'over' },
       { input: zmiekczone, left: W - artW, top: 0 },
       { input: dol, blend: 'over' },
     ])
@@ -135,14 +159,17 @@ async function zloz(buf) {
 // брендов, глазами это не отсмотришь, поэтому спрашиваем зрение модели.
 // Нет ключа или модель молчит — пропускаем кадр дальше: проверка страхует,
 // но не имеет права остановить публикацию.
-async function maObcyLogotyp(buf) {
+async function ocenKadr(buf) {
   const key = process.env.GEMINI_API_KEY;
-  if (!key) return false;
+  if (!key) return { logo: false, kadr: true };
 
   const pytanie =
-    'Czy na tym zdjęciu widać czytelne logo marki, nazwę firmy albo napis ' +
-    'reklamowy — na ubraniu, opakowaniu, szyldzie lub ekranie? ' +
-    'Odpowiedz jednym słowem: TAK albo NIE.';
+    'Oceniasz kadr do posta w social mediach. Odpowiedz TYLKO obiektem JSON:\n' +
+    '{"logo": true/false, "kadr": true/false}\n' +
+    'logo = czy widać czytelne logo marki, nazwę firmy albo napis reklamowy ' +
+    '(na ubraniu, opakowaniu, szyldzie, ekranie).\n' +
+    'kadr = czy kadr jest czytelny: widać, co się dzieje, a jeśli jest człowiek, ' +
+    'to widać jego twarz lub całą sylwetkę, a nie sam fragment tułowia bez głowy.';
 
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 20000);
@@ -162,16 +189,19 @@ async function maObcyLogotyp(buf) {
               ],
             },
           ],
-          generationConfig: { temperature: 0, maxOutputTokens: 5 },
+          generationConfig: { temperature: 0, maxOutputTokens: 60, responseMimeType: 'application/json' },
         }),
       }
     );
-    if (!r.ok) return false;
+    if (!r.ok) return { logo: false, kadr: true };
     const j = await r.json();
     const tekst = j.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    return /\btak\b/i.test(tekst);
+    const o = JSON.parse(tekst);
+    return { logo: o.logo === true, kadr: o.kadr !== false };
   } catch {
-    return false;
+    // модель не ответила или прислала не JSON — пропускаем кадр дальше:
+    // контроль страхует публикацию, а не решает за неё
+    return { logo: false, kadr: true };
   } finally {
     clearTimeout(timer);
   }
@@ -200,11 +230,18 @@ export async function findPhoto(query, { name } = {}) {
     clearTimeout(timer);
   }
 
-  const kandydaci = (dane.photos || []).filter((p) => jasnosc(p.avg_color) < 0.62);
+  // Целимся в СЕРЕДИНУ яркости, а не в самый тёмный кадр. Сначала брали
+  // «потемнее, чтобы буквы читались» — и посты вышли мрачными, Захар сказал
+  // «темновато». Контраст текста даёт вуаль, а кадр должен быть живым:
+  // тёмное пятно в ленте пролистывают, не читая.
+  const CEL = 0.46;
+  const kandydaci = (dane.photos || []).filter((p) => {
+    const j = jasnosc(p.avg_color);
+    return j > 0.2 && j < 0.72;
+  });
   if (!kandydaci.length) return null;
 
-  // из подходящих берём самый тёмный — он лучше всех держит белый заголовок
-  kandydaci.sort((a, b) => jasnosc(a.avg_color) - jasnosc(b.avg_color));
+  kandydaci.sort((a, b) => Math.abs(jasnosc(a.avg_color) - CEL) - Math.abs(jasnosc(b.avg_color) - CEL));
 
   // Идём по кандидатам, пока не попадётся кадр без чужого логотипа. Четырёх
   // хватает: дальше начинаются заметно светлые кадры, а каждая проверка —
@@ -223,9 +260,15 @@ export async function findPhoto(query, { name } = {}) {
 
       const gotowy = await zloz(buf);
       // проверяем УЖЕ сложенный кадр: часть снимка растворяется к центру,
-      // и логотип из отрезанной половины до поста всё равно не доедет
-      if (await maObcyLogotyp(gotowy)) {
-        console.log(`[photo] pomijam kadr z obcym logo (${wybrany.photographer})`);
+      // поэтому и лого, и обрезка оцениваются ровно в том виде, в каком
+      // попадут в ленту
+      const ocena = await ocenKadr(gotowy);
+      if (ocena.logo) {
+        console.log(`[photo] pomijam: obce logo w kadrze (${wybrany.photographer})`);
+        continue;
+      }
+      if (!ocena.kadr) {
+        console.log(`[photo] pomijam: kadr nieczytelny, np. tułów bez głowy (${wybrany.photographer})`);
         continue;
       }
 
