@@ -355,7 +355,14 @@ if (!DRY && !KIND) {
       if (kolejka.length >= LIMIT_KOLEJKI) {
         console.log(`[autopilot] kolejka pełna (${LIMIT_KOLEJKI}) — nie robię nowego postu`);
         console.log(`[autopilot] gotowe w ${Math.round((Date.now() - started) / 1000)}s`);
-        process.exit(0);
+        // Очередь упёрлась в потолок — значит блокировка тянется уже дней пять,
+        // а тихий зелёный запуск это скрывает. Валим ран, чтобы GitHub прислал
+        // письмо: дальше без человека всё равно не разблокируется.
+        console.log(
+          '::error::Meta zablokowała dostęp do API. Kolejka pełna, publikacja stoi. ' +
+            'Wejdź na developers.facebook.com i przejdź weryfikację konta.'
+        );
+        process.exit(1);
       }
       console.log('[autopilot] robię nowy post do zapasu');
     }
