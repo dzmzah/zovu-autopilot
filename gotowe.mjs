@@ -6,7 +6,7 @@
 //
 // Страница живёт на GitHub Pages того же репозитория, поэтому обновляется
 // сама при каждом прогоне.
-import { readdir, stat, writeFile } from 'node:fs/promises';
+import { readdir, stat, writeFile, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const DIR = process.env.CDN_REPO || import.meta.dirname;
@@ -27,6 +27,56 @@ for (const obraz of obrazki) {
 posty.sort((a, b) => b.czas - a.czas);
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+// ── светофор наверху страницы ────────────────────────────────────
+// Письмо от GitHub легко пропустить — блокировку 31.07 не замечали девять
+// дней. Эта страница у Захара и так открывается с телефона, поэтому состояние
+// автопилота показываем прямо здесь, первым экраном: одна строка, которую
+// видно не читая. Данные те же, что у сторожа (doktor.mjs) — state.posted
+// пишется только после реальной публикации.
+async function stanAutopilota() {
+  let s = {};
+  try {
+    s = JSON.parse(await readFile(path.join(DIR, 'state.json'), 'utf8'));
+  } catch {
+    return { klasa: 'zle', tytul: 'Nie wiem, co się dzieje', opis: 'Nie da się odczytać stanu autopilota.' };
+  }
+  let kolejka = [];
+  try {
+    kolejka = JSON.parse(await readFile(path.join(DIR, 'pending.json'), 'utf8'));
+  } catch {
+    kolejka = [];
+  }
+  const ile = Array.isArray(kolejka) ? kolejka.length : 0;
+
+  const m = /^(\d{4}-\d{2}-\d{2})-(am|pm)$/.exec(String(s.posted || ''));
+  if (!m) {
+    return { klasa: 'zle', tytul: 'Publikacja nie ruszyła', opis: 'W stanie nie ma śladu żadnego opublikowanego postu.' };
+  }
+  const godzin = (Date.now() - Date.parse(`${m[1]}T${m[2] === 'am' ? '07' : '16'}:00:00Z`)) / 3600_000;
+  const ogon = ile ? ` W kolejce czeka ${ile}.` : '';
+
+  if (godzin > 30) {
+    const dni = Math.max(1, Math.floor(godzin / 24));
+    return {
+      klasa: 'zle',
+      tytul: `Publikacja stoi ${dni} ${dni === 1 ? 'dzień' : 'dni'}`,
+      opis: `Ostatni post: slot ${m[1]} ${m[2] === 'am' ? 'rano' : 'wieczorem'}.${ogon} Sprawdź pocztę — strażnik powinien był wysłać alarm.`,
+    };
+  }
+  // Щадящий режим — не поломка, но объяснить надо: иначе «один пост вместо
+  // двух» читается как сбой, а это ровно то, чем он не является.
+  const lagodny = s.wznowiono && (Date.now() - Date.parse(s.wznowiono)) / 86400_000 < 7;
+  return {
+    klasa: 'ok',
+    tytul: 'Autopilot działa',
+    opis: `Ostatni post ${godzin.toFixed(0)} h temu (slot ${m[1]} ${m[2] === 'am' ? 'rano' : 'wieczorem'}).`
+      + (lagodny ? ' Tryb łagodny po blokadzie: jeden post dziennie przez tydzień.' : '')
+      + ogon,
+  };
+}
+
+const stan = await stanAutopilota();
 
 const karty = posty
   .slice(0, 40)
@@ -74,10 +124,23 @@ const html = `<!doctype html><html lang="pl"><head>
   button { background:#d4ff3f; color:#0a0a0a; }
   button.ok { background:#2f7d32; color:#fff; }
   .pobierz { background:#242424; color:#fff; }
+  .stan { border-radius:14px; padding:14px 16px; margin:0 0 18px;
+    border:1px solid; display:flex; gap:12px; align-items:flex-start; }
+  .stan .kropka { width:10px; height:10px; border-radius:50%; margin-top:5px; flex:none; }
+  .stan b { display:block; font-size:15px; margin-bottom:3px; }
+  .stan span { font-size:13px; line-height:1.5; color:#b8b8b8; }
+  .stan.ok { background:#0f1b0f; border-color:#25451f; }
+  .stan.ok .kropka { background:#61d345; }
+  .stan.zle { background:#1e0f0f; border-color:#5a2020; }
+  .stan.zle .kropka { background:#ff4d4d; }
 </style></head><body>
 <h1>Posty gotowe do publikacji</h1>
-<p class="info">Autopilot robi je dalej, mimo blokady API po stronie Meta.
-Skopiuj podpis, pobierz zdjęcie i wrzuć do Instagrama lub na stronę.
+<div class="stan ${stan.klasa}">
+  <div class="kropka"></div>
+  <div><b>${esc(stan.tytul)}</b><span>${esc(stan.opis)}</span></div>
+</div>
+<p class="info">Autopilot publikuje sam do Instagrama i Facebooka.
+Tu leżą te same posty do ręcznej publikacji — skopiuj podpis, pobierz zdjęcie.
 Najnowsze na górze.</p>
 ${karty || '<p class="info">Na razie pusto.</p>'}
 <script>
