@@ -507,11 +507,56 @@ function clean(out) {
 // подстановка запасного клипа не разъезжались.
 const BROLL_TAGS = ['ai','architektura','auto','auto2','auto3','barber','bieganie','bizuteria','czas','czekolada','deser','detailing','ekrany','finanse','fotostudio','gadzety','gaming','jedzenie','joga','kawa','koktajl','kosmetyki','ksiazki','kwiaty','marka','marka2','marka3','moda','muzyka','nieruchomosci','nowoczesne','perfumy','podroze','rosliny','spa','sport','swiece','swieta','uroda','wnetrza','wyprzedaz'];
 
+// Вырезает запрещённый оборот из строки, забирая с ним всё предложение.
+// Просто удалить два слова нельзя: «zwiększamy zasięgi organiczne w social»
+// без них превращается в «zwiększamy w social» — мусор вместо фразы.
+// Предложение целиком выкидывается вместе с проблемой; если предложение в
+// строке одно, возвращаем пустоту, и наверху решают, что с этим делать.
+function bezZakazanych(s) {
+  let t = String(s || '');
+  if (!t) return t;
+  if (!BANNED.some((b) => t.toLowerCase().includes(b))) return t;
+  // абзацы описания держим отдельно, иначе чистка склеит текст в один кусок
+  return t
+    .split(/\n{2,}/)
+    .map((akapit) => akapit
+      // делим по концу предложения, сохраняя знак: (?<=[.?…])\s+
+      .split(/(?<=[.?…])\s+/)
+      .filter((zd) => !BANNED.some((b) => zd.toLowerCase().includes(b)))
+      .join(' ')
+      .trim())
+    .filter(Boolean)
+    .join('\n\n')
+    .trim();
+}
+
 // Правит то, что чинится механически: число пунктов, длину строк, хвосты.
 // Смысл текста не трогаем — если модель написала ерунду, ерунда и останется,
 // поэтому после починки текст всё равно проходит через validate().
 function napraw(out, single) {
   const o = JSON.parse(JSON.stringify(out));
+
+  // Запрещённые обороты. Раньше починка их не трогала: 09.08 модель четыре
+  // раза подряд написала «zasięgi organiczne», и весь прогон упал красным,
+  // хотя фраза сидела в одном предложении описания. Чистим по полям — там,
+  // где предложение выкидывается без потери смысла (описание, пункты, CTA).
+  // Заголовок не чиним: он короткий, вырезать из него нечего — такой текст
+  // честнее забраковать целиком.
+  o.caption = bezZakazanych(o.caption);
+  o.subtitle = bezZakazanych(o.subtitle);
+  if (Array.isArray(o.bullets)) {
+    o.bullets = o.bullets.filter((t) => !BANNED.some((b) => String(t).toLowerCase().includes(b)));
+  }
+  if (Array.isArray(o.items)) {
+    o.items = o.items.map((it) => ({
+      ...it,
+      text: it && BANNED.some((b) => String(it.text).toLowerCase().includes(b))
+        ? bezZakazanych(it.text) : it?.text,
+    }));
+  }
+  if (o.cta) {
+    o.cta = { ...o.cta, line: bezZakazanych(o.cta.line) };
+  }
   // свой strip: тот, что в clean(), объявлен внутри неё и сюда не виден
   const oczysc = (s) => String(s || '').replace(/!/g, '').replace(/\s+/g, ' ').trim();
   // shorten намеренно не режет посреди слова и возвращает строку как есть,
@@ -591,6 +636,7 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
   let provider = null;
   const attempts = [];
   let ostatniKandydat = null;
+  let najlepszeProblemy = Infinity;
 
   for (let i = 0; i < 4; i++) {
     try {
@@ -603,9 +649,13 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
         out = parsed;
         break;
       }
-      // держим лучшее из неудачных — по нему потом чиним
-      if (!ostatniKandydat || problems.length < (validate(ostatniKandydat, !multiSlide).length || 99)) {
+      // Держим лучшее из неудачных — по нему потом чиним. Сравниваем с уже
+      // посчитанным числом проблем, а не перепроверяем кандидата заново:
+      // прежняя строка на нуле проблем давала `|| 99` и путала сравнение.
+      // При равенстве берём более поздний ответ — он свежее и обычно чище.
+      if (!ostatniKandydat || problems.length <= najlepszeProblemy) {
         ostatniKandydat = parsed;
+        najlepszeProblemy = problems.length;
       }
     } catch (e) {
       attempts.push({ attempt: i + 1, problems: [String(e.message).slice(0, 160)] });
@@ -628,7 +678,7 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
   }
 
   if (!out) {
-    const err = new Error('tekst nie przeszedł kontroli po trzech próbach');
+    const err = new Error('tekst nie przeszedł kontroli po czterech próbach i naprawie');
     err.attempts = attempts;
     throw err;
   }
