@@ -292,7 +292,7 @@ Nagłówek decyduje, czy ktoś się zatrzyma. Musi:
   „Zadbaj o wizerunek" — nie
 - działać bez czytania reszty
 Nie zaczynaj od „Czy wiesz, że", „W dzisiejszych czasach", „Jak zwiększyć".
-{
+${format.single ? '' : `{
   "eyebrow": "etykieta WIELKIMI LITERAMI, max 26 znaków, zaczyna się od: ZOVU ·",
   "title": "nagłówek okładki, 30-62 znaki, mocny, bez kropki na końcu",
   "hook": "DWA DO CZTERECH SŁÓW wielkimi literami. To pierwsze, co widz zobaczy na ekranie — ma zatrzymać kciuk. Nazwij stratę albo błąd, nie zapowiadaj tematu. Dobrze: „TRACISZ KLIENTÓW", „TO KOSZTUJE CIĘ TYSIĄCE". Źle: „O CZYM DZIŚ MÓWIMY"",
@@ -319,7 +319,7 @@ zdjęciach jedzenia — "jedzenie", o salonie — "uroda", o czasie — "czas",
 o pieniądzach — "finanse", o technologii — "ekrany" albo "ai".
 WAŻNE: jeśli punkt nie dotyczy konkretnej branży, weź tag neutralny —
 "ekrany", "ai", "nowoczesne", "gadzety", "czas" albo "architektura".
-Nagranie z barberem pod punktem o częstotliwości publikacji wygląda przypadkowo.`;
+Nagranie z barberem pod punktem o częstotliwości publikacji wygląda przypadkowo.`}`;
 }
 
 // ── вызов модели ──────────────────────────────────────────────────
