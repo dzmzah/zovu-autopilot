@@ -10,6 +10,14 @@
 | Файл | Автор | Источник | BPM |
 |---|---|---|---|
 | `pixabay-creative-technology-showreel.mp3` | Ivan Ohanezov (Pumpupthemind) | Pixabay | 152 |
+| `pixabay-audio_3670b74de1.mp3` | Pixabay | Pixabay | — |
+| `pixabay-audio_4a325d0f0b.mp3` | Pixabay | Pixabay | — |
+| `pixabay-audio_5d25481bef.mp3` | Pixabay | Pixabay | — |
+| `pixabay-audio_8e10e01af1.mp3` | Pixabay | Pixabay | — |
+
+Четыре последних добавлены 11.08.2026 скриптом `pobierz-muzyke.mjs`: один трек
+на всех роликах делает ленту однообразной на слух. Движок рилс-кейсов берёт
+случайный, либо заданный ключом `--muzyka=<часть имени>`.
 
 В `zapas/` лежит `pixabay-dark-cyberpunk.mp3` (FreeMusicLab, 123 BPM) — Захару
 не зашла, в ротацию не берётся. Чтобы вернуть, просто перенести на уровень выше.

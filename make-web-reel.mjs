@@ -126,7 +126,11 @@ async function stronaKompozycji(logoUri) {
     -webkit-mask-image:radial-gradient(ellipse 70% 55% at 50% 45%, #000 20%, transparent 76%); }
 
   /* телефон: корпус, экран со скруглением, блик по стеклу */
-  .telefon { position:absolute; left:50%; top:392px; transform:translateX(-50%);
+  /* Обёртка центрирует, а сам корпус двигаем — иначе translateX(-50%) для
+     центровки и наезд камеры дерутся за один transform. */
+  .scena { position:absolute; left:0; right:0; top:392px; height:1235px;
+    display:flex; justify-content:center; perspective:2600px; }
+  .telefon { position:relative;
     width:600px; height:1235px; border-radius:74px; padding:13px;
     background:linear-gradient(160deg,#3a3a44,#141418 42%,#2b2b33);
     box-shadow:0 50px 130px rgba(0,0,0,.72), 0 0 90px 12px rgba(124,58,237,.34),
@@ -136,6 +140,23 @@ async function stronaKompozycji(logoUri) {
   .ekran img { position:absolute; left:0; top:0; width:100%; display:block; }
   .blysk { position:absolute; inset:0; pointer-events:none; border-radius:62px;
     background:linear-gradient(118deg, rgba(255,255,255,.13) 0%, rgba(255,255,255,0) 34%); }
+
+  /* Палец. Именно он превращает макет в «живой телефон в руке»: без него
+     ролик читается как рендер, сколько ни двигай камеру. Рисуем не курсор,
+     а мягкое пятно касания с ореолом — так это выглядит на записи экрана. */
+  /* Касание, а не шар.
+     Две попытки ушли на кружок с объёмным бликом — и обе читались как мячик,
+     лежащий на экране: виноват был именно объём, смещённый блик и жёсткий
+     край. На записи экрана касание выглядит иначе: мягкое пятно без границы
+     и короткий след за ним. Поэтому — размытие, никакой обводки, малый
+     размер и шлейф вверх по ходу движения. */
+  .palec { position:absolute; left:50%; width:58px; height:58px; margin-left:-29px;
+    border-radius:50%; opacity:0; pointer-events:none;
+    background:rgba(255,255,255,.5);
+    filter:blur(7px); }
+  .palec::after { content:''; position:absolute; left:50%; margin-left:-13px; top:26px;
+    width:26px; height:150px; border-radius:13px;
+    background:linear-gradient(to bottom, rgba(255,255,255,.30), rgba(255,255,255,0)); }
 
   /* шапка: марка и о чём ролик */
   .naglowek { position:absolute; left:0; right:0; top:118px; text-align:center; }
@@ -183,10 +204,11 @@ async function stronaKompozycji(logoUri) {
     <h1 id="tytul">Strony, które<br>zrobiliśmy</h1>
   </div>
 
-  <div class="telefon"><div class="ekran">
+  <div class="scena"><div class="telefon" id="telefon"><div class="ekran">
     <img id="zrzut" src="" alt="">
     <div class="blysk"></div>
-  </div></div>
+    <div class="palec" id="palec"></div>
+  </div></div></div>
 
   <div class="podpis" id="podpis"></div>
 
@@ -251,9 +273,39 @@ async function zrobKlatki(browser, strony, logoUri) {
     const klatek = Math.round(s.sek * FPS);
     for (let k = 0; k < klatek; k++) {
       const p = wygladz(klatek === 1 ? 0 : k / (klatek - 1));
-      await page.evaluate((y) => {
-        document.getElementById('zrzut').style.transform = `translateY(${-y}px)`;
-      }, Math.round(zapas * p));
+      const t = klatek === 1 ? 0 : k / (klatek - 1);
+
+      await page.evaluate(
+        ({ y, t, i }) => {
+          // Скролл. Округляем: движение на доли пикселя даёт ту самую
+          // микро-дрожь, которую уже ловили на прошлых рилсах.
+          document.getElementById('zrzut').style.transform = `translateY(${-Math.round(y)}px)`;
+
+          // Камера: медленный наезд и лёгкий разворот корпуса. Направление
+          // разворота чередуется по сайтам — иначе четыре сегмента подряд
+          // выглядят как один длинный план.
+          const bok = i % 2 === 0 ? 1 : -1;
+          const skala = 0.975 + 0.05 * t;
+          const obrot = bok * (3.4 - 5.2 * t);
+          document.getElementById('telefon').style.transform =
+            `scale(${skala.toFixed(4)}) rotateY(${obrot.toFixed(2)}deg)`;
+
+          // Палец. Два свайпа за сегмент: касание, короткий ход вверх, отрыв.
+          // Появляется и исчезает мягко — резкий показ читается как глюк.
+          const palec = document.getElementById('palec');
+          const faza = (t * 2) % 1;
+          const widoczny = faza > 0.08 && faza < 0.72;
+          const ruch = Math.min(1, Math.max(0, (faza - 0.08) / 0.64));
+          const gora = 1180 - 520 * ruch;
+          palec.style.top = `${Math.round(gora)}px`;
+          // держим палец правее центра — так держат телефон в руке
+          palec.style.marginLeft = '10px';
+          palec.style.opacity = widoczny
+            ? (ruch < 0.12 ? (ruch / 0.12) * 0.9 : ruch > 0.86 ? ((1 - ruch) / 0.14) * 0.9 : 0.9).toFixed(2)
+            : '0';
+        },
+        { y: zapas * p, t, i }
+      );
       await zapisz();
     }
     console.log(`[reel] klatki ${i + 1}/${strony.length}: ${klatek} (przewijam ${Math.round(zapas)}px)`);
@@ -270,8 +322,29 @@ async function zrobKlatki(browser, strony, logoUri) {
 }
 
 // ── 4. сборка ────────────────────────────────────────────────────
+// Трек выбираем из папки, а не жёстко один.
+//
+// Один и тот же трек на всех роликах делает ленту однообразной на слух —
+// человек узнаёт мелодию и пролистывает, не досмотрев. Файл можно задать
+// руками (--muzyka=имя), иначе берём случайный.
+async function wybierzMuzyke() {
+  const { readdir } = await import('node:fs/promises');
+  const dir = path.join(AP, 'music');
+  const recznie = (process.argv.find((a) => a.startsWith('--muzyka=')) || '').split('=')[1];
+  const pliki = (await readdir(dir).catch(() => [])).filter((f) => /\.(mp3|m4a|aac|wav)$/i.test(f));
+  if (!pliki.length) throw new Error('w music/ nie ma żadnego utworu');
+  if (recznie) {
+    const trafiony = pliki.find((f) => f.toLowerCase().includes(recznie.toLowerCase()));
+    if (trafiony) return path.join(dir, trafiony);
+    console.warn(`[reel] nie ma utworu „${recznie}" — biorę losowy`);
+  }
+  const wybrany = pliki[Math.floor(Math.random() * pliki.length)];
+  console.log(`[reel] muzyka: ${wybrany}`);
+  return path.join(dir, wybrany);
+}
+
 async function zloz(klatek) {
-  const muzyka = path.join(AP, 'music', 'pixabay-creative-technology-showreel.mp3');
+  const muzyka = await wybierzMuzyke();
   const wynik = path.join(ROOT, 'zovu-portfolio-reel.mp4');
   const sek = klatek / FPS;
 
