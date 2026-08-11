@@ -94,11 +94,23 @@ jobs:
           CDN_REPO: ${{ github.workspace }}
           RAW_BASE: https://raw.githubusercontent.com/${{ github.repository }}/main
 
+      # Отметка слота живёт в state.json. Если её не сохранить, следующая
+      # попытка того же слота (в расписании их три) решит, что сегодня ещё не
+      # публиковали, и выложит ВТОРОЙ пост подряд — ровно та «необычная
+      # активность», за которую Meta закрыла доступ 31.07. Поэтому push здесь
+      # не «|| true», а с догоном и повторами.
       - name: Zapisz stan rotacji
         if: ${{ always() && !inputs.dry }}
         run: |
           git config user.name "zovu-autopilot"
           git config user.email "zovu.pl@gmail.com"
           git add state.json pending.json posts token.enc index.html || true
-          git diff --staged --quiet || git commit -m "post + stan rotacji [skip ci]"
-          git push || true
+          git diff --staged --quiet && exit 0
+          git commit -m "post + stan rotacji [skip ci]"
+          for i in 1 2 3; do
+            git push && exit 0
+            echo "push odbity (próba $i) — dociągam main"
+            git pull --rebase origin main || exit 1
+          done
+          echo "::error::Nie zapisałem stanu rotacji. Slot nie jest odhaczony — kolejny przebieg może opublikować drugi post tego samego dnia."
+          exit 1

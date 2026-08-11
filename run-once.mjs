@@ -97,7 +97,25 @@ async function pushToCdn(files, caption) {
   } catch (e) {
     if (!/nothing to commit/i.test(String(e.stdout || e.message))) throw e;
   }
-  await git(['push', 'origin', 'HEAD:main']);
+
+  // Пуш с догоном. Прогон выкачивает репозиторий в начале, а к этому месту
+  // проходит минута-другая: за это время в main может лечь чужой коммит —
+  // правка руками или предыдущий прогон, который ещё дописывал состояние.
+  // Тогда push отлетает как non-fast-forward, а вместе с ним умирает весь
+  // прогон: картинки уже сделаны, текст написан, а поста нет. Ради этого
+  // терять день нельзя — догоняем и пробуем снова.
+  for (let proba = 1; ; proba++) {
+    try {
+      await git(['push', 'origin', 'HEAD:main']);
+      break;
+    } catch (e) {
+      if (proba >= 3) throw e;
+      console.warn(`[autopilot] push odbity (próba ${proba}) — dociągam main i próbuję znowu`);
+      // --autostash не нужен: рабочее дерево уже закоммичено выше
+      await git(['fetch', 'origin', 'main']);
+      await git(['rebase', 'origin/main']);
+    }
+  }
 
   const urls = files.map((f) => `${RAW_BASE}/${CDN_SUBDIR}/${f.name}`);
   await Promise.all(urls.map(waitPublic));
