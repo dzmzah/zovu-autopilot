@@ -659,9 +659,20 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
     try {
       const res = await askModel(system, user);
       provider = res.provider;
-      const parsed = clean(parseJson(res.raw));
+      const surowy = parseJson(res.raw);
+      const parsed = clean(surowy);
       const problems = validate(parsed, !multiSlide);
       attempts.push({ attempt: i + 1, problems });
+      // Что именно пришло от модели — иначе по одной строке «bullets musi mieć
+      // 3 elementy» не понять, чего не хватило: модель их не написала, или
+      // наша же чистка выбросила. Разница решает, что чинить.
+      if (problems.length) {
+        console.warn(
+          `[engine] próba ${i + 1}: ${problems.join('; ')} | od modelu: ` +
+            JSON.stringify(surowy.bullets ?? surowy.items?.length ?? null).slice(0, 200) +
+            ` | po czyszczeniu: ${JSON.stringify(parsed.bullets ?? parsed.items?.length ?? null).slice(0, 200)}`
+        );
+      }
       if (!problems.length) {
         out = parsed;
         break;
