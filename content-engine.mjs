@@ -399,6 +399,35 @@ async function askModel(system, user) {
       }
     );
     const j = await r.json();
+    if (r.status === 429) {
+      // У бесплатного тира два потолка: в минуту и в сутки. Минутный ловится
+      // паузой — и ловится часто, когда прогоны идут подряд. Суточный паузой не
+      // лечится, поэтому ждём один раз и с внятной подписью в логе: по ней
+      // видно, что упёрлись в квоту, а не в поломку.
+      const info = JSON.stringify(j).slice(0, 200);
+      console.warn(`[engine] Gemini 429 (limit) — czekam 30 s i próbuję raz jeszcze: ${info}`);
+      await new Promise((res) => setTimeout(res, 30000));
+      const r2 = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+        {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-goog-api-key': geminiKey },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: system }] },
+            contents: [{ parts: [{ text: user }] }],
+            generationConfig: { temperature: 0.7, responseMimeType: 'application/json' },
+          }),
+        }
+      );
+      const j2 = await r2.json();
+      if (!r2.ok) {
+        throw new Error(
+          'Gemini ' + r2.status + ' (limit wyczerpany): ' + JSON.stringify(j2).slice(0, 200)
+        );
+      }
+      const t2 = (j2?.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
+      return { raw: t2, provider: model };
+    }
     if (!r.ok) throw new Error('Gemini ' + r.status + ': ' + JSON.stringify(j).slice(0, 300));
     const text = (j?.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
     return { raw: text, provider: model };
