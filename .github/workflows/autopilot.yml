@@ -110,7 +110,10 @@ jobs:
           for i in 1 2 3; do
             git push && exit 0
             echo "push odbity (próba $i) — dociągam main"
-            git pull --rebase origin main || exit 1
+            # checkout выкачивает один коммит: без углубления rebase не найдёт
+            # общего предка и упадёт
+            git fetch --deepen=50 origin main || git fetch origin main
+            git rebase origin/main || exit 1
           done
           echo "::error::Nie zapisałem stanu rotacji. Slot nie jest odhaczony — kolejny przebieg może opublikować drugi post tego samego dnia."
           exit 1

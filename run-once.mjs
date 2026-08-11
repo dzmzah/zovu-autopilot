@@ -111,8 +111,15 @@ async function pushToCdn(files, caption) {
     } catch (e) {
       if (proba >= 3) throw e;
       console.warn(`[autopilot] push odbity (próba ${proba}) — dociągam main i próbuję znowu`);
+      // actions/checkout выкачивает ОДИН коммит. На такой истории rebase не
+      // находит общего предка и падает, поэтому сначала углубляем. На полной
+      // копии (локально) --deepen не применим — там достаточно обычного fetch.
+      try {
+        await git(['fetch', '--deepen=50', 'origin', 'main']);
+      } catch {
+        await git(['fetch', 'origin', 'main']);
+      }
       // --autostash не нужен: рабочее дерево уже закоммичено выше
-      await git(['fetch', 'origin', 'main']);
       await git(['rebase', 'origin/main']);
     }
   }
