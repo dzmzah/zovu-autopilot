@@ -5,3 +5,8 @@ bg-gen/
 bg-photo/
 *.tmp
 stats.json
+
+# рабочие папки движка рилс-кейсов
+klatki/
+zrzuty/
+*.mp4
