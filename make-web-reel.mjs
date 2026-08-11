@@ -40,10 +40,10 @@ const STRONY = [
 ];
 
 // ── 1. снимаем сайты ─────────────────────────────────────────────
-async function zrzucStrony(browser) {
+async function zrzucStrony(browser, lista = STRONY) {
   await mkdir(ZRZUTY, { recursive: true });
   const out = [];
-  for (const [i, s] of STRONY.entries()) {
+  for (const [i, s] of lista.entries()) {
     const ctx = await browser.newContext({
       viewport: { width: 390, height: 844 },
       deviceScaleFactor: 2,
@@ -53,7 +53,7 @@ async function zrzucStrony(browser) {
         'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
     });
     const page = await ctx.newPage();
-    console.log(`[reel] zrzut ${i + 1}/${STRONY.length}: ${s.url}`);
+    console.log(`[reel] zrzut ${i + 1}/${lista.length}: ${s.url}`);
     await page.goto(s.url, { waitUntil: 'networkidle', timeout: 60000 }).catch(() => {});
     // Баннеры согласия и всплывашки на снимке выглядят как брак работы —
     // это ровно то, что клиент на своём сайте видеть не должен.
@@ -105,7 +105,7 @@ async function zrzucStrony(browser) {
 }
 
 // ── 2. страница-композиция ───────────────────────────────────────
-async function stronaKompozycji(logoUri) {
+async function stronaKompozycji(logoUri, tytul) {
   return `<!doctype html><html><head><meta charset="utf-8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -201,7 +201,7 @@ async function stronaKompozycji(logoUri) {
 
   <div class="naglowek">
     <div class="marka"><span class="kropka"></span>ZOVU · PORTFOLIO</div>
-    <h1 id="tytul">Strony, które<br>zrobiliśmy</h1>
+    <h1 id="tytul">${tytul}</h1>
   </div>
 
   <div class="scena"><div class="telefon" id="telefon"><div class="ekran">
@@ -230,12 +230,12 @@ async function stronaKompozycji(logoUri) {
 // равномерный скролл выглядит машинным, глаз цепляется за рывок на стыках.
 const wygladz = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
-async function zrobKlatki(browser, strony, logoUri) {
+async function zrobKlatki(browser, strony, logoUri, tytul) {
   await rm(KLATKI, { recursive: true, force: true });
   await mkdir(KLATKI, { recursive: true });
 
   const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
-  await page.setContent(await stronaKompozycji(logoUri), { waitUntil: 'networkidle' });
+  await page.setContent(await stronaKompozycji(logoUri, tytul), { waitUntil: 'networkidle' });
   await page.waitForTimeout(1200); // шрифты
 
   let nr = 0;
@@ -327,10 +327,10 @@ async function zrobKlatki(browser, strony, logoUri) {
 // Один и тот же трек на всех роликах делает ленту однообразной на слух —
 // человек узнаёт мелодию и пролистывает, не досмотрев. Файл можно задать
 // руками (--muzyka=имя), иначе берём случайный.
-async function wybierzMuzyke() {
+async function wybierzMuzyke(recznie0) {
   const { readdir } = await import('node:fs/promises');
   const dir = path.join(AP, 'music');
-  const recznie = (process.argv.find((a) => a.startsWith('--muzyka=')) || '').split('=')[1];
+  const recznie = recznie0 || (process.argv.find((a) => a.startsWith('--muzyka=')) || '').split('=')[1];
   const pliki = (await readdir(dir).catch(() => [])).filter((f) => /\.(mp3|m4a|aac|wav)$/i.test(f));
   if (!pliki.length) throw new Error('w music/ nie ma żadnego utworu');
   if (recznie) {
@@ -343,8 +343,8 @@ async function wybierzMuzyke() {
   return path.join(dir, wybrany);
 }
 
-async function zloz(klatek) {
-  const muzyka = await wybierzMuzyke();
+async function zloz(klatek, muzykaRecznie) {
+  const muzyka = await wybierzMuzyke(muzykaRecznie);
   const wynik = path.join(ROOT, 'zovu-portfolio-reel.mp4');
   const sek = klatek / FPS;
 
@@ -367,17 +367,61 @@ async function zloz(klatek) {
   return { wynik, sek };
 }
 
-// ── поехали ──────────────────────────────────────────────────────
-const logoUri = await readFile(path.join(AP, 'logo-white.b64'), 'utf8')
-  .then((b) => 'data:image/png;base64,' + b.trim())
-  .catch(() => null);
+// ── сценарии ─────────────────────────────────────────────────────
+// Один и тот же ролик раз в неделю лента простит, раз в день — нет. Поэтому
+// сценариев несколько, и они берут ОДИН И ТОТ ЖЕ материал под разным углом:
+// портфолио целиком либо один клиент крупно. Механика при этом не меняется —
+// меняется только список экранов и заголовок.
+export const SCENARIUSZE = {
+  portfolio: {
+    tytul: 'Strony, które<br>zrobiliśmy',
+    strony: STRONY,
+    podpis:
+      'Cztery strony, cztery różne branże. Każda robiona pod jedno zadanie: żeby klient wiedział, co robić dalej.\n\n' +
+      'Nie szablon z kreatora, tylko układ pod konkretną firmę — cennik tam, gdzie go szukają, kontakt na wyciągnięcie kciuka.\n\n' +
+      'Chcesz taką dla siebie? Napisz do nas.',
+  },
+  // По одному ролику на клиента: тот же движок, но весь экран занимает
+  // один проект — видно больше, и получается четыре разных рилса.
+  ...Object.fromEntries(
+    STRONY.map((s) => [
+      s.url.includes('4K') ? 'klient-4k'
+        : s.url.includes('rezydencja') ? 'klient-rezydencja'
+        : s.url.includes('maya') ? 'klient-maya' : 'klient-zovu',
+      {
+        tytul: s.podpis.split('·')[0].trim().replace(/ /g, '<br>'),
+        // один сайт, но показываем дольше и глубже
+        strony: [{ ...s, sek: 9.0 }],
+        podpis:
+          `${s.podpis.split('·')[0].trim()} — jedna z naszych realizacji.\n\n` +
+          'Cały układ jest podporządkowany jednej rzeczy: żeby odwiedzający wiedział, co zrobić w następnej sekundzie.\n\n' +
+          'Zrobimy tak samo dla Twojej firmy. Napisz.',
+      },
+    ])
+  ),
+};
 
-const browser = await chromium.launch();
-try {
-  const strony = process.env.SKIP_ZRZUT ? STRONY.map((x, i) => ({ ...x, plik: path.join(ZRZUTY, `strona-${i + 1}.png`) })) : await zrzucStrony(browser);
-  const klatek = await zrobKlatki(browser, strony, logoUri);
-  const { wynik, sek } = await zloz(klatek);
-  console.log(`[reel] gotowe: ${wynik} (${sek.toFixed(1)}s)`);
-} finally {
-  await browser.close();
+// Собирает ролик и возвращает путь к файлу. Вызывается и руками, и автопилотом.
+export async function makeWebReel({ scenariusz = 'portfolio', muzyka } = {}) {
+  const s = SCENARIUSZE[scenariusz] || SCENARIUSZE.portfolio;
+  const logoUri = await readFile(path.join(AP, 'logo-white.b64'), 'utf8')
+    .then((b) => 'data:image/png;base64,' + b.trim())
+    .catch(() => null);
+
+  const browser = await chromium.launch();
+  try {
+    const strony = await zrzucStrony(browser, s.strony);
+    const klatek = await zrobKlatki(browser, strony, logoUri, s.tytul);
+    const { wynik, sek } = await zloz(klatek, muzyka);
+    console.log(`[reel] gotowe: ${wynik} (${sek.toFixed(1)}s)`);
+    return { file: wynik, name: path.basename(wynik), sekundy: sek, caption: s.podpis };
+  } finally {
+    await browser.close();
+  }
+}
+
+// Запуск из командной строки: node make-web-reel.mjs [--scenariusz=klient-4k]
+if (process.argv[1] && process.argv[1].endsWith('make-web-reel.mjs')) {
+  const sc = (process.argv.find((a) => a.startsWith('--scenariusz=')) || '').split('=')[1];
+  await makeWebReel({ scenariusz: sc });
 }

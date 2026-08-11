@@ -247,9 +247,15 @@ async function publish(urls, caption, kind) {
 // подряд, помечаем выполненный слот в state.json и на повторе выходим.
 const STATE_FILE = path.join(import.meta.dirname, 'state.json');
 
+// Три слота в сутках: утро — пост, обед — рилс, вечер — второй пост.
+// Границы с запасом, потому что планировщик GitHub опаздывает на десятки
+// минут: утренние попытки идут до 10 UTC, обеденные с 10 до 14, вечерние
+// после 14. Иначе задержавшийся утренний запуск попал бы в обеденный слот и
+// выложил рилс вместо поста.
 function slotId(d = new Date()) {
-  // до полудня UTC — утренний слот, после — вечерний
-  return `${d.toISOString().slice(0, 10)}-${d.getUTCHours() < 12 ? 'am' : 'pm'}`;
+  const g = d.getUTCHours();
+  const pora = g < 10 ? 'am' : g < 14 ? 'noon' : 'pm';
+  return `${d.toISOString().slice(0, 10)}-${pora}`;
 }
 
 async function readState() {
