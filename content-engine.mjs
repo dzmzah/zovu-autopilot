@@ -145,6 +145,18 @@ const EXAMPLE_SINGLE = `{
   "caption": "..."
 }`;
 
+// Пример под макеты без списка. Отдельный нужен потому, что образец сильнее
+// правил: показав пост с тремя пунктами, мы получим три пункта, сколько ни
+// пиши «списка не будет». Здесь показываем ровно то, что ждём — заголовок и
+// одну строку под ним.
+const EXAMPLE_FOTO = `{
+  "eyebrow": "ZOVU · WARSZTAT",
+  "title": "Klient dzwoni tam, gdzie widzi cennik",
+  "subtitle": "Wymiana oleju: 180 zł. Tyle wystarczy, żeby telefon zadzwonił.",
+  "photoQuery": "local mechanic car workshop",
+  "caption": "..."
+}`;
+
 const DIACRITICS = /[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/;
 
 async function readState() {
@@ -226,7 +238,11 @@ async function singleFeedIdea() {
 }
 
 // ── системный промпт собирается из KONTENT.md ────────────────────
-async function buildSystemPrompt(format, reel = false) {
+// layout — макет одиночного поста: 'lista' (заголовок + три пункта),
+// 'foto' (фото главное, текста минимум), 'cytat' (одна крупная фраза).
+// От макета зависит, какие поля мы вообще просим у модели: у фото-поста
+// списка нет, и требовать его — значит гарантированно получить брак.
+async function buildSystemPrompt(format, reel = false, layout = 'lista') {
   let rules = '';
   try {
     const md = await readFile(KONTENT_FILE, 'utf8');
@@ -246,7 +262,7 @@ ${rules}
 Tak wygląda tekst na naszym poziomie. Skopiuj ten sposób myślenia:
 konkret zamiast ogólnika, obraz zamiast pojęcia, krótkie zdanie.
 
-${format.single ? EXAMPLE_SINGLE : EXAMPLE_CAROUSEL}
+${!format.single ? EXAMPLE_CAROUSEL : layout === 'lista' ? EXAMPLE_SINGLE : EXAMPLE_FOTO}
 
 Zwróć uwagę: żadnego „nowe możliwości", „bądź na bieżąco", „przyszłość".
 Każdy punkt da się zobaczyć oczami. „Numer telefonu ukryty w stopce" — to widać.
@@ -264,7 +280,23 @@ TWARDE ZASADY TECHNICZNE:
 - Zdanie do 12 słów
 - Język zrozumiały i dla 25-latka, i dla 55-latka
 
-${format.single ? `TO JEST POJEDYNCZY POST (jeden obrazek), nie karuzela.
+${format.single && layout !== 'lista' ? `TO JEST POJEDYNCZY POST (jeden obrazek), nie karuzela.
+${layout === 'foto'
+  ? `UKŁAD: ZDJĘCIE GRA PIERWSZE SKRZYPCE. Na obrazku będzie duża fotografia,
+a tekstu bardzo mało — jeden nagłówek i jedno zdanie. Nie ma listy punktów.
+Dlatego nagłówek musi unieść post sam, a zdjęcie ma być mocną, konkretną sceną.`
+  : `UKŁAD: JEDNO ZDANIE NA CAŁY KADR. Bez listy punktów: jedna myśl, napisana
+tak, żeby działała jak zdanie wypowiedziane na głos. Krótko i dosadnie.`}
+Zwróć WYŁĄCZNIE obiekt JSON:
+{
+  "eyebrow": "etykieta WIELKIMI LITERAMI, max 26 znaków, zaczyna się od: ZOVU ·",
+  "title": "${layout === 'foto' ? 'nagłówek, 26-52 znaki' : 'jedno zdanie, 30-58 znaków'}, mocny, bez kropki na końcu",
+  "subtitle": "jedno zdanie pod nagłówkiem, 45-85 znaków, konkret, bez wymyślonych liczb",
+  "photoQuery": "PO ANGIELSKU, 2-4 słowa: PRAWDZIWA SCENA na zdjęcie stockowe — żywi ludzie przy pracy albo prawdziwe przedmioty. Kadr ma wyglądać jak polski mały biznes, więc dorzuć słowo miejsca: european, polish, local. To zdjęcie jest najważniejszym elementem posta, więc scena ma być wyrazista. Bez grafik 3D, bez abstrakcji, bez napisów",
+  "bgIdea": "PO ANGIELSKU, 4-8 słów: KONKRETNE PRZEDMIOTY do tła. Zacznij od floating i dodaj materiał: violet glass, chrome, neon. Bez ludzi i bez napisów",
+  "caption": "opis pod post, 300-550 znaków, trzy krótkie akapity rozdzielone podwójną nową linią, maksymalnie dwa emoji",
+  "hashtags": ["pięć hashtagów wg zasad poniżej, bez znaku #"]
+}` : format.single ? `TO JEST POJEDYNCZY POST (jeden obrazek), nie karuzela.
 Zwróć WYŁĄCZNIE obiekt JSON:
 {
   "eyebrow": "etykieta WIELKIMI LITERAMI, max 26 znaków, zaczyna się od: ZOVU ·",
@@ -403,7 +435,7 @@ function parseJson(raw) {
 // три пункта, но чинёный текст пропускаем и с двумя: раньше недостающий пункт
 // добирался из заголовка, и в ленту уходил дубль того, что человек уже видит.
 // Два честных пункта лучше и подделки, и упавшего прогона без поста.
-function validate(out, single = false, po = false) {
+function validate(out, single = false, po = false, layout = 'lista') {
   const problems = [];
   const all = [
     out.eyebrow, out.title, out.subtitle, out.caption,
@@ -419,6 +451,14 @@ function validate(out, single = false, po = false) {
   for (const b of BANNED) if (low.includes(b)) problems.push(`zakazany zwrot: ${b}`);
 
   if (!out.title || out.title.length < 24 || out.title.length > 70) problems.push('zły nagłówek');
+
+  // Макеты «фото главное» и «крупная фраза» списка не имеют вовсе — там
+  // заголовок и одна строка. Требовать от них пункты значит браковать
+  // правильный текст.
+  if (single && (layout === 'foto' || layout === 'cytat')) {
+    if (!out.subtitle || out.subtitle.length < 30) problems.push('brakuje zdania pod nagłówkiem');
+    return problems;
+  }
 
   if (single) {
     const b = out.bullets;
@@ -550,7 +590,7 @@ function bezZakazanych(s) {
 // Правит то, что чинится механически: число пунктов, длину строк, хвосты.
 // Смысл текста не трогаем — если модель написала ерунду, ерунда и останется,
 // поэтому после починки текст всё равно проходит через validate().
-function napraw(out, single) {
+function napraw(out, single, layout = 'lista') {
   const o = JSON.parse(JSON.stringify(out));
 
   // Запрещённые обороты. Раньше починка их не трогала: 09.08 модель четыре
@@ -609,7 +649,7 @@ function napraw(out, single) {
   return o;
 }
 
-export async function makePost({ topic, format, kind, trends = false, genImages = true, photo = 'zah', photoCta = 'mat' } = {}) {
+export async function makePost({ topic, format, kind, uklad, trends = false, genImages = true, photo = 'zah', photoCta = 'mat' } = {}) {
   const state = await readState();
 
   const topicIdx = topic ? -1 : (state.topic + 1) % TOPICS.length;
@@ -641,12 +681,24 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
         + `Nie streszczaj newsa. Zrób z niego praktyczny post dla właściciela małej firmy w Polsce: `
         + `co ta zmiana oznacza dla jego marketingu i co ma zrobić w tym tygodniu.`
       : TOPICS[topicIdx]);
+  // Макет одиночного поста. Три штуки по кругу, чтобы лента не превращалась в
+  // обои: один и тот же макет каждый день человек перестаёт замечать — он
+  // заранее знает, что увидит, и листает мимо. Порядок: список → фото →
+  // список → фраза. Список чаще, он несёт больше пользы; фото и фраза сбивают
+  // ритм и держат внимание.
+  const UKLADY = ['lista', 'foto', 'lista', 'cytat'];
+  const chosenLayout = multiSlide ? null : (uklad || UKLADY[counter % UKLADY.length]);
+
   const chosenFormat = multiSlide
     ? (format ? FORMATS.find((f) => f.key === format) || FORMATS[0] : FORMATS[formatIdx])
     : { key: 'single', label: 'Pojedynczy post', single: true,
-        brief: 'Jedna myśl, trzy krótkie punkty. Bez rozwlekania — post ma działać w dwie sekundy.' };
+        brief: chosenLayout === 'foto'
+          ? 'Zdjęcie gra pierwsze skrzypce, tekstu minimum: nagłówek i jedno zdanie.'
+          : chosenLayout === 'cytat'
+            ? 'Jedna myśl na cały kadr. Bez listy — zdanie, które działa wypowiedziane na głos.'
+            : 'Jedna myśl, trzy krótkie punkty. Bez rozwlekania — post ma działać w dwie sekundy.' };
 
-  const system = await buildSystemPrompt(chosenFormat, isReel);
+  const system = await buildSystemPrompt(chosenFormat, isReel, chosenLayout);
   const user = `Temat postu: ${chosenTopic}`;
 
   let out = null;
@@ -660,8 +712,8 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
       const res = await askModel(system, user);
       provider = res.provider;
       const surowy = parseJson(res.raw);
-      const parsed = clean(surowy);
-      const problems = validate(parsed, !multiSlide);
+      const parsed = clean(surowy, chosenLayout);
+      const problems = validate(parsed, !multiSlide, false, chosenLayout);
       attempts.push({ attempt: i + 1, problems });
       // Что именно пришло от модели — иначе по одной строке «bullets musi mieć
       // 3 elementy» не понять, чего не хватило: модель их не написала, или
@@ -696,8 +748,8 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
   if (!out) {
     const kandydat = ostatniKandydat;
     if (kandydat) {
-      const naprawiony = napraw(kandydat, !multiSlide);
-      const zostalo = validate(naprawiony, !multiSlide, true);
+      const naprawiony = napraw(kandydat, !multiSlide, chosenLayout);
+      const zostalo = validate(naprawiony, !multiSlide, true, chosenLayout);
       if (!zostalo.length) {
         console.warn('[engine] tekst naprawiony po nieudanych próbach: ' + attempts.at(-1).problems.join('; '));
         out = naprawiony;
@@ -824,7 +876,10 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
         name: baseName,
         eyebrow: out.eyebrow || 'ZOVU · SOCIAL MEDIA',
         title: out.title,
+        subtitle: out.subtitle,
         bullets: out.bullets,
+        // какой из трёх макетов рисовать — решено выше, ротацией
+        layout: chosenLayout,
         bg: zdjecie?.file || generated[0] || BG_TAGS[bgStart],
         // живому кадру шаблон даёт мягкую вуаль вместо штатной, иначе фото
         // гасится дважды и осветлять его бессмысленно

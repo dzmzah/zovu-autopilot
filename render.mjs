@@ -291,6 +291,74 @@ function singleHtml({ eyebrow, title, bullets, footer: site, foto }, logoUri, bg
   </div></body></html>`;
 }
 
+// ── одиночный пост, макет «фото главное» ─────────────────────────
+// Здесь съёмка не подложка под текст, а сам пост. Поэтому:
+//   • вуаль почти снята — работает только низ, где лежат буквы;
+//   • пунктов нет вовсе, одна короткая строка;
+//   • заголовок прижат к низу, верхние две трети кадра свободны.
+// Смысл: в ленте человек сначала видит картинку и только потом читает. Пост
+// из заголовка и трёх пунктов — это лист бумаги, его листают мимо.
+function fotoHtml({ eyebrow, title, subtitle, footer: site }, logoUri, bgUri) {
+  const len = String(title).length;
+  const size = len > 54 ? 84 : len > 38 ? 98 : 118;
+  return `<!doctype html><html><head>${head()}<style>${baseCss()}
+  /* текст внизу: кадр дышит сверху, буквы стоят на плотной подложке */
+  .wrap { justify-content:flex-end; padding:92px 84px 232px; }
+  h1 { font-size:${size}px; margin-top:26px; letter-spacing:-1.5px; }
+  .lead { margin-top:26px; font-size:29px; line-height:1.45; color:#e9e5f7; max-width:88%; }
+  /* Своя вуаль вместо .has-foto: там колонка слева под список, а тут текста
+     сверху нет вообще — гасим только нижнюю треть, иначе съёмка опять тонет. */
+  .has-foto .scrim, .has-bg .scrim {
+    background:linear-gradient(to top,
+      rgba(5,5,5,.94) 0%, rgba(5,5,5,.88) 22%, rgba(5,5,5,.55) 42%,
+      rgba(5,5,5,.18) 62%, rgba(5,5,5,.04) 100%); }
+  /* фирменная точка-акцент над заголовком — вместо плашки-таблетки */
+  .znak { width:74px; height:6px; border-radius:999px; align-self:flex-start;
+    background:linear-gradient(90deg,#7c3aed,#c4b5fd);
+    box-shadow:0 0 26px 5px rgba(124,58,237,.6); }
+  .kicker { margin-top:24px; align-self:flex-start; font-size:21px; letter-spacing:.24em;
+    text-transform:uppercase; color:#c4b5fd; }
+  </style></head>${bodyTag(bgUri, true)}
+  ${layers(logoUri, bgUri)}
+  <div class="wrap">
+    <div class="znak"></div>
+    ${eyebrow ? `<div class="kicker">${esc(eyebrow)}</div>` : ''}
+    <h1>${esc(title)}</h1>
+    ${subtitle ? `<div class="lead">${esc(subtitle)}</div>` : ''}
+    ${footer(logoUri, site)}
+  </div></body></html>`;
+}
+
+// ── одиночный пост, макет «крупная фраза» ────────────────────────
+// Третий ритм в ленте: ни списка, ни фото во весь кадр — одна мысль, набранная
+// так крупно, что читается с расстояния вытянутой руки. Кадр уходит в глубокий
+// фон и работает фактурой, а не сюжетом.
+function cytatHtml({ eyebrow, title, subtitle, footer: site }, logoUri, bgUri) {
+  const len = String(title).length;
+  const size = len > 54 ? 96 : len > 38 ? 116 : 140;
+  return `<!doctype html><html><head>${head()}<style>${baseCss()}
+  .wrap { justify-content:center; align-items:flex-start; padding:92px 84px 210px; }
+  h1 { font-size:${size}px; letter-spacing:-2px; line-height:1.06; }
+  /* кавычка-знак: крупная, приглушённая, держит композицию сверху */
+  .cudzyslow { font-family:'Oswald', sans-serif; font-weight:700; font-size:240px;
+    line-height:.6; color:rgba(167,139,250,.28); margin-bottom:18px; }
+  .lead { margin-top:40px; font-size:28px; line-height:1.5; color:#cfc8e8; max-width:78%;
+    padding-left:26px; border-left:3px solid rgba(167,139,250,.55); }
+  /* фраза читается только на спокойном фоне — гасим кадр сильнее обычного */
+  .has-foto .scrim, .has-bg .scrim {
+    background:
+      linear-gradient(to right, rgba(5,5,5,.92) 0%, rgba(5,5,5,.84) 46%, rgba(5,5,5,.62) 100%),
+      linear-gradient(to top, rgba(5,5,5,.9) 0%, rgba(5,5,5,.2) 40%, rgba(5,5,5,.08) 100%); }
+  </style></head>${bodyTag(bgUri, true)}
+  ${layers(logoUri, bgUri)}
+  <div class="wrap">
+    <div class="cudzyslow">&bdquo;</div>
+    <h1>${esc(title)}</h1>
+    ${subtitle ? `<div class="lead">${esc(subtitle)}</div>` : ''}
+    ${footer(logoUri, site)}
+  </div></body></html>`;
+}
+
 // ── слайд карусели: обложка ──────────────────────────────────────
 // Обложка — единственный слайд, который человек видит в ленте, и до 11.08 она
 // была единственной БЕЗ живого фото: пункты шли съёмкой, а первый кадр —
@@ -490,7 +558,12 @@ export async function renderPost(data) {
   const name = slug(data.name || `post-${process.hrtime.bigint().toString(36)}`);
   const uri = await logo();
   const bg = await bgAsset(data.bg);
-  const [res] = await shoot([{ name, html: singleHtml(data, uri, bg) }]);
+  // Макет выбирает движок и кладёт в data.layout. Один и тот же макет каждый
+  // день превращает ленту в обои: человек перестаёт останавливаться, потому
+  // что заранее знает, что увидит. Поэтому макетов три и они чередуются.
+  const szablon =
+    data.layout === 'foto' ? fotoHtml : data.layout === 'cytat' ? cytatHtml : singleHtml;
+  const [res] = await shoot([{ name, html: szablon(data, uri, bg) }]);
   return res;
 }
 

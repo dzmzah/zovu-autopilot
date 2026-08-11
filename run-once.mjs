@@ -19,6 +19,9 @@ const DRY = process.argv.includes('--dry');
 // --kind=reel|carousel|single — принудительно задать тип поста (для проверок).
 // Без него тип выбирает ротация в движке.
 const KIND = (process.argv.find((a) => a.startsWith('--kind=')) || '').split('=')[1] || undefined;
+// --uklad=lista|foto|cytat — принудительно задать макет одиночного поста.
+// Без него макет выбирает ротация: лента не должна выглядеть одними обоями.
+const UKLAD = (process.argv.find((a) => a.startsWith('--uklad=')) || '').split('=')[1] || undefined;
 
 const IG_API = 'https://graph.instagram.com/v23.0';
 // На сервере GitHub Actions картинки кладём в этот же репозиторий (он публичный),
@@ -414,7 +417,7 @@ if (!DRY && !KIND) {
   }
 }
 
-const post = await makePost({ trends: true, kind: KIND });
+const post = await makePost({ trends: true, kind: KIND, uklad: UKLAD });
 console.log(`[autopilot] #${post.meta.counter} ${post.kind} | ${post.meta.format} | ${post.meta.provider}`);
 console.log(`[autopilot] ${post.data.title}`);
 

@@ -15,6 +15,47 @@ import sharp from 'sharp';
 export const PHOTO_DIR = path.join(import.meta.dirname, 'bg-photo');
 const API = 'https://api.pexels.com/v1/search';
 
+// ── своя библиотека кадров ───────────────────────────────────────
+// Папка foto/ — снимки, которые Захар отобрал руками. Сток даёт вероятность:
+// запрос про польский автосервис в среднем даёт польский автосервис, но каждый
+// отдельный кадр — лотерея. Своя папка даёт определённость: в ленту попадает
+// ровно то, что человек посмотрел и одобрил. Это обычный подбор материала,
+// как в любом агентстве, только один раз и заранее.
+//
+// ZOVU_FOTO=wlasne — брать ТОЛЬКО свои кадры, в сток не ходить вовсе.
+// ZOVU_FOTO=stock  — только сток (так было раньше).
+// по умолчанию: свои, если папка не пуста, иначе сток.
+const WLASNE_DIR = path.join(import.meta.dirname, 'foto');
+
+async function wlasneKadry() {
+  try {
+    const { readdir } = await import('node:fs/promises');
+    const pliki = (await readdir(WLASNE_DIR)).filter((f) => /\.(jpe?g|png|webp)$/i.test(f));
+    return pliki.sort();
+  } catch {
+    return [];
+  }
+}
+
+// Выбор своего кадра под смысл поста. Имя файла — это его теги: слова через
+// дефис (warsztat-auto-1.jpg). Совпадение считаем по общим словам с запросом;
+// не совпало ни одно — берём по кругу, чтобы кадры не повторялись подряд.
+// Любой кадр из этой папки уместен по определению: его уже одобрили.
+function dopasuj(pliki, query, nth) {
+  const slowa = String(query || '').toLowerCase().split(/[^a-zа-я0-9ąćęłńóśźż]+/i).filter((w) => w.length > 2);
+  let najlepszy = null;
+  let ile = 0;
+  for (const f of pliki) {
+    const tagi = f.replace(/\.[^.]+$/, '').toLowerCase().split(/[^a-zа-я0-9ąćęłńóśźż]+/i);
+    const wspolne = tagi.filter((t) => t.length > 2 && slowa.includes(t)).length;
+    if (wspolne > ile) {
+      ile = wspolne;
+      najlepszy = f;
+    }
+  }
+  return najlepszy || pliki[nth % pliki.length];
+}
+
 async function klucz() {
   if (process.env.PEXELS_KEY) return process.env.PEXELS_KEY.trim();
   try {
@@ -197,7 +238,36 @@ async function ocenKadr(buf) {
 
 // Ищем кадр под запрос. Возвращаем null (а не бросаем), чтобы вызывающий
 // спокойно откатился на генерацию: пост важнее источника картинки.
-export async function findPhoto(query, { name } = {}) {
+export async function findPhoto(query, { name, nth = 0 } = {}) {
+  const tryb = String(process.env.ZOVU_FOTO || '').trim().toLowerCase();
+
+  // Сначала своя папка. Кадр оттуда проходит ту же обработку, что и стоковый,
+  // поэтому в шаблоне он сидит один в один и ничего подкручивать не нужно.
+  if (tryb !== 'stock') {
+    const pliki = await wlasneKadry();
+    if (pliki.length) {
+      const wybrany = dopasuj(pliki, query, nth);
+      try {
+        const buf = await readFile(path.join(WLASNE_DIR, wybrany));
+        const gotowy = await zloz(buf);
+        await mkdir(PHOTO_DIR, { recursive: true });
+        const safe = (name || `foto-${nth}`).replace(/[^a-zA-Z0-9._-]/g, '-');
+        const file = path.join(PHOTO_DIR, `${safe}.jpg`);
+        await writeFile(file, gotowy);
+        console.log(`[photo] własny kadr: ${wybrany}`);
+        return { file, query, autor: 'ZOVU', zrodlo: 'foto/' + wybrany, wlasne: true };
+      } catch (e) {
+        console.warn(`[photo] własny kadr ${wybrany} nie wyszedł: ${e.message}`);
+      }
+    } else if (tryb === 'wlasne') {
+      // Режим «только свои», а папка пуста — молчать нельзя: движок откатится
+      // на генерённые фоны, и человек решит, что подбор сломался.
+      console.warn('[photo] ZOVU_FOTO=wlasne, ale folder foto/ jest pusty — nie ma z czego wybierać');
+      return null;
+    }
+  }
+  if (tryb === 'wlasne') return null;
+
   const key = await klucz();
   if (!key || !query) return null;
 

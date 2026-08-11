@@ -24,6 +24,11 @@ on:
         type: choice
         default: auto
         options: [auto, single, carousel, reel]
+      uklad:
+        description: 'Wymuś układ pojedynczego posta'
+        type: choice
+        default: auto
+        options: [auto, lista, foto, cytat]
 
 concurrency:
   group: zovu-autopilot
@@ -69,7 +74,7 @@ jobs:
           RAW_BASE: https://raw.githubusercontent.com/${{ github.repository }}/main
           ZOVU_BG_DIR: ${{ github.workspace }}/bg
           ZOVU_READY_DIR: ${{ github.workspace }}/out
-        run: node run-once.mjs ${{ inputs.dry && '--dry' || '' }} ${{ (inputs.kind && inputs.kind != 'auto') && format('--kind={0}', inputs.kind) || '' }}
+        run: node run-once.mjs ${{ inputs.dry && '--dry' || '' }} ${{ (inputs.kind && inputs.kind != 'auto') && format('--kind={0}', inputs.kind) || '' }} ${{ (inputs.uklad && inputs.uklad != 'auto') && format('--uklad={0}', inputs.uklad) || '' }}
 
       # состояние ротации (тема, формат, счётчик) храним в репозитории,
       # иначе каждый запуск начинал бы с нуля
