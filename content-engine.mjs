@@ -88,7 +88,11 @@ const TOPICS = [
 const FORMATS = [
   { key: 'bledy', label: '5 błędów', brief: 'Pięć konkretnych błędów, które odbiorca prawdopodobnie popełnia. Każdy punkt to błąd i jedna linia, dlaczego kosztuje.' },
   { key: 'checklista', label: 'Checklista', brief: 'Pięć rzeczy do sprawdzenia u siebie. Odbiorca ma móc zrobić to sam, bez agencji.' },
-  { key: 'mity', label: 'Mity', brief: 'Pięć przekonań, które są nieprawdziwe. Każdy punkt to mit i jedna linia z faktem.' },
+  // Заголовок пункта ОБЯЗАН начинаться с «MIT:». Без пометки миф читается как
+  // утверждение агентства: слайд «Zmiany na rynku dotyczą tylko gigantów»
+  // выглядит ровно как то, что ZOVU и заявляет, — а это противоположность
+  // смысла поста. Человек листает быстро и подпись под заголовком не читает.
+  { key: 'mity', label: 'Mity', brief: 'Pięć przekonań, które są nieprawdziwe. Każdy punkt to mit i jedna linia z faktem. KAŻDY nagłówek punktu MUSI zaczynać się od „MIT: " — bez tego czytelnik bierze mit za nasze twierdzenie.' },
   { key: 'porownanie', label: 'Tak kontra nie tak', brief: 'Pięć par: co działa, a co nie. Każdy punkt pokazuje różnicę na konkrecie.' },
   { key: 'kroki', label: 'Kroki', brief: 'Pięć kroków po kolei, od pierwszego do ostatniego. Konkretne działania, nie ogólniki.' },
   { key: 'kosztuje', label: 'Ile to kosztuje', brief: 'Pięć rzeczy, które odbiorca traci przez zaniedbanie: czas, klientów, pieniądze. Konkretnie, bez wymyślonych liczb.' },
@@ -682,6 +686,19 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
     const err = new Error('tekst nie przeszedł kontroli po czterech próbach i naprawie');
     err.attempts = attempts;
     throw err;
+  }
+
+  // Пометка «MIT:» — не просьба к модели, а требование к посту. Модель ставит
+  // её через раз, и слайд без пометки заявляет миф от имени ZOVU. Просить
+  // вежливо тут нельзя: это единственное, что отличает разоблачение от лжи.
+  if (chosenFormat.key === 'mity' && Array.isArray(out.items)) {
+    out.items = out.items.map((it) => {
+      const h = String(it.heading || '').trim();
+      if (/^mit\b/i.test(h)) return it;
+      // 46 — потолок заголовка пункта; «MIT: » занимает пять знаков
+      const reszta = h.length > 41 ? h.slice(0, 41).replace(/[\s,;:—-]+$/, '') : h;
+      return { ...it, heading: `MIT: ${reszta}` };
+    });
   }
 
   // Фоны. Сначала пробуем сгенерировать свои (бесплатно, Flux).
