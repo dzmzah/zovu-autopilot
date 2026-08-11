@@ -192,11 +192,22 @@ async function ocenKadr(buf) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) return { logo: false, kadr: true };
 
+  // Спрашиваем ЖЁСТКО и с перечнем мест, где знак прячется. Мягкая формулировка
+  // пропустила щит Lamborghini на стене автосервиса — крупный, читаемый, ровно
+  // тот случай, ради которого проверка и заведена. Модель отвечает «нет», когда
+  // сомневается, поэтому сомнение надо трактовать за нас: сказано «если не
+  // уверен — считай, что логотип есть».
   const pytanie =
-    'Oceniasz kadr do posta w social mediach. Odpowiedz TYLKO obiektem JSON:\n' +
+    'Oceniasz kadr do posta agencji marketingowej. Odpowiedz TYLKO obiektem JSON:\n' +
     '{"logo": true/false, "kadr": true/false}\n' +
-    'logo = czy widać czytelne logo marki, nazwę firmy albo napis reklamowy ' +
-    '(na ubraniu, opakowaniu, szyldzie, ekranie).\n' +
+    'logo = czy w kadrze widać JAKIKOLWIEK cudzy znak firmowy. Szukaj wszędzie:\n' +
+    '  • emblematy i logotypy aut (na masce, kierownicy, feldze, na ścianie warsztatu)\n' +
+    '  • plakaty, szyldy, banery, naklejki, tablice reklamowe\n' +
+    '  • napisy na ubraniu, fartuchu, kubku, opakowaniu, torbie\n' +
+    '  • logo na ekranie laptopa, telefonu, monitora\n' +
+    'Liczy się też znak częściowo zasłonięty albo lekko rozmyty, jeśli da się go ' +
+    'rozpoznać. NIE liczy się tekst nieczytelny ani sam kształt bez marki.\n' +
+    'Jeśli masz wątpliwość, czy to znak marki — odpowiedz true.\n' +
     'kadr = czy kadr jest czytelny: widać, co się dzieje, a jeśli jest człowiek, ' +
     'to widać jego twarz lub całą sylwetkę, a nie sam fragment tułowia bez głowy.';
 
@@ -305,10 +316,11 @@ export async function findPhoto(query, { name, nth = 0 } = {}) {
 
   kandydaci.sort((a, b) => Math.abs(jasnosc(a.avg_color) - CEL) - Math.abs(jasnosc(b.avg_color) - CEL));
 
-  // Идём по кандидатам, пока не попадётся кадр без чужого логотипа. Четырёх
-  // хватает: дальше начинаются заметно светлые кадры, а каждая проверка —
-  // это ещё один вызов модели.
-  for (const wybrany of kandydaci.slice(0, 4)) {
+  // Идём по кандидатам, пока не попадётся кадр без чужого логотипа. Шесть, а
+  // не четыре: после ужесточения проверки отсев вырос, и на «брендовых» темах
+  // (авто, техника) четырёх кандидатов стало не хватать — движок откатывался
+  // на генерённый фон, хотя годный кадр стоял пятым.
+  for (const wybrany of kandydaci.slice(0, 6)) {
     const zrodlo = wybrany.src?.large2x || wybrany.src?.large || wybrany.src?.original;
     if (!zrodlo) continue;
 
