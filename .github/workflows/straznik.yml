@@ -1,0 +1,48 @@
+name: ZOVU strażnik
+
+# Сторож. Проверяет не «зелёный ли последний ран», а вышел ли пост.
+#
+# Зачем отдельный воркфлоу, а не шаг внутри основного: если основной не
+# запустится вовсе — планировщик GitHub роняет запуски, Actions можно случайно
+# выключить, воркфлоу можно сломать правкой — то и тревога внутри него не
+# сработает. Молчание выглядит точно как «всё хорошо». Блокировку 31.07 не
+# замечали девять дней ровно поэтому.
+#
+# Сторож ходит в другое время суток и падает красным, если публикации нет
+# больше 30 часов, протух токен или кончилась квота Gemini. Красный ран =
+# письмо от GitHub на zovu.pl@gmail.com.
+on:
+  schedule:
+    # 12:00 UTC = 14:00 в Польше. Утренний слот к этому времени давно прошёл,
+    # так что нормальный день сторож видит зелёным.
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: zovu-straznik
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sprawdz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Sprawdź, czy autopilot żyje
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
+          INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+          FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          TOKEN_KEY: ${{ secrets.TOKEN_KEY }}
+        run: node doktor.mjs
