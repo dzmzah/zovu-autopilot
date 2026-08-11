@@ -195,12 +195,12 @@ async function zloz(buf) {
 // идут без проверки, и об этом сказано в логе, а не тихо.
 let budzetOcen = Number(process.env.ZOVU_LIMIT_OCEN || 12);
 
-async function ocenKadr(buf) {
+async function ocenKadr(buf, query) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) return { logo: false, kadr: true };
   if (budzetOcen <= 0) {
     console.warn('[photo] limit sprawdzania kadrów wyczerpany — biorę kadr bez kontroli logo');
-    return { logo: false, kadr: true };
+    return { logo: false, kadr: true, temat: true };
   }
   budzetOcen--;
 
@@ -211,7 +211,10 @@ async function ocenKadr(buf) {
   // уверен — считай, что логотип есть».
   const pytanie =
     'Oceniasz kadr do posta agencji marketingowej. Odpowiedz TYLKO obiektem JSON:\n' +
-    '{"logo": true/false, "kadr": true/false}\n' +
+    '{"logo": true/false, "kadr": true/false, "temat": true/false}\n' +
+    `temat = czy na zdjęciu widać to, o co prosiliśmy: „${String(query || '').slice(0, 60)}". ` +
+    'Sama branża nie wystarczy: pusta hala albo opuszczony budynek to NIE jest ' +
+    'warsztat przy pracy. Ma być widać scenę, o którą prosiliśmy.\n' +
     'logo = czy w kadrze widać JAKIKOLWIEK cudzy znak firmowy. Szukaj wszędzie:\n' +
     '  • emblematy i logotypy aut (na masce, kierownicy, feldze, na ścianie warsztatu)\n' +
     '  • plakaty, szyldy, banery, naklejki, tablice reklamowe\n' +
@@ -249,7 +252,7 @@ async function ocenKadr(buf) {
     const j = await r.json();
     const tekst = j.candidates?.[0]?.content?.parts?.[0]?.text || '';
     const o = JSON.parse(tekst);
-    return { logo: o.logo === true, kadr: o.kadr !== false };
+    return { logo: o.logo === true, kadr: o.kadr !== false, temat: o.temat !== false };
   } catch {
     // модель не ответила или прислала не JSON — пропускаем кадр дальше:
     // контроль страхует публикацию, а не решает за неё
@@ -348,13 +351,20 @@ export async function findPhoto(query, { name, nth = 0 } = {}) {
       // проверяем УЖЕ сложенный кадр: часть снимка растворяется к центру,
       // поэтому и лого, и обрезка оцениваются ровно в том виде, в каком
       // попадут в ленту
-      const ocena = await ocenKadr(gotowy);
+      const ocena = await ocenKadr(gotowy, query);
       if (ocena.logo) {
         console.log(`[photo] pomijam: obce logo w kadrze (${wybrany.photographer})`);
         continue;
       }
       if (!ocena.kadr) {
         console.log(`[photo] pomijam: kadr nieczytelny, np. tułów bez głowy (${wybrany.photographer})`);
+        continue;
+      }
+      // Кадр «про отрасль», но не про сцену. Стоку всё равно: по запросу
+      // «мастерская» он отдаёт и заброшенную промзону — тема угадана, а
+      // происходящего в кадре нет. В посте это читается как случайная картинка.
+      if (!ocena.temat) {
+        console.log(`[photo] pomijam: kadr nie pasuje do tematu (${wybrany.photographer})`);
         continue;
       }
 
