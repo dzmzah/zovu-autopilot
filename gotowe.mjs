@@ -56,7 +56,9 @@ async function stanAutopilota() {
   const godzin = (Date.now() - Date.parse(`${m[1]}T${m[2] === 'am' ? '07' : '16'}:00:00Z`)) / 3600_000;
   const ogon = ile ? ` W kolejce czeka ${ile}.` : '';
 
-  if (godzin > 30) {
+  // тот же потолок, что у сторожа (doktor.mjs) — иначе плашка и письмо
+  // рассказывали бы про разное состояние одной и той же системы
+  if (godzin > 26) {
     const dni = Math.max(1, Math.floor(godzin / 24));
     return {
       klasa: 'zle',
