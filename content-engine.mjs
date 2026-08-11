@@ -270,7 +270,7 @@ Zwróć WYŁĄCZNIE obiekt JSON:
   "eyebrow": "etykieta WIELKIMI LITERAMI, max 26 znaków, zaczyna się od: ZOVU ·",
   "title": "nagłówek, 30-62 znaki, mocny, bez kropki na końcu",
   "bullets": ["dokładnie trzy punkty, każdy 25-48 znaków, konkretna korzyść lub fakt, bez kropki"],
-  "photoQuery": "PO ANGIELSKU, 2-4 słowa: PRAWDZIWA SCENA na zdjęcie stockowe — żywi ludzie przy pracy albo prawdziwe przedmioty. Przykłady: „barista coffee shop counter", „woman using smartphone", „mechanic car workshop", „florist arranging flowers". Bez grafik 3D, bez abstrakcji, bez napisów",
+  "photoQuery": "PO ANGIELSKU, 2-4 słowa: PRAWDZIWA SCENA na zdjęcie stockowe — żywi ludzie przy pracy albo prawdziwe przedmioty. Kadr ma wyglądać jak polski mały biznes, więc dorzuć słowo miejsca: european, polish, local. Przykłady: „european barista coffee shop", „polish small shop owner", „local mechanic car workshop", „european florist arranging flowers". Bez grafik 3D, bez abstrakcji, bez napisów",
   "bgIdea": "PO ANGIELSKU, 4-8 słów: KONKRETNE PRZEDMIOTY do tła. Zacznij od floating i dodaj materiał: violet glass, chrome, neon. Bez ludzi i bez napisów",
   "caption": "opis pod post, 300-550 znaków, trzy krótkie akapity rozdzielone podwójną nową linią, maksymalnie dwa emoji",
   "hashtags": ["pięć hashtagów wg zasad poniżej, bez znaku #"]
@@ -298,12 +298,12 @@ Nie zaczynaj od „Czy wiesz, że", „W dzisiejszych czasach", „Jak zwiększy
   "hook": "DWA DO CZTERECH SŁÓW wielkimi literami. To pierwsze, co widz zobaczy na ekranie — ma zatrzymać kciuk. Nazwij stratę albo błąd, nie zapowiadaj tematu. Dobrze: „TRACISZ KLIENTÓW", „TO KOSZTUJE CIĘ TYSIĄCE". Źle: „O CZYM DZIŚ MÓWIMY"",
   "broll": "JEDEN tag z listy, pasujący do tematu całego postu (użyjemy go jako tła wideo)",
   "subtitle": "jedno zdanie pod nagłówkiem, 40-80 znaków, bez wymyślonych liczb",
-  "photoQuery": "PO ANGIELSKU, 2-4 słowa: PRAWDZIWA SCENA na OKŁADKĘ — o temacie całego postu, nie o pojedynczym punkcie. To jedyny kadr, który widać w feedzie. Żywi ludzie przy pracy albo prawdziwe przedmioty. Przykłady: „small business owner shop", „woman using smartphone cafe". Bez grafik 3D, bez abstrakcji, bez napisów",
+  "photoQuery": "PO ANGIELSKU, 2-4 słowa: PRAWDZIWA SCENA na OKŁADKĘ — o temacie całego postu, nie o pojedynczym punkcie. To jedyny kadr, który widać w feedzie. Żywi ludzie przy pracy albo prawdziwe przedmioty. Kadr ma wyglądać jak polski mały biznes, więc dorzuć słowo miejsca: european, polish, local. Przykłady: „european small business owner", „polish shop counter", „european cafe smartphone". Bez grafik 3D, bez abstrakcji, bez napisów",
   "items": [
     {
       "heading": "nagłówek punktu, 18-42 znaki, bez kropki",
       "text": "jedno zdanie, 40-62 znaki",
-      "photoQuery": "PO ANGIELSKU, 2-4 słowa: PRAWDZIWA SCENA na zdjęcie stockowe pasująca do tego punktu — żywi ludzie przy pracy albo prawdziwe przedmioty. Przykłady: „barista coffee shop", „mechanic car workshop", „woman using laptop". Bez grafik 3D, bez abstrakcji, bez napisów",
+      "photoQuery": "PO ANGIELSKU, 2-4 słowa: PRAWDZIWA SCENA na zdjęcie stockowe pasująca do tego punktu — żywi ludzie przy pracy albo prawdziwe przedmioty. Kadr ma wyglądać jak polski mały biznes, więc dorzuć słowo miejsca: european, polish, local. Przykłady: „european barista coffee shop", „local mechanic car workshop", „european office laptop". Bez grafik 3D, bez abstrakcji, bez napisów",
       "bgIdea": "PO ANGIELSKU, 4-8 słów: KONKRETNE PRZEDMIOTY do zilustrowania tego punktu. Zawsze zaczynaj od słowa floating i dodaj materiał: violet glass, chrome, neon. Przykłady: „floating violet glass smartphone with app icons", „floating chrome shopping cart and glowing coins", „floating glass calendar pages and clock", „floating neon bar charts and arrow". Bez ludzi, bez zwierząt, bez napisów, bez abstrakcji"
     }
   ],

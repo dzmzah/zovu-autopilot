@@ -201,9 +201,13 @@ export async function findPhoto(query, { name } = {}) {
   const key = await klucz();
   if (!key || !query) return null;
 
+  // locale=pl-PL — поиск в польском контексте. Клиент у нас в Катовицах, и
+  // кадр должен читаться как местный малый бизнес, а не как безликий сток из
+  // калифорнийского опенспейса: другие вывески, интерьеры, улицы, одежда.
+  // Отбор идёт по МЕСТУ И ОБСТАНОВКЕ. Людей по внешности не фильтруем.
   const url =
     `${API}?query=${encodeURIComponent(query)}` +
-    '&orientation=portrait&size=medium&per_page=20';
+    '&orientation=portrait&size=medium&per_page=20&locale=pl-PL';
 
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 20000);
