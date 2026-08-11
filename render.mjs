@@ -292,7 +292,12 @@ function singleHtml({ eyebrow, title, bullets, footer: site, foto }, logoUri, bg
 }
 
 // ── слайд карусели: обложка ──────────────────────────────────────
-function coverHtml({ eyebrow, title, subtitle, total, reel, footer: site }, logoUri, person) {
+// Обложка — единственный слайд, который человек видит в ленте, и до 11.08 она
+// была единственной БЕЗ живого фото: пункты шли съёмкой, а первый кадр —
+// фиолетовым градиентом с каплей. То есть карусель продавала себя ровно той
+// картинкой, за которую Митя ругал «иишные заглушки». Поэтому фон сюда
+// приходит так же, как на слайды пунктов.
+function coverHtml({ eyebrow, title, subtitle, total, reel, footer: site, foto }, logoUri, person, bgUri) {
   const len = String(title).length;
   const size = len > 40 ? 116 : len > 26 ? 140 : 168;
   return `<!doctype html><html><head>${head()}<style>${baseCss()}
@@ -306,8 +311,8 @@ function coverHtml({ eyebrow, title, subtitle, total, reel, footer: site }, logo
   .swipe .arrow { font-size:30px; color:#a78bfa; }
   .count { position:absolute; right:84px; top:92px; font-size:24px; color:#a78bfa;
     letter-spacing:.14em; }
-  </style></head><body>
-  ${layers(logoUri)}
+  </style></head>${bodyTag(bgUri, foto)}
+  ${layers(logoUri, bgUri)}
   <div class="wrap">
     <div class="eyebrow"><span class="dot"></span>${esc(eyebrow || 'ZOVU')}</div>
     <h1>${esc(title)}</h1>
@@ -380,7 +385,7 @@ function coverHeroHtml({ eyebrow, title, subtitle, total, reel, footer: site }, 
 }
 
 // ── слайд карусели: пункт с крупным номером ──────────────────────
-function itemHtml({ index, total, heading, text, footer: site }, logoUri, bgUri) {
+function itemHtml({ index, total, heading, text, footer: site, foto }, logoUri, bgUri) {
   const num = String(index).padStart(2, '0');
   const len = String(heading).length;
   const size = len > 44 ? 78 : len > 28 ? 92 : 108;
@@ -403,7 +408,7 @@ function itemHtml({ index, total, heading, text, footer: site }, logoUri, bgUri)
     letter-spacing:.14em; }
   /* поверх сгенерированного фона гигантский номер лишний — убираем */
   .has-bg .bignum { display:none; }
-  </style></head>${bodyTag(bgUri)}
+  </style></head>${bodyTag(bgUri, foto)}
   ${layers(logoUri, bgUri)}
   <div class="bignum">${num}</div>
   <div class="wrap">
@@ -508,14 +513,21 @@ export async function renderCarousel(data) {
   const itemBgs = await Promise.all(
     items.map((it, i) => bgAsset(it.bg || data.bg, i))
   );
+  // Обложка: свой кадр (data.coverBg), а если его нет — первый из пунктов.
+  // Пустой обложке лучше повтор кадра, чем фиолетовый градиент: серия должна
+  // читаться одним материалом, а не «съёмка внутри, заглушка снаружи».
+  const coverBg = (await bgAsset(data.coverBg)) || itemBgs[0] || null;
 
   const coverFn = hero && person ? coverHeroHtml : coverHtml;
   const pages = [
-    { name: `${base}-01`, html: coverFn({ ...data, total, reel: data.reel }, uri, person) },
+    {
+      name: `${base}-01`,
+      html: coverFn({ ...data, total, reel: data.reel, foto: data.foto }, uri, person, coverBg),
+    },
     ...items.map((it, i) => ({
       name: `${base}-${String(i + 2).padStart(2, '0')}`,
       html: itemHtml(
-        { index: i + 1, total, heading: it.heading, text: it.text, footer: data.footer },
+        { index: i + 1, total, heading: it.heading, text: it.text, footer: data.footer, foto: data.foto },
         uri,
         itemBgs[i]
       ),

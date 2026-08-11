@@ -282,6 +282,7 @@ Nie zaczynaj od „Czy wiesz, że", „W dzisiejszych czasach", „Jak zwiększy
   "hook": "DWA DO CZTERECH SŁÓW wielkimi literami. To pierwsze, co widz zobaczy na ekranie — ma zatrzymać kciuk. Nazwij stratę albo błąd, nie zapowiadaj tematu. Dobrze: „TRACISZ KLIENTÓW", „TO KOSZTUJE CIĘ TYSIĄCE". Źle: „O CZYM DZIŚ MÓWIMY"",
   "broll": "JEDEN tag z listy, pasujący do tematu całego postu (użyjemy go jako tła wideo)",
   "subtitle": "jedno zdanie pod nagłówkiem, 40-80 znaków, bez wymyślonych liczb",
+  "photoQuery": "PO ANGIELSKU, 2-4 słowa: PRAWDZIWA SCENA na OKŁADKĘ — o temacie całego postu, nie o pojedynczym punkcie. To jedyny kadr, który widać w feedzie. Żywi ludzie przy pracy albo prawdziwe przedmioty. Przykłady: „small business owner shop", „woman using smartphone cafe". Bez grafik 3D, bez abstrakcji, bez napisów",
   "items": [
     {
       "heading": "nagłówek punktu, 18-42 znaki, bez kropki",
@@ -715,7 +716,15 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
           if (ile) console.log(`[engine] zdjęcia tylko na ${ile}/${out.items.length} slajdów — biorę spójny komplet renderów`);
           fotoSlajdow = [];
         } else {
-          console.log(`[engine] zdjęcia do karuzeli: ${ile}/${out.items.length}`);
+          // Кадр на обложку. Она одна попадает в ленту, и до 11.08 была
+          // единственной без съёмки — карусель показывала себя ровно тем
+          // градиентом, от которого мы уходили. Отдельный запрос, а не
+          // повтор первого пункта: обложка про тему целиком, пункт про частность.
+          zdjecie = out.photoQuery ? await findPhoto(out.photoQuery, { name: `${baseName}-cover` }) : null;
+          console.log(
+            `[engine] zdjęcia do karuzeli: ${ile}/${out.items.length}` +
+              (zdjecie ? ` + okładka (${out.photoQuery})` : ' — okładka bez zdjęcia, wezmę kadr z pierwszego punktu')
+          );
         }
       } else if (out.photoQuery) {
         zdjecie = await findPhoto(out.photoQuery, { name: baseName });
@@ -763,6 +772,12 @@ export async function makePost({ topic, format, kind, trends = false, genImages 
         cta: out.cta,
         photo,
         photoCta,
+        // кадр на обложку; нет — renderCarousel возьмёт кадр первого пункта
+        coverBg: zdjecie?.file || null,
+        // живым кадрам шаблон даёт мягкую вуаль вместо штатной. Слайды карусели
+        // её не получали: фото гасилось дважды, и осветлять его было бессмысленно —
+        // ровно та же грабля, что уже ловили на одиночных постах.
+        foto: fotoSlajdow.some(Boolean),
         footer: 'zovu.pl',
       }
     : {
