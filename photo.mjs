@@ -212,9 +212,11 @@ async function ocenKadr(buf, query) {
   const pytanie =
     'Oceniasz kadr do posta agencji marketingowej. Odpowiedz TYLKO obiektem JSON:\n' +
     '{"logo": true/false, "kadr": true/false, "temat": true/false}\n' +
-    `temat = czy na zdjęciu widać to, o co prosiliśmy: „${String(query || '').slice(0, 60)}". ` +
-    'Sama branża nie wystarczy: pusta hala albo opuszczony budynek to NIE jest ' +
-    'warsztat przy pracy. Ma być widać scenę, o którą prosiliśmy.\n' +
+    `temat = czy kadr w ogóle pasuje do tematu „${String(query || '').slice(0, 60)}". ` +
+    'NIE wymagamy dosłownej zgodności — wystarczy scena z tej samej dziedziny. ' +
+    'Odpowiedz false TYLKO wtedy, gdy kadr jest z zupełnie innej bajki albo ' +
+    'pokazuje puste, opuszczone, zrujnowane miejsce bez ludzi i bez pracy. ' +
+    'W razie wątpliwości odpowiedz true.\n' +
     'logo = czy w kadrze widać JAKIKOLWIEK cudzy znak firmowy. Szukaj wszędzie:\n' +
     '  • emblematy i logotypy aut (na masce, kierownicy, feldze, na ścianie warsztatu)\n' +
     '  • plakaty, szyldy, banery, naklejki, tablice reklamowe\n' +
@@ -335,6 +337,10 @@ export async function findPhoto(query, { name, nth = 0 } = {}) {
   // не четыре: после ужесточения проверки отсев вырос, и на «брендовых» темах
   // (авто, техника) четырёх кандидатов стало не хватать — движок откатывался
   // на генерённый фон, хотя годный кадр стоял пятым.
+  // Запасной кадр: чужого логотипа нет, но сцена не в тему. Пригодится, если
+  // не подойдёт никто — иначе пост молча вернётся к 3D-заглушке.
+  let zapasowy = null;
+
   for (const wybrany of kandydaci.slice(0, 6)) {
     const zrodlo = wybrany.src?.large2x || wybrany.src?.large || wybrany.src?.original;
     if (!zrodlo) continue;
@@ -363,8 +369,13 @@ export async function findPhoto(query, { name, nth = 0 } = {}) {
       // Кадр «про отрасль», но не про сцену. Стоку всё равно: по запросу
       // «мастерская» он отдаёт и заброшенную промзону — тема угадана, а
       // происходящего в кадре нет. В посте это читается как случайная картинка.
+      //
+      // Такой кадр держим в запасе, а не выбрасываем: чужого логотипа в нём
+      // нет, значит он хуже подходящего, но лучше генерённой заглушки —
+      // а именно на неё движок откатывается, когда не подошёл никто.
       if (!ocena.temat) {
         console.log(`[photo] pomijam: kadr nie pasuje do tematu (${wybrany.photographer})`);
+        if (!zapasowy) zapasowy = { buf: gotowy, autor: wybrany.photographer, zrodlo: wybrany.url };
         continue;
       }
 
@@ -377,6 +388,21 @@ export async function findPhoto(query, { name, nth = 0 } = {}) {
       continue;
     } finally {
       clearTimeout(timer2);
+    }
+  }
+
+  // Никто не подошёл по теме. Живой кадр без чужого логотипа всё равно лучше
+  // генерённой стеклянной заглушки — именно за неё нас и ругали.
+  if (zapasowy) {
+    try {
+      await mkdir(PHOTO_DIR, { recursive: true });
+      const safe = (name || `foto-${nth}`).replace(/[^a-zA-Z0-9._-]/g, '-');
+      const file = path.join(PHOTO_DIR, `${safe}.jpg`);
+      await writeFile(file, zapasowy.buf);
+      console.log(`[photo] biorę kadr zapasowy (nikt nie pasował do tematu): ${zapasowy.autor}`);
+      return { file, query, autor: zapasowy.autor, zrodlo: zapasowy.zrodlo };
+    } catch {
+      /* не вышло — уходим в откат на генерацию */
     }
   }
   return null;
