@@ -140,15 +140,34 @@ async function mozgTekstowy() {
     zapisz('Gemini', false, 'brak GEMINI_API_KEY — nie ma z czego pisać tekstu');
     return;
   }
+  // Спрашиваем НАСТОЯЩУЮ генерацию, а не список моделей. Список отдаётся и при
+  // исчерпанной дневной квоте — то есть проверка была бы зелёной ровно в том
+  // случае, ради которого её писали: ключ жив, модели на месте, а 429 на
+  // генерации оставляет автопилот без текста и без поста.
   try {
-    const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models?key=' + encodeURIComponent(key));
+    const r = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' +
+        encodeURIComponent(key),
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: 'Odpowiedz jednym słowem: tak' }] }],
+          generationConfig: { temperature: 0, maxOutputTokens: 5 },
+        }),
+      }
+    );
     const j = await r.json();
-    if (!r.ok) {
-      zapisz('Gemini', false, `klucz nie działa (${r.status}): ` + JSON.stringify(j).slice(0, 200));
+    if (r.status === 429) {
+      zapisz('Gemini', false, 'WYCZERPANY LIMIT dziennego darmowego tiera — autopilot nie ma z czego pisać tekstu');
       return;
     }
-    const ma = (j.models || []).some((m) => String(m.name).includes('flash'));
-    zapisz('Gemini', ma, ma ? 'klucz działa, modele flash dostępne' : 'klucz działa, ale nie widzę modelu flash');
+    if (!r.ok) {
+      zapisz('Gemini', false, `generowanie nie działa (${r.status}): ` + JSON.stringify(j).slice(0, 200));
+      return;
+    }
+    const ok = Boolean(j.candidates?.length);
+    zapisz('Gemini', ok, ok ? 'generowanie działa' : 'pusta odpowiedź modelu: ' + JSON.stringify(j).slice(0, 160));
   } catch (e) {
     zapisz('Gemini', false, 'sieć nie odpowiada: ' + e.message);
   }
