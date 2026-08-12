@@ -1461,6 +1461,16 @@ export async function zbuduj(plan) {
         resztaMp4,
       ]);
 
+      // Длины МЕРЯЕМ, а не считаем: расхождение между машиной и сервером
+      // трижды пряталось именно тут, и без замера его не видно.
+      const dlugosci = {
+        hero: await ffprobeDuration(wynikV),
+        ogon: await ffprobeDuration(ogonMp4),
+        przejscie: await ffprobeDuration(przejscieMp4),
+        reszta: await ffprobeDuration(resztaMp4),
+      };
+      console.log('[awatar] части:', JSON.stringify(dlugosci));
+
       await ffmpeg([
         '-i', wynikV, '-i', przejscieMp4, '-i', resztaMp4,
         '-filter_complex', '[0:v][0:a][1:v][1:a][2:v][2:a]concat=n=3:v=1:a=1[v][a]',
