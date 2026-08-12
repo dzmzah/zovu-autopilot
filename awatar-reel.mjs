@@ -1420,18 +1420,30 @@ export async function zbuduj(plan) {
     const zOgonem = path.join(tmp, 'z-ogonem.mp4');
 
     if (OGON_PRZ > 0) {
-      const offset = (totalHero - OGON_PRZ).toFixed(3);
+      // Не `xfade`: на сборке ffmpeg из ubuntu он отдавал длину
+      // «первый вход + длительность перехода» вместо «смещение + второй
+      // вход» — ролик выходил 17.8 вместо 20.8, аутро жило меньше секунды.
+      // Делаем наложением, как врезки: тот же путь уже работает на сервере.
+      const start = +(totalHero - OGON_PRZ).toFixed(3);
+      const dolot = +(o.dlugosc - OGON_PRZ).toFixed(3);
       await ffmpeg([
         '-i', wynikV, '-i', ogonMp4,
         '-filter_complex',
-        `[0:v][1:v]xfade=transition=slideup:duration=${OGON_PRZ}:offset=${offset}[v];` +
-          `[0:a][1:a]acrossfade=d=${OGON_PRZ}:c1=tri:c2=tri[a]`,
-        '-map', '[v]', '-map', '[a]',
+        // Хвост подложки продлеваем застывшим кадром — его всё равно
+        // полностью закроет аутро, зато таймлайн не обрывается.
+        `[0:v]tpad=stop_mode=clone:stop_duration=${dolot},setsar=1[baza];` +
+          `[0:a]apad=whole_dur=${(totalHero + dolot).toFixed(2)}[bazaA];` +
+          `[1:v]setpts=PTS-STARTPTS+${start}/TB[og];` +
+          `[baza][og]overlay=x=0:y='if(lt(t,${(start + OGON_PRZ).toFixed(2)}),` +
+          `${H}*(1-pow((t-${start})/${OGON_PRZ},0.6)),0)':` +
+          `enable='gte(t,${start})':eof_action=pass[v]`,
+        '-map', '[v]', '-map', '[bazaA]',
+        '-t', (totalHero + dolot).toFixed(3),
         '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '19',
         '-c:a', 'aac', '-b:a', '192k',
         zOgonem,
       ]);
-      totalWideo += o.dlugosc - OGON_PRZ;
+      totalWideo += dolot;
     } else {
       await ffmpeg([
         '-i', wynikV, '-i', ogonMp4,

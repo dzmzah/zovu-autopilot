@@ -108,7 +108,10 @@ export async function sprawdzRolke(plik, opcje = {}) {
     if (ost && s.t - ost.doo <= 0.25) { ost.doo = s.t; ost.max = Math.max(ost.max, s.v); }
     else zdarzenia.push({ od: s.t, doo: s.t, max: s.v });
   }
-  for (const z of zdarzenia) {
+  // Скачок на САМОМ последнем кадре — артефакт обрезки, зритель его не видит:
+  // ролик там либо кончается, либо уходит в повтор. Не считаем за брак.
+  const realneZdarzenia = zdarzenia.filter((z) => z.od < dlugosc - 0.2);
+  for (const z of realneZdarzenia) {
     uwagi.push(`незапланированный рывок на ${z.od.toFixed(2)} с (сила ${z.max.toFixed(0)})`);
   }
 
@@ -126,7 +129,7 @@ export async function sprawdzRolke(plik, opcje = {}) {
     zdal: uwagi.length === 0,
     dlugosc: +dlugosc.toFixed(2),
     lufs: lufs != null ? +lufs.toFixed(1) : null,
-    rywkow: zdarzenia.length,
+    rywkow: realneZdarzenia.length,
     dziur: realne.length,
     uwagi,
   };
