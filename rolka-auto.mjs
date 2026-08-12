@@ -29,7 +29,8 @@ import { sprawdzRolke } from './kontrola.mjs';
 
 const DIR = import.meta.dirname;
 const OUT = path.join(DIR, 'out');
-const NR = +((process.argv.find((a) => a.startsWith('--scenariusz=')) || '').split('=')[1] || 0);
+const JAWNY = ((process.argv.find((a) => a.startsWith('--scenariusz=')) || '').split('=')[1] || '').trim();
+const NR = +JAWNY;
 const BEZ_KONTROLI = process.argv.includes('--bez-kontroli');
 
 // ── банк сценариев ────────────────────────────────────────────────
@@ -246,7 +247,11 @@ async function czekajaceScenariusze() {
 }
 
 async function nastepnyScenariusz() {
-  if (Number.isFinite(NR) && String(NR) !== '0') return { scen: SCENARIUSZE[NR] || SCENARIUSZE[0], idx: NR };
+  // Пустой аргумент — идём по кругу; любое число — берём именно его. Раньше
+  // ноль считался «не задано», и первый сценарий нельзя было пересобрать
+  // явно вообще: приходилось выковыривать его из очереди, чтобы до него
+  // добрался круг.
+  if (JAWNY !== '') return { scen: SCENARIUSZE[NR] || SCENARIUSZE[0], idx: NR };
   let stan = {};
   try { stan = JSON.parse(await readFile(STAN, 'utf8')); } catch { stan = {}; }
   const zajete = await czekajaceScenariusze();
