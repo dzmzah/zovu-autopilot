@@ -367,7 +367,7 @@ const TEMPO_PROG = 5.6;
 // «немного быстро» там слышно сразу — Захар поймал это даже на дубле, где
 // остальные фразы легли идеально. Пять слогов в секунду для тела нормально,
 // для хука уже тороплив.
-const TEMPO_PROG_HAK = 4.9;
+const TEMPO_PROG_HAK = 5.0;
 const progDla = (rola) => (rola === 'hak' ? TEMPO_PROG_HAK : TEMPO_PROG);
 
 function sylaby(tekst) {
@@ -478,7 +478,7 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
           console.warn(`[glos] торопливый дубль (${szybkie} фраз) — переписываю медленнее`);
           const wolniej = await dubelZeZnacznikami(teksty, dubel, {
             ...eleven,
-            ustawienia: { speed: 0.9 },
+            ustawienia: { speed: 0.94 },
           });
           if (wolniej) granice = wolniej;
         }
