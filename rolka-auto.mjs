@@ -52,8 +52,7 @@ const SCENARIUSZE = [
       'zovu.pl',
       '',
       '#marketing #socialmedia #reels #agencjamarketingowa #contentmarketing #katowice #zovu',
-    ].join('
-'),
+    ].join(String.fromCharCode(10)),
     czesci: [
       { rola: 'hak', tekst: 'Twój post zobaczyło sto osób.', szukaj: 'phone screen scrolling social media', pauza: 0.16 },
       { rola: 'hak', tekst: 'Napisała zero.', szukaj: 'empty phone notification screen', pauza: 0.34 },
