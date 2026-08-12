@@ -1582,7 +1582,12 @@ export async function zbuduj(plan) {
       zrodla.push('[klik]');
     }
     chain.push(
-      `${zrodla.join('')}amix=inputs=${zrodla.length}:normalize=0:duration=first,` +
+      // `duration=first` завязывает длину микса на дорожку голоса: если она
+      // после loudnorm оказалась короче остальных, вместе с ней обрезается и
+      // видео (через `-shortest`). Все входы и так подрезаны до длины ролика,
+      // поэтому берём `longest` и добиваем тишиной.
+      `${zrodla.join('')}amix=inputs=${zrodla.length}:normalize=0:duration=longest,` +
+        `apad=whole_dur=${totalWideo.toFixed(2)},atrim=0:${totalWideo.toFixed(2)},` +
         'alimiter=limit=0.97[a]'
     );
 
@@ -1590,9 +1595,16 @@ export async function zbuduj(plan) {
       ...wejsciaA,
       '-filter_complex', chain.join(';'),
       '-map', '0:v', '-map', '[a]',
-      '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest',
+      // Без `-shortest`: длину задаём явно. `-shortest` резал ролик по самой
+      // короткой дорожке, и на сервере это стабильно съедало аутро.
+      '-t', totalWideo.toFixed(3),
+      '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
       final,
     ]);
+    console.log(
+      `[awatar] после склейки ${(await ffprobeDuration(wynikV)).toFixed(2)} с, ` +
+        `в готовом ${(await ffprobeDuration(final)).toFixed(2)} с (ждали ${totalWideo.toFixed(2)})`
+    );
   } else {
     await ffmpeg([
       '-i', wynikV,
