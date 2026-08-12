@@ -120,7 +120,11 @@ export const EL_USTAWIENIA = {
   similarity_boost: 0.75,
   style: 0.4,
   use_speaker_boost: true,
-  speed: 1.02,
+  // Было 1.02 — «чуть быстрее нормы, так говорят в коротком видео». На слух
+  // вышло наоборот: Захар дважды поймал скороговорку. Замер подтвердил —
+  // отдельные фразы уходили за 6,5 слог/с. Ниже нормы модель звучит спокойно,
+  // а выравнивание темпа ниже подчищает остаток.
+  speed: 0.97,
 };
 
 async function powiedzEleven(tekst, wyjscie, { klucz, glos, ustawienia = {} }) {
@@ -346,6 +350,43 @@ async function jednymDublem(frazy, wyjscie, eleven, przerwa = 0.55) {
   return granice;
 }
 
+// ── темп: замеряем и выравниваем ──────────────────────────────────
+// Даже с точной резкой подача остаётся случайной: при stability 0.4 одну и
+// ту же фразу модель то проговаривает, то выстреливает. Захар слышит это
+// сразу — «тараторит». Ждать удачного дубля нельзя, ролик собирается сам.
+//
+// Поэтому темп КАЖДОЙ фразы меряем и приводим к норме. Мера — слогов в
+// секунду; в польском слог = группа гласных, считается надёжно. 4,5-5,5 —
+// спокойная речь короткого видео, выше 6 — скороговорка.
+//
+// Растягиваем `atempo`: высоту голоса он не трогает, тембр остаётся тем же.
+// Ниже 0,78 не опускаемся — дальше слышно «резину».
+const TEMPO_CEL = 5.2;
+const TEMPO_PROG = 5.9;
+
+function sylaby(tekst) {
+  return (String(tekst).toLowerCase().match(/[aeiouyąęó]+/g) || []).length;
+}
+
+async function wyrownajTempo(plik, tekst, kat, i) {
+  const d = await trwanie(plik);
+  const syl = sylaby(tekst);
+  if (!syl || !Number.isFinite(d) || d <= 0) return d;
+
+  const tempo = syl / d;
+  if (tempo <= TEMPO_PROG) return d;
+
+  const wsp = Math.max(0.78, TEMPO_CEL / tempo);
+  const wolniej = path.join(kat, `f${i}-wolniej.wav`);
+  await ffmpeg(['-i', plik, '-filter:a', `atempo=${wsp.toFixed(4)}`, '-c:a', 'pcm_s16le', wolniej]);
+  await copyFile(wolniej, plik);
+  const nowa = await trwanie(plik);
+  console.log(
+    `[glos] «${String(tekst).slice(0, 28)}…» шла ${tempo.toFixed(2)} слог/с — растянул до ${(syl / nowa).toFixed(2)}`
+  );
+  return nowa;
+}
+
 /**
  * Озвучивает список фраз и отдаёт готовую дорожку с таймингами.
  * @param {Array<{tekst:string, pauza?:number}>} frazy — pauza в секундах ПОСЛЕ фразы
@@ -486,7 +527,7 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
       await copyFile(gotowy, wKeszu);
     }
 
-    const d = await trwanie(gotowy);
+    const d = await wyrownajTempo(gotowy, f.tekst, kat, i);
     meta.push({ tekst: f.tekst, a: +czas.toFixed(3), b: +(czas + d).toFixed(3), rola: f.rola || null });
     czesci.push({ plik: gotowy, dlugosc: d, pauza: f.pauza ?? 0.22 });
     czas += d + (f.pauza ?? 0.22);
