@@ -1,0 +1,64 @@
+name: ZOVU rolka
+
+# Выкладка ГОТОВЫХ рилсов из `rolki/kolejka.json`.
+# Проверка раз в час: публикуется всё, чему время пришло. Отметка о выкладке
+# коммитится обратно, поэтому второй прогон тот же рилс не повторит.
+on:
+  workflow_dispatch:
+    inputs:
+      teraz:
+        description: 'Выложить первое незакрытое, не дожидаясь времени'
+        type: boolean
+        default: false
+      dry:
+        description: 'Сухой прогон — только показать, что будет'
+        type: boolean
+        default: false
+  schedule:
+    - cron: '5 * * * *'
+
+concurrency:
+  group: zovu-rolka
+  cancel-in-progress: false
+
+jobs:
+  publikuj:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Zależności
+        run: npm ci --omit=dev || npm install --omit=dev
+
+      - name: Wyłóż rolkę
+        env:
+          INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+          FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          TOKEN_KEY: ${{ secrets.TOKEN_KEY }}
+          RAW_BASE: https://raw.githubusercontent.com/${{ github.repository }}/main
+        run: |
+          node rolka.mjs \
+            ${{ inputs.teraz && '--teraz' || '' }} \
+            ${{ inputs.dry && '--dry' || '' }}
+
+      - name: Zapisz stan kolejki
+        if: ${{ !inputs.dry }}
+        run: |
+          git config user.name  "zovu-autopilot"
+          git config user.email "autopilot@zovu.pl"
+          git add rolki/kolejka.json || true
+          git diff --cached --quiet && echo "очередь не менялась" && exit 0
+          git commit -m "rolka: stan kolejki [skip ci]"
+          # догоняем main: параллельный прогон автопилота мог уже что-то влить
+          for i in 1 2 3; do
+            git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0
+            sleep 5
+          done
+          echo "::error::Не записал состояние очереди — следующий прогон может выложить рилс повторно"
+          exit 1
