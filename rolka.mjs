@@ -109,6 +109,15 @@ let zmiany = false;
 
 for (const poz of kolejka) {
   if (poz.opublikowano) continue;
+
+  // `--teraz` — это «выложи ПЕРВЫЙ незакрытый», а не «выложи всё». Иначе
+  // ручной запуск при очереди из двух роликов отправит оба разом, а два
+  // рилса в сутки — ровно тот темп, после которого Meta нас уже сносила.
+  if (TERAZ && zmiany) {
+    console.log(`[rolka] ${poz.plik}: ручной запуск публикует только один, остальное по расписанию`);
+    break;
+  }
+
   const czas = new Date(poz.kiedy).getTime();
   if (!TERAZ && (Number.isNaN(czas) || czas > teraz)) {
     console.log(`[rolka] ${poz.plik}: ждёт до ${poz.kiedy}`);
