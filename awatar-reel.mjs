@@ -19,6 +19,7 @@
 //   node awatar-reel.mjs plan.json
 import { chromium } from 'playwright';
 import { mkdir, readFile, writeFile, rm, readdir } from 'node:fs/promises';
+import { existsSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -1444,7 +1445,32 @@ export async function zbuduj(plan) {
     const OGON_PRZ = plan.ogonPrzejscie ?? 0.4;
     const zOgonem = path.join(tmp, 'z-ogonem.mp4');
 
+    // ── застывший последний кадр: с него начинается наезд аутро ──
+    // `-sseof` с отрицательным значением местами разбирается как опция,
+    // поэтому берём кадр по абсолютному времени.
+    //
+    // Время берём ЗАМЕРОМ готового файла, а не расчётным `totalHero`. Расчёт
+    // и факт расходятся: голос синтезируется каждый раз чуть иначе, и точка
+    // съёма уезжала за конец ролика. ffmpeg в этом случае молчит, кадр не
+    // пишет и роняет уже СЛЕДУЮЩУЮ команду — сборка падала целиком, на ровном
+    // месте и через раз. Ловится только проверкой, что файл появился.
+    const ostatniPng = path.join(tmp, 'ostatni-kadr.png');
+    let mamKadr = false;
     if (OGON_PRZ > 0) {
+      const realnaHero = await ffprobeDuration(wynikV);
+      for (const t of [realnaHero - 0.12, realnaHero - 0.4, realnaHero * 0.5]) {
+        await ffmpeg(['-ss', Math.max(0, t).toFixed(3), '-i', wynikV, '-frames:v', '1', ostatniPng]);
+        // Не только «файл есть», но и «в нём есть картинка»: пустой огрызок
+        // ffmpeg проглотит и уронит сборку дальше по цепочке.
+        if (existsSync(ostatniPng) && statSync(ostatniPng).size > 1024) { mamKadr = true; break; }
+        console.warn(`[awatar] кадр на ${t.toFixed(2)} с не снялся — беру раньше`);
+      }
+      // Наезд — украшение. Ролик без него живой, ролик без сборки — дыра
+      // в ленте. Поэтому не падаем, а ставим аутро встык.
+      if (!mamKadr) console.warn('[awatar] кадра для наезда нет — аутро встык');
+    }
+
+    if (OGON_PRZ > 0 && mamKadr) {
       // ── переход в аутро, версионно-независимо ──────────────────
       // Два предыдущих подхода развалились на сборке ffmpeg из ubuntu:
       // `xfade` отдавал длину «первый вход + переход» вместо «смещение +
@@ -1454,14 +1480,6 @@ export async function zbuduj(plan) {
       // Теперь переход — ОТДЕЛЬНЫЙ клип: застывший последний кадр, поверх
       // которого выезжает аутро. Дальше три готовых файла склеиваются
       // встык. `concat` ведёт себя одинаково везде, гадать больше не о чем.
-      const ostatniPng = path.join(tmp, 'ostatni-kadr.png');
-      // `-sseof` с отрицательным значением местами разбирается как опция,
-      // поэтому берём кадр по абсолютному времени.
-      await ffmpeg([
-        '-ss', Math.max(0, totalHero - 0.12).toFixed(3), '-i', wynikV,
-        '-frames:v', '1', ostatniPng,
-      ]);
-
       const przejscieMp4 = path.join(tmp, 'przejscie-ogon.mp4');
       await ffmpeg([
         '-loop', '1', '-t', String(OGON_PRZ), '-i', ostatniPng,

@@ -24,6 +24,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
   sprawdz:
@@ -36,6 +37,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      # Сначала тихая проверка ради одного вопроса: есть ли чем закрыть
+      # завтрашний день. Если рилса нет — не ждём завтрашней сборки в 6:20,
+      # а запускаем её ПРЯМО СЕЙЧАС и ставим на завтра. Иначе пропуск сборки
+      # превращается в пустой день ленты, хотя времени на починку были сутки.
+      - name: Sam załataj dziurę w rolkach
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          STAN=$(node doktor.mjs --json || true)
+          if echo "$STAN" | grep -q "DZIURA W LENCIE"; then
+            echo "::warning::Дыра в ленте рилсов — запускаю внеплановую сборку на завтра"
+            gh workflow run rolki-auto.yml -f ile=1 -f za_dni=1 --repo "$GITHUB_REPOSITORY"
+          else
+            echo "очередь рилсов в порядке — внеплановая сборка не нужна"
+          fi
 
       - name: Sprawdź, czy autopilot żyje
         env:
