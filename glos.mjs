@@ -505,11 +505,12 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
   // только сдвинут на паузу перед первой фразой.
   if (granice && graniceDokladne) {
     const plik = path.join(kat, 'glos.wav');
+    const surowa = path.join(kat, 'glos-surowa.wav');
     const ms = Math.round(przedPierwsza * 1000);
     await ffmpeg([
       '-i', dubel,
       '-af', `adelay=${ms}|${ms}:all=1,aformat=channel_layouts=stereo,aresample=48000`,
-      '-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2', plik,
+      '-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2', surowa,
     ]);
 
     const meta = granice.map(([a, b], i) => ({
@@ -518,6 +519,27 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
       b: +(b + przedPierwsza).toFixed(3),
       rola: frazy[i].rola || null,
     }));
+
+    // ── хвост дубля ───────────────────────────────────────────────
+    // ElevenLabs оставляет в конце секунду-полторы тишины, и время последнего
+    // символа она тоже прихватывает. Два следствия сразу: последняя фраза
+    // считается вдвое длиннее, чем звучит (3,1 слог/с вместо 5), а последний
+    // клип тянется до конца дорожки — в ролике повисает мёртвая секунда перед
+    // аутро. Захар услышал это как «в конце какой-то кал».
+    //
+    // Поэтому конец речи БЕРЁМ ЗАМЕРОМ и по нему обрезаем и дорожку, и
+    // границу последней фразы. Это не обработка голоса — это удаление тишины,
+    // которой в ролике быть не должно.
+    const ost = meta[meta.length - 1];
+    const [, koniecMowy] = await granicaMowy(surowa, -38);
+    if (koniecMowy > ost.a + 0.2 && koniecMowy < ost.b) {
+      console.log(
+        `[glos] хвост дубля: последняя фраза кончается на ${koniecMowy.toFixed(2)}, а разметка тянула до ${ost.b.toFixed(2)}`
+      );
+      ost.b = +koniecMowy.toFixed(3);
+    }
+    // Дорожку режем по концу речи плюс короткий хвост под наезд аутро.
+    await ffmpeg(['-i', surowa, '-t', (ost.b + 0.35).toFixed(3), '-c:a', 'copy', plik]);
 
     // Темп смотрим по тем же таймингам — отдельного замера не нужно.
     const tempa = meta.map((m) => sylaby(m.tekst) / Math.max(0.2, m.b - m.a));
