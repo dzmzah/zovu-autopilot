@@ -31,13 +31,18 @@ function env(k) {
   return v && v.trim() ? v.trim() : null;
 }
 
+// Живой токен лежит в `token.enc` и расшифровывается ключом `TOKEN_KEY`.
+// Секрет `INSTAGRAM_TOKEN` в GitHub давно протух — молча падать на него
+// нельзя, публикация умирает с невнятным «Cannot parse access token».
+// Поэтому источник печатаем.
 async function igToken() {
   try {
     const store = await import('./token-store.mjs');
-    const { token } = await store.loadInstagramToken();
+    const { token, fromStore } = await store.loadInstagramToken();
+    console.log(`[rolka] токен Instagram: ${fromStore ? 'из хранилища' : 'ИЗ ОКРУЖЕНИЯ (запасной)'}`);
     if (token) return token;
-  } catch {
-    /* хранилище недоступно — падаем на переменную окружения */
+  } catch (e) {
+    console.warn(`[rolka] хранилище токена недоступно: ${e.message}`);
   }
   return env('INSTAGRAM_TOKEN');
 }
