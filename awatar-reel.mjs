@@ -521,6 +521,14 @@ function zbierzFrazy(slowa, maxZnakow = 20, maxSlow = 3) {
 // Формат, на котором стоит весь короткий формат: КРУПНО, ЗАГЛАВНЫМИ, по
 // центру, слова выскакивают ровно под голос, произносимое слово горит
 // акцентом. Читается боковым зрением, без звука, за долю секунды.
+// Польские служебные слова: предлоги, союзы, частицы, местоимения. Они не
+// несут смысла и не должны ловить на себе плашку.
+const SLUZBOWE = new Set([
+  'a', 'i', 'o', 'w', 'z', 'ze', 'na', 'do', 'od', 'po', 'za', 'to', 'te', 'ta',
+  'ten', 'tym', 'nie', 'sie', 'się', 'jest', 'ale', 'lub', 'czy', 'juz', 'już',
+  'tak', 'jak', 'co', 'kto', 'gdy', 'bo', 'by', 'za', 'przez', 'dla', 'bez',
+]);
+
 function karaokeHtml(frazy, total, akcent = '#a78bfa') {
   const esc = (s) =>
     String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -529,7 +537,18 @@ function karaokeHtml(frazy, total, akcent = '#a78bfa') {
     .map(
       (f, i) =>
         `<div class="fraza" data-i="${i}">` +
-        f.slowa.map((w, k) => `<span class="s" data-k="${k}">${esc(w.tekst.toUpperCase())}</span>`).join(' ') +
+        f.slowa
+          .map((w, k) => {
+            // Служебные слова плашкой не подсвечиваем: она загорается почти
+            // на каждом слове и получается мигание вместо ритма. Им хватает
+            // смены цвета — глаз всё равно ведёт по крупным.
+            const goly = w.tekst.replace(/[^\p{L}\p{N}]/gu, '');
+            const sluzbowe = goly.length <= 3 || SLUZBOWE.has(goly.toLowerCase());
+            return `<span class="s${sluzbowe ? ' drobne' : ''}" data-k="${k}">${esc(
+              w.tekst.toUpperCase()
+            )}</span>`;
+          })
+          .join(' ') +
         `</div>`
     )
     .join('\n');
@@ -559,6 +578,9 @@ body { background:transparent; overflow:hidden; font-family:'Inter',sans-serif; 
    глаз ловит медленнее, чем цветной прямоугольник. */
 .s.gra { color:#fff; background:linear-gradient(100deg, ${akcent} 0%, #7c3aed 100%);
   box-shadow:0 10px 30px rgba(124,58,237,.45); }
+/* Служебному слову — только цвет, без плашки: иначе она вспыхивает почти
+   на каждом слове и ритм превращается в мигание. */
+.s.drobne.gra { background:none; box-shadow:none; color:${akcent}; }
 </style></head><body>
 ${divy}
 <script>

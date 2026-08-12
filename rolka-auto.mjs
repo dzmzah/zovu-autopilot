@@ -211,8 +211,26 @@ async function podklad(czesc, i) {
   return null;
 }
 
-const scen = SCENARIUSZE[NR] || SCENARIUSZE[0];
-console.log(`[rolka-auto] сценарий: ${scen.nazwa}`);
+// ── ротация сценариев ─────────────────────────────────────────────
+// Без неё каждый день выходит одна и та же мысль — Захар поймал это на
+// первом же автоматическом ролике: «идея точно такая же». Номер прошлого
+// сценария храним рядом с очередью, чтобы он пережил перезапуск сервера.
+const STAN = path.join(DIR, 'rolki', 'stan.json');
+
+async function nastepnyScenariusz() {
+  if (Number.isFinite(NR) && String(NR) !== '0') return { scen: SCENARIUSZE[NR] || SCENARIUSZE[0], idx: NR };
+  let stan = {};
+  try { stan = JSON.parse(await readFile(STAN, 'utf8')); } catch { stan = {}; }
+  const idx = ((stan.scenariusz ?? -1) + 1) % SCENARIUSZE.length;
+  stan.scenariusz = idx;
+  stan.kiedy = new Date().toISOString();
+  await mkdir(path.dirname(STAN), { recursive: true });
+  await writeFile(STAN, JSON.stringify(stan, null, 2) + String.fromCharCode(10), 'utf8');
+  return { scen: SCENARIUSZE[idx], idx };
+}
+
+const { scen, idx: scenIdx } = await nastepnyScenariusz();
+console.log(`[rolka-auto] сценарий ${scenIdx + 1} из ${SCENARIUSZE.length}: ${scen.nazwa}`);
 
 // 1. Голос. Фразы озвучиваются по одной — так границы каждой известны точно.
 const glos = await zbudujGlos(

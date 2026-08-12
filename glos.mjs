@@ -37,11 +37,61 @@ async function ffmpeg(args) {
   });
 }
 
+// Ключи берём из окружения либо из `.env` рядом с проектом — так же, как
+// это делает поиск стока, чтобы не заводить второй способ настройки.
+async function zEnv(klucz) {
+  if (process.env[klucz]) return process.env[klucz].trim();
+  try {
+    const raw = await readFile(path.join(DIR, '.env'), 'utf8');
+    const m = raw.match(new RegExp('^\\s*' + klucz + '\\s*=\\s*(.+)\\s*$', 'm'));
+    return m ? m[1].trim() : null;
+  } catch {
+    return null;
+  }
+}
+
 async function trwanie(plik) {
   const { stdout } = await execFileAsync('ffprobe', [
     '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', plik,
   ]);
   return parseFloat(stdout.trim());
+}
+
+// ── Azure: нейронный голос ────────────────────────────────────────
+// Локальный синтез (Piper, Chatterbox) на польском упёрся в потолок —
+// Захар забраковал оба: слышно машину. Нейронные голоса Azure другого
+// класса, а бесплатный тариф даёт 500 тысяч символов в месяц против наших
+// девяти — запас в полсотни раз, и коммерция разрешена, в отличие от
+// бесплатного ElevenLabs.
+//
+// Ключ и регион — в `.env` или в секретах GitHub:
+//   AZURE_SPEECH_KEY=...
+//   AZURE_SPEECH_REGION=westeurope
+const AZURE_GLOS = process.env.AZURE_VOICE || 'pl-PL-MarekNeural';
+
+function ssml(tekst, glos, tempo) {
+  const esc = (s) =>
+    String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // `rate` заметно оживляет речь: ровный темп и есть половина ощущения
+  // «читает робот». Чуть быстрее нормы — так говорят в коротком видео.
+  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="pl-PL">
+  <voice name="${glos}"><prosody rate="${tempo}">${esc(tekst)}</prosody></voice>
+</speak>`;
+}
+
+async function powiedzAzure(tekst, wyjscie, { klucz, region, glos, tempo = '+6%' }) {
+  const r = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
+    method: 'POST',
+    headers: {
+      'Ocp-Apim-Subscription-Key': klucz,
+      'Content-Type': 'application/ssml+xml',
+      'X-Microsoft-OutputFormat': 'riff-24khz-16bit-mono-pcm',
+      'User-Agent': 'zovu-rolki',
+    },
+    body: ssml(tekst, glos, tempo),
+  });
+  if (!r.ok) throw new Error(`Azure ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  await writeFile(wyjscie, Buffer.from(await r.arrayBuffer()));
 }
 
 // Piper зовём через python: пакет ставится одной строкой и одинаково работает
@@ -106,9 +156,19 @@ function rozlozSlowa(tekst, od, doo) {
  * Озвучивает список фраз и отдаёт готовую дорожку с таймингами.
  * @param {Array<{tekst:string, pauza?:number}>} frazy — pauza в секундах ПОСЛЕ фразы
  */
-export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza = 0.25 } = {}) {
+export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza = 0.25, dostawca } = {}) {
   const kat = tmp || path.join(DIR, 'out', 'glos-tmp');
   await mkdir(kat, { recursive: true });
+
+  // Есть ключ Azure — говорим им. Нет — падаем на локальный Piper, чтобы
+  // сборка не вставала колом из-за отсутствующего ключа.
+  const klucz = await zEnv('AZURE_SPEECH_KEY');
+  const region = (await zEnv('AZURE_SPEECH_REGION')) || 'westeurope';
+  const azure =
+    (dostawca === 'azure' || (!dostawca && klucz)) && klucz
+      ? { klucz, region, glos: (await zEnv('AZURE_VOICE')) || AZURE_GLOS }
+      : null;
+  console.log(`[glos] поставщик: ${azure ? 'Azure ' + azure.glos : 'Piper (локально)'}`);
 
   const czesci = [];
   const meta = [];
@@ -118,7 +178,8 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
     const f = frazy[i];
     const surowy = path.join(kat, `f${i}-raw.wav`);
     const gotowy = path.join(kat, `f${i}.wav`);
-    await powiedz(f.tekst, surowy, model);
+    if (azure) await powiedzAzure(f.tekst, surowy, azure);
+    else await powiedz(f.tekst, surowy, model);
 
     // Края подрезаем ПО ЗАМЕРУ, а не фильтром `silenceremove`: тот убирает
     // тишину и внутри фразы тоже — «Twoje posty nie sprzedają?» усыхало с
