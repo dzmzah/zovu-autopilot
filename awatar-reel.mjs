@@ -1605,7 +1605,7 @@ export async function zbuduj(plan) {
     // музыка ушла вниз, замолчал — вернулась. Так делают в любом эфире.
     chain.push(
       '[voice]asplit=2[voiceOut][kluczDuck]',
-      '[bed][kluczDuck]sidechaincompress=threshold=0.03:ratio=7:' +
+      '[bed][kluczDuck]sidechaincompress=threshold=0.02:ratio=11:' +
         'attack=10:release=170:makeup=1:level_sc=1[bedDuck]'
     );
 

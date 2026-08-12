@@ -291,8 +291,8 @@ const wstawki = zaplataIdx >= 0
 const plan = {
   nazwa: `auto-${scen.nazwa}`,
   muzyka: path.join(DIR, 'music', 'pixabay-creative-technology-showreel.mp3'),
-  podkladGlosnosc: 0.20,
-  podkladOgon: 0.24,
+  podkladGlosnosc: 0.11,
+  podkladOgon: 0.17,
   powietrzeTlo: 0.02,
   stukiGlosnosc: 0.5,
   najazd: 1.1,

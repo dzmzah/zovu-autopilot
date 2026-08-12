@@ -164,11 +164,11 @@ with wave.open(sys.argv[3], 'wb') as w:
 
 // Где во фразе начинается и кончается речь. Нужно, чтобы обрезать тишину,
 // которую Piper оставляет по краям, и не растянуть паузы между фразами.
-async function granicaMowy(plik) {
+async function granicaMowy(plik, prog = -45) {
   const calosc = await trwanie(plik);
   const { stderr } = await execFileAsync(
     'ffmpeg',
-    ['-v', 'info', '-i', plik, '-af', 'silencedetect=n=-45dB:d=0.06', '-f', 'null', '-'],
+    ['-v', 'info', '-i', plik, '-af', `silencedetect=n=${prog}dB:d=0.06`, '-f', 'null', '-'],
     { maxBuffer: 32 * 1024 * 1024 }
   );
   const starty = [...stderr.matchAll(/silence_start:\s*([0-9.]+)/g)].map((m) => +m[1]);
@@ -205,6 +205,58 @@ function rozlozSlowa(tekst, od, doo) {
   });
 }
 
+// ── один дубль на весь ролик ──────────────────────────────────────
+// Пофразовый синтез давал РАЗНЫЙ голос: при stability 0.4 каждый запрос
+// играет чуть иначе, и семь запросов складывались в семь разных подач.
+// Захар это услышал сразу.
+//
+// Поэтому весь текст идёт ОДНИМ запросом, а фразы вырезаются по паузам:
+// между ними ставится явный `<break>`, заметно длиннее естественных пауз
+// внутри предложения, и границы находятся по нему однозначно. Плюс это
+// втрое дешевле по кредитам — один запрос вместо семи.
+async function jednymDublem(frazy, wyjscie, eleven, przerwa = 0.55) {
+  const znacznik = `<break time="${przerwa}s" />`;
+  const tekst = frazy.map((f) => f.tekst).join(' ' + znacznik + ' ');
+  await powiedzEleven(tekst, wyjscie, eleven);
+
+  const { stderr } = await execFileAsync(
+    'ffmpeg',
+    ['-v', 'info', '-i', wyjscie, '-af', 'silencedetect=n=-38dB:d=0.28', '-f', 'null', '-'],
+    { maxBuffer: 32 * 1024 * 1024 }
+  );
+  const starty = [...stderr.matchAll(/silence_start:\s*([0-9.]+)/g)].map((m) => +m[1]);
+  const konce = [...stderr.matchAll(/silence_end:\s*([0-9.]+)/g)].map((m) => +m[1]);
+  const calosc = await trwanie(wyjscie);
+
+  // Пары «начало-конец» тишины; хвостовую тишину без пары отбрасываем.
+  const ciszy = starty
+    .map((s, i) => ({ od: s, doo: konce[i] ?? calosc, dl: (konce[i] ?? calosc) - s }))
+    .filter((c) => c.doo < calosc - 0.05);
+
+  // Нужно ровно N−1 разрезов — берём самые длинные паузы, это и есть наши
+  // `<break>`, естественные внутри предложения заметно короче.
+  const potrzeba = frazy.length - 1;
+  if (ciszy.length < potrzeba) return null;
+  const ciecia = ciszy
+    .slice()
+    .sort((a, b) => b.dl - a.dl)
+    .slice(0, potrzeba)
+    .sort((a, b) => a.od - b.od);
+
+  // Границы берём ВНУТРЬ речи, а не наружу: у mp3 шумовой пол выше, чем
+  // порог обычной подрезки, и хвосты тишины иначе остаются в куске. Каждый
+  // такой хвост складывался с нашей собственной паузой, и ролик распухал.
+  const granice = [];
+  let od = Math.max(0, (konce[0] ?? 0) < 0.4 ? konce[0] : 0);
+  for (const c of ciecia) {
+    granice.push([od, Math.max(od + 0.15, c.od - 0.02)]);
+    od = c.doo + 0.02;
+  }
+  const ostatniaCisza = ciszy.find((c) => c.od > od && c.doo >= calosc - 0.1);
+  granice.push([od, ostatniaCisza ? ostatniaCisza.od + 0.04 : calosc]);
+  return granice;
+}
+
 /**
  * Озвучивает список фраз и отдаёт готовую дорожку с таймингами.
  * @param {Array<{tekst:string, pauza?:number}>} frazy — pauza в секундах ПОСЛЕ фразы
@@ -236,6 +288,32 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
   );
 
   await mkdir(KESZ, { recursive: true });
+
+  // Один дубль на весь ролик — иначе голос гуляет от фразы к фразе.
+  // Кэшируем целиком: ключ учитывает весь текст и настройки голоса.
+  let granice = null;
+  let dubel = null;
+  if (eleven) {
+    const odciskCaly = createHash('sha1')
+      .update(JSON.stringify([frazy.map((f) => f.tekst), eleven.glos, EL_USTAWIENIA]))
+      .digest('hex')
+      .slice(0, 16);
+    dubel = path.join(KESZ, `dubel-${odciskCaly}.mp3`);
+    const granicePlik = path.join(KESZ, `dubel-${odciskCaly}.json`);
+    if (existsSync(dubel) && existsSync(granicePlik)) {
+      granice = JSON.parse(await readFile(granicePlik, 'utf8'));
+      console.log('[glos] дубль из кэша');
+    } else {
+      granice = await jednymDublem(frazy, dubel, eleven);
+      if (granice) {
+        await writeFile(granicePlik, JSON.stringify(granice), 'utf8');
+        console.log(`[glos] один дубль на ${frazy.length} фраз, границы найдены`);
+      } else {
+        console.warn('[glos] не разрезал дубль по паузам — падаю на пофразовый синтез');
+      }
+    }
+  }
+
   const czesci = [];
   const meta = [];
   let czas = przedPierwsza;
@@ -259,7 +337,25 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
       .slice(0, 16);
     const wKeszu = path.join(KESZ, `${odcisk}.wav`);
 
-    if (existsSync(wKeszu)) {
+    if (granice) {
+      // Вырезаем свою фразу из общего дубля — голос остаётся одним и тем же.
+      const [a, b] = granice[i];
+      const zapas = path.join(kat, `f${i}-zapas.wav`);
+      await ffmpeg([
+        '-ss', a.toFixed(3), '-to', b.toFixed(3), '-i', dubel,
+        '-af', 'aformat=channel_layouts=stereo,aresample=48000',
+        '-c:a', 'pcm_s16le', zapas,
+      ]);
+      // Края режем ПО ЗАМЕРУ: разрез по `<break>` оставляет с обеих сторон
+      // хвосты тишины, и они складывались с нашими собственными паузами —
+      // ролик распухал на две секунды и терял темп.
+      const [p1, p2] = await granicaMowy(zapas, -38);
+      await ffmpeg([
+        '-ss', p1.toFixed(3), '-to', p2.toFixed(3), '-i', zapas,
+        '-c:a', 'pcm_s16le', gotowy,
+      ]);
+      zKeszu++;
+    } else if (existsSync(wKeszu)) {
       await copyFile(wKeszu, gotowy);
       zKeszu++;
     } else {
