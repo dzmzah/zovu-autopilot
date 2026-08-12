@@ -457,31 +457,44 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
       // Сначала точный путь — по таймингам символов. По паузам режем только
       // если разметка почему-то не пришла.
       const teksty = frazy.map((f) => doWymowy(f));
-      granice = await dubelZeZnacznikami(teksty, dubel, eleven);
-      if (granice) {
-        graniceDokladne = true;
-        console.log(`[glos] дубль на ${frazy.length} фраз, границы по таймингам символов`);
 
-        // Торопливый дубль ПЕРЕПИСЫВАЕМ медленнее, а не растягиваем задним
-        // числом. Растяжка на 20% даёт резину, её слышно; лишний запрос стоит
-        // 250 символов из десяти тысяч и звучит как живой человек.
-        const szybkie = granice.filter(
-          ([a, b], i) => sylaby(frazy[i].tekst) / Math.max(0.2, b - a) > progDla(frazy[i].rola)
-        ).length;
-        // Хук перевешивает: одной торопливой фразы в начале достаточно, чтобы
-        // переписать дубль. В теле терпим одну — там это не решает ничего.
-        const hakSpieszy = granice.some(
-          ([a, b], i) =>
-            frazy[i].rola === 'hak' && sylaby(frazy[i].tekst) / Math.max(0.2, b - a) > TEMPO_PROG_HAK
+      // Торопливый дубль ПЕРЕПИСЫВАЕМ медленнее, а не растягиваем задним
+      // числом: растяжка на 20% даёт резину, её слышно. Одной попытки мало —
+      // сценарий из коротких фраз («Napisała zero.») модель гонит и на 0.94.
+      // Поэтому до трёх дублей, каждый медленнее предыдущего, и берём лучший
+      // по числу торопливых фраз. Три запроса — 750 символов из десяти тысяч,
+      // и тратятся они только там, где иначе вышла бы скороговорка.
+      const liczSzybkie = (g) =>
+        g.filter(([a, b], i) => sylaby(frazy[i].tekst) / Math.max(0.2, b - a) > progDla(frazy[i].rola))
+          .length;
+
+      let najlepszy = null;
+      for (const speed of [null, 0.94, 0.88]) {
+        const plikProby = speed ? `${dubel}-${speed}.mp3` : dubel;
+        const g = await dubelZeZnacznikami(
+          teksty,
+          plikProby,
+          speed ? { ...eleven, ustawienia: { speed } } : eleven
         );
-        if (szybkie >= 2 || hakSpieszy) {
-          console.warn(`[glos] торопливый дубль (${szybkie} фраз) — переписываю медленнее`);
-          const wolniej = await dubelZeZnacznikami(teksty, dubel, {
-            ...eleven,
-            ustawienia: { speed: 0.94 },
-          });
-          if (wolniej) granice = wolniej;
-        }
+        if (!g) break;
+
+        const ile = liczSzybkie(g);
+        if (!najlepszy || ile < najlepszy.ile) najlepszy = { g, plik: plikProby, ile, speed };
+        if (!ile) break;
+        console.warn(
+          `[glos] торопливых фраз: ${ile}${speed ? ` (speed ${speed})` : ''} — переписываю медленнее`
+        );
+      }
+
+      if (najlepszy) {
+        graniceDokladne = true;
+        granice = najlepszy.g;
+        if (najlepszy.plik !== dubel) await copyFile(najlepszy.plik, dubel);
+        console.log(
+          `[glos] дубль на ${frazy.length} фраз, границы по таймингам символов` +
+            (najlepszy.speed ? `, темп ${najlepszy.speed}` : '') +
+            (najlepszy.ile ? `, торопливых фраз осталось ${najlepszy.ile}` : '')
+        );
       } else granice = await jednymDublem(frazy, dubel, eleven);
 
       if (granice) {
