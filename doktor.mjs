@@ -224,10 +224,96 @@ async function kolejka(stan) {
   );
 }
 
+// ── 7. Рилсы: есть ли чем закрыть завтрашний день ────────────────
+// Сторож умел смотреть только на посты, а конвейер рилсов был для него
+// невидим целиком. Значит его поломка проходила бы ровно так же, как
+// блокировка 31.07: ранны зелёные, лента пустая, никто не кричит.
+//
+// Смотрим на РЕЗУЛЬТАТ, а не на то, отработала ли сборка: лежит ли в
+// очереди неопубликованный ролик на ближайшие двое суток. Запас в два дня
+// на то и заведён — если он проеден, значит сборка молчит уже день, и это
+// надо знать сегодня, а не в день пустой ленты.
+async function rolki() {
+  let q = [];
+  try {
+    q = JSON.parse(
+      await readFile(path.join(import.meta.dirname, 'rolki', 'kolejka.json'), 'utf8')
+    );
+  } catch {
+    zapisz('rolki', false, 'nie da się odczytać rolki/kolejka.json');
+    return;
+  }
+  if (!Array.isArray(q)) q = [];
+
+  const czekaja = q
+    .filter((p) => !p.opublikowano && p.kiedy)
+    .map((p) => ({ plik: p.plik, kiedy: Date.parse(p.kiedy) }))
+    .filter((p) => Number.isFinite(p.kiedy))
+    .sort((a, b) => a.kiedy - b.kiedy);
+
+  if (!czekaja.length) {
+    zapisz('rolki', false, 'KOLEJKA ROLEK PUSTA — jutro nie ma czego opublikować');
+    return;
+  }
+
+  // Здоровое состояние: сборка идёт каждый день и кладёт ролик на послезавтра,
+  // значит в очереди всегда лежат ДВА — на завтра и на послезавтра. Дыра видна
+  // не по числу роликов, а по ближайшему: если ближайший дальше, чем через
+  // сутки с небольшим, завтрашний день пустой. Ровно так вышло 13.08, и
+  // прежний сторож этого не увидел бы — он смотрел только на посты.
+  const doNajblizszej = (czekaja[0].kiedy - Date.now()) / 3600_000;
+  const naDwieDoby = czekaja.filter((p) => p.kiedy - Date.now() < 48 * 3600_000).length;
+  const ok = doNajblizszej <= 26;
+  zapisz(
+    'rolki',
+    ok,
+    ok
+      ? `${czekaja.length} w kolejce, najbliższa za ${doNajblizszej.toFixed(1)} h, na dwie doby ${naDwieDoby}`
+      : `DZIURA W LENCIE: najbliższa rolka dopiero za ${doNajblizszej.toFixed(1)} h — jutro nie ma czego opublikować`
+  );
+}
+
+// ── 8. ElevenLabs: остались ли символы на озвучку ────────────────
+// Бесплатный тариф — 10 тысяч символов в месяц, это около сорока дублей.
+// Кончатся — сборка рилса упадёт целиком, потому что подменять голос на
+// Piper нельзя: Захар забраковал его как машинный. Узнать об этом надо
+// заранее, а не в момент падения.
+async function glos() {
+  const klucz = await env('ELEVENLABS_KEY');
+  if (!klucz) {
+    zapisz('ElevenLabs', false, 'brak ELEVENLABS_KEY — rolki zostaną bez głosu', 'uwaga');
+    return;
+  }
+  try {
+    const r = await fetch('https://api.elevenlabs.io/v1/user/subscription', {
+      headers: { 'xi-api-key': klucz },
+    });
+    const j = await r.json();
+    if (!r.ok) {
+      zapisz('ElevenLabs', false, `klucz nie działa (${r.status})`, 'uwaga');
+      return;
+    }
+    const zostalo = (j.character_limit ?? 0) - (j.character_count ?? 0);
+    // Дубль на ролик — около 250 символов. Тысяча в запасе это четыре дня.
+    const ok = zostalo > 1000;
+    zapisz(
+      'ElevenLabs',
+      ok,
+      ok
+        ? `zostało ${zostalo} znaków (~${Math.floor(zostalo / 250)} rolek)`
+        : `KOŃCZĄ SIĘ ZNAKI: ${zostalo} — starczy na ${Math.floor(zostalo / 250)} rolek`,
+      'uwaga'
+    );
+  } catch (e) {
+    zapisz('ElevenLabs', false, 'sieć nie odpowiada: ' + e.message, 'uwaga');
+  }
+}
+
 // ── поехали ──────────────────────────────────────────────────────
 const ostatni = await ostatniPost();
-await Promise.all([tokenInstagrama(), tokenFacebooka(), mozgTekstowy(), zdjecia()]);
+await Promise.all([tokenInstagrama(), tokenFacebooka(), mozgTekstowy(), zdjecia(), glos()]);
 await kolejka(ostatni?.stan);
+await rolki();
 
 const bledy = wyniki.filter((w) => !w.ok && w.waga === 'blad');
 const uwagi = wyniki.filter((w) => !w.ok && w.waga === 'uwaga');
