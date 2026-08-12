@@ -29,7 +29,7 @@ permissions:
 jobs:
   sprawdz:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@v4
@@ -47,12 +47,27 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           STAN=$(node doktor.mjs --json || true)
-          if echo "$STAN" | grep -q "DZIURA W LENCIE"; then
-            echo "::warning::Дыра в ленте рилсов — запускаю внеплановую сборку на завтра"
-            gh workflow run rolki-auto.yml -f ile=1 -f za_dni=1 --repo "$GITHUB_REPOSITORY"
-          else
+          if ! echo "$STAN" | grep -q "DZIURA W LENCIE"; then
             echo "очередь рилсов в порядке — внеплановая сборка не нужна"
+            exit 0
           fi
+
+          echo "::warning::Дыра в ленте рилсов — запускаю внеплановую сборку на завтра"
+          gh workflow run rolki-auto.yml -f ile=1 -f za_dni=1 --repo "$GITHUB_REPOSITORY"
+
+          # Сборку ДОЖИДАЕМСЯ. Без ожидания следующий шаг проверял очередь
+          # через секунду после запуска, видел её всё ещё пустой и красил ран
+          # красным — то есть каждая УДАЧНАЯ самопочинка присылала ложную
+          # тревогу. А настоящая поломка выглядела бы точно так же, и письмо
+          # перестало бы что-либо значить.
+          sleep 25
+          ID=$(gh run list --workflow=rolki-auto.yml --repo "$GITHUB_REPOSITORY" \
+                 --limit 1 --json databaseId --jq '.[0].databaseId')
+          gh run watch "$ID" --repo "$GITHUB_REPOSITORY" --interval 20 || true
+
+          # Сборка записала очередь в main — забираем её, иначе проверка ниже
+          # смотрит на старый снимок и снова кричит впустую.
+          git pull --rebase -q origin main || git fetch origin main
 
       - name: Sprawdź, czy autopilot żyje
         env:
