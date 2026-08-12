@@ -230,11 +230,34 @@ async function podklad(czesc, i, scenNazwa) {
 // сценария храним рядом с очередью, чтобы он пережил перезапуск сервера.
 const STAN = path.join(DIR, 'rolki', 'stan.json');
 
+// Что уже лежит в очереди неопубликованным. Внеплановая сборка идёт следом
+// за плановой в тот же день, и по кругу ей выпадает ТОТ ЖЕ сценарий, что уже
+// ждёт выкладки. Два одинаковых ролика подряд лента не переживёт, поэтому
+// занятые сценарии пропускаем.
+async function czekajaceScenariusze() {
+  try {
+    const k = JSON.parse(await readFile(path.join(DIR, 'rolki', 'kolejka.json'), 'utf8'));
+    return new Set(
+      k.filter((p) => !p.opublikowano && p.zrodlo).map((p) => String(p.zrodlo).replace(/^auto-|\.mp4$/g, ''))
+    );
+  } catch {
+    return new Set();
+  }
+}
+
 async function nastepnyScenariusz() {
   if (Number.isFinite(NR) && String(NR) !== '0') return { scen: SCENARIUSZE[NR] || SCENARIUSZE[0], idx: NR };
   let stan = {};
   try { stan = JSON.parse(await readFile(STAN, 'utf8')); } catch { stan = {}; }
-  const idx = ((stan.scenariusz ?? -1) + 1) % SCENARIUSZE.length;
+  const zajete = await czekajaceScenariusze();
+
+  let idx = ((stan.scenariusz ?? -1) + 1) % SCENARIUSZE.length;
+  // Круг проходим целиком: если заняты все, берём как есть — пусть лучше
+  // повтор, чем пустой день.
+  for (let i = 0; i < SCENARIUSZE.length && zajete.has(SCENARIUSZE[idx].nazwa); i++) {
+    console.log(`[rolka-auto] «${SCENARIUSZE[idx].nazwa}» уже ждёт выкладки — беру следующий`);
+    idx = (idx + 1) % SCENARIUSZE.length;
+  }
   stan.scenariusz = idx;
   stan.kiedy = new Date().toISOString();
   await mkdir(path.dirname(STAN), { recursive: true });

@@ -36,6 +36,11 @@ try {
 }
 
 const juzWKolejce = new Set(kolejka.map((p) => p.plik));
+// Какие сценарии уже ждут выкладки. Повтор ловим по ИСТОЧНИКУ, а не по имени
+// файла в очереди: имя всегда новое, а мысль в ролике та же самая, и два дня
+// подряд одно и то же — это ровно то, за что Захар зацепился на первом же
+// автоматическом ролике.
+const juzCzeka = new Set(kolejka.filter((p) => !p.opublikowano && p.zrodlo).map((p) => p.zrodlo));
 
 // Берём только автоматические сборки и только те, что ещё не в очереди.
 const pliki = (await readdir(OUT).catch(() => []))
@@ -53,8 +58,20 @@ const zajete = new Set(kolejka.filter((p) => !p.opublikowano).map((p) => p.kiedy
 
 let dodane = 0;
 for (const [i, f] of pliki.entries()) {
-  const nazwa = `auto-${new Date().toISOString().slice(0, 10)}-${i + 1}.mp4`;
-  if (juzWKolejce.has(nazwa)) continue;
+  // Имя должно быть свободным, а не «сегодняшним». Раньше вторая сборка за
+  // сутки получала имя первой, натыкалась на занятое и МОЛЧА выбрасывалась:
+  // ролик собран, проверку прошёл, а в очередь не попал. Именно на этом
+  // сломалось самовосстановление — сторож честно запускал сборку, а её
+  // результат исчезал без единой строчки в логе.
+  const baza = `auto-${new Date().toISOString().slice(0, 10)}-${i + 1}`;
+  let nazwa = `${baza}.mp4`;
+  for (let n = 2; juzWKolejce.has(nazwa); n++) nazwa = `${baza}-${n}.mp4`;
+
+  // А вот повтор СМЫСЛА пропускаем осознанно и вслух.
+  if (juzCzeka.has(f)) {
+    console.log(`[kolejka] ${f} уже ждёт выкладки — второй раз ту же мысль не ставлю`);
+    continue;
+  }
 
   await copyFile(path.join(OUT, f), path.join(ROLKI, nazwa));
 
