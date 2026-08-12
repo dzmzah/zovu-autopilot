@@ -294,15 +294,19 @@ async function glos() {
       return;
     }
     const zostalo = (j.character_limit ?? 0) - (j.character_count ?? 0);
-    // Дубль на ролик — около 250 символов. Тысяча в запасе это четыре дня.
-    const ok = zostalo > 1000;
+    // Дубль на ролик — около 250 символов. Порог в пять роликов выбран не
+    // наугад: столько Захару нужно, чтобы спокойно завести другой аккаунт и
+    // подставить новый ключ. Поэтому тревога КРАСНАЯ — письмо приходит.
+    // Строчка в логе тут не работает: логи никто не читает каждый день.
+    const NA_ILE_ROLEK = 5;
+    const rolek = Math.floor(zostalo / 250);
+    const ok = rolek > NA_ILE_ROLEK;
     zapisz(
       'ElevenLabs',
       ok,
       ok
-        ? `zostało ${zostalo} znaków (~${Math.floor(zostalo / 250)} rolek)`
-        : `KOŃCZĄ SIĘ ZNAKI: ${zostalo} — starczy na ${Math.floor(zostalo / 250)} rolek`,
-      'uwaga'
+        ? `zostało ${zostalo} znaków (~${rolek} rolek)`
+        : `CZAS NA NOWY KLUCZ: zostało ${zostalo} znaków, starczy na ${rolek} rolek`
     );
   } catch (e) {
     zapisz('ElevenLabs', false, 'sieć nie odpowiada: ' + e.message, 'uwaga');
