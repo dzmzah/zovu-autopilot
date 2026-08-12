@@ -147,6 +147,70 @@ async function powiedzEleven(tekst, wyjscie, { klucz, glos, ustawienia = {} }) {
   await writeFile(wyjscie, Buffer.from(await r.arrayBuffer()));
 }
 
+// ── дубль С ТАЙМИНГАМИ КАЖДОГО СИМВОЛА ────────────────────────────
+// Резать общий дубль по самым длинным паузам — лотерея. При stability 0.4
+// модель каждый раз играет иначе: где-то вздохнёт внутри фразы длиннее, чем
+// между фразами, и резак промахивается. Захар получил ровно это: `Bez tych
+// odpowiedzi cena to zgadywanka` разорвано пополам, призыв оборван на полуслове,
+// звук не совпал с подписями. Тот же код на том же сценарии до этого дал
+// чистый ролик — значит дело не в коде, а в том, что он гадает.
+//
+// ElevenLabs умеет отдавать вместе со звуком время начала и конца КАЖДОГО
+// символа. Тогда границы фраз не угадываются, а считаются: нашли фразу в
+// тексте — взяли время её первого и последнего символа. Гадать больше не о чем.
+async function dubelZeZnacznikami(teksty, wyjscie, { klucz, glos, ustawienia = {} }) {
+  const u = { ...EL_USTAWIENIA, ...ustawienia };
+  // Фразы склеиваем пробелом: каждая и так кончается точкой или знаком
+  // вопроса, модель делает паузу сама. Свои паузы мы ставим потом, при
+  // сборке дорожки, — так ритм задаём мы, а не случай.
+  const tekst = teksty.join(' ');
+  const r = await fetch(`${EL_API}/${glos}/with-timestamps?output_format=mp3_44100_128`, {
+    method: 'POST',
+    headers: { 'xi-api-key': klucz, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      text: tekst,
+      model_id: u.model_id,
+      voice_settings: {
+        stability: u.stability,
+        similarity_boost: u.similarity_boost,
+        style: u.style,
+        use_speaker_boost: u.use_speaker_boost,
+        speed: u.speed,
+      },
+    }),
+  });
+  if (!r.ok) throw new Error(`ElevenLabs ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  const j = await r.json();
+  await writeFile(wyjscie, Buffer.from(j.audio_base64, 'base64'));
+
+  const a = j.alignment || j.normalized_alignment;
+  const znaki = a?.characters;
+  const od = a?.character_start_times_seconds;
+  const doo = a?.character_end_times_seconds;
+  // Если разметка не совпала с текстом по длине — не выдумываем, а честно
+  // отдаём null: наверху есть запасной путь по паузам.
+  if (!Array.isArray(znaki) || znaki.length !== tekst.length || !od || !doo) {
+    console.warn('[glos] разметка символов не сошлась с текстом — режу по паузам');
+    return null;
+  }
+
+  const granice = [];
+  let poz = 0;
+  for (const t of teksty) {
+    const start = tekst.indexOf(t, poz);
+    if (start < 0) {
+      console.warn('[glos] не нашёл фразу в общем тексте — режу по паузам');
+      return null;
+    }
+    const koniec = start + t.length;
+    poz = koniec;
+    // Небольшой запас по краям: согласная в начале слова успевает начаться
+    // раньше, чем модель отмечает символ, а хвост гласной — договорить.
+    granice.push([Math.max(0, od[start] - 0.04), doo[koniec - 1] + 0.06]);
+  }
+  return granice;
+}
+
 // Piper зовём через python: пакет ставится одной строкой и одинаково работает
 // на машине и на сервере GitHub, в отличие от сборок под конкретную ОС.
 async function powiedz(tekst, wyjscie, model) {
@@ -318,23 +382,35 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
   // Кэшируем целиком: ключ учитывает весь текст и настройки голоса.
   let granice = null;
   let dubel = null;
+  // Границы из таймингов режутся точно; подрезать их ещё раз по тишине нельзя —
+  // тихое начало фразы съестся, и вернутся те самые огрызки.
+  let graniceDokladne = false;
   if (eleven) {
     const odciskCaly = createHash('sha1')
-      .update(JSON.stringify([frazy.map((f) => doWymowy(f)), eleven.glos, EL_USTAWIENIA]))
+      .update(JSON.stringify(['znaczniki-v1', frazy.map((f) => doWymowy(f)), eleven.glos, EL_USTAWIENIA]))
       .digest('hex')
       .slice(0, 16);
     dubel = path.join(KESZ, `dubel-${odciskCaly}.mp3`);
     const granicePlik = path.join(KESZ, `dubel-${odciskCaly}.json`);
     if (existsSync(dubel) && existsSync(granicePlik)) {
-      granice = JSON.parse(await readFile(granicePlik, 'utf8'));
+      const z = JSON.parse(await readFile(granicePlik, 'utf8'));
+      granice = Array.isArray(z) ? z : z.granice;
+      graniceDokladne = Array.isArray(z) ? false : Boolean(z.dokladne);
       console.log('[glos] дубль из кэша');
     } else {
-      granice = await jednymDublem(frazy, dubel, eleven);
+      // Сначала точный путь — по таймингам символов. По паузам режем только
+      // если разметка почему-то не пришла.
+      granice = await dubelZeZnacznikami(frazy.map((f) => doWymowy(f)), dubel, eleven);
       if (granice) {
-        await writeFile(granicePlik, JSON.stringify(granice), 'utf8');
-        console.log(`[glos] один дубль на ${frazy.length} фраз, границы найдены`);
+        graniceDokladne = true;
+        console.log(`[glos] дубль на ${frazy.length} фраз, границы по таймингам символов`);
+      } else granice = await jednymDublem(frazy, dubel, eleven);
+
+      if (granice) {
+        await writeFile(granicePlik, JSON.stringify({ granice, dokladne: graniceDokladne }), 'utf8');
+        console.log(`[glos] границы найдены на ${frazy.length} фраз`);
       } else {
-        console.warn('[glos] не разрезал дубль по паузам — падаю на пофразовый синтез');
+        console.warn('[glos] дубль разрезать не удалось — падаю на пофразовый синтез');
       }
     }
   }
@@ -371,14 +447,20 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
         '-af', 'aformat=channel_layouts=stereo,aresample=48000',
         '-c:a', 'pcm_s16le', zapas,
       ]);
-      // Края режем ПО ЗАМЕРУ: разрез по `<break>` оставляет с обеих сторон
-      // хвосты тишины, и они складывались с нашими собственными паузами —
-      // ролик распухал на две секунды и терял темп.
-      const [p1, p2] = await granicaMowy(zapas, -38);
-      await ffmpeg([
-        '-ss', p1.toFixed(3), '-to', p2.toFixed(3), '-i', zapas,
-        '-c:a', 'pcm_s16le', gotowy,
-      ]);
+      if (graniceDokladne) {
+        // Границы уже точные — второй раз подрезать нечего. Подрезка по
+        // тишине тут только вредит: тихое начало фразы она съедает.
+        await copyFile(zapas, gotowy);
+      } else {
+        // Края режем ПО ЗАМЕРУ: разрез по `<break>` оставляет с обеих сторон
+        // хвосты тишины, и они складывались с нашими собственными паузами —
+        // ролик распухал на две секунды и терял темп.
+        const [p1, p2] = await granicaMowy(zapas, -38);
+        await ffmpeg([
+          '-ss', p1.toFixed(3), '-to', p2.toFixed(3), '-i', zapas,
+          '-c:a', 'pcm_s16le', gotowy,
+        ]);
+      }
       zKeszu++;
     } else if (existsSync(wKeszu)) {
       await copyFile(wKeszu, gotowy);
