@@ -543,7 +543,10 @@ function karaokeHtml(frazy, total, akcent = '#a78bfa') {
             // на каждом слове и получается мигание вместо ритма. Им хватает
             // смены цвета — глаз всё равно ведёт по крупным.
             const goly = w.tekst.replace(/[^\p{L}\p{N}]/gu, '');
-            const sluzbowe = goly.length <= 3 || SLUZBOWE.has(goly.toLowerCase());
+            // Длину держим на двух буквах, а не на трёх: служебные слова и так
+            // перечислены поимённо, а по длине заодно гасли смысловые — `nic`,
+            // `sto`, `pół`. Именно на них держится фраза, и плашка им нужна.
+            const sluzbowe = goly.length <= 2 || SLUZBOWE.has(goly.toLowerCase());
             return `<span class="s${sluzbowe ? ' drobne' : ''}" data-k="${k}">${esc(
               w.tekst.toUpperCase()
             )}</span>`;

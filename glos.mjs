@@ -187,6 +187,27 @@ async function granicaMowy(plik, prog = -45) {
   return [od, doo];
 }
 
+// ── текст для голоса ≠ текст для подписи ──────────────────────────
+// Слово капсом синтезатор читает не как слово, а как аббревиатуру, и на
+// многоязычной модели — по-английски: `NIC` прозвучало «ник» вместо «ниц».
+// Поймано замером: тот же сценарий со строчным `nic` whisper слышит верно,
+// с `NIC` — «niej». На экране это ничего не давало вовсе: подписи и так
+// рисуются капсом целиком.
+//
+// Поэтому голосу отдаём слово строчными, а подпись берёт исходный текст.
+// Настоящие сокращения оставляем как есть — их читать по буквам правильно.
+const SKROTY = new Set([
+  'AI', 'SEO', 'SEM', 'CEO', 'CTA', 'PDF', 'VAT', 'NIP', 'ROI', 'CRM', 'SMS',
+  'DM', 'PPC', 'UX', 'UI', 'HTML', 'CSS', 'KPI', 'IG', 'FB', 'YT', 'TT',
+  'B2B', 'B2C', 'PR', 'TV',
+]);
+
+export function doWymowy(tekst) {
+  return String(tekst).replace(/\p{Lu}[\p{Lu}\p{N}]+/gu, (s) =>
+    SKROTY.has(s) ? s : s.toLowerCase()
+  );
+}
+
 // Слова фразы по времени. Веса — длина слова в буквах: короткие служебные
 // («o», «a», «to») звучат заметно быстрее знаменательных, и равномерная
 // сетка уводила бы подпись вперёд на них.
@@ -216,7 +237,7 @@ function rozlozSlowa(tekst, od, doo) {
 // втрое дешевле по кредитам — один запрос вместо семи.
 async function jednymDublem(frazy, wyjscie, eleven, przerwa = 0.55) {
   const znacznik = `<break time="${przerwa}s" />`;
-  const tekst = frazy.map((f) => f.tekst).join(' ' + znacznik + ' ');
+  const tekst = frazy.map((f) => doWymowy(f.tekst)).join(' ' + znacznik + ' ');
   await powiedzEleven(tekst, wyjscie, eleven);
 
   const { stderr } = await execFileAsync(
@@ -295,7 +316,7 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
   let dubel = null;
   if (eleven) {
     const odciskCaly = createHash('sha1')
-      .update(JSON.stringify([frazy.map((f) => f.tekst), eleven.glos, EL_USTAWIENIA]))
+      .update(JSON.stringify([frazy.map((f) => doWymowy(f.tekst)), eleven.glos, EL_USTAWIENIA]))
       .digest('hex')
       .slice(0, 16);
     dubel = path.join(KESZ, `dubel-${odciskCaly}.mp3`);
@@ -332,7 +353,7 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
     // покупая ту же самую фразу, — прямой способ остаться без озвучки к
     // середине месяца. Ключ кэша учитывает и текст, и настройки голоса.
     const odcisk = createHash('sha1')
-      .update(JSON.stringify([f.tekst, eleven?.glos || azure?.glos || model, f.glos || {}]))
+      .update(JSON.stringify([doWymowy(f.tekst), eleven?.glos || azure?.glos || model, f.glos || {}]))
       .digest('hex')
       .slice(0, 16);
     const wKeszu = path.join(KESZ, `${odcisk}.wav`);
@@ -362,9 +383,9 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
       if (eleven) {
         // Настройки можно задать на КАЖДУЮ фразу: хук энергичнее, призыв
         // теплее. Цельный прогон так не умеет, а у нас фразы отдельные.
-        await powiedzEleven(f.tekst, surowy, { ...eleven, ustawienia: f.glos || {} });
-      } else if (azure) await powiedzAzure(f.tekst, surowy, azure);
-      else await powiedz(f.tekst, surowy, model);
+        await powiedzEleven(doWymowy(f.tekst), surowy, { ...eleven, ustawienia: f.glos || {} });
+      } else if (azure) await powiedzAzure(doWymowy(f.tekst), surowy, azure);
+      else await powiedz(doWymowy(f.tekst), surowy, model);
       nowych++;
 
       // Края подрезаем ПО ЗАМЕРУ, а не фильтром `silenceremove`: тот убирает

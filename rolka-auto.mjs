@@ -85,7 +85,7 @@ const SCENARIUSZE = [
     ].join(String.fromCharCode(10)),
     czesci: [
       { rola: 'hak', tekst: 'Pytasz, ile kosztuje strona?', szukaj: 'laptop website design desk', pauza: 0.14 },
-      { rola: 'hak', tekst: 'To pytanie o NIC.', szukaj: 'confused person laptop', pauza: 0.32 },
+      { rola: 'hak', tekst: 'To pytanie o nic.', szukaj: 'confused person laptop', pauza: 0.32 },
       { rola: 'punkt', numer: 1, tytul: 'co ma robić', tekst: 'Po pierwsze — co ta strona ma robić.', szukaj: 'business meeting planning notes', pauza: 0.28 },
       { rola: 'punkt', numer: 2, tytul: 'czyje treści', tekst: 'Po drugie — kto pisze teksty i robi zdjęcia.', szukaj: 'photographer camera studio product', pauza: 0.28 },
       { rola: 'punkt', numer: 3, tytul: 'co potem', tekst: 'Po trzecie — kto się nią zajmie za pół roku.', szukaj: 'developer working code screen', pauza: 0.26 },
