@@ -1420,30 +1420,56 @@ export async function zbuduj(plan) {
     const zOgonem = path.join(tmp, 'z-ogonem.mp4');
 
     if (OGON_PRZ > 0) {
-      // Не `xfade`: на сборке ffmpeg из ubuntu он отдавал длину
-      // «первый вход + длительность перехода» вместо «смещение + второй
-      // вход» — ролик выходил 17.8 вместо 20.8, аутро жило меньше секунды.
-      // Делаем наложением, как врезки: тот же путь уже работает на сервере.
-      const start = +(totalHero - OGON_PRZ).toFixed(3);
-      const dolot = +(o.dlugosc - OGON_PRZ).toFixed(3);
+      // ── переход в аутро, версионно-независимо ──────────────────
+      // Два предыдущих подхода развалились на сборке ffmpeg из ubuntu:
+      // `xfade` отдавал длину «первый вход + переход» вместо «смещение +
+      // второй вход», а `tpad` вообще не удлинял дорожку. Оба раза ролик
+      // выходил на три секунды короче и аутро жило меньше секунды.
+      //
+      // Теперь переход — ОТДЕЛЬНЫЙ клип: застывший последний кадр, поверх
+      // которого выезжает аутро. Дальше три готовых файла склеиваются
+      // встык. `concat` ведёт себя одинаково везде, гадать больше не о чем.
+      const ostatniPng = path.join(tmp, 'ostatni-kadr.png');
+      // `-sseof` с отрицательным значением местами разбирается как опция,
+      // поэтому берём кадр по абсолютному времени.
       await ffmpeg([
-        '-i', wynikV, '-i', ogonMp4,
+        '-ss', Math.max(0, totalHero - 0.12).toFixed(3), '-i', wynikV,
+        '-frames:v', '1', ostatniPng,
+      ]);
+
+      const przejscieMp4 = path.join(tmp, 'przejscie-ogon.mp4');
+      await ffmpeg([
+        '-loop', '1', '-t', String(OGON_PRZ), '-i', ostatniPng,
+        '-i', ogonMp4,
+        '-f', 'lavfi', '-i', 'anullsrc=channel_layout=stereo:sample_rate=48000',
         '-filter_complex',
-        // Хвост подложки продлеваем застывшим кадром — его всё равно
-        // полностью закроет аутро, зато таймлайн не обрывается.
-        `[0:v]tpad=stop_mode=clone:stop_duration=${dolot},setsar=1[baza];` +
-          `[0:a]apad=whole_dur=${(totalHero + dolot).toFixed(2)}[bazaA];` +
-          `[1:v]setpts=PTS-STARTPTS+${start}/TB[og];` +
-          `[baza][og]overlay=x=0:y='if(lt(t,${(start + OGON_PRZ).toFixed(2)}),` +
-          `${H}*(1-pow((t-${start})/${OGON_PRZ},0.6)),0)':` +
-          `enable='gte(t,${start})':eof_action=pass[v]`,
-        '-map', '[v]', '-map', '[bazaA]',
-        '-t', (totalHero + dolot).toFixed(3),
+        `[0:v]fps=${FPS},scale=${W}:${H},setsar=1[tlo];` +
+          `[1:v]trim=0:${OGON_PRZ},setpts=PTS-STARTPTS[og];` +
+          `[tlo][og]overlay=x=0:y='${H}*(1-pow(t/${OGON_PRZ},0.6))'[v]`,
+        '-map', '[v]', '-map', '2:a',
+        '-t', String(OGON_PRZ),
+        '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '19', '-pix_fmt', 'yuv420p',
+        '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2',
+        przejscieMp4,
+      ]);
+
+      const resztaMp4 = path.join(tmp, 'ogon-reszta.mp4');
+      await ffmpeg([
+        '-ss', String(OGON_PRZ), '-i', ogonMp4,
+        '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '19', '-pix_fmt', 'yuv420p',
+        '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2',
+        resztaMp4,
+      ]);
+
+      await ffmpeg([
+        '-i', wynikV, '-i', przejscieMp4, '-i', resztaMp4,
+        '-filter_complex', '[0:v][0:a][1:v][1:a][2:v][2:a]concat=n=3:v=1:a=1[v][a]',
+        '-map', '[v]', '-map', '[a]',
         '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '19',
         '-c:a', 'aac', '-b:a', '192k',
         zOgonem,
       ]);
-      totalWideo += dolot;
+      totalWideo += o.dlugosc;
     } else {
       await ffmpeg([
         '-i', wynikV, '-i', ogonMp4,
