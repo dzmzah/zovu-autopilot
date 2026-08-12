@@ -1,0 +1,123 @@
+name: ZOVU rolki auto
+
+# Собирает рилс целиком на серверах GitHub и ставит в очередь на выкладку
+# ЧЕРЕЗ ДВА ДНЯ. Запас в два дня нужен затем, чтобы сбой сборки не оставил
+# ленту пустой: к моменту публикации ролик уже неделю как готов и проверен.
+#
+# Репозиторий публичный, значит минуты Actions не тратятся вообще.
+on:
+  workflow_dispatch:
+    inputs:
+      ile:
+        description: 'Сколько рилсов собрать'
+        type: string
+        default: '1'
+      scenariusz:
+        description: 'Номер сценария из банка (пусто = по очереди)'
+        type: string
+        default: ''
+      bez_kolejki:
+        description: 'Только собрать и показать, в очередь не ставить'
+        type: boolean
+        default: false
+  schedule:
+    # 04:20 UTC = 06:20 по Польше: собираем задолго до слотов публикации,
+    # чтобы поломка была видна с утра, а не за минуту до выкладки.
+    - cron: '20 4 * * *'
+
+concurrency:
+  group: zovu-rolki-auto
+  cancel-in-progress: false
+
+jobs:
+  zbuduj:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Zależności node
+        run: |
+          npm ci --omit=dev || npm install --omit=dev
+          npx playwright install --with-deps chromium
+
+      - name: Głos (Piper)
+        run: python -m pip install --quiet piper-tts
+
+      # Модель голоса 63 МБ — держим в кэше, а не в репозитории.
+      - name: Model głosu z pamięci podręcznej
+        id: glos-cache
+        uses: actions/cache@v4
+        with:
+          path: modele
+          key: piper-pl-darkman-medium-v1
+
+      - name: Pobierz model głosu
+        if: steps.glos-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p modele
+          BASE=https://huggingface.co/rhasspy/piper-voices/resolve/main/pl/pl_PL/darkman/medium
+          curl -sL -o modele/pl_PL-darkman-medium.onnx      $BASE/pl_PL-darkman-medium.onnx
+          curl -sL -o modele/pl_PL-darkman-medium.onnx.json $BASE/pl_PL-darkman-medium.onnx.json
+          ls -la modele
+
+      - name: Zbuduj rolki
+        env:
+          PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
+          PIPER_MODEL: ${{ github.workspace }}/modele/pl_PL-darkman-medium.onnx
+          ILE: ${{ inputs.ile || '1' }}
+          SCENARIUSZ: ${{ inputs.scenariusz }}
+        run: |
+          set -e
+          for i in $(seq 1 "${ILE:-1}"); do
+            echo "::group::rolka $i"
+            if [ -n "$SCENARIUSZ" ]; then
+              node rolka-auto.mjs --scenariusz="$SCENARIUSZ"
+            else
+              node rolka-auto.mjs
+            fi
+            echo "::endgroup::"
+          done
+
+      - name: Do kolejki
+        if: ${{ !inputs.bez_kolejki }}
+        run: node do-kolejki.mjs --za-dni=2
+
+      - name: Zapisz
+        if: ${{ !inputs.bez_kolejki }}
+        run: |
+          git config user.name  "zovu-autopilot"
+          git config user.email "autopilot@zovu.pl"
+          git add rolki/ || true
+          git diff --cached --quiet && echo "нечего записывать" && exit 0
+          git commit -m "rolki: собран автоматический рилс [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0
+            sleep 5
+          done
+          echo "::error::Не записал очередь — рилс собран, но не поставлен на выкладку"
+          exit 1
+
+      - name: Zachowaj podgląd
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rolka-podglad
+          path: out/*.mp4
+          retention-days: 7
+          if-no-files-found: ignore
