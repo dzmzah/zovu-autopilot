@@ -40,6 +40,12 @@ const SCENARIUSZE = [
   {
     nazwa: 'trzy-bledy-w-postach',
     temat: 'dlaczego posty nie sprzedają',
+    wykres: {
+      dni: 14,
+      tytul: 'przerwa między postami',
+      jednostka: 'dni',
+      podpis: 'a algorytm liczy każdy z nich',
+    },
     opis: [
       'Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.',
       '',
@@ -65,98 +71,98 @@ const SCENARIUSZE = [
   },
   {
     nazwa: 'ile-kosztuje-strona',
-    temat: 'z czego sklada sie cena strony',
+    temat: 'z czego składa się cena strony',
     opis: [
-      'Pytanie "ile kosztuje strona?" jest jak "ile kosztuje samochod".',
+      'Pytanie „ile kosztuje strona?" jest jak „ile kosztuje samochód".',
       '',
-      'Odpowiedz zalezy od trzech rzeczy, a nie od liczby podstron. Rozbieramy je w 20 sekund.',
+      'Odpowiedź zależy od trzech rzeczy, a nie od liczby podstron. Rozbieramy je w 20 sekund.',
       '',
-      'Chcesz wycene pod swoj przypadek? Napisz WYCENA - odpiszemy z widelkami i bez rozmowy sprzedazowej.',
+      'Chcesz wycenę pod swój przypadek? Napisz WYCENA — odpiszemy z widełkami i bez rozmowy sprzedażowej.',
       '',
       'zovu.pl',
       '',
       '#stronainternetowa #webdesign #marketing #agencjamarketingowa #katowice #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Pytasz ile kosztuje strona.', szukaj: 'laptop website design desk', pauza: 0.14 },
-      { rola: 'hak', tekst: 'To pytanie o nic.', szukaj: 'confused person laptop', pauza: 0.32 },
-      { rola: 'punkt', numer: 1, tytul: 'co ma robic', tekst: 'Pierwsze: co ta strona ma robic.', szukaj: 'business meeting planning notes', pauza: 0.28 },
-      { rola: 'punkt', numer: 2, tytul: 'czyje tresci', tekst: 'Drugie: kto pisze teksty i robi zdjecia.', szukaj: 'photographer camera studio product', pauza: 0.28 },
-      { rola: 'punkt', numer: 3, tytul: 'co potem', tekst: 'Trzecie: kto sie nia zajmie za pol roku.', szukaj: 'developer working code screen', pauza: 0.26 },
-      { rola: 'zaplata', tekst: 'Bez tych trzech odpowiedzi cena to zgadywanka.', szukaj: 'calculator money budget desk', pauza: 0.28 },
-      { rola: 'cta', tekst: 'Napisz WYCENA, a odeslemy widelki.', szukaj: 'typing message phone chat', pauza: 0.20 },
+      { rola: 'hak', tekst: 'Pytasz, ile kosztuje strona?', szukaj: 'laptop website design desk', pauza: 0.14 },
+      { rola: 'hak', tekst: 'To pytanie o NIC.', szukaj: 'confused person laptop', pauza: 0.32 },
+      { rola: 'punkt', numer: 1, tytul: 'co ma robić', tekst: 'Po pierwsze — co ta strona ma robić.', szukaj: 'business meeting planning notes', pauza: 0.28 },
+      { rola: 'punkt', numer: 2, tytul: 'czyje treści', tekst: 'Po drugie — kto pisze teksty i robi zdjęcia.', szukaj: 'photographer camera studio product', pauza: 0.28 },
+      { rola: 'punkt', numer: 3, tytul: 'co potem', tekst: 'Po trzecie — kto się nią zajmie za pół roku.', szukaj: 'developer working code screen', pauza: 0.26 },
+      { rola: 'zaplata', tekst: 'Bez tych odpowiedzi cena to ZGADYWANKA.', szukaj: 'calculator money budget desk', pauza: 0.28 },
+      { rola: 'cta', tekst: 'Napisz WYCENA, a odeślemy widełki!', szukaj: 'typing message phone chat', pauza: 0.20 },
     ],
   },
   {
     nazwa: 'pierwsze-trzy-sekundy',
-    temat: 'dlaczego nikt nie doglada twoich rolek',
+    temat: 'dlaczego nikt nie ogląda twoich rolek',
     opis: [
-      'Nagrales dobry material, a obejrzalo go piec osob.',
+      'Nagrałeś dobry materiał, a obejrzało go pięć osób.',
       '',
-      'Problem prawie nigdy nie lezy w tresci. Lezy w pierwszych trzech sekundach - i to jest do naprawienia w jeden wieczor.',
+      'Problem prawie nigdy nie leży w treści. Leży w pierwszych trzech sekundach — i to jest do naprawienia w jeden wieczór.',
       '',
-      'Napisz HOOK, a przejrzymy poczatek twojej ostatniej rolki i powiemy, co ja zabilo.',
+      'Napisz HOOK, a przejrzymy początek twojej ostatniej rolki i powiemy, co ją zabiło.',
       '',
       'zovu.pl',
       '',
       '#reels #socialmedia #marketing #contentmarketing #agencjamarketingowa #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Twoja rolke obejrzalo piec osob.', szukaj: 'empty theater seats alone', pauza: 0.16 },
-      { rola: 'hak', tekst: 'Material byl dobry.', szukaj: 'camera filming behind scenes', pauza: 0.32 },
-      { rola: 'punkt', numer: 1, tytul: 'zaczynasz od siebie', tekst: 'Pierwsze: zaczynasz od przywitania.', szukaj: 'person waving hello camera', pauza: 0.28 },
-      { rola: 'punkt', numer: 2, tytul: 'brak obietnicy', tekst: 'Drugie: nie mowisz co widz dostanie.', szukaj: 'person shrugging uncertain', pauza: 0.28 },
-      { rola: 'punkt', numer: 3, tytul: 'cisza na starcie', tekst: 'Trzecie: pierwsza sekunda jest pusta.', szukaj: 'silent empty room minimal', pauza: 0.26 },
-      { rola: 'zaplata', tekst: 'Widz decyduje zanim zdazysz zaczac.', szukaj: 'fast scrolling thumb phone', pauza: 0.28 },
-      { rola: 'cta', tekst: 'Napisz HOOK, a sprawdzimy twoj poczatek.', szukaj: 'typing message phone chat', pauza: 0.20 },
+      { rola: 'hak', tekst: 'Twoją rolkę obejrzało PIĘĆ osób.', szukaj: 'empty theater seats alone', pauza: 0.16 },
+      { rola: 'hak', tekst: 'A materiał był dobry.', szukaj: 'camera filming behind scenes', pauza: 0.32 },
+      { rola: 'punkt', numer: 1, tytul: 'zaczynasz od siebie', tekst: 'Po pierwsze — zaczynasz od przywitania.', szukaj: 'person waving hello camera', pauza: 0.28 },
+      { rola: 'punkt', numer: 2, tytul: 'brak obietnicy', tekst: 'Po drugie — nie mówisz, co widz dostanie.', szukaj: 'person shrugging uncertain', pauza: 0.28 },
+      { rola: 'punkt', numer: 3, tytul: 'cisza na starcie', tekst: 'Po trzecie — pierwsza sekunda jest pusta.', szukaj: 'silent empty room minimal', pauza: 0.26 },
+      { rola: 'zaplata', tekst: 'Widz decyduje, ZANIM zdążysz zacząć.', szukaj: 'fast scrolling thumb phone', pauza: 0.28 },
+      { rola: 'cta', tekst: 'Napisz HOOK, a sprawdzimy twój początek!', szukaj: 'typing message phone chat', pauza: 0.20 },
     ],
   },
   {
     nazwa: 'dlaczego-nikt-nie-pisze',
-    temat: 'dlaczego profil nie generuje wiadomosci',
+    temat: 'dlaczego profil nie generuje wiadomości',
     opis: [
-      'Masz zasiegi, masz polubienia, a wiadomosci zero.',
+      'Masz zasięgi, masz polubienia, a wiadomości zero.',
       '',
-      'To nie przypadek i nie algorytm. To trzy rzeczy w twoim profilu, ktore mowia "nie pisz do mnie".',
+      'To nie przypadek i nie algorytm. To trzy rzeczy w twoim profilu, które mówią „nie pisz do mnie".',
       '',
-      'Napisz PROFIL, a powiemy, ktora z nich blokuje cie najbardziej.',
+      'Napisz PROFIL, a powiemy, która z nich blokuje cię najbardziej.',
       '',
       'zovu.pl',
       '',
       '#instagram #socialmedia #marketing #malafirma #agencjamarketingowa #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Masz polubienia. Wiadomosci zero.', szukaj: 'phone notification empty inbox', pauza: 0.16 },
-      { rola: 'hak', tekst: 'To nie algorytm.', szukaj: 'person thinking phone confused', pauza: 0.32 },
-      { rola: 'punkt', numer: 1, tytul: 'nie wiadomo co robisz', tekst: 'Pierwsze: z opisu nie wiadomo co robisz.', szukaj: 'blurry unclear sign street', pauza: 0.28 },
-      { rola: 'punkt', numer: 2, tytul: 'brak dowodu', tekst: 'Drugie: nie pokazujesz efektow pracy.', szukaj: 'before after work result', pauza: 0.28 },
-      { rola: 'punkt', numer: 3, tytul: 'nie ma dokad', tekst: 'Trzecie: nie mowisz gdzie napisac.', szukaj: 'closed door sign shop', pauza: 0.26 },
-      { rola: 'zaplata', tekst: 'Ludzie nie pisza tam, gdzie musza zgadywac.', szukaj: 'crowd walking past street', pauza: 0.28 },
-      { rola: 'cta', tekst: 'Napisz PROFIL, a przejrzymy twoj.', szukaj: 'typing message phone chat', pauza: 0.20 },
+      { rola: 'hak', tekst: 'Masz polubienia. A wiadomości ZERO.', szukaj: 'phone notification empty inbox', pauza: 0.16 },
+      { rola: 'hak', tekst: 'I to nie algorytm.', szukaj: 'person thinking phone confused', pauza: 0.32 },
+      { rola: 'punkt', numer: 1, tytul: 'nie wiadomo co robisz', tekst: 'Po pierwsze — z opisu nie wiadomo, co robisz.', szukaj: 'blurry unclear sign street', pauza: 0.28 },
+      { rola: 'punkt', numer: 2, tytul: 'brak dowodu', tekst: 'Po drugie — nie pokazujesz efektów pracy.', szukaj: 'before after work result', pauza: 0.28 },
+      { rola: 'punkt', numer: 3, tytul: 'nie ma dokąd', tekst: 'Po trzecie — nie mówisz, gdzie napisać.', szukaj: 'closed door sign shop', pauza: 0.26 },
+      { rola: 'zaplata', tekst: 'Ludzie nie piszą tam, gdzie muszą ZGADYWAĆ.', szukaj: 'crowd walking past street', pauza: 0.28 },
+      { rola: 'cta', tekst: 'Napisz PROFIL, a przejrzymy twój!', szukaj: 'typing message phone chat', pauza: 0.20 },
     ],
   },
   {
     nazwa: 'rolka-czy-post',
-    temat: 'kiedy rolka, a kiedy zwykly post',
+    temat: 'kiedy rolka, a kiedy zwykły post',
     opis: [
-      'Rolka nie jest lepsza od posta. Robi cos innego.',
+      'Rolka nie jest lepsza od posta. Robi coś innego.',
       '',
-      'Rolka przynosi nowych ludzi. Post rozmawia z tymi, ktorych juz masz. Kto robi tylko jedno z dwoch, stoi w miejscu.',
+      'Rolka przynosi nowych ludzi. Post rozmawia z tymi, których już masz. Kto robi tylko jedno z dwóch, stoi w miejscu.',
       '',
-      'Nie wiesz co u ciebie kuleje? Napisz PLAN, a odeslemy prosty rozklad na miesiac.',
+      'Nie wiesz, co u ciebie kuleje? Napisz PLAN, a odeślemy prosty rozkład na miesiąc.',
       '',
       'zovu.pl',
       '',
       '#reels #socialmedia #contentmarketing #marketing #agencjamarketingowa #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Rolka nie jest lepsza od posta.', szukaj: 'two paths choice road', pauza: 0.16 },
-      { rola: 'hak', tekst: 'Robi cos zupelnie innego.', szukaj: 'phone social media feed scroll', pauza: 0.32 },
-      { rola: 'punkt', numer: 1, tytul: 'rolka przyprowadza', tekst: 'Rolka przyprowadza nowych ludzi.', szukaj: 'crowd people city walking', pauza: 0.28 },
-      { rola: 'punkt', numer: 2, tytul: 'post rozmawia', tekst: 'Post rozmawia z tymi, ktorych masz.', szukaj: 'two people talking coffee', pauza: 0.28 },
-      { rola: 'punkt', numer: 3, tytul: 'jedno bez drugiego', tekst: 'Samo jedno z dwoch nie dziala.', szukaj: 'broken chain link metal', pauza: 0.26 },
-      { rola: 'zaplata', tekst: 'Zasieg bez rozmowy to ruch, ktory nie kupuje.', szukaj: 'analytics graph screen data', pauza: 0.28 },
-      { rola: 'cta', tekst: 'Napisz PLAN, a odeslemy rozklad na miesiac.', szukaj: 'typing message phone chat', pauza: 0.20 },
+      { rola: 'hak', tekst: 'Rolka NIE jest lepsza od posta.', szukaj: 'two paths choice road', pauza: 0.16 },
+      { rola: 'hak', tekst: 'Robi coś zupełnie innego.', szukaj: 'phone social media feed scroll', pauza: 0.32 },
+      { rola: 'punkt', numer: 1, tytul: 'rolka przyprowadza', tekst: 'Rolka przyprowadza NOWYCH ludzi.', szukaj: 'crowd people city walking', pauza: 0.28 },
+      { rola: 'punkt', numer: 2, tytul: 'post rozmawia', tekst: 'Post rozmawia z tymi, których już masz.', szukaj: 'two people talking coffee', pauza: 0.28 },
+      { rola: 'punkt', numer: 3, tytul: 'jedno bez drugiego', tekst: 'Samo jedno z dwóch nie działa.', szukaj: 'broken chain link metal', pauza: 0.26 },
+      { rola: 'zaplata', tekst: 'Zasięg bez rozmowy to ruch, który NIE kupuje.', szukaj: 'analytics graph screen data', pauza: 0.28 },
+      { rola: 'cta', tekst: 'Napisz PLAN, a odeślemy rozkład na miesiąc!', szukaj: 'typing message phone chat', pauza: 0.20 },
     ],
   },
 ];
@@ -193,7 +199,7 @@ async function czyChromakey(plik) {
   }
 }
 
-async function podklad(czesc, i) {
+async function podklad(czesc, i, scenNazwa) {
   const kandydaci = await searchStock(czesc.szukaj, { perPage: 10, minSeconds: 4 });
   if (!kandydaci.length) return null;
 
@@ -201,7 +207,14 @@ async function podklad(czesc, i) {
   // нужно, чтобы два соседних куска не взяли один и тот же клип.
   for (let k = 0; k < Math.min(4, kandydaci.length); k++) {
     const kand = kandydaci[(i + k) % kandydaci.length];
-    const c = await fetchClip(kand, { seconds: 6, name: `auto-${czesc.rola}-${i}-${k}` });
+    // Имя КЭША обязано содержать сценарий: без этого второй сценарий
+    // подтягивал клипы первого — на «co ma robić» стоял парень, снимающий
+    // себя на телефон, потому что файл `auto-punkt-2-0` уже лежал с прошлого
+    // раза. Кэш ключуется по имени файла, а не по поисковому запросу.
+    const c = await fetchClip(kand, {
+      seconds: 6,
+      name: `auto-${scenNazwa}-${czesc.rola}-${i}-${k}`,
+    });
     if (await czyChromakey(c.file)) {
       console.log(`[rolka-auto] пропускаю ${path.basename(c.file)} — зелёный экран`);
       continue;
@@ -243,7 +256,7 @@ console.log(`[rolka-auto] голос: ${glos.dlugosc.toFixed(2)} с, слов ${
 //    вместе с паузой после неё — чтобы картинка менялась вместе со смыслом.
 const klipy = [];
 for (const [i, c] of scen.czesci.entries()) {
-  const plik = await podklad(c, i);
+  const plik = await podklad(c, i, scen.nazwa);
   if (!plik) throw new Error(`не нашёл подложку под «${c.szukaj}»`);
   const f = glos.frazy[i];
   const nastepna = glos.frazy[i + 1];
@@ -259,24 +272,27 @@ const tytuly = scen.czesci
 
 // 4. График вместо стока на «расплате»: цифра, которая растёт, смотрится,
 //    а готовая пролистывается.
-const zaplataIdx = scen.czesci.findIndex((c) => c.rola === 'zaplata');
+// График ставится ТОЛЬКО если сценарий его просит. Раньше он был зашит
+// жёстко, и в ролике про цену сайта показывался «перерыв между постами» —
+// врезка не по теме бьёт сильнее, чем её отсутствие.
+const zaplataIdx = scen.wykres ? scen.czesci.findIndex((c) => c.rola === 'zaplata') : -1;
 const wstawki = zaplataIdx >= 0
   ? [{
       start: +(glos.frazy[zaplataIdx].a - 0.12).toFixed(2),
       dlugosc: +((glos.frazy[zaplataIdx + 1]?.a ?? glos.dlugosc) - glos.frazy[zaplataIdx].a + 0.35).toFixed(2),
       typ: 'wykres',
-      dni: 14,
-      tytul: 'przerwa między postami',
-      jednostka: 'dni',
-      podpis: 'a algorytm liczy każdy z nich',
+      dni: scen.wykres.dni,
+      tytul: scen.wykres.tytul,
+      jednostka: scen.wykres.jednostka || 'dni',
+      podpis: scen.wykres.podpis,
     }]
   : [];
 
 const plan = {
   nazwa: `auto-${scen.nazwa}`,
   muzyka: path.join(DIR, 'music', 'pixabay-creative-technology-showreel.mp3'),
-  podkladGlosnosc: 0.15,
-  podkladOgon: 0.32,
+  podkladGlosnosc: 0.20,
+  podkladOgon: 0.24,
   powietrzeTlo: 0.02,
   stukiGlosnosc: 0.5,
   najazd: 1.1,

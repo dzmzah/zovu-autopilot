@@ -1598,7 +1598,18 @@ export async function zbuduj(plan) {
         `afade=t=in:st=0:d=0.5,afade=t=out:st=${fade}:d=1.4[bed]`,
     ];
 
-    const zrodla = ['[voice]', '[bed]', '[air]'];
+    // ── музыка пригасает под голосом ───────────────────────────────
+    // Просто «сделать тише» — плохое решение: в паузах подложка тогда
+    // пропадает, а под речью всё равно лезет вперёд. Правильно — боковая
+    // цепь: компрессор на музыке, управляемый самим голосом. Говорит —
+    // музыка ушла вниз, замолчал — вернулась. Так делают в любом эфире.
+    chain.push(
+      '[voice]asplit=2[voiceOut][kluczDuck]',
+      '[bed][kluczDuck]sidechaincompress=threshold=0.03:ratio=7:' +
+        'attack=10:release=170:makeup=1:level_sc=1[bedDuck]'
+    );
+
+    const zrodla = ['[voiceOut]', '[bedDuck]', '[air]'];
     if (stuki) {
       chain.push(`[${stukiIdx}:a]volume=${plan.stukiGlosnosc ?? 0.5}[klik]`);
       zrodla.push('[klik]');

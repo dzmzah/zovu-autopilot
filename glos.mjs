@@ -17,13 +17,19 @@
 // точна, потому что границы фразы жёсткие.
 //
 //   node glos.mjs "Pierwsza fraza." "Druga fraza." — проверка
-import { mkdir, writeFile, readFile, rm } from 'node:fs/promises';
+import { mkdir, writeFile, readFile, rm, copyFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
 const DIR = import.meta.dirname;
+// Озвучка кэшируется по отпечатку текста и настроек: у бесплатного тарифа
+// ElevenLabs всего 10 тысяч символов в месяц, и пересборка монтажа не должна
+// покупать одну и ту же фразу заново.
+const KESZ = path.join(DIR, 'out', 'glos-kesz');
 
 // На сервере модель кладётся в кэш и путь приходит переменной; на машине
 // лежит рядом с проектом. Хардкод одного пути ломал бы то или другое.
@@ -66,7 +72,7 @@ async function trwanie(plik) {
 //
 // Ключ и регион — в `.env` или в секретах GitHub:
 //   AZURE_SPEECH_KEY=...
-//   AZURE_SPEECH_REGION=westeurope
+//   AZURE_SPEECH_REGION=northeurope
 const AZURE_GLOS = process.env.AZURE_VOICE || 'pl-PL-MarekNeural';
 
 function ssml(tekst, glos, tempo) {
@@ -91,6 +97,53 @@ async function powiedzAzure(tekst, wyjscie, { klucz, region, glos, tempo = '+6%'
     body: ssml(tekst, glos, tempo),
   });
   if (!r.ok) throw new Error(`Azure ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  await writeFile(wyjscie, Buffer.from(await r.arrayBuffer()));
+}
+
+// ── ElevenLabs ────────────────────────────────────────────────────
+// Победитель отбора: Piper и Chatterbox Захар забраковал как машинные,
+// у польских голосов Azure нет управления эмоцией вообще (ни одного стиля
+// `express-as`), а здесь голос `Jan Gajos` на Multilingual v2 звучит живым.
+//
+// Настройки взяты с того самого прогона, который Захар утвердил, — они
+// закодированы прямо в имени скачанного файла: `sp102_s40_sb75_se40_m2`.
+// Менять их наугад нельзя: на слух разница между Stability 40 и 55 — это
+// разница между человеком и диктором.
+//
+// Важно: `<break time="0.3s" />` модель понимает прямо в тексте, а теги в
+// квадратных скобках — НЕТ, их умеет только v3. В v2 они прочитаются вслух.
+const EL_API = 'https://api.elevenlabs.io/v1/text-to-speech';
+
+export const EL_USTAWIENIA = {
+  model_id: 'eleven_multilingual_v2',
+  stability: 0.4,
+  similarity_boost: 0.75,
+  style: 0.4,
+  use_speaker_boost: true,
+  speed: 1.02,
+};
+
+async function powiedzEleven(tekst, wyjscie, { klucz, glos, ustawienia = {} }) {
+  const u = { ...EL_USTAWIENIA, ...ustawienia };
+  const r = await fetch(
+    `${EL_API}/${glos}?output_format=mp3_44100_128`,
+    {
+      method: 'POST',
+      headers: { 'xi-api-key': klucz, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: tekst,
+        model_id: u.model_id,
+        voice_settings: {
+          stability: u.stability,
+          similarity_boost: u.similarity_boost,
+          style: u.style,
+          use_speaker_boost: u.use_speaker_boost,
+          speed: u.speed,
+        },
+      }),
+    }
+  );
+  if (!r.ok) throw new Error(`ElevenLabs ${r.status}: ${(await r.text()).slice(0, 200)}`);
   await writeFile(wyjscie, Buffer.from(await r.arrayBuffer()));
 }
 
@@ -160,36 +213,75 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
   const kat = tmp || path.join(DIR, 'out', 'glos-tmp');
   await mkdir(kat, { recursive: true });
 
-  // Есть ключ Azure — говорим им. Нет — падаем на локальный Piper, чтобы
-  // сборка не вставала колом из-за отсутствующего ключа.
-  const klucz = await zEnv('AZURE_SPEECH_KEY');
-  const region = (await zEnv('AZURE_SPEECH_REGION')) || 'westeurope';
-  const azure =
-    (dostawca === 'azure' || (!dostawca && klucz)) && klucz
-      ? { klucz, region, glos: (await zEnv('AZURE_VOICE')) || AZURE_GLOS }
-      : null;
-  console.log(`[glos] поставщик: ${azure ? 'Azure ' + azure.glos : 'Piper (локально)'}`);
+  // Порядок предпочтения: ElevenLabs (утверждён на слух) → Azure → Piper.
+  // Падение вниз по цепочке нужно, чтобы отсутствие ключа не роняло сборку.
+  const kluczEL = await zEnv('ELEVENLABS_KEY');
+  const glosEL = (await zEnv('ELEVENLABS_VOICE')) || null;
+  const kluczAz = await zEnv('AZURE_SPEECH_KEY');
+  const region = (await zEnv('AZURE_SPEECH_REGION')) || 'northeurope';
 
+  const eleven =
+    (dostawca === 'eleven' || !dostawca) && kluczEL && glosEL
+      ? { klucz: kluczEL, glos: glosEL }
+      : null;
+  const azure =
+    !eleven && (dostawca === 'azure' || !dostawca) && kluczAz
+      ? { klucz: kluczAz, region, glos: (await zEnv('AZURE_VOICE')) || AZURE_GLOS }
+      : null;
+
+  console.log(
+    `[glos] поставщик: ${
+      eleven ? 'ElevenLabs ' + eleven.glos : azure ? 'Azure ' + azure.glos : 'Piper (локально)'
+    }`
+  );
+
+  await mkdir(KESZ, { recursive: true });
   const czesci = [];
   const meta = [];
   let czas = przedPierwsza;
+  let zKeszu = 0;
+  let nowych = 0;
 
   for (let i = 0; i < frazy.length; i++) {
     const f = frazy[i];
-    const surowy = path.join(kat, `f${i}-raw.wav`);
+    // У ElevenLabs забираем mp3 — ffmpeg дальше всё равно приводит к общему
+    // виду, а лишнее перекодирование в wav ничего не улучшает.
+    const surowy = path.join(kat, `f${i}-raw.${eleven ? 'mp3' : 'wav'}`);
     const gotowy = path.join(kat, `f${i}.wav`);
-    if (azure) await powiedzAzure(f.tekst, surowy, azure);
-    else await powiedz(f.tekst, surowy, model);
 
-    // Края подрезаем ПО ЗАМЕРУ, а не фильтром `silenceremove`: тот убирает
-    // тишину и внутри фразы тоже — «Twoje posty nie sprzedają?» усыхало с
-    // 1.58 до 0.60 секунды, речь превращалась в скороговорку.
-    const [poczatek, koniec] = await granicaMowy(surowy);
-    await ffmpeg([
-      '-ss', poczatek.toFixed(3), '-to', koniec.toFixed(3), '-i', surowy,
-      '-af', 'aformat=channel_layouts=stereo,aresample=48000',
-      '-c:a', 'pcm_s16le', gotowy,
-    ]);
+    // Кэш озвучки. У ElevenLabs бесплатный тариф — 10 тысяч символов в месяц,
+    // это около двадцати рилсов. Пересобирать монтаж, каждый раз заново
+    // покупая ту же самую фразу, — прямой способ остаться без озвучки к
+    // середине месяца. Ключ кэша учитывает и текст, и настройки голоса.
+    const odcisk = createHash('sha1')
+      .update(JSON.stringify([f.tekst, eleven?.glos || azure?.glos || model, f.glos || {}]))
+      .digest('hex')
+      .slice(0, 16);
+    const wKeszu = path.join(KESZ, `${odcisk}.wav`);
+
+    if (existsSync(wKeszu)) {
+      await copyFile(wKeszu, gotowy);
+      zKeszu++;
+    } else {
+      if (eleven) {
+        // Настройки можно задать на КАЖДУЮ фразу: хук энергичнее, призыв
+        // теплее. Цельный прогон так не умеет, а у нас фразы отдельные.
+        await powiedzEleven(f.tekst, surowy, { ...eleven, ustawienia: f.glos || {} });
+      } else if (azure) await powiedzAzure(f.tekst, surowy, azure);
+      else await powiedz(f.tekst, surowy, model);
+      nowych++;
+
+      // Края подрезаем ПО ЗАМЕРУ, а не фильтром `silenceremove`: тот убирает
+      // тишину и внутри фразы тоже — «Twoje posty nie sprzedają?» усыхало с
+      // 1.58 до 0.60 секунды, речь превращалась в скороговорку.
+      const [poczatek, koniec] = await granicaMowy(surowy);
+      await ffmpeg([
+        '-ss', poczatek.toFixed(3), '-to', koniec.toFixed(3), '-i', surowy,
+        '-af', 'aformat=channel_layouts=stereo,aresample=48000',
+        '-c:a', 'pcm_s16le', gotowy,
+      ]);
+      await copyFile(gotowy, wKeszu);
+    }
 
     const d = await trwanie(gotowy);
     meta.push({ tekst: f.tekst, a: +czas.toFixed(3), b: +(czas + d).toFixed(3), rola: f.rola || null });
@@ -219,6 +311,7 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
     plik,
   ]);
 
+  console.log(`[glos] фраз из кэша: ${zKeszu}, синтезировано заново: ${nowych}`);
   const slowa = meta.flatMap((m) => rozlozSlowa(m.tekst, m.a, m.b));
   const dlugoscCala = +(await trwanie(plik)).toFixed(3);
 
