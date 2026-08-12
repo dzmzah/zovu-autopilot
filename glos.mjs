@@ -202,8 +202,12 @@ const SKROTY = new Set([
   'B2B', 'B2C', 'PR', 'TV',
 ]);
 
-export function doWymowy(tekst) {
-  return String(tekst).replace(/\p{Lu}[\p{Lu}\p{N}]+/gu, (s) =>
+// Поле `mowa` — прямая замена текста для голоса, когда нужно подать фразу
+// иначе, чем она написана на экране: многоточие в `Pytasz… ile kosztuje
+// strona?` даёт вдох внутри вопроса, а подпись остаётся чистой.
+export function doWymowy(fraza) {
+  const t = typeof fraza === 'string' ? fraza : fraza.mowa ?? fraza.tekst;
+  return String(t).replace(/\p{Lu}[\p{Lu}\p{N}]+/gu, (s) =>
     SKROTY.has(s) ? s : s.toLowerCase()
   );
 }
@@ -237,7 +241,7 @@ function rozlozSlowa(tekst, od, doo) {
 // втрое дешевле по кредитам — один запрос вместо семи.
 async function jednymDublem(frazy, wyjscie, eleven, przerwa = 0.55) {
   const znacznik = `<break time="${przerwa}s" />`;
-  const tekst = frazy.map((f) => doWymowy(f.tekst)).join(' ' + znacznik + ' ');
+  const tekst = frazy.map((f) => doWymowy(f)).join(' ' + znacznik + ' ');
   await powiedzEleven(tekst, wyjscie, eleven);
 
   const { stderr } = await execFileAsync(
@@ -316,7 +320,7 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
   let dubel = null;
   if (eleven) {
     const odciskCaly = createHash('sha1')
-      .update(JSON.stringify([frazy.map((f) => doWymowy(f.tekst)), eleven.glos, EL_USTAWIENIA]))
+      .update(JSON.stringify([frazy.map((f) => doWymowy(f)), eleven.glos, EL_USTAWIENIA]))
       .digest('hex')
       .slice(0, 16);
     dubel = path.join(KESZ, `dubel-${odciskCaly}.mp3`);
@@ -353,7 +357,7 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
     // покупая ту же самую фразу, — прямой способ остаться без озвучки к
     // середине месяца. Ключ кэша учитывает и текст, и настройки голоса.
     const odcisk = createHash('sha1')
-      .update(JSON.stringify([doWymowy(f.tekst), eleven?.glos || azure?.glos || model, f.glos || {}]))
+      .update(JSON.stringify([doWymowy(f), eleven?.glos || azure?.glos || model, f.glos || {}]))
       .digest('hex')
       .slice(0, 16);
     const wKeszu = path.join(KESZ, `${odcisk}.wav`);
@@ -383,9 +387,9 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
       if (eleven) {
         // Настройки можно задать на КАЖДУЮ фразу: хук энергичнее, призыв
         // теплее. Цельный прогон так не умеет, а у нас фразы отдельные.
-        await powiedzEleven(doWymowy(f.tekst), surowy, { ...eleven, ustawienia: f.glos || {} });
-      } else if (azure) await powiedzAzure(doWymowy(f.tekst), surowy, azure);
-      else await powiedz(doWymowy(f.tekst), surowy, model);
+        await powiedzEleven(doWymowy(f), surowy, { ...eleven, ustawienia: f.glos || {} });
+      } else if (azure) await powiedzAzure(doWymowy(f), surowy, azure);
+      else await powiedz(doWymowy(f), surowy, model);
       nowych++;
 
       // Края подрезаем ПО ЗАМЕРУ, а не фильтром `silenceremove`: тот убирает

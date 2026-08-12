@@ -60,8 +60,8 @@ const SCENARIUSZE = [
       '#marketing #socialmedia #reels #agencjamarketingowa #contentmarketing #katowice #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Twój post zobaczyło sto osób.', szukaj: 'phone screen scrolling social media', pauza: 0.16 },
-      { rola: 'hak', tekst: 'Napisała zero.', szukaj: 'empty phone notification screen', pauza: 0.34 },
+      { rola: 'hak', tekst: 'Twój post zobaczyło sto osób.', szukaj: 'phone screen scrolling social media', pauza: 0.34 },
+      { rola: 'hak', tekst: 'Napisała zero.', szukaj: 'empty phone notification screen', pauza: 0.46 },
       { rola: 'punkt', numer: 1, tytul: 'mówisz o sobie', tekst: 'Piszesz o sobie, a nie o kliencie.', szukaj: 'person filming himself phone', pauza: 0.30 },
       { rola: 'punkt', numer: 2, tytul: 'brak powodu', tekst: 'Nie dajesz powodu, żeby odpisać.', szukaj: 'bored person scrolling phone', pauza: 0.30 },
       { rola: 'punkt', numer: 3, tytul: 'znikasz', tekst: 'Znikasz na dwa tygodnie.', szukaj: 'calendar time passing clock', pauza: 0.26 },
@@ -84,8 +84,8 @@ const SCENARIUSZE = [
       '#stronainternetowa #webdesign #marketing #agencjamarketingowa #katowice #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Pytasz, ile kosztuje strona?', szukaj: 'laptop website design desk', pauza: 0.14 },
-      { rola: 'hak', tekst: 'To pytanie o nic.', szukaj: 'confused person laptop', pauza: 0.32 },
+      { rola: 'hak', tekst: 'Pytasz, ile kosztuje strona?', mowa: 'Pytasz… ile kosztuje strona?', szukaj: 'laptop website design desk', pauza: 0.34 },
+      { rola: 'hak', tekst: 'To pytanie o nic.', szukaj: 'confused person laptop', pauza: 0.46 },
       { rola: 'punkt', numer: 1, tytul: 'co ma robić', tekst: 'Po pierwsze — co ta strona ma robić.', szukaj: 'business meeting planning notes', pauza: 0.28 },
       { rola: 'punkt', numer: 2, tytul: 'czyje treści', tekst: 'Po drugie — kto pisze teksty i robi zdjęcia.', szukaj: 'photographer camera studio product', pauza: 0.28 },
       { rola: 'punkt', numer: 3, tytul: 'co potem', tekst: 'Po trzecie — kto się nią zajmie za pół roku.', szukaj: 'developer working code screen', pauza: 0.26 },
@@ -108,8 +108,8 @@ const SCENARIUSZE = [
       '#reels #socialmedia #marketing #contentmarketing #agencjamarketingowa #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Twoją rolkę obejrzało PIĘĆ osób.', szukaj: 'empty theater seats alone', pauza: 0.16 },
-      { rola: 'hak', tekst: 'A materiał był dobry.', szukaj: 'camera filming behind scenes', pauza: 0.32 },
+      { rola: 'hak', tekst: 'Twoją rolkę obejrzało PIĘĆ osób.', szukaj: 'empty theater seats alone', pauza: 0.34 },
+      { rola: 'hak', tekst: 'A materiał był dobry.', szukaj: 'camera filming behind scenes', pauza: 0.46 },
       { rola: 'punkt', numer: 1, tytul: 'zaczynasz od siebie', tekst: 'Po pierwsze — zaczynasz od przywitania.', szukaj: 'person waving hello camera', pauza: 0.28 },
       { rola: 'punkt', numer: 2, tytul: 'brak obietnicy', tekst: 'Po drugie — nie mówisz, co widz dostanie.', szukaj: 'person shrugging uncertain', pauza: 0.28 },
       { rola: 'punkt', numer: 3, tytul: 'cisza na starcie', tekst: 'Po trzecie — pierwsza sekunda jest pusta.', szukaj: 'silent empty room minimal', pauza: 0.26 },
@@ -132,8 +132,8 @@ const SCENARIUSZE = [
       '#instagram #socialmedia #marketing #malafirma #agencjamarketingowa #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Masz polubienia. A wiadomości ZERO.', szukaj: 'phone notification empty inbox', pauza: 0.16 },
-      { rola: 'hak', tekst: 'I to nie algorytm.', szukaj: 'person thinking phone confused', pauza: 0.32 },
+      { rola: 'hak', tekst: 'Masz polubienia. A wiadomości ZERO.', szukaj: 'phone notification empty inbox', pauza: 0.34 },
+      { rola: 'hak', tekst: 'I to nie algorytm.', szukaj: 'person thinking phone confused', pauza: 0.46 },
       { rola: 'punkt', numer: 1, tytul: 'nie wiadomo co robisz', tekst: 'Po pierwsze — z opisu nie wiadomo, co robisz.', szukaj: 'blurry unclear sign street', pauza: 0.28 },
       { rola: 'punkt', numer: 2, tytul: 'brak dowodu', tekst: 'Po drugie — nie pokazujesz efektów pracy.', szukaj: 'before after work result', pauza: 0.28 },
       { rola: 'punkt', numer: 3, tytul: 'nie ma dokąd', tekst: 'Po trzecie — nie mówisz, gdzie napisać.', szukaj: 'closed door sign shop', pauza: 0.26 },
@@ -156,8 +156,8 @@ const SCENARIUSZE = [
       '#reels #socialmedia #contentmarketing #marketing #agencjamarketingowa #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Rolka NIE jest lepsza od posta.', szukaj: 'two paths choice road', pauza: 0.16 },
-      { rola: 'hak', tekst: 'Robi coś zupełnie innego.', szukaj: 'phone social media feed scroll', pauza: 0.32 },
+      { rola: 'hak', tekst: 'Rolka NIE jest lepsza od posta.', szukaj: 'two paths choice road', pauza: 0.34 },
+      { rola: 'hak', tekst: 'Robi coś zupełnie innego.', szukaj: 'phone social media feed scroll', pauza: 0.46 },
       { rola: 'punkt', numer: 1, tytul: 'rolka przyprowadza', tekst: 'Rolka przyprowadza NOWYCH ludzi.', szukaj: 'crowd people city walking', pauza: 0.28 },
       { rola: 'punkt', numer: 2, tytul: 'post rozmawia', tekst: 'Post rozmawia z tymi, których już masz.', szukaj: 'two people talking coffee', pauza: 0.28 },
       { rola: 'punkt', numer: 3, tytul: 'jedno bez drugiego', tekst: 'Samo jedno z dwóch nie działa.', szukaj: 'broken chain link metal', pauza: 0.26 },
@@ -247,8 +247,11 @@ console.log(`[rolka-auto] сценарий ${scenIdx + 1} из ${SCENARIUSZE.len
 
 // 1. Голос. Фразы озвучиваются по одной — так границы каждой известны точно.
 const glos = await zbudujGlos(
-  scen.czesci.map((c) => ({ tekst: c.tekst, pauza: c.pauza, rola: c.rola })),
-  { tmp: path.join(OUT, `${scen.nazwa}-glos`) }
+  scen.czesci.map((c) => ({ tekst: c.tekst, mowa: c.mowa, pauza: c.pauza, rola: c.rola })),
+  // Пол-секунды тишины на старте. Замер показал, что речь начиналась на
+  // 0,04 с — зритель попадал в середину фразы раньше, чем успевал понять,
+  // что смотрит. Первый кадр должен успеть дойти.
+  { tmp: path.join(OUT, `${scen.nazwa}-glos`), przedPierwsza: 0.45 }
 );
 console.log(`[rolka-auto] голос: ${glos.dlugosc.toFixed(2)} с, слов ${glos.slowa.length}`);
 
