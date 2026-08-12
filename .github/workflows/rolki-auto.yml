@@ -113,6 +113,18 @@ jobs:
           echo "::error::Не записал очередь — рилс собран, но не поставлен на выкладку"
           exit 1
 
+      # Цифры по уже вышедшим рилсам. Без обратной связи автоматика не
+      # улучшается, а дрейфует: те же шаблоны, тот же голос, и через месяц
+      # лента однообразна. Считаем досмотр, сохранения и пересылки — лайк
+      # не решает ничего, площадка разносит по досмотру.
+      - name: Zbierz wyniki
+        if: ${{ !inputs.bez_kolejki }}
+        continue-on-error: true
+        env:
+          INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+          TOKEN_KEY: ${{ secrets.TOKEN_KEY }}
+        run: node wyniki.mjs --raport
+
       - name: Zachowaj podgląd
         if: always()
         uses: actions/upload-artifact@v4
