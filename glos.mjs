@@ -363,6 +363,12 @@ async function jednymDublem(frazy, wyjscie, eleven, przerwa = 0.55) {
 // Ниже 0,78 не опускаемся — дальше слышно «резину».
 const TEMPO_CEL = 5.0;
 const TEMPO_PROG = 5.6;
+// У хука планка строже. Первые две фразы решают, досмотрят ли вообще, и
+// «немного быстро» там слышно сразу — Захар поймал это даже на дубле, где
+// остальные фразы легли идеально. Пять слогов в секунду для тела нормально,
+// для хука уже тороплив.
+const TEMPO_PROG_HAK = 4.9;
+const progDla = (rola) => (rola === 'hak' ? TEMPO_PROG_HAK : TEMPO_PROG);
 
 function sylaby(tekst) {
   return (String(tekst).toLowerCase().match(/[aeiouyąęó]+/g) || []).length;
@@ -460,9 +466,15 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
         // числом. Растяжка на 20% даёт резину, её слышно; лишний запрос стоит
         // 250 символов из десяти тысяч и звучит как живой человек.
         const szybkie = granice.filter(
-          ([a, b], i) => sylaby(frazy[i].tekst) / Math.max(0.2, b - a) > TEMPO_PROG
+          ([a, b], i) => sylaby(frazy[i].tekst) / Math.max(0.2, b - a) > progDla(frazy[i].rola)
         ).length;
-        if (szybkie >= 2) {
+        // Хук перевешивает: одной торопливой фразы в начале достаточно, чтобы
+        // переписать дубль. В теле терпим одну — там это не решает ничего.
+        const hakSpieszy = granice.some(
+          ([a, b], i) =>
+            frazy[i].rola === 'hak' && sylaby(frazy[i].tekst) / Math.max(0.2, b - a) > TEMPO_PROG_HAK
+        );
+        if (szybkie >= 2 || hakSpieszy) {
           console.warn(`[glos] торопливый дубль (${szybkie} фраз) — переписываю медленнее`);
           const wolniej = await dubelZeZnacznikami(teksty, dubel, {
             ...eleven,
@@ -510,7 +522,7 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
     // Темп смотрим по тем же таймингам — отдельного замера не нужно.
     const tempa = meta.map((m) => sylaby(m.tekst) / Math.max(0.2, m.b - m.a));
     console.log(`[glos] темп по фразам: ${tempa.map((t) => t.toFixed(1)).join(' ')} слог/с`);
-    const szybkie = tempa.filter((t) => t > TEMPO_PROG).length;
+    const szybkie = tempa.filter((t, i) => t > progDla(frazy[i].rola)).length;
     if (szybkie) console.warn(`[glos] быстрых фраз: ${szybkie} — дубль вышел торопливым`);
 
     const slowa = meta.flatMap((m) => rozlozSlowa(m.tekst, m.a, m.b));
