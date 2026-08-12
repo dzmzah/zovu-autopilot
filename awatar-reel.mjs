@@ -907,7 +907,11 @@ async function zbudujStuki(zdarzenia, total, tmp) {
   });
   const mix =
     zdarzenia.map((_, i) => `[k${i}]`).join('') +
-    `amix=inputs=${zdarzenia.length}:normalize=0,apad,atrim=0:${total.toFixed(2)},` +
+    `amix=inputs=${zdarzenia.length}:normalize=0,` +
+    // apad без явной длины на разных сборках ffmpeg ведёт себя по-разному:
+    // на сервере GitHub дорожка щелчков выходила короче ролика, и `-shortest`
+    // в финальном миксе обрезал по ней — аутро пропадало.
+    `apad=whole_dur=${total.toFixed(2)},atrim=0:${total.toFixed(2)},` +
     'asetpts=N/SR/TB[a]';
 
   const out = path.join(tmp, 'stuki.wav');
