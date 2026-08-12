@@ -79,6 +79,8 @@ jobs:
       - name: Zbuduj rolki
         env:
           PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
+          ELEVENLABS_KEY: ${{ secrets.ELEVENLABS_KEY }}
+          ELEVENLABS_VOICE: ${{ secrets.ELEVENLABS_VOICE }}
           PIPER_MODEL: ${{ github.workspace }}/modele/pl_PL-darkman-medium.onnx
           ILE: ${{ inputs.ile || '1' }}
           SCENARIUSZ: ${{ inputs.scenariusz }}
