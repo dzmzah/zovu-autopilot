@@ -20,6 +20,10 @@ on:
         description: 'Только собрать и показать, в очередь не ставить'
         type: boolean
         default: false
+      za_dni:
+        description: 'Через сколько дней публиковать (по умолчанию 2)'
+        type: string
+        default: '2'
   schedule:
     # 04:20 UTC = 06:20 по Польше: собираем задолго до слотов публикации,
     # чтобы поломка была видна с утра, а не за минуту до выкладки.
@@ -96,9 +100,12 @@ jobs:
             echo "::endgroup::"
           done
 
+      # Запас в два дня — норма. Единицу ставим только руками и только чтобы
+      # закрыть дыру в ленте: например ту, что осталась от холодного старта,
+      # когда первая сборка легла сразу на послезавтра.
       - name: Do kolejki
         if: ${{ !inputs.bez_kolejki }}
-        run: node do-kolejki.mjs --za-dni=2
+        run: node do-kolejki.mjs --za-dni=${{ inputs.za_dni || '2' }}
 
       - name: Zapisz
         if: ${{ !inputs.bez_kolejki }}
