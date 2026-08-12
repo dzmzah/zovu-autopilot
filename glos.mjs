@@ -450,10 +450,26 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
     } else {
       // Сначала точный путь — по таймингам символов. По паузам режем только
       // если разметка почему-то не пришла.
-      granice = await dubelZeZnacznikami(frazy.map((f) => doWymowy(f)), dubel, eleven);
+      const teksty = frazy.map((f) => doWymowy(f));
+      granice = await dubelZeZnacznikami(teksty, dubel, eleven);
       if (granice) {
         graniceDokladne = true;
         console.log(`[glos] дубль на ${frazy.length} фраз, границы по таймингам символов`);
+
+        // Торопливый дубль ПЕРЕПИСЫВАЕМ медленнее, а не растягиваем задним
+        // числом. Растяжка на 20% даёт резину, её слышно; лишний запрос стоит
+        // 250 символов из десяти тысяч и звучит как живой человек.
+        const szybkie = granice.filter(
+          ([a, b], i) => sylaby(frazy[i].tekst) / Math.max(0.2, b - a) > TEMPO_PROG
+        ).length;
+        if (szybkie >= 2) {
+          console.warn(`[glos] торопливый дубль (${szybkie} фраз) — переписываю медленнее`);
+          const wolniej = await dubelZeZnacznikami(teksty, dubel, {
+            ...eleven,
+            ustawienia: { speed: 0.9 },
+          });
+          if (wolniej) granice = wolniej;
+        }
       } else granice = await jednymDublem(frazy, dubel, eleven);
 
       if (granice) {
@@ -463,6 +479,42 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
         console.warn('[glos] дубль разрезать не удалось — падаю на пофразовый синтез');
       }
     }
+  }
+
+  // ── дубль целиком, без единой склейки ────────────────────────────
+  // Пока границы угадывались по тишине, дорожку приходилось резать и
+  // пересобирать: только так можно было задать свои паузы. Каждый разрез,
+  // каждая переклейка и каждая растяжка добавляли по чуть-чуть — вместе это
+  // и есть «слышно ИИ». Захар слушает тот же голос в интерфейсе ElevenLabs и
+  // слышит живого человека, потому что там дубль НЕ ТРОГАЛИ.
+  //
+  // С точными таймингами резать звук незачем: время каждой фразы известно, и
+  // под него режется КАРТИНКА. Голос идёт одним куском, ровно как пришёл, —
+  // только сдвинут на паузу перед первой фразой.
+  if (granice && graniceDokladne) {
+    const plik = path.join(kat, 'glos.wav');
+    const ms = Math.round(przedPierwsza * 1000);
+    await ffmpeg([
+      '-i', dubel,
+      '-af', `adelay=${ms}|${ms}:all=1,aformat=channel_layouts=stereo,aresample=48000`,
+      '-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2', plik,
+    ]);
+
+    const meta = granice.map(([a, b], i) => ({
+      tekst: frazy[i].tekst,
+      a: +(a + przedPierwsza).toFixed(3),
+      b: +(b + przedPierwsza).toFixed(3),
+      rola: frazy[i].rola || null,
+    }));
+
+    // Темп смотрим по тем же таймингам — отдельного замера не нужно.
+    const tempa = meta.map((m) => sylaby(m.tekst) / Math.max(0.2, m.b - m.a));
+    console.log(`[glos] темп по фразам: ${tempa.map((t) => t.toFixed(1)).join(' ')} слог/с`);
+    const szybkie = tempa.filter((t) => t > TEMPO_PROG).length;
+    if (szybkie) console.warn(`[glos] быстрых фраз: ${szybkie} — дубль вышел торопливым`);
+
+    const slowa = meta.flatMap((m) => rozlozSlowa(m.tekst, m.a, m.b));
+    return { plik, frazy: meta, slowa, dlugosc: +(await trwanie(plik)).toFixed(3) };
   }
 
   const czesci = [];
