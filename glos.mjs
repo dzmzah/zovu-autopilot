@@ -380,7 +380,10 @@ async function wyrownajTempo(plik, tekst, kat, i) {
   const [p1, p2] = await granicaMowy(plik, -38);
   const mowa = Math.max(0.15, p2 - p1);
   const tempo = syl / mowa;
-  if (tempo <= TEMPO_PROG) return d;
+  if (tempo <= TEMPO_PROG) {
+    console.log(`[glos] фраза ${i + 1}: ${tempo.toFixed(2)} слог/с`);
+    return d;
+  }
 
   const wsp = Math.max(0.78, TEMPO_CEL / tempo);
   const wolniej = path.join(kat, `f${i}-wolniej.wav`);
