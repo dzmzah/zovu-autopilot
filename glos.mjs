@@ -361,8 +361,8 @@ async function jednymDublem(frazy, wyjscie, eleven, przerwa = 0.55) {
 //
 // Растягиваем `atempo`: высоту голоса он не трогает, тембр остаётся тем же.
 // Ниже 0,78 не опускаемся — дальше слышно «резину».
-const TEMPO_CEL = 5.2;
-const TEMPO_PROG = 5.9;
+const TEMPO_CEL = 5.0;
+const TEMPO_PROG = 5.6;
 
 function sylaby(tekst) {
   return (String(tekst).toLowerCase().match(/[aeiouyąęó]+/g) || []).length;
@@ -373,7 +373,13 @@ async function wyrownajTempo(plik, tekst, kat, i) {
   const syl = sylaby(tekst);
   if (!syl || !Number.isFinite(d) || d <= 0) return d;
 
-  const tempo = syl / d;
+  // Считаем по САМОЙ РЕЧИ, а не по длине куска. Первая версия делила на длину
+  // файла — а в неё входит запас по краям, который мы сами и добавили при
+  // резке. Из-за этого фраза, звучавшая 6,25 слог/с, по счёту выходила 5,2 и
+  // выравнивание её не трогало. Ухо считает по речи, значит и мы должны.
+  const [p1, p2] = await granicaMowy(plik, -38);
+  const mowa = Math.max(0.15, p2 - p1);
+  const tempo = syl / mowa;
   if (tempo <= TEMPO_PROG) return d;
 
   const wsp = Math.max(0.78, TEMPO_CEL / tempo);
