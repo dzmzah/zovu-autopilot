@@ -22,7 +22,20 @@
     ],
     "tekst": "Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.\n\nZwykle to nie kwestia pomysłów ani budżetu. To trzy rzeczy, które robi prawie każdy — i każda z nich po cichu kosztuje klientów.\n\nMasz je w 20 sekund. Bez lania wody.\n\nNapisz „AUDYT\" w wiadomości — przejrzymy twój profil i powiemy wprost, który z tych trzech błędów robisz. Za darmo, bez zobowiązań.\n\nzovu.pl\n\n#marketing #socialmedia #reels #agencjamarketingowa #contentmarketing #katowice #zovu",
     "opublikowano": null,
-    "zrodlo": "auto-trzy-bledy-w-postach.mp4"
+    "zrodlo": "auto-trzy-bledy-w-postach.mp4",
+    "scenariusz": "trzy-bledy-w-postach",
+    "forma": "lista",
+    "temat": "dlaczego posty nie sprzedają",
+    "tempo": [
+      4.1,
+      4.6,
+      4.7,
+      4.9,
+      4.7,
+      4.2,
+      4.5
+    ],
+    "dlugosc": 19.3
   },
   {
     "plik": "auto-2026-08-12-2.mp4",
@@ -48,7 +61,20 @@
     ],
     "tekst": "Nagrałeś dobry materiał, a obejrzało go pięć osób.\n\nProblem prawie nigdy nie leży w treści. Leży w pierwszych trzech sekundach — i to jest do naprawienia w jeden wieczór.\n\nNapisz HOOK, a przejrzymy początek twojej ostatniej rolki i powiemy, co ją zabiło.\n\nzovu.pl\n\n#reels #socialmedia #marketing #contentmarketing #agencjamarketingowa #zovu",
     "opublikowano": null,
-    "zrodlo": "auto-pierwsze-trzy-sekundy.mp4"
+    "zrodlo": "auto-pierwsze-trzy-sekundy.mp4",
+    "scenariusz": "pierwsze-trzy-sekundy",
+    "forma": "lista",
+    "temat": "dlaczego nikt nie ogląda twoich rolek",
+    "tempo": [
+      4,
+      3.9,
+      4.7,
+      4.3,
+      4,
+      4.6,
+      3.4
+    ],
+    "dlugosc": 22.63
   },
   {
     "plik": "auto-2026-08-13-2.mp4",
@@ -59,6 +85,18 @@
     ],
     "tekst": "Tej rolki nikt nie nagrywał.\n\nNie było kamery, planu zdjęciowego ani człowieka przed obiektywem. Scenariusz, głos, materiał i montaż złożyły się rano, same.\n\nNie zastąpi to prawdziwych zdjęć twojego miejsca. Ale gdy termin był na wczoraj — robi robotę.\n\nNapisz TEMPO, a pokażemy, jak ustawić to u siebie.\n\nzovu.pl\n\n#ai #contentmarketing #socialmedia #reels #agencjamarketingowa #zovu",
     "opublikowano": null,
-    "zrodlo": "auto-kulisy-bez-kamery.mp4"
+    "zrodlo": "auto-kulisy-bez-kamery.mp4",
+    "scenariusz": "kulisy-bez-kamery",
+    "forma": "kulisy",
+    "temat": "jak powstaje ta rolka",
+    "tempo": [
+      3.9,
+      5.4,
+      3.9,
+      3.2,
+      5.3,
+      5
+    ],
+    "dlugosc": 20.43
   }
 ]
