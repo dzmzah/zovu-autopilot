@@ -1,0 +1,56 @@
+name: ZOVU wyniki
+
+# Цифры по вышедшим рилсам: охват, просмотры, сохранения, пересылки, досмотр.
+#
+# Отдельным прогоном, а не шагом внутри сборки, по двум причинам. Первая:
+# показатели набираются часами после выхода, и снимать их в 4 утра — значит
+# всегда видеть недосчитанную цифру. Вторая: сборка может упасть, а цифры
+# по вчерашнему ролику от этого не должны пропадать.
+on:
+  schedule:
+    # 19:00 UTC = 21:00 по Польше. Ролик выходит в 13:00, к вечеру показатели
+    # уже осмысленные, а не первые десять минут после публикации.
+    - cron: '0 19 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: zovu-wyniki
+  cancel-in-progress: false
+
+jobs:
+  zbierz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Zbierz liczby
+        env:
+          INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+          TOKEN_KEY: ${{ secrets.TOKEN_KEY }}
+        run: node wyniki.mjs --raport
+
+      - name: Odśwież stronę
+        continue-on-error: true
+        run: node gotowe.mjs
+
+      - name: Zapisz
+        run: |
+          git config user.name  "zovu-autopilot"
+          git config user.email "autopilot@zovu.pl"
+          git add rolki/wyniki.json index.html || true
+          git diff --cached --quiet && echo "цифры не изменились" && exit 0
+          git commit -m "wyniki: liczby po rolkach [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0
+            sleep 5
+          done
+          echo "::error::Не записал цифры"
+          exit 1

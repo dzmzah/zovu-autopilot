@@ -20,12 +20,16 @@ import path from 'node:path';
 const DIR = import.meta.dirname;
 const KOLEJKA = path.join(DIR, 'rolki', 'kolejka.json');
 const WYNIKI = path.join(DIR, 'rolki', 'wyniki.json');
-const API = 'https://graph.facebook.com/v21.0';
+// Токен у нас инстаграмовский (Instagram Login), и на `graph.facebook.com`
+// он не парсится вообще: «Invalid OAuth access token». Ровно эта грабля уже
+// ловилась при публикации рилса 13.08 — там хост поправили, а здесь остался
+// старый, и сбор цифр молча возвращал ошибку вместо показателей.
+const API = 'https://graph.instagram.com/v23.0';
 const RAPORT = process.argv.includes('--raport');
 
 // Досмотр важнее охвата: площадка разносит то, что дослушали до конца.
 const METRYKI = [
-  'plays', 'reach', 'saved', 'shares', 'comments', 'likes',
+  'views', 'reach', 'saved', 'shares', 'comments', 'likes',
   'total_interactions', 'ig_reels_avg_watch_time', 'ig_reels_video_view_total_time',
 ];
 
@@ -40,19 +44,33 @@ async function igToken() {
   return process.env.INSTAGRAM_TOKEN || null;
 }
 
-async function pobierz(id, token) {
-  const url = `${API}/${id}/insights?metric=${METRYKI.join(',')}&access_token=${token}`;
+// Набор показателей у площадки меняется от версии к версии: `plays` в новых
+// заменён на `views`, часть метрик не отдаётся для отдельных типов медиа.
+// Просить всё сразу и падать целиком нельзя — потеряем и то, что доступно.
+// Поэтому при отказе выкидываем ровно ту метрику, на которую ругаются, и
+// спрашиваем заново.
+async function pobierz(id, token, metryki = METRYKI, glebia = 0) {
+  const url = `${API}/${id}/insights?metric=${metryki.join(',')}&access_token=${encodeURIComponent(token)}`;
   const r = await fetch(url);
   const j = await r.json();
+
   if (j.error) {
-    // Часть показателей появляется не сразу и не у всех типов медиа —
-    // это не повод ронять сбор по остальным роликам.
-    return { blad: j.error.message };
+    const msg = String(j.error.message || '');
+    const winna = metryki.find((m) => msg.includes(m));
+    if (winna && metryki.length > 1 && glebia < METRYKI.length) {
+      console.warn(`[wyniki] «${winna}» не отдаётся — спрашиваю без неё`);
+      return pobierz(id, token, metryki.filter((m) => m !== winna), glebia + 1);
+    }
+    return { blad: msg };
   }
+
   const out = {};
   for (const m of j.data || []) {
     out[m.name] = m.values?.[0]?.value ?? null;
   }
+  // `views` — новое имя для `plays`. Держим оба, чтобы старые записи и
+  // сводка по часу выхода продолжали складываться с новыми.
+  if (out.views != null && out.plays == null) out.plays = out.views;
   return out;
 }
 
