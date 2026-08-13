@@ -166,6 +166,160 @@ const SCENARIUSZE = [
       { rola: 'cta', tekst: 'Napisz PLAN, a odeślemy rozkład na miesiąc!', szukaj: 'typing message phone chat', pauza: 0.20 },
     ],
   },
+
+  // ── дальше ФОРМЫ, а не темы ───────────────────────────────────
+  // Первые пять — одна и та же конструкция: хук, три пронумерованных
+  // пункта, расплата, призыв. Разные слова, одинаковый скелет. Захар
+  // поймал это на третьем ролике: «надо всегда разные темы иметь».
+  //
+  // Поэтому дальше идут другие ФОРМЫ. Пронумерованных пунктов в них нет
+  // вовсе, длина другая, ритм другой: одна цифра, один миф, до и после,
+  // вопрос из директа, позиция против течения, изнанка работы. Лента не
+  // должна выглядеть как один шаблон с подменёнными словами.
+  {
+    nazwa: 'kulisy-bez-kamery',
+    temat: 'jak powstaje ta rolka',
+    // Единственный сценарий, который рассказывает правду о самом себе.
+    // Сильнее любого обещания: зритель смотрит доказательство.
+    opis: [
+      'Tej rolki nikt nie nagrywał.',
+      '',
+      'Nie było kamery, planu zdjęciowego ani człowieka przed obiektywem. Scenariusz, głos, materiał i montaż złożyły się rano, same.',
+      '',
+      'Nie zastąpi to prawdziwych zdjęć twojego miejsca. Ale gdy termin był na wczoraj — robi robotę.',
+      '',
+      'Napisz TEMPO, a pokażemy, jak ustawić to u siebie.',
+      '',
+      'zovu.pl',
+      '',
+      '#ai #contentmarketing #socialmedia #reels #agencjamarketingowa #zovu',
+    ].join(String.fromCharCode(10)),
+    czesci: [
+      { rola: 'hak', tekst: 'Tej rolki nikt nie nagrywał.', szukaj: 'empty film studio equipment', pauza: 0.34 },
+      { rola: 'hak', tekst: 'Ani kamery, ani człowieka przed nią.', szukaj: 'camera tripod empty room', pauza: 0.46 },
+      { rola: 'tresc', tekst: 'Scenariusz, głos, materiał, montaż.', szukaj: 'code screen developer night', pauza: 0.30 },
+      { rola: 'tresc', tekst: 'Wszystko składa się samo, o szóstej rano.', szukaj: 'sunrise city morning window', pauza: 0.30 },
+      { rola: 'zaplata', tekst: 'Tak robimy treści, kiedy termin był na wczoraj.', szukaj: 'clock deadline office desk', pauza: 0.30 },
+      { rola: 'cta', tekst: 'Napisz TEMPO, a pokażemy jak to ustawić.', szukaj: 'typing message phone chat', pauza: 0.20 },
+    ],
+  },
+  {
+    nazwa: 'trzy-sekundy',
+    temat: 'ile masz czasu na zatrzymanie widza',
+    opis: [
+      'Trzy sekundy. Tyle masz, zanim palec pojedzie dalej.',
+      '',
+      'W tym czasie widz nie ocenia jakości montażu ani światła. Sprawdza jedną rzecz: czy to o nim.',
+      '',
+      'Dlatego pierwsze zdanie mówi o widzu, a nie o tobie. Reszta rolki dopiero po tym ma sens.',
+      '',
+      'Napisz START, a przejrzymy pierwsze zdanie twojej ostatniej rolki.',
+      '',
+      'zovu.pl',
+      '',
+      '#reels #socialmedia #marketing #contentmarketing #agencjamarketingowa #zovu',
+    ].join(String.fromCharCode(10)),
+    czesci: [
+      { rola: 'hak', tekst: 'Trzy sekundy.', szukaj: 'stopwatch timer close up', pauza: 0.40 },
+      { rola: 'hak', tekst: 'Tyle masz, zanim palec pojedzie dalej.', szukaj: 'thumb scrolling phone fast', pauza: 0.46 },
+      { rola: 'tresc', tekst: 'Widz nie ocenia wtedy jakości.', szukaj: 'person watching phone bored', pauza: 0.30 },
+      { rola: 'tresc', tekst: 'Sprawdza jedno: czy to o nim.', szukaj: 'person pointing at himself', pauza: 0.30 },
+      { rola: 'zaplata', tekst: 'Dlatego pierwsze zdanie mówi o widzu, nie o tobie.', szukaj: 'conversation two people listening', pauza: 0.30 },
+      { rola: 'cta', tekst: 'Napisz START, a przejrzymy twój początek.', szukaj: 'typing message phone chat', pauza: 0.20 },
+    ],
+  },
+  {
+    nazwa: 'mit-codziennie',
+    temat: 'czy trzeba publikować codziennie',
+    opis: [
+      'Musisz postować codziennie — to najdroższy mit w tej branży.',
+      '',
+      'Codziennie znaczy w pośpiechu. W pośpiechu znaczy o niczym. Dwa przemyślane posty biją siedem byle jakich, bo algorytm liczy, ile osób zostało — a nie ile razy coś wrzuciłeś.',
+      '',
+      'Napisz RYTM, a ułożymy plan pod twoje realne tempo, nie pod cudzy kalendarz.',
+      '',
+      'zovu.pl',
+      '',
+      '#socialmedia #marketing #malafirma #contentmarketing #agencjamarketingowa #zovu',
+    ].join(String.fromCharCode(10)),
+    czesci: [
+      { rola: 'hak', tekst: 'Musisz postować codziennie.', szukaj: 'calendar days planning wall', pauza: 0.34 },
+      { rola: 'hak', tekst: 'To najdroższy mit w tej branży.', szukaj: 'tired person laptop late', pauza: 0.46 },
+      { rola: 'tresc', tekst: 'Codziennie znaczy w pośpiechu.', szukaj: 'rushing hands typing fast', pauza: 0.28 },
+      { rola: 'tresc', tekst: 'A w pośpiechu znaczy o niczym.', szukaj: 'empty blank paper desk', pauza: 0.30 },
+      { rola: 'zaplata', tekst: 'Algorytm liczy, ile osób zostało. Nie ile razy wrzuciłeś.', szukaj: 'analytics graph screen data', pauza: 0.30 },
+      { rola: 'cta', tekst: 'Napisz RYTM, a ułożymy plan pod ciebie.', szukaj: 'typing message phone chat', pauza: 0.20 },
+    ],
+  },
+  {
+    nazwa: 'opis-profilu-przed-po',
+    temat: 'jak przepisać opis profilu',
+    opis: [
+      '„Pasja, jakość, doświadczenie" — ten opis pasuje do każdej firmy w Polsce.',
+      '',
+      'I dokładnie dlatego nie mówi nic. Zamień go na jedno zdanie: co robisz i dla kogo. Nagle wiadomo, po co do ciebie pisać.',
+      '',
+      'Napisz OPIS, a przepiszemy twój — za darmo, jedno zdanie.',
+      '',
+      'zovu.pl',
+      '',
+      '#instagram #socialmedia #malafirma #marketing #agencjamarketingowa #zovu',
+    ].join(String.fromCharCode(10)),
+    czesci: [
+      { rola: 'hak', tekst: 'Pasja, jakość, doświadczenie.', szukaj: 'generic business office stock', pauza: 0.40 },
+      { rola: 'hak', tekst: 'Taki opis ma pół Polski.', szukaj: 'crowd identical people street', pauza: 0.46 },
+      { rola: 'tresc', tekst: 'A teraz to samo, tylko konkretnie.', szukaj: 'sharp focus lens adjust', pauza: 0.30 },
+      { rola: 'tresc', tekst: 'Zdjęcia mebli, które sprzedają się w sieci.', szukaj: 'furniture product photography studio', pauza: 0.30 },
+      { rola: 'zaplata', tekst: 'Różnica jedna: druga wersja mówi, dla kogo jesteś.', szukaj: 'person reading phone smiling', pauza: 0.30 },
+      { rola: 'cta', tekst: 'Napisz OPIS, a przepiszemy twój.', szukaj: 'typing message phone chat', pauza: 0.20 },
+    ],
+  },
+  {
+    nazwa: 'pytanie-z-dm',
+    temat: 'ile postów trzeba, żeby ruszyło',
+    opis: [
+      'Najczęstsze pytanie w naszym DM: „ile postów muszę mieć, żeby ruszyło?".',
+      '',
+      'To zła liczba. Dobre pytanie brzmi: ile osób wie, co konkretnie u ciebie kupić. Bez tego każdy kolejny post to tylko ruch.',
+      '',
+      'Napisz PYTANIE, a odpiszemy konkretnie na twój przypadek.',
+      '',
+      'zovu.pl',
+      '',
+      '#marketing #socialmedia #malafirma #agencjamarketingowa #katowice #zovu',
+    ].join(String.fromCharCode(10)),
+    czesci: [
+      { rola: 'hak', tekst: 'Najczęstsze pytanie w naszym DM.', szukaj: 'phone message notification hand', pauza: 0.36 },
+      { rola: 'hak', tekst: 'Ile postów muszę mieć, żeby ruszyło?', szukaj: 'person waiting phone anxious', pauza: 0.46 },
+      { rola: 'tresc', tekst: 'To zła liczba i złe pytanie.', szukaj: 'question mark thinking person', pauza: 0.30 },
+      { rola: 'tresc', tekst: 'Dobre brzmi: ile osób wie, co u ciebie kupić.', szukaj: 'shop window products display', pauza: 0.30 },
+      { rola: 'zaplata', tekst: 'Bez tego każdy kolejny post to tylko ruch.', szukaj: 'busy street people passing', pauza: 0.30 },
+      { rola: 'cta', tekst: 'Napisz PYTANIE, a odpiszemy konkretnie.', szukaj: 'typing message phone chat', pauza: 0.20 },
+    ],
+  },
+  {
+    nazwa: 'nie-obiecujemy-zasiegow',
+    temat: 'czego nie obiecujemy',
+    opis: [
+      'Nie obiecujemy zasięgów. I to jest dobra wiadomość.',
+      '',
+      'Zasięg kupisz reklamą w dziesięć minut. Klienta — nie. Płacisz nam za to, żeby ludzie w końcu wiedzieli, po co do ciebie napisać.',
+      '',
+      'Napisz KONKRET, a powiemy wprost, co zrobimy i czego nie.',
+      '',
+      'zovu.pl',
+      '',
+      '#marketing #agencjamarketingowa #malafirma #socialmedia #katowice #zovu',
+    ].join(String.fromCharCode(10)),
+    czesci: [
+      { rola: 'hak', tekst: 'Nie obiecujemy zasięgów.', szukaj: 'handshake business honest meeting', pauza: 0.36 },
+      { rola: 'hak', tekst: 'I to jest dobra wiadomość.', szukaj: 'person smiling relief office', pauza: 0.46 },
+      { rola: 'tresc', tekst: 'Zasięg kupisz reklamą w dziesięć minut.', szukaj: 'credit card online payment', pauza: 0.30 },
+      { rola: 'tresc', tekst: 'Klienta nie kupisz wcale.', szukaj: 'empty shop counter waiting', pauza: 0.32 },
+      { rola: 'zaplata', tekst: 'Płacisz za to, żeby wiedzieli, po co do ciebie pisać.', szukaj: 'customer talking seller shop', pauza: 0.30 },
+      { rola: 'cta', tekst: 'Napisz KONKRET, a powiemy wprost.', szukaj: 'typing message phone chat', pauza: 0.20 },
+    ],
+  },
 ];
 
 // ── отбраковка хромакея ───────────────────────────────────────────
@@ -287,8 +441,21 @@ console.log(`[rolka-auto] голос: ${glos.dlugosc.toFixed(2)} с, слов ${
 //    вместе с паузой после неё — чтобы картинка менялась вместе со смыслом.
 const klipy = [];
 for (const [i, c] of scen.czesci.entries()) {
-  const plik = await podklad(c, i, scen.nazwa);
-  if (!plik) throw new Error(`не нашёл подложку под «${c.szukaj}»`);
+  let plik = await podklad(c, i, scen.nazwa);
+
+  // Запасной запрос. Узкая формулировка иногда не находит на стоке ничего —
+  // и тогда падал ВЕСЬ день, из-за одной фразы. Кадр по смыслу лучше
+  // точного, но кадр вообще лучше пустой ленты, поэтому пробуем шире:
+  // сначала два первых слова запроса, потом нейтральный план.
+  if (!plik) {
+    const szersze = [c.szukaj.split(' ').slice(0, 2).join(' '), 'modern office work desk'];
+    for (const zapas of szersze) {
+      console.warn(`[rolka-auto] под «${c.szukaj}» ничего нет — пробую «${zapas}»`);
+      plik = await podklad({ ...c, szukaj: zapas }, i, scen.nazwa);
+      if (plik) break;
+    }
+  }
+  if (!plik) throw new Error(`не нашёл подложку под «${c.szukaj}» даже запасными запросами`);
   const f = glos.frazy[i];
   const nastepna = glos.frazy[i + 1];
   const dlugosc = (nastepna ? nastepna.a : glos.dlugosc) - (i === 0 ? 0 : f.a);
