@@ -124,7 +124,51 @@ for (const poz of kolejka) {
 await writeFile(WYNIKI, JSON.stringify(wyniki, null, 2) + '\n', 'utf8');
 console.log(`[wyniki] записей: ${wyniki.length}, новых: ${nowe}`);
 
+// ── охват по всему аккаунту ──────────────────────────────────────
+// Цифра одного ролика ни о чём не говорит, пока не видно фона. Охват 20
+// при тысяче подписчиков — это провал ролика или состояние аккаунта? Ответ
+// виден только рядом с последними публикациями любого типа: если у постов
+// то же самое, дело не в форме ролика и чинить надо не ленту.
+async function profil(token) {
+  const r = await fetch(
+    `${API}/me/media?fields=id,media_type,timestamp,like_count,comments_count&limit=15&access_token=${encodeURIComponent(token)}`
+  );
+  const j = await r.json();
+  if (j.error) return { blad: j.error.message };
+
+  const poz = [];
+  for (const m of j.data || []) {
+    const w = await pobierz(m.id, token, ['reach', 'views']);
+    poz.push({
+      typ: m.media_type,
+      kiedy: (m.timestamp || '').slice(0, 16).replace('T', ' '),
+      zasieg: w.reach ?? null,
+      odtworzenia: w.views ?? null,
+      lajki: m.like_count ?? null,
+    });
+  }
+  return { poz };
+}
+
 if (RAPORT) {
+  const p = await profil(token);
+  if (p.blad) {
+    console.warn('[wyniki] профиль не отдался:', p.blad);
+  } else if (p.poz.length) {
+    console.log('\n=== последние публикации аккаунта (фон) ===');
+    for (const m of p.poz) {
+      console.log(
+        `  ${m.kiedy}  ${String(m.typ).padEnd(11)} охват ${String(m.zasieg ?? '—').padStart(6)}` +
+          `  просм ${String(m.odtworzenia ?? '—').padStart(6)}  лайки ${String(m.lajki ?? '—').padStart(4)}`
+      );
+    }
+    const z = p.poz.map((m) => m.zasieg).filter((x) => x != null);
+    if (z.length) {
+      const sr = Math.round(z.reduce((a, b) => a + b, 0) / z.length);
+      console.log(`  средний охват последних ${z.length}: ${sr}`);
+    }
+  }
+
   console.log('\n=== что вышло ===');
   for (const w of wyniki.slice(-14)) {
     const d = w.dane || {};
