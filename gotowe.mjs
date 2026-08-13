@@ -80,6 +80,82 @@ async function stanAutopilota() {
 
 const stan = await stanAutopilota();
 
+// ── рилсы: что выйдет и что уже вышло ────────────────────────────
+// Недельная проверка Захаром выглядит так: открыть страницу с телефона.
+// Значит на ней должно быть видно не только посты, но и ролики — причём
+// ЗАРАНЕЕ, пока их ещё можно снять с выкладки. Раньше это можно было
+// увидеть только в репозитории, то есть практически никогда.
+//
+// Цифры показываем рядом с формой ролика: «охват 800» сам по себе не
+// говорит ничего, а «одна цифра — досмотр 61%, список — 38%» говорит всё.
+async function rolki() {
+  let kolejka = [];
+  try {
+    kolejka = JSON.parse(await readFile(path.join(DIR, 'rolki', 'kolejka.json'), 'utf8'));
+  } catch {
+    return null;
+  }
+  let wyniki = [];
+  try {
+    wyniki = JSON.parse(await readFile(path.join(DIR, 'rolki', 'wyniki.json'), 'utf8'));
+  } catch {
+    wyniki = [];
+  }
+  const poId = new Map(wyniki.map((w) => [w.id, w]));
+
+  const czekaja = kolejka
+    .filter((p) => !p.opublikowano && p.kiedy)
+    .sort((a, b) => Date.parse(a.kiedy) - Date.parse(b.kiedy));
+  const wyszly = kolejka
+    .filter((p) => p.opublikowano)
+    .sort((a, b) => Date.parse(b.opublikowano) - Date.parse(a.opublikowano))
+    .slice(0, 8);
+
+  return { czekaja, wyszly, poId };
+}
+
+const r = await rolki();
+
+const dzien = (s) =>
+  new Date(s).toLocaleString('pl-PL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+const kartaRolki = (p, wynik) => {
+  const d = wynik?.dane || {};
+  const liczby = wynik
+    ? `<div class="liczby">` +
+      [
+        d.reach != null ? `zasięg <b>${d.reach}</b>` : null,
+        d.plays != null ? `odtworzenia <b>${d.plays}</b>` : null,
+        d.saved != null ? `zapisy <b>${d.saved}</b>` : null,
+        d.shares != null ? `udostępnienia <b>${d.shares}</b>` : null,
+        wynik.dosmotr != null ? `obejrzane <b>${wynik.dosmotr}%</b>` : null,
+      ]
+        .filter(Boolean)
+        .join(' · ') +
+      `</div>`
+    : '';
+  return `<article class="rolka">
+    <video src="${RAW}/rolki/${p.plik}" controls playsinline preload="metadata"></video>
+    <div class="pod">
+      <div class="data">${esc(dzien(p.opublikowano || p.kiedy))}${p.forma ? ` · <span class="forma">${esc(p.forma)}</span>` : ''}${p.dlugosc ? ` · ${p.dlugosc} s` : ''}</div>
+      ${p.temat ? `<div class="temat">${esc(p.temat)}</div>` : ''}
+      ${liczby}
+    </div>
+  </article>`;
+};
+
+const sekcjaRolek = !r
+  ? ''
+  : `<h2>Rolki</h2>
+<p class="info">Najbliższe wyjdą same o 13:00. Obejrzyj zanim wyjdą — jeszcze można zdjąć.</p>
+${r.czekaja.map((p) => kartaRolki(p, null)).join('\n') || '<p class="info">Kolejka pusta.</p>'}
+${
+  r.wyszly.length
+    ? `<h2>Już wyszły</h2>\n` +
+      r.wyszly.map((p) => kartaRolki(p, r.poId.get(p.wynik?.instagram))).join('\n')
+    : ''
+}`;
+
 const karty = posty
   .slice(0, 40)
   .map((p) => {
@@ -135,6 +211,15 @@ const html = `<!doctype html><html lang="pl"><head>
   .stan.ok .kropka { background:#61d345; }
   .stan.zle { background:#1e0f0f; border-color:#5a2020; }
   .stan.zle .kropka { background:#ff4d4d; }
+  h2 { font-size:17px; letter-spacing:-.02em; margin:26px 0 4px; }
+  .rolka { background:#141414; border:1px solid #262626; border-radius:16px;
+    overflow:hidden; margin-bottom:14px; display:flex; gap:12px; align-items:stretch; }
+  .rolka video { width:104px; flex:none; display:block; background:#000; object-fit:cover; }
+  .rolka .pod { padding:12px 14px 12px 0; display:flex; flex-direction:column; justify-content:center; }
+  .rolka .temat { font-size:14px; color:#e4e4e4; line-height:1.4; margin-top:3px; }
+  .rolka .forma { color:#d4ff3f; }
+  .liczby { font-size:12px; color:#9a9a9a; margin-top:7px; line-height:1.6; }
+  .liczby b { color:#fff; font-weight:600; }
 </style></head><body>
 <h1>Posty gotowe do publikacji</h1>
 <div class="stan ${stan.klasa}">
@@ -144,6 +229,8 @@ const html = `<!doctype html><html lang="pl"><head>
 <p class="info">Autopilot publikuje sam do Instagrama i Facebooka.
 Tu leżą te same posty do ręcznej publikacji — skopiuj podpis, pobierz zdjęcie.
 Najnowsze na górze.</p>
+${sekcjaRolek}
+<h2>Posty</h2>
 ${karty || '<p class="info">Na razie pusto.</p>'}
 <script>
 for (const el of document.querySelectorAll('.post')) {

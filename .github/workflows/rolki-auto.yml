@@ -125,12 +125,20 @@ jobs:
           TOKEN_KEY: ${{ secrets.TOKEN_KEY }}
         run: node wyniki.mjs --raport
 
+      # Страницу пересобираем и здесь, а не только в прогоне постов: иначе
+      # свежий ролик появлялся бы на ней с задержкой до утра, то есть уже
+      # после того, как его можно было снять с выкладки.
+      - name: Odśwież stronę
+        if: ${{ !inputs.bez_kolejki }}
+        continue-on-error: true
+        run: node gotowe.mjs
+
       - name: Zapisz
         if: ${{ !inputs.bez_kolejki }}
         run: |
           git config user.name  "zovu-autopilot"
           git config user.email "autopilot@zovu.pl"
-          git add rolki/ || true
+          git add rolki/ index.html || true
           git diff --cached --quiet && echo "нечего записывать" && exit 0
           git commit -m "rolki: собран автоматический рилс [skip ci]"
           for i in 1 2 3; do
