@@ -89,6 +89,13 @@ for (const [i, f] of pliki.entries()) {
     () => null
   );
 
+  // Паспорт ролика кладём в очередь вместе с ним. Сбор цифр потом сложит
+  // показатели с тем, ЧЕМ ролик был: цифра без этого не отвечает ни на один
+  // вопрос — «охват 800» много или мало зависит от формы, длины и темы.
+  const meta = await readFile(path.join(OUT, f.replace(/\.mp4$/, '-meta.json')), 'utf8')
+    .then((t) => JSON.parse(t))
+    .catch(() => null);
+
   kolejka.push({
     plik: nazwa,
     kiedy,
@@ -96,6 +103,16 @@ for (const [i, f] of pliki.entries()) {
     tekst: opis || 'Robimy treści, które sprzedają.\n\nzovu.pl',
     opublikowano: null,
     zrodlo: f,
+    ...(meta
+      ? {
+          scenariusz: meta.scenariusz,
+          forma: meta.forma,
+          temat: meta.temat,
+          dlugosc: meta.dlugosc,
+          planow: meta.planow,
+          tempo: meta.tempo,
+        }
+      : {}),
   });
   zajete.add(kiedy);
   dodane++;

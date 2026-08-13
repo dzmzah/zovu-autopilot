@@ -40,6 +40,7 @@ const BEZ_KONTROLI = process.argv.includes('--bez-kontroli');
 const SCENARIUSZE = [
   {
     nazwa: 'trzy-bledy-w-postach',
+    forma: 'lista',
     temat: 'dlaczego posty nie sprzedają',
     wykres: {
       dni: 14,
@@ -178,6 +179,7 @@ const SCENARIUSZE = [
   // должна выглядеть как один шаблон с подменёнными словами.
   {
     nazwa: 'kulisy-bez-kamery',
+    forma: 'kulisy',
     temat: 'jak powstaje ta rolka',
     // Единственный сценарий, который рассказывает правду о самом себе.
     // Сильнее любого обещания: зритель смотрит доказательство.
@@ -205,6 +207,7 @@ const SCENARIUSZE = [
   },
   {
     nazwa: 'trzy-sekundy',
+    forma: 'jedna-liczba',
     temat: 'ile masz czasu na zatrzymanie widza',
     opis: [
       'Trzy sekundy. Tyle masz, zanim palec pojedzie dalej.',
@@ -230,6 +233,7 @@ const SCENARIUSZE = [
   },
   {
     nazwa: 'mit-codziennie',
+    forma: 'mit',
     temat: 'czy trzeba publikować codziennie',
     opis: [
       'Musisz postować codziennie — to najdroższy mit w tej branży.',
@@ -253,6 +257,7 @@ const SCENARIUSZE = [
   },
   {
     nazwa: 'opis-profilu-przed-po',
+    forma: 'przed-po',
     temat: 'jak przepisać opis profilu',
     opis: [
       '„Pasja, jakość, doświadczenie" — ten opis pasuje do każdej firmy w Polsce.',
@@ -276,6 +281,7 @@ const SCENARIUSZE = [
   },
   {
     nazwa: 'pytanie-z-dm',
+    forma: 'pytanie',
     temat: 'ile postów trzeba, żeby ruszyło',
     opis: [
       'Najczęstsze pytanie w naszym DM: „ile postów muszę mieć, żeby ruszyło?".',
@@ -299,6 +305,7 @@ const SCENARIUSZE = [
   },
   {
     nazwa: 'nie-obiecujemy-zasiegow',
+    forma: 'pod-prad',
     temat: 'czego nie obiecujemy',
     opis: [
       'Nie obiecujemy zasięgów. I to jest dobra wiadomość.',
@@ -531,6 +538,34 @@ console.log('[rolka-auto] собрано:', JSON.stringify(wynik));
 if (scen.opis) {
   await writeFile(path.join(OUT, `${plan.nazwa}-opis.txt`), scen.opis, 'utf8');
 }
+
+// ── паспорт ролика ────────────────────────────────────────────────
+// Цифры сами по себе ничего не говорят: «охват 800» — это много или мало
+// для ЭТОГО ролика? Ответ виден, только если рядом лежит, ЧЕМ он был:
+// какой сценарий, какой формы, какой длины, в каком темпе говорит.
+//
+// Пишем это рядом с файлом, очередь заберёт вместе с ним, а сбор цифр
+// сложит с показателями. Без паспорта выбор сценария по результатам —
+// то, ради чего всё и строится, — опирался бы на одно имя файла.
+await writeFile(
+  path.join(OUT, `${plan.nazwa}-meta.json`),
+  JSON.stringify(
+    {
+      scenariusz: scen.nazwa,
+      forma: scen.forma || 'lista',
+      temat: scen.temat,
+      dlugosc: wynik.sekundy,
+      planow: wynik.planow,
+      sredniPlan: wynik.sredniPlan,
+      frazy: glos.frazy.length,
+      tempo: glos.frazy.map((f) => +(((f.tekst.toLowerCase().match(/[aeiouyąęó]+/g) || []).length) / Math.max(0.2, f.b - f.a)).toFixed(1)),
+      hak: scen.czesci[0]?.tekst || null,
+    },
+    null,
+    2
+  ),
+  'utf8'
+);
 
 if (!BEZ_KONTROLI) {
   const kontrola = await sprawdzRolke(wynik.plik, {

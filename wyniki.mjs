@@ -84,6 +84,17 @@ for (const poz of kolejka) {
   wpis.hak = String(poz.tekst || '').split('\n')[0].slice(0, 90);
   wpis.dane = dane;
 
+  // Признаки ролика — из паспорта, который положила сборка. Без них цифры
+  // остаются числами: сравнивать «охват 800» можно только с охватом РОЛИКОВ
+  // ТОЙ ЖЕ формы. На этом и стоит будущий выбор сценария по результатам.
+  if (poz.scenariusz) wpis.scenariusz = poz.scenariusz;
+  if (poz.forma) wpis.forma = poz.forma;
+  if (poz.temat) wpis.temat = poz.temat;
+  if (poz.dlugosc) wpis.dlugosc = poz.dlugosc;
+  if (poz.tempo?.length) {
+    wpis.tempoSrednie = +(poz.tempo.reduce((a, b) => a + b, 0) / poz.tempo.length).toFixed(2);
+  }
+
   // Досмотр в долях: сколько секунд в среднем смотрели относительно длины.
   if (dane.ig_reels_avg_watch_time && poz.dlugosc) {
     wpis.dosmotr = +((dane.ig_reels_avg_watch_time / 1000 / poz.dlugosc) * 100).toFixed(1);
@@ -126,5 +137,37 @@ if (RAPORT) {
   if (srednie.length) {
     console.log('\n=== средний охват по часу выхода ===');
     for (const [g, sr, n] of srednie) console.log(`  ${g}:00  ${sr}  (роликов: ${n})`);
+  }
+
+  // Ради чего всё и затевалось: какая ФОРМА держит зрителя. Сравнивать
+  // формы между собой честно только по досмотру — охват зависит ещё и от
+  // того, кому площадка решила показать. Досмотр зависит от ролика.
+  //
+  // Пока роликов мало, вывод врёт: одна удачная тема перевесит форму.
+  // Поэтому рядом печатается, СКОЛЬКО роликов стоит за средним. Меньше
+  // трёх — это ещё не наблюдение, а совпадение.
+  const poFormie = {};
+  for (const w of wyniki) {
+    if (!w.forma) continue;
+    (poFormie[w.forma] ||= []).push(w);
+  }
+  const formy = Object.entries(poFormie)
+    .map(([f, xs]) => {
+      const d = xs.map((x) => x.dosmotr).filter((x) => x != null);
+      const r = xs.map((x) => x.dane?.reach).filter(Boolean);
+      const sr = (a) => (a.length ? Math.round((a.reduce((x, y) => x + y, 0) / a.length) * 10) / 10 : null);
+      return { forma: f, ile: xs.length, dosmotr: sr(d), zasieg: sr(r) };
+    })
+    .sort((a, b) => (b.dosmotr ?? -1) - (a.dosmotr ?? -1));
+
+  if (formy.length) {
+    console.log('\n=== по форме ролика ===');
+    for (const f of formy) {
+      console.log(
+        `  ${String(f.forma).padEnd(14)} досмотр ${String(f.dosmotr ?? '—').padStart(6)}%` +
+          `  охват ${String(f.zasieg ?? '—').padStart(7)}  (роликов: ${f.ile})` +
+          (f.ile < 3 ? '  ← мало данных' : '')
+      );
+    }
   }
 }
