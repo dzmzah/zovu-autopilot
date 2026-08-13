@@ -107,6 +107,24 @@ jobs:
         if: ${{ !inputs.bez_kolejki }}
         run: node do-kolejki.mjs --za-dni=${{ inputs.za_dni || '2' }}
 
+      # Цифры по уже вышедшим рилсам. Без обратной связи автоматика не
+      # улучшается, а дрейфует: те же шаблоны, тот же голос, и через месяц
+      # лента однообразна. Считаем досмотр, сохранения и пересылки — лайк
+      # не решает ничего, площадка разносит по досмотру.
+      #
+      # Шаг стоит ДО записи, и это важно. Он был после — то есть цифры
+      # снимались уже после коммита, `rolki/wyniki.json` оставался на сервере
+      # GitHub и умирал вместе с ним. Каждый день заново «записей: 1, новых: 1»,
+      # история не копилась вообще, и вся вторая неделя плана — выбор сценария
+      # по результатам — стояла бы на пустом файле.
+      - name: Zbierz wyniki
+        if: ${{ !inputs.bez_kolejki }}
+        continue-on-error: true
+        env:
+          INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+          TOKEN_KEY: ${{ secrets.TOKEN_KEY }}
+        run: node wyniki.mjs --raport
+
       - name: Zapisz
         if: ${{ !inputs.bez_kolejki }}
         run: |
@@ -121,18 +139,6 @@ jobs:
           done
           echo "::error::Не записал очередь — рилс собран, но не поставлен на выкладку"
           exit 1
-
-      # Цифры по уже вышедшим рилсам. Без обратной связи автоматика не
-      # улучшается, а дрейфует: те же шаблоны, тот же голос, и через месяц
-      # лента однообразна. Считаем досмотр, сохранения и пересылки — лайк
-      # не решает ничего, площадка разносит по досмотру.
-      - name: Zbierz wyniki
-        if: ${{ !inputs.bez_kolejki }}
-        continue-on-error: true
-        env:
-          INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
-          TOKEN_KEY: ${{ secrets.TOKEN_KEY }}
-        run: node wyniki.mjs --raport
 
       - name: Zachowaj podgląd
         if: always()
