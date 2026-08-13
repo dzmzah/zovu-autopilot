@@ -1,0 +1,24 @@
+[
+  {
+    "id": "17904017535498586",
+    "plik": "kuba-trzy-powody.mp4",
+    "opublikowano": "2026-08-12T11:30:46.189Z",
+    "zebrane": "2026-08-13T21:42:11.162Z",
+    "godzina": 13,
+    "hak": "Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.",
+    "dane": {
+      "blad": "Invalid OAuth access token - Cannot parse access token"
+    }
+  },
+  {
+    "id": "18102631457151085",
+    "plik": "auto-2026-08-12-2.mp4",
+    "opublikowano": "2026-08-13T11:42:43.166Z",
+    "zebrane": "2026-08-13T21:42:11.206Z",
+    "godzina": 13,
+    "hak": "Pytanie „ile kosztuje strona?\" jest jak „ile kosztuje samochód\".",
+    "dane": {
+      "blad": "Invalid OAuth access token - Cannot parse access token"
+    }
+  }
+]

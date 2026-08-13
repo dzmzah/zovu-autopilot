@@ -98,5 +98,30 @@
       5
     ],
     "dlugosc": 20.43
+  },
+  {
+    "plik": "auto-2026-08-13-1-2.mp4",
+    "kiedy": "2026-08-17T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb"
+    ],
+    "tekst": "Masz zasięgi, masz polubienia, a wiadomości zero.\n\nTo nie przypadek i nie algorytm. To trzy rzeczy w twoim profilu, które mówią „nie pisz do mnie\".\n\nNapisz PROFIL, a powiemy, która z nich blokuje cię najbardziej.\n\nzovu.pl\n\n#instagram #socialmedia #marketing #malafirma #agencjamarketingowa #zovu",
+    "opublikowano": null,
+    "zrodlo": "auto-dlaczego-nikt-nie-pisze.mp4",
+    "scenariusz": "dlaczego-nikt-nie-pisze",
+    "forma": "lista",
+    "temat": "dlaczego profil nie generuje wiadomości",
+    "dlugosc": 21.9,
+    "planow": 7,
+    "tempo": [
+      4.6,
+      4.8,
+      4.8,
+      4.7,
+      3.4,
+      4.7,
+      3.5
+    ]
   }
 ]
