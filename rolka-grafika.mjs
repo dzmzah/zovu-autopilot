@@ -6,7 +6,7 @@
 // на стоке, здесь её нет вообще. Из-за этого уходит и главное, что выдаёт
 // автоматическую сборку, — разнобой чужих кадров: разный свет, разный цвет,
 // разные люди. Тут каждый пиксель наш.
-import { mkdir, writeFile, readFile, rm } from 'node:fs/promises';
+import { mkdir, writeFile, readFile, rm, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
@@ -136,7 +136,24 @@ await ffmpeg([
 ]);
 
 // ── сведение ──────────────────────────────────────────────────────
-const muzyka = path.join(DIR, 'music', 'pixabay-creative-technology-showreel.mp3');
+// Музыка по кругу, как и в обычных рилсах. В первой версии я жёстко взял
+// тот же трек, что звучал везде, — и Захар услышал это первым же вопросом:
+// «почему опять та же музыка». Однообразие на слух ловится быстрее всего.
+const utwory = (await readdir(path.join(DIR, 'music')).catch(() => []))
+  .filter((f) => /\.mp3$/i.test(f))
+  .sort();
+const stanMuz = path.join(DIR, 'rolki', 'stan.json');
+let stanM = {};
+try { stanM = JSON.parse(await readFile(stanMuz, 'utf8')); } catch { stanM = {}; }
+const idxMuz = utwory.length ? ((stanM.muzykaGrafika ?? -1) + 1) % utwory.length : 0;
+if (utwory.length) {
+  stanM.muzykaGrafika = idxMuz;
+  await writeFile(stanMuz, JSON.stringify(stanM, null, 2) + String.fromCharCode(10), 'utf8');
+  console.log(`[grafika] музыка ${idxMuz + 1} из ${utwory.length}: ${utwory[idxMuz]}`);
+}
+const muzyka = utwory.length
+  ? path.join(DIR, 'music', utwory[idxMuz])
+  : path.join(DIR, 'music', 'pixabay-creative-technology-showreel.mp3');
 const gotowy = path.join(OUT, 'auto-grafika-trzy-sekundy.mp4');
 await ffmpeg([
   '-i', wideo, '-i', glos.plik, '-i', muzyka, '-i', stuki,
