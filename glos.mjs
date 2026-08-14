@@ -475,10 +475,16 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
       // и тратятся они только там, где иначе вышла бы скороговорка.
       // Фразы ВНЕ полосы — и быстрые, и тянущие. Считаем одинаково: обе
       // портят, просто по-разному.
+      // Короткие фразы из счёта «тянет» исключаем. «Trzy sekundy» — четыре
+      // слога; сказанные с весом и паузой, они дают 3.3 слог/с и по счёту
+      // выглядят как затянутые, хотя вес там ровно к месту. Темп имеет смысл
+      // мерить там, где есть чему течь.
       const poza = (g) =>
         g.filter(([a, b], i) => {
-          const t = sylaby(frazy[i].tekst) / Math.max(0.2, b - a);
-          return t > progDla(frazy[i].rola) || t < TEMPO_MIN;
+          const syl = sylaby(frazy[i].tekst);
+          const t = syl / Math.max(0.2, b - a);
+          if (t > progDla(frazy[i].rola)) return true;
+          return syl >= 8 && t < TEMPO_MIN;
         }).length;
       const liczSzybkie = (g) =>
         g.filter(([a, b], i) => sylaby(frazy[i].tekst) / Math.max(0.2, b - a) > progDla(frazy[i].rola))
