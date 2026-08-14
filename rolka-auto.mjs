@@ -16,7 +16,7 @@
 //   node rolka-auto.mjs                  — собрать по сценарию из банка
 //   node rolka-auto.mjs --scenariusz=2   — взять другой сценарий
 //   node rolka-auto.mjs --bez-kontroli   — не проверять результат замерами
-import { mkdir, writeFile, readFile, rm } from 'node:fs/promises';
+import { mkdir, writeFile, readFile, rm, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -202,7 +202,6 @@ const SCENARIUSZE = [
       { rola: 'tresc', tekst: 'Scenariusz, głos, materiał, montaż.', szukaj: 'code screen developer night', pauza: 0.30 },
       { rola: 'tresc', tekst: 'Wszystko składa się samo, o szóstej rano.', szukaj: 'sunrise city morning window', pauza: 0.30 },
       { rola: 'zaplata', tekst: 'Tak robimy treści, kiedy termin był na wczoraj.', szukaj: 'clock deadline office desk', pauza: 0.30 },
-      { rola: 'cta', tekst: 'Napisz TEMPO, a pokażemy jak to ustawić.', szukaj: 'typing message phone chat', pauza: 0.20 },
     ],
   },
   {
@@ -228,7 +227,7 @@ const SCENARIUSZE = [
       { rola: 'tresc', tekst: 'Widz nie ocenia wtedy jakości.', szukaj: 'person watching phone bored', pauza: 0.30 },
       { rola: 'tresc', tekst: 'Sprawdza jedno: czy to o nim.', szukaj: 'person pointing at himself', pauza: 0.30 },
       { rola: 'zaplata', tekst: 'Dlatego pierwsze zdanie mówi o widzu, nie o tobie.', szukaj: 'conversation two people listening', pauza: 0.30 },
-      { rola: 'cta', tekst: 'Napisz START, a przejrzymy twój początek.', szukaj: 'typing message phone chat', pauza: 0.20 },
+      { rola: 'cta', tekst: 'Włącz swoją ostatnią rolkę i posłuchaj pierwszego zdania.', szukaj: 'person watching phone thinking', pauza: 0.20 },
     ],
   },
   {
@@ -252,7 +251,7 @@ const SCENARIUSZE = [
       { rola: 'tresc', tekst: 'Codziennie znaczy w pośpiechu.', szukaj: 'rushing hands typing fast', pauza: 0.28 },
       { rola: 'tresc', tekst: 'A w pośpiechu znaczy o niczym.', szukaj: 'empty blank paper desk', pauza: 0.30 },
       { rola: 'zaplata', tekst: 'Algorytm liczy, ile osób zostało. Nie ile razy wrzuciłeś.', szukaj: 'analytics graph screen data', pauza: 0.30 },
-      { rola: 'cta', tekst: 'Napisz RYTM, a ułożymy plan pod ciebie.', szukaj: 'typing message phone chat', pauza: 0.20 },
+      { rola: 'cta', tekst: 'A ty ile razy w tygodniu publikujesz? Napisz w komentarzu.', szukaj: 'people commenting phone social', pauza: 0.20 },
     ],
   },
   {
@@ -276,7 +275,7 @@ const SCENARIUSZE = [
       { rola: 'tresc', tekst: 'A teraz to samo, tylko konkretnie.', szukaj: 'sharp focus lens adjust', pauza: 0.30 },
       { rola: 'tresc', tekst: 'Zdjęcia mebli, które sprzedają się w sieci.', szukaj: 'furniture product photography studio', pauza: 0.30 },
       { rola: 'zaplata', tekst: 'Różnica jedna: druga wersja mówi, dla kogo jesteś.', szukaj: 'person reading phone smiling', pauza: 0.30 },
-      { rola: 'cta', tekst: 'Napisz OPIS, a przepiszemy twój.', szukaj: 'typing message phone chat', pauza: 0.20 },
+      { rola: 'cta', tekst: 'Zapisz i przepisz swój dziś wieczorem.', szukaj: 'person writing notebook evening', pauza: 0.20 },
     ],
   },
   {
@@ -324,7 +323,7 @@ const SCENARIUSZE = [
       { rola: 'tresc', tekst: 'Zasięg kupisz reklamą w dziesięć minut.', szukaj: 'credit card online payment', pauza: 0.30 },
       { rola: 'tresc', tekst: 'Klienta nie kupisz wcale.', szukaj: 'empty shop counter waiting', pauza: 0.32 },
       { rola: 'zaplata', tekst: 'Płacisz za to, żeby wiedzieli, po co do ciebie pisać.', szukaj: 'customer talking seller shop', pauza: 0.30 },
-      { rola: 'cta', tekst: 'Napisz KONKRET, a powiemy wprost.', szukaj: 'typing message phone chat', pauza: 0.20 },
+      { rola: 'cta', tekst: 'Chcesz usłyszeć to o swojej firmie? Napisz KONKRET.', szukaj: 'typing message phone chat', pauza: 0.20 },
     ],
   },
 ];
@@ -431,6 +430,32 @@ async function nastepnyScenariusz() {
   return { scen: SCENARIUSZE[idx], idx };
 }
 
+// ── музыка по кругу ───────────────────────────────────────────────
+// Трек был зашит один на все ролики. Захар услышал это раньше, чем я успел
+// заметить: «почему везде одна и та же музыка». Однообразие на слух ловится
+// быстрее, чем однообразие текста, — лента начинает звучать как рассылка,
+// даже если каждый ролик про своё.
+//
+// Идём по кругу и помним прошлый: два дня подряд один трек — это ровно то,
+// что слышно.
+async function nastepnaMuzyka() {
+  const kat = path.join(DIR, 'music');
+  const pliki = (await readdir(kat).catch(() => []))
+    .filter((f) => /\.mp3$/i.test(f))
+    .sort();
+  if (!pliki.length) return null;
+
+  let stan = {};
+  try { stan = JSON.parse(await readFile(STAN, 'utf8')); } catch { stan = {}; }
+  const idx = ((stan.muzyka ?? -1) + 1) % pliki.length;
+  stan.muzyka = idx;
+  await mkdir(path.dirname(STAN), { recursive: true });
+  await writeFile(STAN, JSON.stringify(stan, null, 2) + String.fromCharCode(10), 'utf8');
+
+  console.log(`[rolka-auto] музыка ${idx + 1} из ${pliki.length}: ${pliki[idx]}`);
+  return path.join(kat, pliki[idx]);
+}
+
 const { scen, idx: scenIdx } = await nastepnyScenariusz();
 console.log(`[rolka-auto] сценарий ${scenIdx + 1} из ${SCENARIUSZE.length}: ${scen.nazwa}`);
 
@@ -495,7 +520,7 @@ const wstawki = zaplataIdx >= 0
 
 const plan = {
   nazwa: `auto-${scen.nazwa}`,
-  muzyka: path.join(DIR, 'music', 'pixabay-creative-technology-showreel.mp3'),
+  muzyka: (await nastepnaMuzyka()) || path.join(DIR, 'music', 'pixabay-creative-technology-showreel.mp3'),
   podkladGlosnosc: 0.11,
   podkladOgon: 0.17,
   powietrzeTlo: 0.02,
