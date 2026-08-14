@@ -222,7 +222,7 @@ const SCENARIUSZE = [
       '#reels #socialmedia #marketing #contentmarketing #agencjamarketingowa #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Trzy sekundy.', szukaj: 'stopwatch timer close up', pauza: 0.40 },
+      { rola: 'hak', tekst: 'Trzy sekundy.', stempel: { numer: '3', podpis: 'sekundy' }, szukaj: 'stopwatch timer close up', pauza: 0.40 },
       { rola: 'hak', tekst: 'Tyle masz, zanim palec pojedzie dalej.', szukaj: 'thumb scrolling phone fast', pauza: 0.46 },
       { rola: 'tresc', tekst: 'Widz nie ocenia wtedy jakości.', szukaj: 'person watching phone bored', pauza: 0.30 },
       { rola: 'tresc', tekst: 'Sprawdza jedno: czy to o nim.', szukaj: 'person pointing at himself', pauza: 0.30 },
@@ -247,7 +247,7 @@ const SCENARIUSZE = [
     ].join(String.fromCharCode(10)),
     czesci: [
       { rola: 'hak', tekst: 'Musisz postować codziennie.', szukaj: 'calendar days planning wall', pauza: 0.34 },
-      { rola: 'hak', tekst: 'To najdroższy mit w tej branży.', szukaj: 'tired person laptop late', pauza: 0.46 },
+      { rola: 'hak', tekst: 'To najdroższy mit w tej branży.', stempel: { numer: 'MIT', podpis: 'a nie zasada' }, szukaj: 'tired person laptop late', pauza: 0.46 },
       { rola: 'tresc', tekst: 'Codziennie znaczy w pośpiechu.', szukaj: 'rushing hands typing fast', pauza: 0.28 },
       { rola: 'tresc', tekst: 'A w pośpiechu znaczy o niczym.', szukaj: 'empty blank paper desk', pauza: 0.30 },
       { rola: 'zaplata', tekst: 'Algorytm liczy, ile osób zostało. Nie ile razy wrzuciłeś.', szukaj: 'analytics graph screen data', pauza: 0.30 },
@@ -500,6 +500,25 @@ const tytuly = scen.czesci
   .map((c, i) => (c.numer ? { start: +(glos.frazy[i].a - 0.10).toFixed(2), dlugosc: 1.45, numer: String(c.numer), tekst: c.tytul } : null))
   .filter(Boolean);
 
+// 3.5 Штампы: огромная цифра или слово во весь кадр под фразу. Движок это
+//     умел с ролика про Kuba, а конвейер ни разу не просил — все рилсы шли
+//     на одних караоке-подписях. Это и есть «прибавить монтажа»: приём
+//     ставится там, где он и есть смысл фразы, а не для украшения.
+//     Пока штамп на экране, караоке прячется — два текста кадр не держат.
+const stemple = scen.czesci
+  .map((c, i) =>
+    c.stempel
+      ? {
+          start: +(glos.frazy[i].a - 0.08).toFixed(2),
+          dlugosc: +((glos.frazy[i].b - glos.frazy[i].a) + 0.55).toFixed(2),
+          numer: c.stempel.numer,
+          podpis: c.stempel.podpis || '',
+        }
+      : null
+  )
+  .filter(Boolean);
+if (stemple.length) console.log(`[rolka-auto] штампов: ${stemple.length}`);
+
 // 4. График вместо стока на «расплате»: цифра, которая растёт, смотрится,
 //    а готовая пролистывается.
 // График ставится ТОЛЬКО если сценарий его просит. Раньше он был зашит
@@ -538,6 +557,7 @@ const plan = {
   glos: { plik: glos.plik, slowa: glos.slowa },
   klipy,
   tytuly,
+  stemple,
   wstawki,
   ogon: {
     marka: true,

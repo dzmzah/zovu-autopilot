@@ -1240,9 +1240,14 @@ export async function zbuduj(plan) {
     ? GLOS_ZEWN.slowa.map((w) => ({ tekst: w.tekst, a: +w.a, b: +w.b }))
     : heroSegs.flatMap((s) => s.slowa || []);
   const karaoke = plan.karaoke !== false && wszystkieSlowa.length > 3;
+  // Окна штампов — та же логика, что у титров: пока на экране огромная цифра,
+  // караоке-подпись под ней читается как вторая мысль. Раньше это не всплывало
+  // только потому, что штампы и караоке ни разу не встречались в одном ролике.
+  const oknaStempli = stemple.map((s) => ({ a: +s.start, b: +s.start + (+s.dlugosc || 1.2) }));
+
   const frazy = karaoke
     ? zbierzFrazy(wszystkieSlowa, plan.maxZnakow ?? 20, plan.maxSlow ?? 3).filter(
-        (f) => !oknaTytulow.some((o) => f.a < o.b && f.b > o.a)
+        (f) => ![...oknaTytulow, ...oknaStempli].some((o) => f.a < o.b && f.b > o.a)
       )
     : [];
 
