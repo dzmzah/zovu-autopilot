@@ -73,17 +73,27 @@ for (const [i, f] of pliki.entries()) {
     continue;
   }
 
-  await copyFile(path.join(OUT, f), path.join(ROLKI, nazwa));
-
-  const d = new Date();
-  d.setDate(d.getDate() + ZA_DNI);
-  const godz = SLOTY[i % SLOTY.length];
-  // Польша летом +02:00. Строкой, а не через локаль сервера: на сервере UTC.
-  const kiedy = `${d.toISOString().slice(0, 10)}T${String(godz).padStart(2, '0')}:00:00+02:00`;
-  if (zajete.has(kiedy)) {
-    console.log(`[kolejka] ${kiedy} уже занято, пропускаю ${nazwa}`);
+  // Ищем ПЕРВЫЙ СВОБОДНЫЙ слот начиная с целевого дня, а не проверяем один.
+  // Раньше занятый слот означал «пропускаю»: 14.08 сборка сделала ролик,
+  // упёрлась в 16.08 (там уже стоял поставленный руками) и молча его
+  // выбросила. Ролик собран, проверку прошёл, озвучка оплачена — и в мусор,
+  // без единой строчки тревоги. Очередь на два дня вперёд по определению
+  // сталкивается с ручными вставками, значит она обязана уметь подвинуться.
+  let kiedy = null;
+  for (let plus = 0; plus < 10 && !kiedy; plus++) {
+    const d = new Date();
+    d.setDate(d.getDate() + ZA_DNI + plus);
+    for (const godz of SLOTY) {
+      const kandydat = `${d.toISOString().slice(0, 10)}T${String(godz).padStart(2, '0')}:00:00+02:00`;
+      if (!zajete.has(kandydat)) { kiedy = kandydat; break; }
+    }
+  }
+  if (!kiedy) {
+    console.log(`[kolejka] свободного слота на десять дней вперёд нет — ${nazwa} оставляю в out/`);
     continue;
   }
+
+  await copyFile(path.join(OUT, f), path.join(ROLKI, nazwa));
 
   const opis = await readFile(path.join(OUT, f.replace(/\.mp4$/, '-opis.txt')), 'utf8').catch(
     () => null
