@@ -970,6 +970,26 @@ async function zbudujStuki(zdarzenia, total, tmp) {
   return out;
 }
 
+// Где в файле начинается звук. Нужно для музыки: у части треков в начале
+// тишина или очень тихое вступление, и подложка стартует пустой.
+async function poczatekDzwieku(plik) {
+  try {
+    const { stderr } = await execFileAsync(
+      'ffmpeg',
+      ['-v', 'info', '-i', plik, '-af', 'silencedetect=n=-40dB:d=0.15', '-f', 'null', '-'],
+      { maxBuffer: 32 * 1024 * 1024 }
+    );
+    const starty = [...stderr.matchAll(/silence_start:\s*([0-9.]+)/g)].map((m) => +m[1]);
+    const konce = [...stderr.matchAll(/silence_end:\s*([0-9.]+)/g)].map((m) => +m[1]);
+    // Тишина в начале — та, что стартует с нуля. Берём её конец с небольшим
+    // запасом назад, чтобы не срезать атаку первой ноты.
+    if (starty.length && starty[0] < 0.05 && konce.length) return Math.max(0, konce[0] - 0.05);
+    return 0;
+  } catch {
+    return 0;
+  }
+}
+
 async function pickMusic() {
   try {
     const f = (await readdir(MUSIC_DIR)).filter((x) => /\.(mp3|m4a|aac|wav)$/i.test(x));
@@ -1619,7 +1639,15 @@ export async function zbuduj(plan) {
     // поверх закрывает и дырку от подрезки, и разницу фонов между клипами.
     const powietrzeTlo = plan.powietrzeTlo ?? 0.022;
 
-    const wejsciaA = ['-i', wynikV, '-i', music,
+    // Трек начинаем НЕ с нуля, а с первого места, где в нём есть звук.
+    // Пока музыка была одна, это не мешало; с ротацией вылезло сразу же:
+    // у второго трека полсекунды тишины в начале, и проверка честно нашла
+    // «провал звука на 0.00 с». Заодно это лечит вялые интро — вступление
+    // с нарастанием под двадцатисекундный ролик не годится вовсе.
+    const odMuzyki = await poczatekDzwieku(music);
+    if (odMuzyki > 0.05) console.log(`[awatar] музыка со звука: ${odMuzyki.toFixed(2)} с`);
+
+    const wejsciaA = ['-i', wynikV, '-ss', odMuzyki.toFixed(3), '-i', music,
       '-f', 'lavfi', '-i', `anoisesrc=c=brown:a=${powietrzeTlo}:r=48000:d=${(totalWideo + 1).toFixed(2)}`];
     let idx = 3;
     let stukiIdx = -1;
@@ -1642,7 +1670,12 @@ export async function zbuduj(plan) {
       // читался как обрыв.
       `[1:a]atrim=0:${totalWideo.toFixed(2)},asetpts=N/SR/TB,` +
         `volume='${cichy}+(${glosny}-${cichy})*min(1,max(0,(t-${(totalHero + 0.1).toFixed(2)})/1.5))':eval=frame,` +
-        `afade=t=in:st=0:d=0.5,afade=t=out:st=${fade}:d=1.4[bed]`,
+        // Вплывание было полсекунды — ровно столько, сколько ролик молчит
+        // перед первой фразой. Зритель попадал в кадр, где нет ни текста, ни
+        // звука; проверка честно называла это провалом звука на 0.00 с.
+        // Текст теперь на первом кадре, музыка тоже: 0.12 с — это уже не
+        // «вплыло», а «играет», но и не щелчок.
+        `afade=t=in:st=0:d=0.12,afade=t=out:st=${fade}:d=1.4[bed]`,
     ];
 
     // ── музыка пригасает под голосом ───────────────────────────────
