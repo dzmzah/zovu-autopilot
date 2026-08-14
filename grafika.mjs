@@ -67,7 +67,7 @@ export function grafikaHtml(plan, obrazki, total) {
   const licznik = JSON.stringify(plan.licznik || null);
 
   return `<!doctype html><html><head><meta charset="utf-8">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@800;900&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { width:${W}px; height:${H}px; overflow:hidden; }
@@ -78,7 +78,10 @@ html,body { width:${W}px; height:${H}px; overflow:hidden; }
    пятна двигаются медленно, ближние быстрее — это и есть параллакс, из
    которого глаз собирает объём. Сверху зерно: чистый цифровой градиент
    всегда выглядит плоско, шум даёт ему поверхность. */
-body { font-family:'Inter',sans-serif; background:linear-gradient(180deg,#0e0a1e 0%,#070512 100%);
+/* Фон страницы ПРОЗРАЧНЫЙ: под него подкладывается настоящее видео из
+   набора абстрактных фонов Захара. Рисовать среду самому, когда рядом
+   лежат полсотни готовых анимированных — значит делать хуже и дольше. */
+body { font-family:'Inter',sans-serif; background:transparent;
   perspective:1400px; perspective-origin:50% 42%; }
 
 .plama { position:absolute; border-radius:50%; filter:blur(90px); opacity:.55;
@@ -113,9 +116,18 @@ body { font-family:'Inter',sans-serif; background:linear-gradient(180deg,#0e0a1e
   filter:blur(18px); will-change:transform,opacity; opacity:0; }
 
 /* Подпись: одно слово, капсом, крупно. Читается на бегу, не мешает объектам. */
-.slowo { position:absolute; left:60px; right:60px; bottom:300px; text-align:center;
-  font-weight:900; font-size:104px; letter-spacing:-2px; text-transform:uppercase;
-  color:#fff; text-shadow:0 8px 34px rgba(0,0,0,.6); opacity:0; }
+/* Подпись. Просто жирный белый текст — это «есть субтитры», а не приём.
+   Работает связка из четырёх вещей: толстая тёмная обводка (читается на
+   любом фоне), плотный узкий шрифт, лёгкий наклон и подскок на появлении.
+   Ключевое слово подсвечивается цветом — глаз цепляется за него, а не
+   читает строку целиком. */
+.slowo { position:absolute; left:50px; right:50px; bottom:300px; text-align:center;
+  font-family:'Archivo Black','Inter',sans-serif; font-weight:900;
+  font-size:112px; line-height:1.02; letter-spacing:-3px; text-transform:uppercase;
+  color:#fff; opacity:0; transform-origin:50% 60%;
+  -webkit-text-stroke:9px #0b0718; paint-order:stroke fill;
+  text-shadow:0 10px 0 rgba(11,7,24,.55), 0 18px 42px rgba(0,0,0,.55); }
+.slowo.akcent { color:#d4ff3f; }
 
 /* Барабан: цифра меняется со смазом, как одометр. */
 .licznik { position:absolute; left:0; right:0; top:640px; text-align:center;
@@ -123,7 +135,6 @@ body { font-family:'Inter',sans-serif; background:linear-gradient(180deg,#0e0a1e
   text-shadow:0 10px 40px rgba(0,0,0,.5); opacity:0; }
 .licznik .suf { font-size:88px; letter-spacing:-2px; opacity:.85; margin-left:14px; }
 </style></head><body>
-<div class="plama p1"></div><div class="plama p2"></div><div class="plama p3"></div>
 <div class="podloga"></div>
 ${obiekty}
 <div class="licznik"><span class="cyf">0</span><span class="suf"></span></div>
@@ -218,10 +229,18 @@ window.setT = (t) => {
   // Подпись по словам — берём слово, которое звучит прямо сейчас.
   const w = SLOWA.find((s) => t >= s.a - 0.06 && t < s.b + 0.16);
   if (w) {
-    elSlowo.textContent = w.tekst.replace(/[.,!?…]+$/, '');
-    const p = clamp01((t - (w.a - 0.06)) / 0.12);
-    elSlowo.style.opacity = 1;
-    elSlowo.style.transform = 'scale(' + (0.9 + 0.1 * p).toFixed(3) + ')';
+    const czysty = w.tekst.replace(/[.,!?…]+$/, '');
+    elSlowo.textContent = czysty;
+    // Длинные слова — важные: на них цвет. Служебные проскакивают белыми,
+    // и глаз не дёргается на каждом «и», «за», «то».
+    elSlowo.classList.toggle('akcent', czysty.replace(/[^\\p{L}]/gu, '').length >= 7);
+
+    // Подскок: слово выходит с перелётом и лёгким наклоном, а не проявляется.
+    const p = clamp01((t - (w.a - 0.06)) / 0.14);
+    const e = 1 + 2.7 * Math.pow(p - 1, 3) + 1.7 * Math.pow(p - 1, 2);
+    elSlowo.style.opacity = Math.min(1, p * 2.2);
+    elSlowo.style.transform =
+      'scale(' + (0.82 + 0.18 * e).toFixed(3) + ') rotate(' + ((1 - e) * -3.2).toFixed(2) + 'deg)';
   } else {
     elSlowo.style.opacity = 0;
   }
@@ -261,7 +280,7 @@ export async function renderujKlatki(html, sekundy, outDir) {
   const klatek = Math.ceil(sekundy * FPS);
   for (let i = 0; i < klatek; i++) {
     await page.evaluate((t) => window.setT(t), i / FPS);
-    await page.screenshot({ path: path.join(outDir, `f${String(i).padStart(5, '0')}.png`) });
+    await page.screenshot({ path: path.join(outDir, `f${String(i).padStart(5, '0')}.png`), omitBackground: true });
   }
   await browser.close();
   return klatek;

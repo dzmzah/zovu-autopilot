@@ -581,14 +581,27 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
     // которой в ролике быть не должно.
     const ost = meta[meta.length - 1];
     const [, koniecMowy] = await granicaMowy(surowa, -38);
-    if (koniecMowy > ost.a + 0.2 && koniecMowy < ost.b) {
+
+    // Замер конца речи и разметка расходятся по двум разным причинам, и
+    // путать их нельзя. Хвост тишины, приписанный последнему символу, — это
+    // секунда-полторы. А тихое последнее слово, которое замер не расслышал, —
+    // это доли секунды. Поэтому подрезаем ТОЛЬКО правдоподобный хвост и
+    // всегда с запасом: Захар получил «Włącz swoją ostat…» ровно потому, что
+    // я поверил замеру без оглядки.
+    const zapas = 0.25;
+    const roznica = ost.b - koniecMowy;
+    if (koniecMowy > ost.a + 0.2 && roznica > 0.3 && roznica < 1.8) {
       console.log(
-        `[glos] хвост дубля: последняя фраза кончается на ${koniecMowy.toFixed(2)}, а разметка тянула до ${ost.b.toFixed(2)}`
+        `[glos] хвост дубля: речь кончилась на ${koniecMowy.toFixed(2)}, разметка тянула до ${ost.b.toFixed(2)}`
       );
-      ost.b = +koniecMowy.toFixed(3);
+      ost.b = +(koniecMowy + zapas).toFixed(3);
     }
-    // Дорожку режем по концу речи плюс короткий хвост под наезд аутро.
-    await ffmpeg(['-i', surowa, '-t', (ost.b + 0.35).toFixed(3), '-c:a', 'copy', plik]);
+
+    // Дорожку НЕ режем. Логическую длину отдаём наверх, а лишнюю тишину
+    // отрежет сведение — там она обрезается по плану ролика. Резать здесь
+    // значило бы рисковать словом ради секунды тишины, которую и так никто
+    // не услышит.
+    await copyFile(surowa, plik);
 
     // Темп смотрим по тем же таймингам — отдельного замера не нужно.
     const tempa = meta.map((m) => sylaby(m.tekst) / Math.max(0.2, m.b - m.a));
@@ -597,7 +610,11 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
     if (szybkie) console.warn(`[glos] быстрых фраз: ${szybkie} — дубль вышел торопливым`);
 
     const slowa = meta.flatMap((m) => rozlozSlowa(m.tekst, m.a, m.b));
-    return { plik, frazy: meta, slowa, dlugosc: +(await trwanie(plik)).toFixed(3) };
+    // Длина ЛОГИЧЕСКАЯ — по концу речи, а не по длине файла. Клипы режутся
+    // по ней, поэтому мёртвой секунды перед аутро не будет, а в самом файле
+    // хвост пусть лежит: обрезать его опасно, игнорировать — нет.
+    const dlugoscLog = +(ost.b + 0.35).toFixed(3);
+    return { plik, frazy: meta, slowa, dlugosc: dlugoscLog };
   }
 
   const czesci = [];

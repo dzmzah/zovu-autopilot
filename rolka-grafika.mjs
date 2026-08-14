@@ -7,6 +7,7 @@
 // автоматическую сборку, — разнобой чужих кадров: разный свет, разный цвет,
 // разные люди. Тут каждый пиксель наш.
 import { mkdir, writeFile, readFile, rm } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -69,13 +70,42 @@ await rm(katKlatek, { recursive: true, force: true });
 const klatek = await renderujKlatki(grafikaHtml(plan, obrazki, total), total, katKlatek);
 console.log(`[grafika] отрисовано кадров: ${klatek}`);
 
+// ── подложка ──────────────────────────────────────────────────────
+// Фон берём из набора Захара: полсотни готовых анимированных абстракций,
+// среди них топография — ровно та фактура, что в образце. Рисовать среду
+// самому, когда рядом лежит снятая, значит делать хуже и дольше.
+//
+// Ролик длиннее подложки, поэтому она зацикливается; медленный наезд поверх
+// добавляет ещё один слой движения, чтобы фон не выглядел петлёй.
+// Четыре петли лежат в репозитории: они пережаты в 1080x1920 и весят по
+// мегабайту, поэтому доступны и на сервере, где диска Захара нет.
+const TLA = ['topografia-2.mp4', 'topografia-3.mp4', 'abstrakcja-3.mp4', 'gradient-2.mp4'];
+const TLO = process.env.TLO_WIDEO || path.join(DIR, 'tlo', TLA[0]);
+
 const wideo = path.join(OUT, 'grafika-nieme.mp4');
-await ffmpeg([
-  '-framerate', String(FPS), '-i', path.join(katKlatek, 'f%05d.png'),
-  '-vf', `format=yuv420p,fps=${FPS},setsar=1`,
-  '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-t', String(total),
-  wideo,
-]);
+const jestTlo = existsSync(TLO);
+if (jestTlo) console.log(`[grafika] фон: ${path.basename(TLO)}`);
+
+await ffmpeg(
+  jestTlo
+    ? [
+        '-stream_loop', '-1', '-i', TLO,
+        '-framerate', String(FPS), '-i', path.join(katKlatek, 'f%05d.png'),
+        '-filter_complex',
+        `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},` +
+          `fps=${FPS},eq=brightness=-0.06:saturation=1.12,` +
+          `zoompan=z='min(zoom+0.0004,1.12)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=${W}x${H}[tlo];` +
+          `[tlo][1:v]overlay=0:0:format=auto,format=yuv420p,setsar=1[v]`,
+        '-map', '[v]', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18',
+        '-t', String(total), wideo,
+      ]
+    : [
+        '-framerate', String(FPS), '-i', path.join(katKlatek, 'f%05d.png'),
+        '-vf', `format=yuv420p,fps=${FPS},setsar=1`,
+        '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-t', String(total),
+        wideo,
+      ]
+);
 
 // ── звук: свист на каждое появление ───────────────────────────────
 // В образце 31 всплеск на 22 секунды — по звуку на каждое движение. Без
