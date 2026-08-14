@@ -79,14 +79,18 @@ for (const [i, f] of pliki.entries()) {
   // выбросила. Ролик собран, проверку прошёл, озвучка оплачена — и в мусор,
   // без единой строчки тревоги. Очередь на два дня вперёд по определению
   // сталкивается с ручными вставками, значит она обязана уметь подвинуться.
+  //
+  // Слот у ролика СВОЙ по счёту в этой сборке: первый ролик дня идёт в
+  // первый слот, второй во второй. Перебирать все слоты одного дня нельзя —
+  // тогда один ролик, наткнувшись на занятый день, вставал бы вторым в тот
+  // же день вместо свободного следующего. Ищем тот же час, но дальше.
+  const godz = SLOTY[i % SLOTY.length];
   let kiedy = null;
   for (let plus = 0; plus < 10 && !kiedy; plus++) {
     const d = new Date();
     d.setDate(d.getDate() + ZA_DNI + plus);
-    for (const godz of SLOTY) {
-      const kandydat = `${d.toISOString().slice(0, 10)}T${String(godz).padStart(2, '0')}:00:00+02:00`;
-      if (!zajete.has(kandydat)) { kiedy = kandydat; break; }
-    }
+    const kandydat = `${d.toISOString().slice(0, 10)}T${String(godz).padStart(2, '0')}:00:00+02:00`;
+    if (!zajete.has(kandydat)) kiedy = kandydat;
   }
   if (!kiedy) {
     console.log(`[kolejka] свободного слота на десять дней вперёд нет — ${nazwa} оставляю в out/`);
