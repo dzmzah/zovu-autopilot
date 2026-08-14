@@ -1,11 +1,14 @@
-// Собирает рисованный рилс целиком: голос, сцена, звуки появлений, музыка.
+// Собирает рисованный рилс целиком: голос, сцены, камера, звуки, музыка.
 //
-//   node rolka-grafika.mjs           — собрать пробу
+//   node rolka-grafika.mjs
 //
-// Отличие от `rolka-auto.mjs` одно, но принципиальное: там подложка ищется
-// на стоке, здесь её нет вообще. Из-за этого уходит и главное, что выдаёт
-// автоматическую сборку, — разнобой чужих кадров: разный свет, разный цвет,
-// разные люди. Тут каждый пиксель наш.
+// Сценарий построен как у Захара в `Scenariusz 2`: не «три пункта», а
+// ВЫЧИСЛЕНИЕ. Голос считает вслух, картинка складывает вместе с ним, в конце
+// цифра потери красным. Объекты при этом не украшают текст — они и есть
+// слагаемые. Именно этого не хватало первой версии: там иконки просто
+// иллюстрировали слова, и получалось «не та тема».
+//
+// Арифметика честная: 20 минут × 30 дней = 10 часов. Ничего не выдумано.
 import { mkdir, writeFile, readFile, rm, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
@@ -26,66 +29,103 @@ async function ffmpeg(args) {
   });
 }
 
-// ── сценарий пробы ────────────────────────────────────────────────
-// Тот же текст, что и в обычном рилсе про три секунды: сравнивать формы
-// честно только на одинаковых словах.
 const FRAZY = [
-  { rola: 'hak', tekst: 'Trzy sekundy.', pauza: 0.40 },
-  { rola: 'hak', tekst: 'Tyle masz, zanim palec pojedzie dalej.', pauza: 0.46 },
-  { rola: 'tresc', tekst: 'Widz nie ocenia wtedy jakości.', pauza: 0.30 },
-  { rola: 'tresc', tekst: 'Sprawdza jedno: czy to o nim.', pauza: 0.30 },
-  { rola: 'zaplata', tekst: 'Dlatego pierwsze zdanie mówi o widzu, nie o tobie.', pauza: 0.30 },
-  { rola: 'cta', tekst: 'Włącz swoją ostatnią rolkę i posłuchaj pierwszego zdania.', pauza: 0.20 },
+  { rola: 'hak', tekst: 'Ile kosztuje cię milczenie w sieci?', pauza: 0.34 },
+  { rola: 'hak', tekst: 'Policzmy.', pauza: 0.42 },
+  { rola: 'tresc', tekst: 'Jeden post to dwadzieścia minut.', pauza: 0.30 },
+  { rola: 'tresc', tekst: 'Razy trzydzieści dni.', pauza: 0.34 },
+  { rola: 'tresc', tekst: 'Dziesięć godzin miesięcznie. Twoich.', pauza: 0.38 },
+  { rola: 'zaplata', tekst: 'Tyle samo kosztuje ktoś, kto zrobi to za ciebie.', pauza: 0.30 },
+  { rola: 'cta', tekst: 'Napisz CZAS, a policzymy twoje.', pauza: 0.20 },
 ];
 
 const glos = await zbudujGlos(FRAZY, { tmp: path.join(OUT, 'grafika-glos'), przedPierwsza: 0.45 });
 console.log(`[grafika] голос ${glos.dlugosc.toFixed(2)} с, слов ${glos.slowa.length}`);
 
 const F = glos.frazy;
-const total = +(glos.dlugosc + 0.6).toFixed(2);
+const total = +(glos.dlugosc + 0.5).toFixed(2);
+const t = (i, d = 0) => +(F[i].a + d).toFixed(2);
 
-// ── сцена ─────────────────────────────────────────────────────────
-// Объекты привязаны к фразам: появляются ровно тогда, когда о них говорят.
-// Влёт очередью с шагом 0.14 с — так же, как в образце: кадр наполняется,
-// а не переключается.
+// ── сцены ─────────────────────────────────────────────────────────
+// Объект приходит под свою фразу и УХОДИТ, когда мысль сменилась. Это
+// главное отличие от первой версии, где всё копилось до конца и кадр к
+// финалу стоял неподвижной кучей.
 const scena = [
-  { obiekt: 'stopwatch_3d',        x: 540, y: 470, skala: 460, obrot: -8,  skad: 'gora',  start: +(F[0].a + 0.05).toFixed(2) },
-  { obiekt: 'mobile_phone_3d',     x: 300, y: 980, skala: 300, obrot: -14, skad: 'lewo',  start: +(F[1].a + 0.02).toFixed(2) },
-  { obiekt: 'eyes_3d',             x: 790, y: 980, skala: 300, obrot: 10,  skad: 'prawo', start: +(F[1].a + 0.16).toFixed(2) },
-  { obiekt: 'cross_mark_3d',       x: 300, y: 1290, skala: 250, obrot: -6, skad: 'dol',   start: +(F[2].a + 0.04).toFixed(2) },
-  { obiekt: 'check_mark_button_3d',x: 790, y: 1290, skala: 250, obrot: 8,  skad: 'prawo', start: +(F[3].a + 0.04).toFixed(2) },
-  { obiekt: 'light_bulb_3d',       x: 540, y: 1560, skala: 260, obrot: 0,  skad: 'dol',   start: +(F[4].a + 0.06).toFixed(2) },
+  { obiekt: 'mobile_phone_3d', x: 540, y: 620, skala: 460, obrot: -6, skad: 'gora',
+    start: t(0, 0.05), koniec: t(1, 0.10), dokad: 'lewo' },
+  { obiekt: 'thinking_face_3d', x: 800, y: 1080, skala: 300, obrot: 8, skad: 'prawo',
+    start: t(0, 0.42), koniec: t(1, 0.10), dokad: 'prawo' },
+
+  { obiekt: 'alarm_clock_3d', x: 360, y: 560, skala: 430, obrot: -10, skad: 'lewo',
+    start: t(2, 0.02), koniec: t(4, 0.55), dokad: 'lewo' },
+  { obiekt: 'calendar_3d', x: 740, y: 900, skala: 400, obrot: 9, skad: 'prawo',
+    start: t(3, 0.02), koniec: t(4, 0.55), dokad: 'prawo' },
+
+  { obiekt: 'money_with_wings_3d', x: 540, y: 620, skala: 480, obrot: -5, skad: 'gora',
+    start: t(4, 0.35), koniec: t(5, 0.15), dokad: 'gora' },
+
+  { obiekt: 'rocket_3d', x: 360, y: 620, skala: 400, obrot: -12, skad: 'dol',
+    start: t(5, 0.05), koniec: t(6, 0.50), dokad: 'lewo' },
+  { obiekt: 'chart_increasing_3d', x: 760, y: 950, skala: 380, obrot: 8, skad: 'prawo',
+    start: t(5, 0.30), koniec: t(6, 0.50), dokad: 'prawo' },
+
+  { obiekt: 'envelope_3d', x: 540, y: 720, skala: 420, obrot: 0, skad: 'dol',
+    start: t(6, 0.02) },
 ];
 
-const plan = {
-  scena,
-  slowa: glos.slowa,
-  // Барабан на хуке: три секунды, которые утекают. Цифра — это и есть тема.
-  licznik: { od: 9, do: 3, a: +F[0].a.toFixed(2), b: +(F[0].b + 0.1).toFixed(2), sufiks: 'sek' },
+// ── формула ───────────────────────────────────────────────────────
+// Собирается под голос: строка появляется ровно тогда, когда её произносят.
+const wzor = [
+  { tekst: '20 MIN', y: 1180, a: t(2, 0.35), b: t(4, 0.60) },
+  { tekst: '×', y: 1330, maly: true, a: t(3, 0.05), b: t(4, 0.60) },
+  { tekst: '30 DNI', y: 1420, a: t(3, 0.30), b: t(4, 0.60) },
+  { tekst: '= 10 GODZIN', y: 1180, kolor: 'czerwony', a: t(4, 0.30), b: t(5, 0.10) },
+];
+
+// ── камера ────────────────────────────────────────────────────────
+// Медленный наезд через весь ролик и подрывы на смысловых точках: на
+// результате вычисления и на призыве. Неподвижная рамка выдаёт рисунок,
+// движущаяся читается как съёмка.
+const kamera = [
+  { t: 0, zoom: 1.00, x: 0, y: 0 },
+  { t: t(1), zoom: 1.05, x: -18, y: 10 },
+  { t: t(2), zoom: 1.02, x: 20, y: -12 },
+  { t: t(4, 0.25), zoom: 1.12, x: 0, y: 24 },
+  { t: t(4, 0.90), zoom: 1.04, x: 0, y: 0 },
+  { t: t(5, 0.20), zoom: 1.08, x: 14, y: -16 },
+  { t: t(6), zoom: 1.02, x: 0, y: 0 },
+  { t: total, zoom: 1.10, x: 0, y: 8 },
+];
+
+// Цвет по СМЫСЛУ, а не по длине слова: жёлтый — выгода, красный — потеря.
+const akcenty = {
+  zolty: ['policzmy', 'zrobi', 'ciebie', 'czas', 'policzymy'],
+  czerwony: ['milczenie', 'dziesięć', 'godzin', 'twoich'],
 };
 
 const obrazki = await wczytajObiekty([...new Set(scena.map((o) => o.obiekt))]);
 const katKlatek = path.join(OUT, 'grafika-klatki');
 await rm(katKlatek, { recursive: true, force: true });
-const klatek = await renderujKlatki(grafikaHtml(plan, obrazki, total), total, katKlatek);
-console.log(`[grafika] отрисовано кадров: ${klatek}`);
+const klatek = await renderujKlatki(
+  grafikaHtml({ scena, wzor, kamera, akcenty, slowa: glos.slowa, obrazki }),
+  total,
+  katKlatek
+);
+console.log(`[grafika] отрисовано кадров: ${klatek} (${FPS} к/с)`);
 
 // ── подложка ──────────────────────────────────────────────────────
-// Фон берём из набора Захара: полсотни готовых анимированных абстракций,
-// среди них топография — ровно та фактура, что в образце. Рисовать среду
-// самому, когда рядом лежит снятая, значит делать хуже и дольше.
-//
-// Ролик длиннее подложки, поэтому она зацикливается; медленный наезд поверх
-// добавляет ещё один слой движения, чтобы фон не выглядел петлёй.
-// Четыре петли лежат в репозитории: они пережаты в 1080x1920 и весят по
-// мегабайту, поэтому доступны и на сервере, где диска Захара нет.
 const TLA = ['topografia-2.mp4', 'topografia-3.mp4', 'abstrakcja-3.mp4', 'gradient-2.mp4'];
-const TLO = process.env.TLO_WIDEO || path.join(DIR, 'tlo', TLA[0]);
+const stanPlik = path.join(DIR, 'rolki', 'stan.json');
+let stan = {};
+try { stan = JSON.parse(await readFile(stanPlik, 'utf8')); } catch { stan = {}; }
+const idxTla = ((stan.tloGrafika ?? -1) + 1) % TLA.length;
+stan.tloGrafika = idxTla;
+
+const TLO = process.env.TLO_WIDEO || path.join(DIR, 'tlo', TLA[idxTla]);
+const jestTlo = existsSync(TLO);
+console.log(`[grafika] фон: ${jestTlo ? path.basename(TLO) : 'нет, будет чёрный'}`);
 
 const wideo = path.join(OUT, 'grafika-nieme.mp4');
-const jestTlo = existsSync(TLO);
-if (jestTlo) console.log(`[grafika] фон: ${path.basename(TLO)}`);
-
 await ffmpeg(
   jestTlo
     ? [
@@ -93,8 +133,7 @@ await ffmpeg(
         '-framerate', String(FPS), '-i', path.join(katKlatek, 'f%05d.png'),
         '-filter_complex',
         `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},` +
-          `fps=${FPS},eq=brightness=-0.06:saturation=1.12,` +
-          `zoompan=z='min(zoom+0.0004,1.12)':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=${W}x${H}[tlo];` +
+          `fps=${FPS},eq=brightness=-0.04:saturation=1.15[tlo];` +
           `[tlo][1:v]overlay=0:0:format=auto,format=yuv420p,setsar=1[v]`,
         '-map', '[v]', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18',
         '-t', String(total), wideo,
@@ -102,31 +141,46 @@ await ffmpeg(
     : [
         '-framerate', String(FPS), '-i', path.join(katKlatek, 'f%05d.png'),
         '-vf', `format=yuv420p,fps=${FPS},setsar=1`,
-        '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-t', String(total),
-        wideo,
+        '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-t', String(total), wideo,
       ]
 );
 
-// ── звук: свист на каждое появление ───────────────────────────────
-// В образце 31 всплеск на 22 секунды — по звуку на каждое движение. Без
-// этого влёт выглядит немой картинкой: глаз ждёт удара, ухо его не слышит.
-const swist = path.join(OUT, 'grafika-swist.wav');
+// ── звук движения ─────────────────────────────────────────────────
+// У Захара звуковое событие раз в секунду и чаще — на каждое движение, а не
+// только на влёт. Поэтому озвучиваем и приходы, и уходы, и строки формулы.
+const swist = path.join(OUT, 'g-swist.wav');
+const puk = path.join(OUT, 'g-puk.wav');
 await ffmpeg([
   '-f', 'lavfi', '-i', 'anoisesrc=d=0.26:c=white:a=0.7:r=48000',
   '-af', 'highpass=f=380,lowpass=f=4600,afade=t=in:st=0:d=0.05,afade=t=out:st=0.06:d=0.19,' +
-    'volume=0.55,aformat=channel_layouts=stereo',
+    'volume=0.5,aformat=channel_layouts=stereo',
   '-ac', '2', '-ar', '48000', swist,
 ]);
+await ffmpeg([
+  '-f', 'lavfi', '-i', 'anoisesrc=d=0.07:c=white:a=0.8:r=48000',
+  '-f', 'lavfi', '-i', 'sine=f=180:d=0.07:r=48000',
+  '-filter_complex',
+  '[0:a]highpass=f=900,lowpass=f=6000,afade=t=out:st=0.004:d=0.05[s];' +
+    '[1:a]volume=0.35,afade=t=out:st=0:d=0.06[t];' +
+    '[s][t]amix=inputs=2:normalize=0,volume=0.42,aformat=channel_layouts=stereo[a]',
+  '-map', '[a]', '-ac', '2', '-ar', '48000', puk,
+]);
 
-const zdarzenia = scena.map((o) => +o.start);
+const zdarzenia = [
+  ...scena.map((o) => ({ t: +o.start, typ: 'swist' })),
+  ...scena.filter((o) => o.koniec).map((o) => ({ t: +o.koniec, typ: 'puk' })),
+  ...wzor.map((w) => ({ t: +w.a, typ: 'puk' })),
+].sort((a, b) => a.t - b.t);
+console.log(`[grafika] звуковых событий: ${zdarzenia.length} (${(zdarzenia.length / total).toFixed(1)} на секунду)`);
+
 const wejscia = [];
 const czesci = [];
-zdarzenia.forEach((t, i) => {
-  wejscia.push('-i', swist);
-  const ms = Math.max(0, Math.round(t * 1000));
+zdarzenia.forEach((z, i) => {
+  wejscia.push('-i', z.typ === 'swist' ? swist : puk);
+  const ms = Math.max(0, Math.round(z.t * 1000));
   czesci.push(`[${i}:a]adelay=${ms}|${ms}[s${i}]`);
 });
-const stuki = path.join(OUT, 'grafika-stuki.wav');
+const stuki = path.join(OUT, 'g-stuki.wav');
 await ffmpeg([
   ...wejscia,
   '-filter_complex',
@@ -135,41 +189,40 @@ await ffmpeg([
   '-map', '[a]', '-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2', stuki,
 ]);
 
-// ── сведение ──────────────────────────────────────────────────────
-// Музыка по кругу, как и в обычных рилсах. В первой версии я жёстко взял
-// тот же трек, что звучал везде, — и Захар услышал это первым же вопросом:
-// «почему опять та же музыка». Однообразие на слух ловится быстрее всего.
+// ── музыка по кругу ───────────────────────────────────────────────
 const utwory = (await readdir(path.join(DIR, 'music')).catch(() => []))
   .filter((f) => /\.mp3$/i.test(f))
   .sort();
-const stanMuz = path.join(DIR, 'rolki', 'stan.json');
-let stanM = {};
-try { stanM = JSON.parse(await readFile(stanMuz, 'utf8')); } catch { stanM = {}; }
-const idxMuz = utwory.length ? ((stanM.muzykaGrafika ?? -1) + 1) % utwory.length : 0;
+const idxMuz = utwory.length ? ((stan.muzykaGrafika ?? -1) + 1) % utwory.length : 0;
 if (utwory.length) {
-  stanM.muzykaGrafika = idxMuz;
-  await writeFile(stanMuz, JSON.stringify(stanM, null, 2) + String.fromCharCode(10), 'utf8');
+  stan.muzykaGrafika = idxMuz;
   console.log(`[grafika] музыка ${idxMuz + 1} из ${utwory.length}: ${utwory[idxMuz]}`);
 }
-const muzyka = utwory.length
-  ? path.join(DIR, 'music', utwory[idxMuz])
-  : path.join(DIR, 'music', 'pixabay-creative-technology-showreel.mp3');
-const gotowy = path.join(OUT, 'auto-grafika-trzy-sekundy.mp4');
+await mkdir(path.dirname(stanPlik), { recursive: true });
+await writeFile(stanPlik, JSON.stringify(stan, null, 2) + String.fromCharCode(10), 'utf8');
+const muzyka = path.join(DIR, 'music', utwory[idxMuz] || 'pixabay-creative-technology-showreel.mp3');
+
+// ── сведение ──────────────────────────────────────────────────────
+// Голос жмём плотнее, чем раньше. Замер по роликам Захара: у него дорожка
+// идёт с динамикой LRA 2.5-3.5, у нас было 4.8. Именно эта плотность и
+// читается как «дикторский» звук: ровный, близкий, без провалов.
+const gotowy = path.join(OUT, 'auto-grafika-milczenie.mp4');
 await ffmpeg([
   '-i', wideo, '-i', glos.plik, '-i', muzyka, '-i', stuki,
   '-f', 'lavfi', '-i', `anoisesrc=c=brown:a=0.02:r=48000:d=${total}`,
   '-filter_complex',
-  `[1:a]highpass=f=80,loudnorm=I=-15:TP=-1.5:LRA=7[voice];` +
-    `[2:a]atrim=0:${total},asetpts=N/SR/TB,volume=0.12,afade=t=in:st=0:d=0.12,` +
+  `[1:a]highpass=f=85,equalizer=f=2400:t=q:w=1.2:g=2,` +
+    `acompressor=threshold=-20dB:ratio=4:attack=6:release=140:makeup=3,` +
+    `loudnorm=I=-15:TP=-1.5:LRA=3[voice];` +
+    `[2:a]atrim=0:${total},asetpts=N/SR/TB,volume=0.11,afade=t=in:st=0:d=0.12,` +
     `afade=t=out:st=${Math.max(0, total - 1.4).toFixed(2)}:d=1.4[bed];` +
-    `[voice]asplit=2[v1][kluczDuck];` +
-    `[bed][kluczDuck]sidechaincompress=threshold=0.02:ratio=11:attack=10:release=170:makeup=1:level_sc=1[bedDuck];` +
+    `[voice]asplit=2[v1][duck];` +
+    `[bed][duck]sidechaincompress=threshold=0.02:ratio=11:attack=10:release=170:makeup=1:level_sc=1[bedDuck];` +
     `[v1][bedDuck][3:a][4:a]amix=inputs=4:normalize=0:duration=longest,` +
     `alimiter=limit=0.95,aformat=channel_layouts=stereo[a]`,
   '-map', '0:v', '-map', '[a]',
   '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2',
-  '-t', String(total),
-  gotowy,
+  '-t', String(total), gotowy,
 ]);
 
 const { stdout } = await execFileAsync('ffprobe', [
@@ -178,5 +231,5 @@ const { stdout } = await execFileAsync('ffprobe', [
 const inf = JSON.parse(stdout).format;
 console.log(`[grafika] собрано: ${gotowy} · ${(+inf.duration).toFixed(2)} с · ${(inf.size / 1048576).toFixed(2)} МБ`);
 
-const kontrola = await sprawdzRolke(gotowy, { oczekiwanePrzejscia: zdarzenia });
+const kontrola = await sprawdzRolke(gotowy, { oczekiwanePrzejscia: zdarzenia.map((z) => z.t) });
 console.log('[grafika] проверка:', JSON.stringify(kontrola, null, 1));
