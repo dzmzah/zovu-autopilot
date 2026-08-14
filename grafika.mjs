@@ -49,9 +49,15 @@ async function wczytajObiekty(nazwy) {
 export function grafikaHtml(plan, obrazki, total) {
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+  // Каждый объект — это ТРИ элемента: тень на «полу», сам предмет и его
+  // собственная тень-подсветка. Плоский `drop-shadow` объёма не даёт: он
+  // висит вместе с предметом. Объём продаёт именно тень, которая живёт
+  // отдельно — сжимается, когда предмет опускается, и растекается, когда
+  // поднимается.
   const obiekty = plan.scena
     .map(
       (o, i) =>
+        `<div class="cien" data-i="${i}"></div>\n` +
         `<img class="ob" data-i="${i}" src="${obrazki[o.obiekt]}" style="width:${o.skala || 300}px">`
     )
     .join('\n');
@@ -67,13 +73,44 @@ export function grafikaHtml(plan, obrazki, total) {
 html,body { width:${W}px; height:${H}px; overflow:hidden; }
 /* Фон один на весь ролик — именно он и связывает сцену в целое. У образца
    мягкий топографический узор; у нас фирменный тёмный с фиолетовым ядром. */
-body { font-family:'Inter',sans-serif; background:
-  radial-gradient(ellipse 900px 700px at 50% 38%, #2a1e5c 0%, transparent 62%),
-  radial-gradient(ellipse 700px 900px at 82% 88%, #1d1442 0%, transparent 58%),
-  linear-gradient(180deg,#0d0a1c 0%,#080614 100%); }
+/* Фон — не заливка, а СРЕДА. Плоский градиент читается как обои, и на нём
+   любой предмет выглядит наклейкой. Глубина набирается слоями: далёкие
+   пятна двигаются медленно, ближние быстрее — это и есть параллакс, из
+   которого глаз собирает объём. Сверху зерно: чистый цифровой градиент
+   всегда выглядит плоско, шум даёт ему поверхность. */
+body { font-family:'Inter',sans-serif; background:linear-gradient(180deg,#0e0a1e 0%,#070512 100%);
+  perspective:1400px; perspective-origin:50% 42%; }
+
+.plama { position:absolute; border-radius:50%; filter:blur(90px); opacity:.55;
+  will-change:transform; }
+.p1 { width:1200px; height:1000px; background:#3a2a86; left:-180px; top:180px; }
+.p2 { width:900px; height:900px; background:#5b2f9e; right:-220px; top:620px; opacity:.42; }
+.p3 { width:1100px; height:800px; background:#1d3a7a; left:120px; bottom:-120px; opacity:.38; }
+
+/* «Пол»: широкое мягкое пятно света снизу. Даёт сцене низ и верх — без него
+   предметы висят в пустоте, а не стоят в пространстве. */
+.podloga { position:absolute; left:-10%; right:-10%; bottom:-6%; height:52%;
+  background:radial-gradient(ellipse 60% 100% at 50% 100%, rgba(150,120,255,.22), transparent 70%); }
+
+/* Виньетка собирает взгляд к центру и добавляет глубины по краям. */
+.winieta { position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse 78% 62% at 50% 44%, transparent 40%, rgba(0,0,0,.55) 100%); }
+
+/* Зерно поверх всего — 2% шума. Именно оно убирает ощущение «нарисовано
+   в браузере»: у чистого градиента нет поверхности, у зерна есть. */
+.ziarno { position:absolute; inset:0; pointer-events:none; opacity:.16;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='180' height='180' filter='url(%23n)' opacity='0.5'/></svg>");
+  mix-blend-mode:overlay; }
 
 .ob { position:absolute; left:0; top:0; transform-origin:50% 50%;
-  filter:drop-shadow(0 24px 48px rgba(0,0,0,.55)); will-change:transform,opacity; }
+  transform-style:preserve-3d; will-change:transform,opacity; }
+
+/* Контактная тень: отдельный эллипс под предметом. Живёт своей жизнью —
+   сжимается и темнеет, когда предмет опускается, растекается и бледнеет,
+   когда поднимается. */
+.cien { position:absolute; left:0; top:0; border-radius:50%;
+  background:radial-gradient(ellipse 50% 50% at 50% 50%, rgba(0,0,0,.62), transparent 72%);
+  filter:blur(18px); will-change:transform,opacity; opacity:0; }
 
 /* Подпись: одно слово, капсом, крупно. Читается на бегу, не мешает объектам. */
 .slowo { position:absolute; left:60px; right:60px; bottom:300px; text-align:center;
@@ -86,13 +123,19 @@ body { font-family:'Inter',sans-serif; background:
   text-shadow:0 10px 40px rgba(0,0,0,.5); opacity:0; }
 .licznik .suf { font-size:88px; letter-spacing:-2px; opacity:.85; margin-left:14px; }
 </style></head><body>
+<div class="plama p1"></div><div class="plama p2"></div><div class="plama p3"></div>
+<div class="podloga"></div>
 ${obiekty}
 <div class="licznik"><span class="cyf">0</span><span class="suf"></span></div>
 <div class="slowo"></div>
+<div class="winieta"></div>
+<div class="ziarno"></div>
 <script>
 const S = ${meta}, SLOWA = ${slowa}, LIC = ${licznik};
 const W = ${W}, H = ${H};
 const obs = [...document.querySelectorAll('.ob')];
+const cienie = [...document.querySelectorAll('.cien')];
+const plamy = [...document.querySelectorAll('.plama')];
 const elSlowo = document.querySelector('.slowo');
 const elLic = document.querySelector('.licznik');
 const elCyf = elLic.querySelector('.cyf');
@@ -105,11 +148,22 @@ const backOut = (x) => { const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) 
 
 window.__fit = () => {};
 window.setT = (t) => {
+  // Фон дышит: дальние пятна ползут медленно, ближние быстрее. Разница
+  // скоростей и есть то, из чего глаз собирает глубину.
+  plamy.forEach((el, i) => {
+    const sz = [0.5, 0.8, 1.15][i] || 1;
+    el.style.transform =
+      'translate(' + (Math.sin(t * 0.16 * sz + i) * 46 * sz).toFixed(1) + 'px,' +
+      (Math.cos(t * 0.13 * sz + i * 1.7) * 38 * sz).toFixed(1) + 'px)';
+  });
+
   obs.forEach((el, i) => {
     const o = S[i];
+    const cien = cienie[i];
     const wlot = o.wlot ?? 0.42;          // сколько длится влёт
     const p = clamp01((t - o.start) / wlot);
-    if (t < o.start - 0.02) { el.style.opacity = 0; return; }
+    const rozm = o.skala || 300;
+    if (t < o.start - 0.02) { el.style.opacity = 0; if (cien) cien.style.opacity = 0; return; }
     el.style.opacity = 1;
 
     const e = backOut(p);
@@ -123,11 +177,42 @@ window.setT = (t) => {
     const v = Math.abs(backOut(clamp01(p + 0.03)) - e) * 30;
     const blur = Math.min(14, v * 26);
 
-    const obrot = (o.obrot || 0) + (1 - e) * (o.skad === 'prawo' ? 26 : -26);
-    el.style.filter = 'drop-shadow(0 24px 48px rgba(0,0,0,.55)) blur(' + blur.toFixed(1) + 'px)';
+    // ── жизнь ПОСЛЕ посадки ──────────────────────────────────────
+    // Прилетевший и застывший предмет читается как наклейка. Поэтому он
+    // продолжает плавать: у каждого своя фаза и свой период, иначе сцена
+    // начинает пульсировать в такт и выглядит механической.
+    const faza = i * 1.9;
+    const okres = 3.0 + (i % 3) * 0.7;
+    const zyje = clamp01((t - o.start - wlot) / 0.5);   // вступает плавно
+    const plyw = Math.sin((t / okres) * Math.PI * 2 + faza) * 15 * zyje;
+    const kolysanie = Math.sin((t / (okres * 1.4)) * Math.PI * 2 + faza) * 2.6 * zyje;
+
+    // Поворот в 3D. Плоский PNG, повёрнутый по Y и X с перспективой, глаз
+    // читает как объёмную модель — именно этого не хватало.
+    const ry = Math.sin((t / (okres * 1.15)) * Math.PI * 2 + faza) * 9 * zyje;
+    const rx = Math.cos((t / (okres * 1.6)) * Math.PI * 2 + faza) * 5 * zyje;
+
+    const obrot = (o.obrot || 0) + (1 - e) * (o.skad === 'prawo' ? 26 : -26) + kolysanie;
+    el.style.filter = 'blur(' + blur.toFixed(1) + 'px)';
     el.style.transform =
-      'translate(' + (o.x + dx - (o.skala || 300) / 2).toFixed(1) + 'px,' +
-      (o.y + dy - (o.skala || 300) / 2).toFixed(1) + 'px) rotate(' + obrot.toFixed(1) + 'deg)';
+      'translate3d(' + (o.x + dx - rozm / 2).toFixed(1) + 'px,' +
+      (o.y + dy - rozm / 2 + plyw).toFixed(1) + 'px,0)' +
+      ' rotateY(' + ry.toFixed(1) + 'deg) rotateX(' + rx.toFixed(1) + 'deg)' +
+      ' rotate(' + obrot.toFixed(1) + 'deg)';
+
+    // Тень под предметом. Чем выше он поднялся, тем шире и бледнее пятно —
+    // это и есть ощущение, что предмет НАД поверхностью, а не наклеен на неё.
+    if (cien) {
+      const wys = (plyw + 15) / 30;                    // 0 внизу, 1 вверху
+      const szer = rozm * (0.62 + 0.16 * wys);
+      const wys2 = szer * 0.30;
+      cien.style.opacity = (0.55 - 0.22 * wys) * e * zyje;
+      cien.style.width = szer.toFixed(1) + 'px';
+      cien.style.height = wys2.toFixed(1) + 'px';
+      cien.style.transform =
+        'translate(' + (o.x + dx - szer / 2).toFixed(1) + 'px,' +
+        (o.y + dy + rozm * 0.42).toFixed(1) + 'px)';
+    }
   });
 
   // Подпись по словам — берём слово, которое звучит прямо сейчас.
