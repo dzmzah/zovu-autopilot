@@ -479,13 +479,22 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
       // слога; сказанные с весом и паузой, они дают 3.3 слог/с и по счёту
       // выглядят как затянутые, хотя вес там ровно к месту. Темп имеет смысл
       // мерить там, где есть чему течь.
+      // Считаем не ШТУКИ, а НАСКОЛЬКО вышли за полосу. Со счётом по штукам
+      // дубль с одной фразой на 7.0 слог/с равнялся дублю с одной на 3.8 —
+      // и выигрывал по правилу «при равенстве берём наименее замедленный».
+      // На слух это совсем не равные вещи: 7.0 это выстрел скороговоркой.
       const poza = (g) =>
-        g.filter(([a, b], i) => {
-          const syl = sylaby(frazy[i].tekst);
-          const t = syl / Math.max(0.2, b - a);
-          if (t > progDla(frazy[i].rola)) return true;
-          return syl >= 8 && t < TEMPO_MIN;
-        }).length;
+        +g
+          .reduce((suma, [a, b], i) => {
+            const syl = sylaby(frazy[i].tekst);
+            const t = syl / Math.max(0.2, b - a);
+            const nad = Math.max(0, t - progDla(frazy[i].rola));
+            // Короткие фразы «тянуть» не могут: «Trzy sekundy» сказанные с
+            // весом дают 3.3 слог/с, и это к месту.
+            const pod = syl >= 8 ? Math.max(0, TEMPO_MIN - t) : 0;
+            return suma + nad + pod;
+          }, 0)
+          .toFixed(2);
       const liczSzybkie = (g) =>
         g.filter(([a, b], i) => sylaby(frazy[i].tekst) / Math.max(0.2, b - a) > progDla(frazy[i].rola))
           .length;
@@ -508,7 +517,7 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
         if (!najlepszy || zle < najlepszy.zle) najlepszy = { g, plik: plikProby, ile, zle, speed };
         if (!ile) break;
         console.warn(
-          `[glos] торопливых фраз: ${ile}, вне полосы ${zle}` +
+          `[glos] торопливых фраз: ${ile}, перебор темпа ${zle}` +
             `${speed ? ` (speed ${speed})` : ''} — переписываю медленнее`
         );
       }
@@ -520,7 +529,7 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
         console.log(
           `[glos] дубль на ${frazy.length} фраз, границы по таймингам символов` +
             (najlepszy.speed ? `, темп ${najlepszy.speed}` : '') +
-            (najlepszy.zle ? `, вне полосы фраз: ${najlepszy.zle}` : '')
+            (najlepszy.zle ? `, перебор темпа ${najlepszy.zle}` : '')
         );
       } else granice = await jednymDublem(frazy, dubel, eleven);
 
