@@ -370,6 +370,15 @@ const TEMPO_PROG = 5.6;
 const TEMPO_PROG_HAK = 5.0;
 const progDla = (rola) => (rola === 'hak' ? TEMPO_PROG_HAK : TEMPO_PROG);
 
+// И нижняя граница. Первая версия считала только «слишком быстро», поэтому
+// дубль, замедленный до 0.88, всегда выигрывал: торопливых фраз в нём ноль
+// по определению. Захар услышал результат сразу — «голос намного хуже»,
+// а замер показал фразы на 2.5-3.2 слог/с. Это уже не спокойно, это тянет.
+//
+// Меру надо считать в обе стороны, иначе оптимизируешь число и теряешь то,
+// ради чего его считал.
+const TEMPO_MIN = 3.9;
+
 function sylaby(tekst) {
   return (String(tekst).toLowerCase().match(/[aeiouyąęó]+/g) || []).length;
 }
@@ -464,6 +473,13 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
       // Поэтому до трёх дублей, каждый медленнее предыдущего, и берём лучший
       // по числу торопливых фраз. Три запроса — 750 символов из десяти тысяч,
       // и тратятся они только там, где иначе вышла бы скороговорка.
+      // Фразы ВНЕ полосы — и быстрые, и тянущие. Считаем одинаково: обе
+      // портят, просто по-разному.
+      const poza = (g) =>
+        g.filter(([a, b], i) => {
+          const t = sylaby(frazy[i].tekst) / Math.max(0.2, b - a);
+          return t > progDla(frazy[i].rola) || t < TEMPO_MIN;
+        }).length;
       const liczSzybkie = (g) =>
         g.filter(([a, b], i) => sylaby(frazy[i].tekst) / Math.max(0.2, b - a) > progDla(frazy[i].rola))
           .length;
@@ -479,10 +495,15 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
         if (!g) break;
 
         const ile = liczSzybkie(g);
-        if (!najlepszy || ile < najlepszy.ile) najlepszy = { g, plik: plikProby, ile, speed };
+        const zle = poza(g);
+        // Выигрывает дубль с наименьшим числом фраз вне полосы. При равенстве
+        // побеждает ПЕРВЫЙ — то есть наименее замедленный. Это то же правило,
+        // что и с обработкой звука: чем меньше мы вмешались, тем живее звучит.
+        if (!najlepszy || zle < najlepszy.zle) najlepszy = { g, plik: plikProby, ile, zle, speed };
         if (!ile) break;
         console.warn(
-          `[glos] торопливых фраз: ${ile}${speed ? ` (speed ${speed})` : ''} — переписываю медленнее`
+          `[glos] торопливых фраз: ${ile}, вне полосы ${zle}` +
+            `${speed ? ` (speed ${speed})` : ''} — переписываю медленнее`
         );
       }
 
@@ -493,7 +514,7 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
         console.log(
           `[glos] дубль на ${frazy.length} фраз, границы по таймингам символов` +
             (najlepszy.speed ? `, темп ${najlepszy.speed}` : '') +
-            (najlepszy.ile ? `, торопливых фраз осталось ${najlepszy.ile}` : '')
+            (najlepszy.zle ? `, вне полосы фраз: ${najlepszy.zle}` : '')
         );
       } else granice = await jednymDublem(frazy, dubel, eleven);
 
