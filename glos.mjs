@@ -491,7 +491,10 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
             const nad = Math.max(0, t - progDla(frazy[i].rola));
             // Короткие фразы «тянуть» не могут: «Trzy sekundy» сказанные с
             // весом дают 3.3 слог/с, и это к месту.
-            const pod = syl >= 8 ? Math.max(0, TEMPO_MIN - t) : 0;
+            // Затяг штрафуем ВДВОЕ против спешки. Скороговорку зритель
+            // переживёт, а тянущаяся фраза выключает внимание совсем —
+            // Захар поймал это дважды на разных роликах.
+            const pod = syl >= 8 ? Math.max(0, TEMPO_MIN - t) * 2 : 0;
             return suma + nad + pod;
           }, 0)
           .toFixed(2);
@@ -500,7 +503,7 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
           .length;
 
       let najlepszy = null;
-      for (const speed of [null, 0.94, 0.88]) {
+      for (const speed of [null, 0.94]) {
         const plikProby = speed ? `${dubel}-${speed}.mp3` : dubel;
         const g = await dubelZeZnacznikami(
           teksty,
