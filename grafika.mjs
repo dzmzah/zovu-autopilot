@@ -95,9 +95,12 @@ body { font-family:'Inter',sans-serif; background:transparent;
 .podloga { position:absolute; left:-10%; right:-10%; bottom:-6%; height:52%;
   background:radial-gradient(ellipse 60% 100% at 50% 100%, rgba(150,120,255,.22), transparent 70%); }
 
-/* Виньетка собирает взгляд к центру и добавляет глубины по краям. */
-.winieta { position:absolute; inset:0; pointer-events:none;
-  background:radial-gradient(ellipse 78% 62% at 50% 44%, transparent 40%, rgba(0,0,0,.55) 100%); }
+/* Затемнение только снизу и только под подпись: фон живой и сам по себе
+   красивый, накрывать его виньеткой — значит выбросить то, за что его и
+   взяли. Раньше «пол» и виньетка рисовались под тёмный градиент и на живом
+   фоне легли белым пятном поверх картинки. */
+.scrim { position:absolute; left:0; right:0; bottom:0; height:760px; pointer-events:none;
+  background:linear-gradient(to top, rgba(8,5,18,.72) 0%, rgba(8,5,18,.34) 46%, transparent 100%); }
 
 /* Зерно поверх всего — 2% шума. Именно оно убирает ощущение «нарисовано
    в браузере»: у чистого градиента нет поверхности, у зерна есть. */
@@ -135,12 +138,10 @@ body { font-family:'Inter',sans-serif; background:transparent;
   text-shadow:0 10px 40px rgba(0,0,0,.5); opacity:0; }
 .licznik .suf { font-size:88px; letter-spacing:-2px; opacity:.85; margin-left:14px; }
 </style></head><body>
-<div class="podloga"></div>
 ${obiekty}
 <div class="licznik"><span class="cyf">0</span><span class="suf"></span></div>
 <div class="slowo"></div>
-<div class="winieta"></div>
-<div class="ziarno"></div>
+<div class="scrim"></div>
 <script>
 const S = ${meta}, SLOWA = ${slowa}, LIC = ${licznik};
 const W = ${W}, H = ${H};
