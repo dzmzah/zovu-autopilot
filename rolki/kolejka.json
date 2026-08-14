@@ -129,5 +129,29 @@
       4.7,
       3.5
     ]
+  },
+  {
+    "plik": "auto-2026-08-14-1.mp4",
+    "kiedy": "2026-08-16T19:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb"
+    ],
+    "tekst": "Musisz postować codziennie — to najdroższy mit w tej branży.\n\nCodziennie znaczy w pośpiechu. W pośpiechu znaczy o niczym. Dwa przemyślane posty biją siedem byle jakich, bo algorytm liczy, ile osób zostało — a nie ile razy coś wrzuciłeś.\n\nNapisz RYTM, a ułożymy plan pod twoje realne tempo, nie pod cudzy kalendarz.\n\nzovu.pl\n\n#socialmedia #marketing #malafirma #contentmarketing #agencjamarketingowa #zovu",
+    "opublikowano": null,
+    "zrodlo": "auto-mit-codziennie.mp4",
+    "scenariusz": "mit-codziennie",
+    "forma": "mit",
+    "temat": "czy trzeba publikować codziennie",
+    "dlugosc": 19.39,
+    "planow": 6,
+    "tempo": [
+      4.5,
+      4.2,
+      4.5,
+      4.4,
+      5.3,
+      5.2
+    ]
   }
 ]

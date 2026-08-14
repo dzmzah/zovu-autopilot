@@ -3,44 +3,70 @@
     "id": "17904017535498586",
     "plik": "kuba-trzy-powody.mp4",
     "opublikowano": "2026-08-12T11:30:46.189Z",
-    "zebrane": "2026-08-14T05:52:25.191Z",
+    "zebrane": "2026-08-14T12:35:58.171Z",
     "godzina": 13,
     "hak": "Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.",
     "dane": {
-      "views": 34,
-      "reach": 24,
+      "views": 38,
+      "reach": 25,
       "saved": 0,
       "shares": 0,
       "comments": 0,
       "likes": 4,
       "total_interactions": 4,
-      "ig_reels_avg_watch_time": 4408,
-      "ig_reels_video_view_total_time": 123441,
-      "plays": 34
+      "ig_reels_avg_watch_time": 4470,
+      "ig_reels_video_view_total_time": 138571,
+      "plays": 38
     },
     "dlugosc": 20.43,
-    "dosmotr": 21.6
+    "dosmotr": 21.9
   },
   {
     "id": "18102631457151085",
     "plik": "auto-2026-08-12-2.mp4",
     "opublikowano": "2026-08-13T11:42:43.166Z",
-    "zebrane": "2026-08-14T05:52:25.468Z",
+    "zebrane": "2026-08-14T12:35:58.815Z",
     "godzina": 13,
     "hak": "Pytanie „ile kosztuje strona?\" jest jak „ile kosztuje samochód\".",
     "dane": {
-      "views": 21,
-      "reach": 12,
+      "views": 27,
+      "reach": 15,
+      "saved": 0,
+      "shares": 0,
+      "comments": 0,
+      "likes": 3,
+      "total_interactions": 3,
+      "ig_reels_avg_watch_time": 4529,
+      "ig_reels_video_view_total_time": 90596,
+      "plays": 27
+    },
+    "dlugosc": 20.37,
+    "dosmotr": 22.2
+  },
+  {
+    "id": "18112912228772221",
+    "plik": "auto-2026-08-12-1.mp4",
+    "opublikowano": "2026-08-14T11:40:56.067Z",
+    "zebrane": "2026-08-14T12:35:58.422Z",
+    "godzina": 13,
+    "hak": "Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.",
+    "dane": {
+      "views": 5,
+      "reach": 2,
       "saved": 0,
       "shares": 0,
       "comments": 0,
       "likes": 1,
       "total_interactions": 1,
-      "ig_reels_avg_watch_time": 5070,
-      "ig_reels_video_view_total_time": 70989,
-      "plays": 21
+      "ig_reels_avg_watch_time": 5808,
+      "ig_reels_video_view_total_time": 11617,
+      "plays": 5
     },
-    "dlugosc": 20.37,
-    "dosmotr": 24.9
+    "scenariusz": "trzy-bledy-w-postach",
+    "forma": "lista",
+    "temat": "dlaczego posty nie sprzedają",
+    "dlugosc": 19.3,
+    "tempoSrednie": 4.53,
+    "dosmotr": 30.1
   }
 ]
