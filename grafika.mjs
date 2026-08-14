@@ -238,7 +238,11 @@ window.setT = (t) => {
   });
 
   // ── подпись ──────────────────────────────────────────────────────
-  const w = SLOWA.find((s) => t >= s.a - 0.06 && t < s.b + 0.16);
+  // Пока на экране формула, подпись молчит. Два текстовых блока кадр не
+  // держат — читается ни один, а в паре кадров они ещё и наложились друг
+  // на друга: «30 DNI» под словом «TRZYDZIEŚCI».
+  const wzorNaEkranie = WZOR.some((x) => t >= x.a - 0.05 && t <= (x.b ?? 1e9));
+  const w = wzorNaEkranie ? null : SLOWA.find((s) => t >= s.a - 0.06 && t < s.b + 0.16);
   if (w) {
     const czysty = w.tekst.replace(/[.,!?…]+$/, '');
     const male = czysty.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');

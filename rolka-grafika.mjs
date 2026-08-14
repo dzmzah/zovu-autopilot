@@ -51,35 +51,35 @@ const t = (i, d = 0) => +(F[i].a + d).toFixed(2);
 // главное отличие от первой версии, где всё копилось до конца и кадр к
 // финалу стоял неподвижной кучей.
 const scena = [
-  { obiekt: 'mobile_phone_3d', x: 540, y: 620, skala: 460, obrot: -6, skad: 'gora',
+  { obiekt: 'mobile_phone_3d', x: 540, y: 620, skala: 500, obrot: -6, skad: 'gora',
     start: t(0, 0.05), koniec: t(1, 0.10), dokad: 'lewo' },
   { obiekt: 'thinking_face_3d', x: 800, y: 1080, skala: 300, obrot: 8, skad: 'prawo',
     start: t(0, 0.42), koniec: t(1, 0.10), dokad: 'prawo' },
 
-  { obiekt: 'alarm_clock_3d', x: 360, y: 560, skala: 430, obrot: -10, skad: 'lewo',
+  { obiekt: 'alarm_clock_3d', x: 330, y: 500, skala: 470, obrot: -10, skad: 'lewo',
     start: t(2, 0.02), koniec: t(4, 0.55), dokad: 'lewo' },
-  { obiekt: 'calendar_3d', x: 740, y: 900, skala: 400, obrot: 9, skad: 'prawo',
+  { obiekt: 'calendar_3d', x: 760, y: 560, skala: 430, obrot: 9, skad: 'prawo',
     start: t(3, 0.02), koniec: t(4, 0.55), dokad: 'prawo' },
 
-  { obiekt: 'money_with_wings_3d', x: 540, y: 620, skala: 480, obrot: -5, skad: 'gora',
+  { obiekt: 'money_with_wings_3d', x: 540, y: 560, skala: 540, obrot: -5, skad: 'gora',
     start: t(4, 0.35), koniec: t(5, 0.15), dokad: 'gora' },
 
-  { obiekt: 'rocket_3d', x: 360, y: 620, skala: 400, obrot: -12, skad: 'dol',
+  { obiekt: 'rocket_3d', x: 350, y: 620, skala: 440, obrot: -12, skad: 'dol',
     start: t(5, 0.05), koniec: t(6, 0.50), dokad: 'lewo' },
-  { obiekt: 'chart_increasing_3d', x: 760, y: 950, skala: 380, obrot: 8, skad: 'prawo',
+  { obiekt: 'chart_increasing_3d', x: 760, y: 980, skala: 420, obrot: 8, skad: 'prawo',
     start: t(5, 0.30), koniec: t(6, 0.50), dokad: 'prawo' },
 
-  { obiekt: 'envelope_3d', x: 540, y: 720, skala: 420, obrot: 0, skad: 'dol',
+  { obiekt: 'envelope_3d', x: 540, y: 700, skala: 470, obrot: 0, skad: 'dol',
     start: t(6, 0.02) },
 ];
 
 // ── формула ───────────────────────────────────────────────────────
 // Собирается под голос: строка появляется ровно тогда, когда её произносят.
 const wzor = [
-  { tekst: '20 MIN', y: 1180, a: t(2, 0.35), b: t(4, 0.60) },
-  { tekst: '×', y: 1330, maly: true, a: t(3, 0.05), b: t(4, 0.60) },
-  { tekst: '30 DNI', y: 1420, a: t(3, 0.30), b: t(4, 0.60) },
-  { tekst: '= 10 GODZIN', y: 1180, kolor: 'czerwony', a: t(4, 0.30), b: t(5, 0.10) },
+  { tekst: '20 MIN', y: 980, a: t(2, 0.35), b: t(4, 0.60) },
+  { tekst: '×', y: 1120, maly: true, a: t(3, 0.05), b: t(4, 0.60) },
+  { tekst: '30 DNI', y: 1210, a: t(3, 0.30), b: t(4, 0.60) },
+  { tekst: '= 10 GODZIN', y: 1020, kolor: 'czerwony', a: t(4, 0.30), b: t(5, 0.10) },
 ];
 
 // ── камера ────────────────────────────────────────────────────────
