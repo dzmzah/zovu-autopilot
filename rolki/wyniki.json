@@ -3,7 +3,7 @@
     "id": "17904017535498586",
     "plik": "kuba-trzy-powody.mp4",
     "opublikowano": "2026-08-12T11:30:46.189Z",
-    "zebrane": "2026-08-14T19:51:24.517Z",
+    "zebrane": "2026-08-15T04:53:36.632Z",
     "godzina": 13,
     "hak": "Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.",
     "dane": {
@@ -25,7 +25,7 @@
     "id": "18102631457151085",
     "plik": "auto-2026-08-12-2.mp4",
     "opublikowano": "2026-08-13T11:42:43.166Z",
-    "zebrane": "2026-08-14T19:51:25.122Z",
+    "zebrane": "2026-08-15T04:53:37.889Z",
     "godzina": 13,
     "hak": "Pytanie „ile kosztuje strona?\" jest jak „ile kosztuje samochód\".",
     "dane": {
@@ -47,26 +47,26 @@
     "id": "18112912228772221",
     "plik": "auto-2026-08-12-1.mp4",
     "opublikowano": "2026-08-14T11:40:56.067Z",
-    "zebrane": "2026-08-14T19:51:24.789Z",
+    "zebrane": "2026-08-15T04:53:37.571Z",
     "godzina": 13,
     "hak": "Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.",
     "dane": {
-      "views": 19,
-      "reach": 8,
+      "views": 27,
+      "reach": 12,
       "saved": 0,
       "shares": 0,
       "comments": 0,
       "likes": 6,
       "total_interactions": 6,
-      "ig_reels_avg_watch_time": 8477,
-      "ig_reels_video_view_total_time": 101734,
-      "plays": 19
+      "ig_reels_avg_watch_time": 7345,
+      "ig_reels_video_view_total_time": 117535,
+      "plays": 27
     },
     "scenariusz": "trzy-bledy-w-postach",
     "forma": "lista",
     "temat": "dlaczego posty nie sprzedają",
     "dlugosc": 19.3,
     "tempoSrednie": 4.53,
-    "dosmotr": 43.9
+    "dosmotr": 38.1
   }
 ]
