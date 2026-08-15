@@ -3,7 +3,7 @@
     "id": "17904017535498586",
     "plik": "kuba-trzy-powody.mp4",
     "opublikowano": "2026-08-12T11:30:46.189Z",
-    "zebrane": "2026-08-15T04:53:36.632Z",
+    "zebrane": "2026-08-15T19:27:02.578Z",
     "godzina": 13,
     "hak": "Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.",
     "dane": {
@@ -25,7 +25,7 @@
     "id": "18102631457151085",
     "plik": "auto-2026-08-12-2.mp4",
     "opublikowano": "2026-08-13T11:42:43.166Z",
-    "zebrane": "2026-08-15T04:53:37.889Z",
+    "zebrane": "2026-08-15T19:27:03.280Z",
     "godzina": 13,
     "hak": "Pytanie „ile kosztuje strona?\" jest jak „ile kosztuje samochód\".",
     "dane": {
@@ -47,26 +47,52 @@
     "id": "18112912228772221",
     "plik": "auto-2026-08-12-1.mp4",
     "opublikowano": "2026-08-14T11:40:56.067Z",
-    "zebrane": "2026-08-15T04:53:37.571Z",
+    "zebrane": "2026-08-15T19:27:02.869Z",
     "godzina": 13,
     "hak": "Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.",
     "dane": {
-      "views": 27,
-      "reach": 12,
+      "views": 47,
+      "reach": 29,
       "saved": 0,
       "shares": 0,
       "comments": 0,
-      "likes": 6,
-      "total_interactions": 6,
-      "ig_reels_avg_watch_time": 7345,
-      "ig_reels_video_view_total_time": 117535,
-      "plays": 27
+      "likes": 7,
+      "total_interactions": 7,
+      "ig_reels_avg_watch_time": 5291,
+      "ig_reels_video_view_total_time": 179894,
+      "plays": 47
     },
     "scenariusz": "trzy-bledy-w-postach",
     "forma": "lista",
     "temat": "dlaczego posty nie sprzedają",
     "dlugosc": 19.3,
     "tempoSrednie": 4.53,
-    "dosmotr": 38.1
+    "dosmotr": 27.4
+  },
+  {
+    "id": "18138095059859534",
+    "plik": "auto-2026-08-13-1.mp4",
+    "opublikowano": "2026-08-15T11:15:04.845Z",
+    "zebrane": "2026-08-15T19:27:03.659Z",
+    "godzina": 13,
+    "hak": "Nagrałeś dobry materiał, a obejrzało go pięć osób.",
+    "dane": {
+      "views": 13,
+      "reach": 7,
+      "saved": 0,
+      "shares": 0,
+      "comments": 0,
+      "likes": 2,
+      "total_interactions": 2,
+      "ig_reels_avg_watch_time": 4118,
+      "ig_reels_video_view_total_time": 41183,
+      "plays": 13
+    },
+    "scenariusz": "pierwsze-trzy-sekundy",
+    "forma": "lista",
+    "temat": "dlaczego nikt nie ogląda twoich rolek",
+    "dlugosc": 22.63,
+    "tempoSrednie": 4.13,
+    "dosmotr": 18.2
   }
 ]
