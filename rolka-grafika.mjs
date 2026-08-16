@@ -133,8 +133,28 @@ const scena = [
   { film: 'uroda', x: 870, y: 830, skala: 340, wys: 540, obrot: 7, skad: 'dol',
     start: t(5, 0.35), koniec: t(6, 0.50), dokad: 'prawo' },
 
-  { obiekt: 'envelope_3d', x: 540, y: 660, skala: 700, obrot: 0, skad: 'dol',
+  // Конверт уходит наверх и уменьшается: под ним теперь ценник, и два
+  // крупных предмета в одном кадре дерутся за взгляд.
+  { obiekt: 'envelope_3d', x: 540, y: 430, skala: 480, obrot: 0, skad: 'gora',
     start: t(6, 0.02) },
+];
+
+// ── ценник ────────────────────────────────────────────────────────
+// Приём из «Scenariusz 1»: бирка с числом и шкалой процента, число падает,
+// шкала уезжает, на посадке вспышка. Держит не цифра, а падение — глаз
+// следит за уходящей полосой и ждёт, где она встанет.
+//
+// Считаем честно и ничего не выдумываем: те самые десять часов, которые мы
+// только что насчитали, уходят в ноль. Придумывать сюда злотые нельзя — мы
+// не знаем ни ставки зрителя, ни своего ценника для него.
+const metki = [
+  {
+    x: 540, y: 1010, szer: 400, wys: 540,
+    od: 10, do: 0, jednostka: 'H',
+    odProc: 100, doProc: 0,
+    a: t(6, 0.10), b: total,
+    czas: 1.1,
+  },
 ];
 
 // ── формула ───────────────────────────────────────────────────────
@@ -243,7 +263,7 @@ const scenaZFilmami = scena.map((o) => (o.film ? { ...o, film: filmy[o.film] } :
 const katKlatek = path.join(OUT, 'grafika-klatki');
 await rm(katKlatek, { recursive: true, force: true });
 const klatek = await renderujKlatki(
-  grafikaHtml({ scena: scenaZFilmami, wzor, liczniki, kamera, akcenty, slowa: glos.slowa, obrazki }),
+  grafikaHtml({ scena: scenaZFilmami, wzor, liczniki, metki, kamera, akcenty, slowa: glos.slowa, obrazki }),
   total,
   katKlatek
 );

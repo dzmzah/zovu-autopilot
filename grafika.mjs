@@ -85,6 +85,21 @@ export function grafikaHtml(plan) {
     .map((l, i) => `<div class="licznik ${l.kolor || ''}" data-i="${i}"></div>`)
     .join('\n');
 
+  // Ценник с полосой — снят с «Scenariusz 1»: бирка с числом, под ней шкала
+  // с процентом, число падает, шкала уезжает, на посадке бирка вспыхивает.
+  // Работает он не цифрой, а ПАДЕНИЕМ: глаз следит за уходящей полосой и
+  // ждёт, где та остановится. Одна и та же цифра, показанная сразу, не
+  // держит внимания ни секунды.
+  const metki = (plan.metki || [])
+    .map(
+      (m, i) =>
+        `<div class="metka" data-i="${i}" style="width:${m.szer || 380}px;height:${m.wys || 520}px">` +
+        `<div class="dziurka"></div><div class="metka-cyfra"></div></div>\n` +
+        `<div class="pasek" data-i="${i}" style="width:${m.szer || 380}px">` +
+        `<div class="pasek-wype"></div><div class="pasek-opis"></div></div>`
+    )
+    .join('\n');
+
   const wzory = (plan.wzor || [])
     .map((w, i) => `<div class="wiersz ${w.kolor || ''} ${w.maly ? 'maly' : ''}" data-i="${i}">${esc(w.tekst)}</div>`)
     .join('\n');
@@ -156,6 +171,30 @@ body { font-family:'Inter',sans-serif; background:transparent; }
 .licznik.czerwony { color:#ff4d4d; }
 .licznik .jedn { font-size:0.46em; letter-spacing:-1px; margin-left:.12em; }
 
+/* Ценник. Форма бирки — скругление плюс дырка под шнурок сверху: без неё
+   это просто плашка, а с ней предмет, который держат в руках. */
+.metka { position:absolute; left:0; top:0; border-radius:56px; opacity:0;
+  transform-origin:50% 12%; transform-style:preserve-3d;
+  display:flex; align-items:center; justify-content:center;
+  will-change:transform,opacity,filter; }
+.metka .dziurka { position:absolute; top:46px; left:50%; width:44px; height:44px;
+  margin-left:-22px; border-radius:50%; background:rgba(0,0,0,.30);
+  box-shadow:inset 0 4px 8px rgba(0,0,0,.45); }
+.metka-cyfra { font-family:'Archivo Black','Inter',sans-serif; font-size:112px;
+  line-height:1; letter-spacing:-4px; color:#fff; font-variant-numeric:tabular-nums;
+  text-shadow:0 8px 22px rgba(0,0,0,.35); margin-top:40px; }
+.metka-cyfra .jedn { font-size:0.44em; letter-spacing:-1px; margin-left:.10em; }
+
+/* Шкала под биркой. Заливка уезжает вправо-влево вместе с числом — она и
+   есть то, за чем следит глаз. */
+.pasek { position:absolute; left:0; top:0; height:74px; opacity:0;
+  display:flex; align-items:center; justify-content:center; will-change:transform,opacity; }
+.pasek-wype { position:absolute; left:0; top:22px; height:30px; border-radius:15px;
+  background:#fff; box-shadow:0 6px 18px rgba(0,0,0,.28); }
+.pasek-opis { position:relative; font-family:'Archivo Black','Inter',sans-serif;
+  font-size:54px; letter-spacing:-2px; color:#fff; font-variant-numeric:tabular-nums;
+  -webkit-text-stroke:8px #0b0718; paint-order:stroke fill; }
+
 .scrim { position:absolute; left:0; right:0; bottom:0; height:660px; pointer-events:none;
   background:linear-gradient(to top, rgba(8,5,18,.62) 0%, rgba(8,5,18,.28) 46%, transparent 100%); }
 </style></head><body>
@@ -163,6 +202,7 @@ body { font-family:'Inter',sans-serif; background:transparent; }
 ${obiekty}
 ${wzory}
 ${liczniki}
+${metki}
 </div>
 <div class="scrim"></div>
 <div class="slowo"></div>
@@ -175,6 +215,7 @@ const AKC = ${JSON.stringify(plan.akcenty || { zolty: [], czerwony: [] })};
 const W = ${W}, H = ${H};
 
 const LICZ = ${JSON.stringify(plan.liczniki || [])};
+const METKI = ${JSON.stringify(plan.metki || [])};
 
 const kam = document.getElementById('kamera');
 // Предметы и окна с видео лежат в одном списке и в том же порядке, что и в
@@ -184,6 +225,9 @@ const obs = [...document.querySelectorAll('.ob, .okno')];
 const cienie = [...document.querySelectorAll('.cien')];
 const wiersze = [...document.querySelectorAll('.wiersz')];
 const licz = [...document.querySelectorAll('.licznik')];
+const metki = [...document.querySelectorAll('.metka')];
+const paski = [...document.querySelectorAll('.pasek')];
+const metkiCyfry = [...document.querySelectorAll('.metka-cyfra')];
 const elSlowo = document.querySelector('.slowo');
 
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
@@ -345,6 +389,75 @@ window.setT = (t) => {
     const dosiad = p >= 1 ? 1 + 0.06 * Math.max(0, 1 - (t - kres) / 0.22) : 1;
     el.style.filter = 'blur(' + (predkosc * 7).toFixed(2) + 'px)';
     el.style.transform = 'scale(' + dosiad.toFixed(3) + ')';
+  });
+
+  // ── ценники ──────────────────────────────────────────────────────
+  // Бирка влетает целой, а потом ПАДАЕТ в цифре: число уходит вниз, шкала
+  // уезжает, цвет из спокойного уходит в горячий, и на посадке бирка коротко
+  // вспыхивает. Порядок важен: сначала показываем, сколько есть, и только
+  // потом отнимаем — иначе отнимать нечего и падение не читается.
+  metki.forEach((el, i) => {
+    const m = METKI[i];
+    const pas = paski[i];
+    const cyf = metkiCyfry[i];
+    const szer = m.szer || 380;
+    const wys = m.wys || 520;
+
+    if (t < m.a - 0.02 || t > (m.b ?? 1e9)) {
+      el.style.opacity = 0;
+      if (pas) pas.style.opacity = 0;
+      return;
+    }
+
+    // Влёт — как у предметов, чтобы бирка не выпадала из общего движения.
+    const wlot = m.wlot ?? 0.42;
+    const pw = clamp01((t - m.a) / wlot);
+    const ew = backOut(pw);
+    const dy = (1 - ew) * H * 0.5;
+
+    // Падение цифры начинается позже влёта: бирка должна успеть встать.
+    const spadA = m.spadA ?? m.a + wlot + 0.25;
+    const spadB = m.spadB ?? spadA + (m.czas ?? 0.95);
+    const ps = clamp01((t - spadA) / Math.max(0.1, spadB - spadA));
+    const es = 1 - Math.pow(1 - ps, 3);
+    const wart = Math.round((m.od ?? 0) + ((m.do ?? 0) - (m.od ?? 0)) * es);
+    const proc = (m.odProc ?? 100) + ((m.doProc ?? 0) - (m.odProc ?? 100)) * es;
+
+    cyf.innerHTML = String(wart) + (m.jednostka ? '<span class="jedn">' + m.jednostka + '</span>' : '');
+
+    // Цвет ведём от спокойного к горячему по ходу падения: к нулю бирка
+    // становится тем самым золотым, что в образце.
+    const h1 = m.barwaOd ?? 158, h2 = m.barwaDo ?? 32;
+    const h = h1 + (h2 - h1) * es;
+    el.style.background =
+      'linear-gradient(160deg, hsl(' + h.toFixed(0) + ' 62% 58%), hsl(' + (h - 12).toFixed(0) + ' 66% 44%))';
+
+    // Вспышка ровно в момент остановки и сразу гаснет: свечение, которое
+    // держится, читается как ошибка, а не как удар.
+    const blysk = ps >= 1 ? Math.max(0, 1 - (t - spadB) / 0.45) : 0;
+    el.style.boxShadow =
+      '0 26px 60px rgba(0,0,0,.30)' +
+      (blysk > 0
+        ? ', 0 0 ' + (90 * blysk).toFixed(0) + 'px ' + (26 * blysk).toFixed(0) +
+          'px hsl(' + h2 + ' 90% 60% / ' + (0.75 * blysk).toFixed(2) + ')'
+        : '');
+
+    const gasnie = m.b ? clamp01((m.b - t) / 0.3) : 1;
+    const skok = 1 + 0.05 * blysk;
+    el.style.opacity = Math.min(1, pw * 2.2) * gasnie;
+    el.style.transform =
+      'translate3d(' + (m.x - szer / 2).toFixed(1) + 'px,' + (m.y - wys / 2 + dy).toFixed(1) + 'px,0)' +
+      ' rotate(' + ((1 - ew) * -9 + Math.sin(t * 1.5) * 1.4).toFixed(2) + 'deg)' +
+      ' scale(' + skok.toFixed(3) + ')';
+
+    if (pas) {
+      pas.style.opacity = el.style.opacity;
+      pas.style.transform =
+        'translate3d(' + (m.x - szer / 2).toFixed(1) + 'px,' +
+        (m.y + wys / 2 + 34 + dy).toFixed(1) + 'px,0)';
+      pas.querySelector('.pasek-wype').style.width = ((szer * proc) / 100).toFixed(1) + 'px';
+      pas.querySelector('.pasek-opis').textContent = Math.round(proc) + '%';
+    }
   });
 
   // ── подпись ──────────────────────────────────────────────────────
