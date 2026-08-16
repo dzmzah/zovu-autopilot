@@ -3,7 +3,7 @@
     "id": "17904017535498586",
     "plik": "kuba-trzy-powody.mp4",
     "opublikowano": "2026-08-12T11:30:46.189Z",
-    "zebrane": "2026-08-15T19:27:02.578Z",
+    "zebrane": "2026-08-16T04:55:32.329Z",
     "godzina": 13,
     "hak": "Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.",
     "dane": {
@@ -25,7 +25,7 @@
     "id": "18102631457151085",
     "plik": "auto-2026-08-12-2.mp4",
     "opublikowano": "2026-08-13T11:42:43.166Z",
-    "zebrane": "2026-08-15T19:27:03.280Z",
+    "zebrane": "2026-08-16T04:55:32.889Z",
     "godzina": 13,
     "hak": "Pytanie „ile kosztuje strona?\" jest jak „ile kosztuje samochód\".",
     "dane": {
@@ -47,7 +47,7 @@
     "id": "18112912228772221",
     "plik": "auto-2026-08-12-1.mp4",
     "opublikowano": "2026-08-14T11:40:56.067Z",
-    "zebrane": "2026-08-15T19:27:02.869Z",
+    "zebrane": "2026-08-16T04:55:32.494Z",
     "godzina": 13,
     "hak": "Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.",
     "dane": {
@@ -73,26 +73,26 @@
     "id": "18138095059859534",
     "plik": "auto-2026-08-13-1.mp4",
     "opublikowano": "2026-08-15T11:15:04.845Z",
-    "zebrane": "2026-08-15T19:27:03.659Z",
+    "zebrane": "2026-08-16T04:55:33.456Z",
     "godzina": 13,
     "hak": "Nagrałeś dobry materiał, a obejrzało go pięć osób.",
     "dane": {
-      "views": 13,
-      "reach": 7,
+      "views": 26,
+      "reach": 19,
       "saved": 0,
       "shares": 0,
       "comments": 0,
       "likes": 2,
       "total_interactions": 2,
-      "ig_reels_avg_watch_time": 4118,
-      "ig_reels_video_view_total_time": 41183,
-      "plays": 13
+      "ig_reels_avg_watch_time": 3399,
+      "ig_reels_video_view_total_time": 74785,
+      "plays": 26
     },
     "scenariusz": "pierwsze-trzy-sekundy",
     "forma": "lista",
     "temat": "dlaczego nikt nie ogląda twoich rolek",
     "dlugosc": 22.63,
     "tempoSrednie": 4.13,
-    "dosmotr": 18.2
+    "dosmotr": 15
   }
 ]
