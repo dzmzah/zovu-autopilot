@@ -117,10 +117,21 @@ const scena = [
   { obiekt: 'money_with_wings_3d', x: 540, y: 540, skala: 820, obrot: -5, skad: 'gora',
     start: t(4, 0.35), koniec: t(5, 0.15), dokad: 'gora' },
 
-  { obiekt: 'rocket_3d', x: 300, y: 600, skala: 660, obrot: -12, skad: 'dol',
+  // Три карточки с ЖИВЫМ видео — то, чего в рисованном ролике не было вовсе.
+  // Снято с «Scenariusz 1»: там в этом месте три играющие карточки с людьми,
+  // и именно они делают кадр живым. Нарисованный предмет, как его ни крути,
+  // остаётся рисунком; человек в кадре — нет.
+  //
+  // Момент выбран не случайно: голос говорит «столько же стоит тот, кто
+  // сделает это за тебя», и карточки показывают, ЧТО именно он сделает.
+  // Средняя карточка крупнее и выше боковых: тройка одинаковых читается как
+  // таблица, а с выделенной серединой — как сцена, у которой есть центр.
+  { film: 'barber', x: 235, y: 830, skala: 340, wys: 540, obrot: -7, skad: 'dol',
     start: t(5, 0.05), koniec: t(6, 0.50), dokad: 'lewo' },
-  { obiekt: 'chart_increasing_3d', x: 810, y: 1000, skala: 620, obrot: 8, skad: 'prawo',
-    start: t(5, 0.30), koniec: t(6, 0.50), dokad: 'prawo' },
+  { film: 'moda', x: 552, y: 760, skala: 390, wys: 620, obrot: 1, skad: 'dol',
+    start: t(5, 0.20), koniec: t(6, 0.50), dokad: 'dol' },
+  { film: 'uroda', x: 870, y: 830, skala: 340, wys: 540, obrot: 7, skad: 'dol',
+    start: t(5, 0.35), koniec: t(6, 0.50), dokad: 'prawo' },
 
   { obiekt: 'envelope_3d', x: 540, y: 660, skala: 700, obrot: 0, skad: 'dol',
     start: t(6, 0.02) },
@@ -135,26 +146,40 @@ const scena = [
 // разводить только по вертикали: они появляются с наездом камеры, и запас в
 // сорок пикселей съедается зумом.
 const wzor = [
-  { tekst: '20 MIN', y: 980, a: t(2, 0.35), b: t(4, 0.55) },
-  { tekst: '×', y: 1110, maly: true, a: t(3, 0.05), b: t(4, 0.55) },
-  { tekst: '30 DNI', y: 1250, a: t(3, 0.30), b: t(4, 0.55) },
+  { tekst: '20 MIN × 30 DNI', y: 940, maly: true, a: t(2, 0.35), b: t(4, 0.55) },
   { tekst: '= 10 GODZIN', y: 1080, kolor: 'czerwony', a: t(4, 0.68), b: t(5, 0.10) },
+];
+
+// ── счётчик ───────────────────────────────────────────────────────
+// Умножение теперь не пишется, а СЧИТАЕТСЯ на экране: пока голос произносит
+// «умножить на тридцать дней», цифра накручивается с нуля до шестисот и
+// тормозит на результате. Это ровно тот приём, что держит взгляд в образцах —
+// там цена бежит до 20 205 zł, а ценник падает с 3000 до 150.
+//
+// Готовую цифру зритель читает и забывает; растущую досматривает, потому что
+// хочет узнать, где она остановится. Смотреть на это ещё и честно: 20 минут
+// на пост, тридцать постов в месяц — шестьсот минут никто не выдумывал.
+const liczniki = [
+  { od: 0, do: 600, jednostka: 'MIN', y: 1120, a: t(3, 0.05), b: t(4, 0.55), czas: 1.25 },
 ];
 
 // Наложение строк ловим замером, а не глазами. Двоение «20 MIN» и
 // «= 10 GODZIN» пролежало в ролике незамеченным, потому что видно его только
 // на трёх кадрах из тысячи — ровно там, где одна строка гаснет, а вторая
 // проявляется. Такое ищут не просмотром, а проверкой.
-for (let i = 0; i < wzor.length; i++) {
-  for (let j = i + 1; j < wzor.length; j++) {
-    const a = wzor[i];
-    const b = wzor[j];
+// Счётчик проверяем вместе со строками формулы: это такой же крупный текст в
+// том же поле кадра, и налезть он может ровно так же.
+const teksty = [...wzor, ...liczniki.map((l) => ({ ...l, duzy: true, tekst: `счётчик до ${l.do}` }))];
+for (let i = 0; i < teksty.length; i++) {
+  for (let j = i + 1; j < teksty.length; j++) {
+    const a = teksty[i];
+    const b = teksty[j];
     const razem = Math.min(a.b ?? 1e9, b.b ?? 1e9) - Math.max(a.a, b.a);
     const odstep = Math.abs(a.y - b.y);
     // Нужный зазор — половина высоты одной строки плюс половина другой.
     // Мерить одним числом нельзя: знак «×» набран 76 пунктами против 118 у
     // остальных, и общий порог ругался бы на здоровую вёрстку.
-    const wys = (x) => (x.maly ? 76 : 118) * 1.05;
+    const wys = (x) => (x.maly ? 76 : x.duzy ? 136 : 118) * 1.05;
     const trzeba = (wys(a) + wys(b)) / 2;
     if (razem > 0 && odstep < trzeba) {
       throw new Error(
@@ -186,11 +211,39 @@ const akcenty = {
   czerwony: ['milczenie', 'dziesięć', 'godzin', 'twoich'],
 };
 
-const obrazki = await wczytajObiekty([...new Set(scena.map((o) => o.obiekt))]);
+const obrazki = await wczytajObiekty([...new Set(scena.map((o) => o.obiekt).filter(Boolean))]);
+
+// ── живое видео для карточек ──────────────────────────────────────
+// Готовим отдельно и в WebM. Браузер, которым мы снимаем кадры, собран без
+// проприетарных кодеков: H.264 из `broll/` он не декодирует и показывает
+// чёрный прямоугольник — молча, без ошибки. VP9 открытый, его понимает
+// любая сборка.
+//
+// Заодно режем до нужного куска и до размера карточки: полноразмерный клип
+// в окне 300 px — это лишняя работа декодера на каждом из тысячи кадров.
+const filmy = {};
+for (const o of scena.filter((x) => x.film)) {
+  if (filmy[o.film]) continue;
+  const zrodlo = path.join(DIR, 'broll', `${o.film}.mp4`);
+  if (!existsSync(zrodlo)) {
+    throw new Error(`[grafika] нет живого клипа broll/${o.film}.mp4`);
+  }
+  const cel = path.join(OUT, `film-${o.film}.webm`);
+  await ffmpeg([
+    '-i', zrodlo, '-t', '8',
+    '-vf', `scale=${(o.skala || 300) * 2}:${(o.wys || 470) * 2}:force_original_aspect_ratio=increase,` +
+      `crop=${(o.skala || 300) * 2}:${(o.wys || 470) * 2},fps=25`,
+    '-an', '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '34', '-deadline', 'good', '-cpu-used', '4',
+    cel,
+  ]);
+  filmy[o.film] = 'file:///' + cel.replace(/\\/g, '/');
+  console.log(`[grafika] живое видео: ${o.film} → ${path.basename(cel)}`);
+}
+const scenaZFilmami = scena.map((o) => (o.film ? { ...o, film: filmy[o.film] } : o));
 const katKlatek = path.join(OUT, 'grafika-klatki');
 await rm(katKlatek, { recursive: true, force: true });
 const klatek = await renderujKlatki(
-  grafikaHtml({ scena, wzor, kamera, akcenty, slowa: glos.slowa, obrazki }),
+  grafikaHtml({ scena: scenaZFilmami, wzor, liczniki, kamera, akcenty, slowa: glos.slowa, obrazki }),
   total,
   katKlatek
 );
@@ -272,6 +325,13 @@ const zdarzenia = [
   ...scena.map((o) => ({ t: +o.start, typ: 'swist' })),
   ...scena.filter((o) => o.koniec).map((o) => ({ t: +o.koniec, typ: 'puk' })),
   ...wzor.map((w) => ({ t: +w.a, typ: 'puk' })),
+  // Счётчик озвучиваем дважды: щелчок на старте и второй в тот миг, когда
+  // цифра встала. Остановка без звука проходит незамеченной — а она и есть
+  // то, ради чего на счётчик смотрят.
+  ...liczniki.flatMap((l) => [
+    { t: +l.a, typ: 'swist' },
+    { t: +(l.kres ?? l.a + (l.czas ?? 1.1)).toFixed(2), typ: 'puk' },
+  ]),
 ].sort((a, b) => a.t - b.t);
 console.log(`[grafika] звуковых событий: ${zdarzenia.length} (${(zdarzenia.length / total).toFixed(1)} на секунду)`);
 

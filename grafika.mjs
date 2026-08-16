@@ -56,12 +56,33 @@ export function grafikaHtml(plan) {
   // Каждый объект — тень на «полу» плюс сам предмет. Плоский `drop-shadow`
   // объёма не даёт: он висит вместе с предметом и едет с ним. Объём продаёт
   // тень, которая живёт отдельно.
+  // Элемент сцены — либо предмет, либо ОКНО с живым видео. Второе появилось
+  // после разбора «Scenariusz 1»: там в кадре три играющие карточки с людьми,
+  // и именно они дают ролику жизнь, которой не даёт ни один нарисованный
+  // предмет. Двигаются они по тем же правилам, что и предметы, — влетают,
+  // плавают, поворачиваются, отбрасывают тень; разница только в начинке.
   const obiekty = plan.scena
-    .map(
-      (o, i) =>
-        `<div class="cien" data-i="${i}"></div>\n` +
-        `<img class="ob" data-i="${i}" src="${plan.obrazki[o.obiekt]}" style="width:${o.skala || 380}px">`
-    )
+    .map((o, i) => {
+      const cien = `<div class="cien" data-i="${i}"></div>`;
+      if (o.film) {
+        const szer = o.skala || 380;
+        const wys = o.wys || Math.round(szer * 1.55);
+        return (
+          `${cien}\n<div class="okno" data-i="${i}" style="width:${szer}px;height:${wys}px">` +
+          `<video data-i="${i}" src="${o.film}" muted playsinline preload="auto"></video></div>`
+        );
+      }
+      return `${cien}\n<img class="ob" data-i="${i}" src="${plan.obrazki[o.obiekt]}" style="width:${o.skala || 380}px">`;
+    })
+    .join('\n');
+
+  // Счётчики. В образцах цифра НИКОГДА не появляется готовой: «20 205 zł»
+  // накручивается на лету, ценник падает с 3000 до 150. Готовое число зритель
+  // прочитывает и забывает, растущее — досматривает, потому что хочет узнать,
+  // где оно остановится. Это самый дешёвый способ удержать взгляд, который
+  // у них есть.
+  const liczniki = (plan.liczniki || [])
+    .map((l, i) => `<div class="licznik ${l.kolor || ''}" data-i="${i}"></div>`)
     .join('\n');
 
   const wzory = (plan.wzor || [])
@@ -84,9 +105,14 @@ body { font-family:'Inter',sans-serif; background:transparent; }
 .ob { position:absolute; left:0; top:0; transform-origin:50% 50%;
   transform-style:preserve-3d; will-change:transform,opacity; }
 
+/* Тень с плотным ядром, а не ровное пятно. Размытый по всей площади овал
+   читается как грязь под предметом; контакт продаёт ТЁМНАЯ середина, от
+   которой тень быстро светлеет к краю. Заодно меньше размываем: пятно с
+   краем даёт опору, пятно без края — туман. */
 .cien { position:absolute; left:0; top:0; border-radius:50%;
-  background:radial-gradient(ellipse 50% 50% at 50% 50%, rgba(0,0,0,.55), transparent 72%);
-  filter:blur(20px); will-change:transform,opacity; opacity:0; }
+  background:radial-gradient(ellipse 50% 50% at 50% 50%,
+    rgba(0,0,0,.62) 0%, rgba(0,0,0,.42) 38%, rgba(0,0,0,.16) 62%, transparent 78%);
+  filter:blur(14px); will-change:transform,opacity; opacity:0; }
 
 /* Формула. Ради неё всё и затевалось: объекты не украшают текст, а СЧИТАЮТ
    вместе с диктором — зритель складывает вместе с ним. */
@@ -110,12 +136,33 @@ body { font-family:'Inter',sans-serif; background:transparent; }
 .slowo.zolty { color:#ffd23f; }
 .slowo.czerwony { color:#ff4d4d; }
 
+/* Окно с живым видео. Скругление крупное — карточка, а не телевизор; рамка
+   светлая, чтобы кадр не сливался со светлым полотном фона. */
+.okno { position:absolute; left:0; top:0; overflow:hidden; border-radius:44px;
+  transform-origin:50% 50%; transform-style:preserve-3d; background:#000;
+  box-shadow:0 0 0 6px rgba(255,255,255,.92), 0 26px 60px rgba(0,0,0,.28);
+  will-change:transform,opacity; }
+.okno video { width:100%; height:100%; object-fit:cover; display:block; }
+
+/* Счётчик набран той же гарнитурой, что и формула, но чуть крупнее: пока
+   цифра крутится, она и есть главное в кадре. */
+.licznik { position:absolute; left:40px; right:40px; text-align:center;
+  font-family:'Archivo Black','Inter',sans-serif; font-size:136px; line-height:1;
+  letter-spacing:-4px; color:#fff; opacity:0;
+  -webkit-text-stroke:10px #0b0718; paint-order:stroke fill;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 12px 0 rgba(11,7,24,.5), 0 22px 48px rgba(0,0,0,.6); }
+.licznik.zolty { color:#ffd23f; }
+.licznik.czerwony { color:#ff4d4d; }
+.licznik .jedn { font-size:0.46em; letter-spacing:-1px; margin-left:.12em; }
+
 .scrim { position:absolute; left:0; right:0; bottom:0; height:660px; pointer-events:none;
   background:linear-gradient(to top, rgba(8,5,18,.62) 0%, rgba(8,5,18,.28) 46%, transparent 100%); }
 </style></head><body>
 <div id="kamera">
 ${obiekty}
 ${wzory}
+${liczniki}
 </div>
 <div class="scrim"></div>
 <div class="slowo"></div>
@@ -127,10 +174,16 @@ const KAM = ${JSON.stringify(plan.kamera || [])};
 const AKC = ${JSON.stringify(plan.akcenty || { zolty: [], czerwony: [] })};
 const W = ${W}, H = ${H};
 
+const LICZ = ${JSON.stringify(plan.liczniki || [])};
+
 const kam = document.getElementById('kamera');
-const obs = [...document.querySelectorAll('.ob')];
+// Предметы и окна с видео лежат в одном списке и в том же порядке, что и в
+// плане: у окна та же анимация, что у предмета, разной должна быть только
+// начинка. Разложить их по двум спискам значило бы писать движение дважды.
+const obs = [...document.querySelectorAll('.ob, .okno')];
 const cienie = [...document.querySelectorAll('.cien')];
 const wiersze = [...document.querySelectorAll('.wiersz')];
+const licz = [...document.querySelectorAll('.licznik')];
 const elSlowo = document.querySelector('.slowo');
 
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
@@ -140,6 +193,11 @@ const KIERUNKI = { lewo: [-1, .25], prawo: [1, .25], gora: [.2, -1], dol: [-.2, 
 
 window.__fit = () => {};
 window.setT = (t) => {
+  // Перемотка живого видео — единственное, чего нельзя сделать мгновенно.
+  // Снимок нужно делать ПОСЛЕ того, как кадр доехал, иначе в ролик попадёт
+  // предыдущий: карточка будет дёргаться назад через раз. Поэтому setT
+  // отдаёт обещание, а съёмка его дожидается.
+  const czekaj = [];
   // ── камера ───────────────────────────────────────────────────────
   // Кадр едет всё время: медленный наезд, дрейф, на смысловых точках
   // подрыв. Неподвижная рамка выдаёт рисунок, движущаяся читается как съёмка.
@@ -171,6 +229,10 @@ window.setT = (t) => {
     if (t < o.start - 0.02 || t > koniec + 0.5) {
       el.style.opacity = 0; if (cien) cien.style.opacity = 0; return;
     }
+
+    // Высота у окна своя: карточка вертикальная, а не квадратная, и центр
+    // по вертикали считается по ней, иначе окно висит выше своей тени.
+    const wysok = o.film ? (o.wys || Math.round(rozm * 1.55)) : rozm;
 
     const p = clamp01((t - o.start) / wlot);
     const e = backOut(p);
@@ -206,9 +268,28 @@ window.setT = (t) => {
     const obrot = (o.obrot || 0) + (1 - e) * (o.skad === 'prawo' ? 26 : -26) + kolysanie;
     el.style.opacity = widocz;
     el.style.filter = 'blur(' + blur.toFixed(1) + 'px)';
+    // Живое видео перематываем в такт ролику: карточка играет с момента
+    // своего появления, а не с нуля файла, и зациклена по своей длине.
+    if (o.film) {
+      const wid = el.querySelector('video');
+      if (wid && wid.readyState >= 1 && wid.duration) {
+        const cel = (o.odKlipu || 0) + Math.max(0, t - o.start);
+        const doc = cel % wid.duration;
+        if (Math.abs(wid.currentTime - doc) > 0.012) {
+          czekaj.push(new Promise((ok) => {
+            wid.addEventListener('seeked', ok, { once: true });
+            wid.currentTime = doc;
+            // Страховка: на конце файла событие может не прийти вовсе, и
+            // тогда съёмка встала бы навсегда на одном кадре.
+            setTimeout(ok, 120);
+          }));
+        }
+      }
+    }
+
     el.style.transform =
       'translate3d(' + (o.x + dx - rozm / 2).toFixed(1) + 'px,' +
-      (o.y + dy - rozm / 2 + plyw).toFixed(1) + 'px,0)' +
+      (o.y + dy - wysok / 2 + plyw).toFixed(1) + 'px,0)' +
       ' scale(' + skala.toFixed(3) + ')' +
       ' rotateY(' + ry.toFixed(1) + 'deg) rotateX(' + rx.toFixed(1) + 'deg)' +
       ' rotate(' + obrot.toFixed(1) + 'deg)';
@@ -221,7 +302,7 @@ window.setT = (t) => {
       cien.style.height = (szer * 0.28).toFixed(1) + 'px';
       cien.style.transform =
         'translate(' + (o.x + dx - szer / 2).toFixed(1) + 'px,' +
-        (o.y + dy + rozm * 0.42).toFixed(1) + 'px)';
+        (o.y + dy + wysok * 0.42).toFixed(1) + 'px)';
     }
   });
 
@@ -237,11 +318,44 @@ window.setT = (t) => {
     el.style.transform = 'scale(' + (0.7 + 0.3 * e).toFixed(3) + ')';
   });
 
+  // ── счётчики ─────────────────────────────────────────────────────
+  // Цифра не появляется — она НАКРУЧИВАЕТСЯ. Замедление к концу обязательно:
+  // равномерный счёт читается как таблица, а тормозящий — как результат, к
+  // которому пришли. На разгоне добавляем смаз по вертикали: так барабан и
+  // выглядит, когда цифры не успевают прочитаться.
+  licz.forEach((el, i) => {
+    const l = LICZ[i];
+    if (t < l.a - 0.02 || t > (l.b ?? 1e9)) { el.style.opacity = 0; return; }
+    el.style.top = l.y + 'px';
+
+    const kres = l.kres ?? Math.min(l.b ?? 1e9, l.a + (l.czas ?? 1.1));
+    const p = clamp01((t - l.a) / Math.max(0.1, kres - l.a));
+    const e = 1 - Math.pow(1 - p, 3);
+    const wart = Math.round((l.od ?? 0) + ((l.do ?? 0) - (l.od ?? 0)) * e);
+
+    // Разделитель разрядов — узкий пробел: «20 205» читается с одного взгляда,
+    // «20205» приходится разбирать.
+    const napis = String(wart).replace(/\\B(?=(\\d{3})+(?!\\d))/g, String.fromCharCode(8201));
+    el.innerHTML = napis + (l.jednostka ? '<span class="jedn">' + l.jednostka + '</span>' : '');
+
+    const predkosc = Math.abs(3 * Math.pow(1 - p, 2)) * (1 - p);
+    const gasnie = l.b ? clamp01((l.b - t) / 0.3) : 1;
+    el.style.opacity = Math.min(1, (t - l.a) / 0.1) * gasnie;
+    // Досадка в конце: цифра встала — и коротко «ударила» в размер.
+    const dosiad = p >= 1 ? 1 + 0.06 * Math.max(0, 1 - (t - kres) / 0.22) : 1;
+    el.style.filter = 'blur(' + (predkosc * 7).toFixed(2) + 'px)';
+    el.style.transform = 'scale(' + dosiad.toFixed(3) + ')';
+  });
+
   // ── подпись ──────────────────────────────────────────────────────
   // Пока на экране формула, подпись молчит. Два текстовых блока кадр не
   // держат — читается ни один, а в паре кадров они ещё и наложились друг
   // на друга: «30 DNI» под словом «TRZYDZIEŚCI».
-  const wzorNaEkranie = WZOR.some((x) => t >= x.a - 0.05 && t <= (x.b ?? 1e9));
+  // Счётчик молчит подпись так же, как формула: пока крутится цифра, читают
+  // её, а второй текст в кадре только мешает — и однажды уже наложился.
+  const wzorNaEkranie =
+    WZOR.some((x) => t >= x.a - 0.05 && t <= (x.b ?? 1e9)) ||
+    LICZ.some((x) => t >= x.a - 0.05 && t <= (x.b ?? 1e9));
   const w = wzorNaEkranie ? null : SLOWA.find((s) => t >= s.a - 0.06 && t < s.b + 0.16);
   if (w) {
     const czysty = w.tekst.replace(/[.,!?…]+$/, '');
@@ -257,6 +371,8 @@ window.setT = (t) => {
   } else {
     elSlowo.style.opacity = 0;
   }
+
+  return czekaj.length ? Promise.all(czekaj) : null;
 };
 </script></body></html>`;
 }
@@ -271,6 +387,24 @@ export async function renderujKlatki(html, sekundy, outDir) {
   const browser = await chromium.launch({ args: ['--force-device-scale-factor=1'] });
   const page = await browser.newPage({ viewport: { width: W, height: H } });
   await page.goto('file://' + plikHtml.replace(/\\/g, '/'));
+
+  // Живое видео перед съёмкой обязано быть готово к перемотке. Без этой
+  // паузы первые карточки выходят чёрными: страница уже нарисована, а дорожка
+  // ещё грузится, и `currentTime` уходит в пустоту.
+  await page.evaluate(async () => {
+    const filmy = [...document.querySelectorAll('video')];
+    await Promise.all(
+      filmy.map(
+        (v) =>
+          new Promise((ok) => {
+            if (v.readyState >= 2) return ok();
+            v.addEventListener('loadeddata', ok, { once: true });
+            v.addEventListener('error', ok, { once: true });
+            setTimeout(ok, 8000);
+          })
+      )
+    );
+  });
   await page.waitForTimeout(600);
 
   const klatek = Math.ceil(sekundy * FPS);
