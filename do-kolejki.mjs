@@ -7,8 +7,12 @@
 // Время публикации считается с запасом в два дня — если сборка сломается,
 // лента не опустеет: к моменту выкладки ролик уже двое суток как готов.
 //
+// Час выхода подбирается сам: пока цифр мало — перебор кандидатов, дальше
+// лучший по охвату (см. `wybierzGodziny`). Руками перебивается `--sloty`.
+//
 //   node do-kolejki.mjs --za-dni=2
-//   node do-kolejki.mjs --za-dni=2 --godzina=13
+//   node do-kolejki.mjs --za-dni=2 --sloty=13,19        — поставить жёстко
+//   node do-kolejki.mjs --godziny=11,13,18,20           — что перебирать
 import { readFile, writeFile, readdir, copyFile, mkdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -24,7 +28,18 @@ const arg = (n, d) => {
 
 const ZA_DNI = +arg('za-dni', 2);
 // Слоты выкладки. Первый рилс дня идёт в первый слот, второй — во второй.
-const SLOTY = String(arg('sloty', '13,19')).split(',').map((s) => +s.trim());
+// Заданные руками слоты выигрывают у подбора: ручная вставка — это всегда
+// осознанное решение человека, и перебивать его автоматикой нельзя.
+const SLOTY_JAWNE = arg('sloty', '') === '' ? null
+  : String(arg('sloty', '')).split(',').map((s) => +s.trim());
+// Часы, которые проверяем. Пять роликов подряд вышли в 13:00, и сводка
+// «средний охват по часу выхода» показывала ровно одну строку — сравнивать
+// было не с чем. Час выхода при охвате 11 решает больше, чем монтаж:
+// попасть в момент, когда владелец фирмы держит телефон, важнее лишней
+// склейки. Поэтому час перебираем сознательно, пока не наберутся цифры.
+const KANDYDACI = String(arg('godziny', '11,13,18,20')).split(',').map((s) => +s.trim());
+// Сколько роликов в часе нужно, чтобы верить его среднему.
+const PROG_UFNOSCI = 3;
 
 await mkdir(ROLKI, { recursive: true });
 
@@ -34,6 +49,67 @@ try {
 } catch {
   kolejka = [];
 }
+
+// ── выбор часа выхода ─────────────────────────────────────────────
+// Правило простое и намеренно неполное: пока про час ничего не известно,
+// перебираем кандидатов по кругу; как только у какого-то часа набралось
+// достаточно роликов и он лучший — ставим туда два раза из трёх, а треть
+// оставляем на разведку.
+//
+// Треть на разведку — не перестраховка. Аккаунт растёт, аудитория меняется,
+// и «лучший час», выбранный на пяти роликах, через месяц может оказаться
+// вчерашним. Полностью прекратить проверку — значит закрепить случайность
+// первых замеров навсегда.
+async function wybierzGodziny(kolejka) {
+  let wyniki = [];
+  try {
+    wyniki = JSON.parse(await readFile(path.join(ROLKI, 'wyniki.json'), 'utf8'));
+  } catch {
+    wyniki = [];
+  }
+
+  const poGodzinie = new Map();
+  for (const w of wyniki) {
+    const g = w.godzina;
+    const z = w.dane?.reach;
+    if (g == null || !z) continue;
+    if (!poGodzinie.has(g)) poGodzinie.set(g, []);
+    poGodzinie.get(g).push(z);
+  }
+
+  const srednie = [...poGodzinie.entries()]
+    .filter(([, xs]) => xs.length >= PROG_UFNOSCI)
+    .map(([g, xs]) => [+g, xs.reduce((a, b) => a + b, 0) / xs.length, xs.length])
+    .sort((a, b) => b[1] - a[1]);
+
+  // Сколько роликов уже поставлено — этим и сдвигаем круг, чтобы два прогона
+  // подряд не выбрали один и тот же час.
+  const licznik = kolejka.length;
+  // «Лучший» имеет смысл только против кого-то. Пока цифры есть по одному
+  // часу, он лучший по определению — и автоматика закрепила бы 13:00
+  // навсегда ровно потому, что других замеров никто не сделал. Это и есть
+  // та ловушка, из-за которой сравнение по времени не появилось за пять
+  // роликов. Поэтому лучшему верим, только когда часов с цифрами хотя бы два.
+  const najlepszy = srednie.length >= 2 ? srednie[0] : null;
+
+  if (najlepszy && licznik % 3 !== 2) {
+    console.log(
+      `[kolejka] лучший час ${najlepszy[0]}:00 — охват ${Math.round(najlepszy[1])} на ${najlepszy[2]} роликах`
+    );
+    return [najlepszy[0], ...KANDYDACI.filter((g) => g !== najlepszy[0])];
+  }
+
+  const start = licznik % KANDYDACI.length;
+  const krag = [...KANDYDACI.slice(start), ...KANDYDACI.slice(0, start)];
+  console.log(
+    najlepszy
+      ? `[kolejka] разведка: беру ${krag[0]}:00 вместо лучшего ${najlepszy[0]}:00`
+      : `[kolejka] цифр по часам пока мало — перебираю: ${krag.join(', ')}`
+  );
+  return krag;
+}
+
+const GODZINY = SLOTY_JAWNE || (await wybierzGodziny(kolejka));
 
 const juzWKolejce = new Set(kolejka.map((p) => p.plik));
 // Какие сценарии уже ждут выкладки. Повтор ловим по ИСТОЧНИКУ, а не по имени
@@ -84,7 +160,7 @@ for (const [i, f] of pliki.entries()) {
   // первый слот, второй во второй. Перебирать все слоты одного дня нельзя —
   // тогда один ролик, наткнувшись на занятый день, вставал бы вторым в тот
   // же день вместо свободного следующего. Ищем тот же час, но дальше.
-  const godz = SLOTY[i % SLOTY.length];
+  const godz = GODZINY[i % GODZINY.length];
   let kiedy = null;
   for (let plus = 0; plus < 10 && !kiedy; plus++) {
     const d = new Date();

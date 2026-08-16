@@ -26,6 +26,7 @@ import { zbudujGlos } from './glos.mjs';
 import { zbuduj } from './awatar-reel.mjs';
 import { searchStock, fetchClip } from './stock.mjs';
 import { sprawdzRolke } from './kontrola.mjs';
+import { podmienHasztagi } from './tagi.mjs';
 
 const DIR = import.meta.dirname;
 const OUT = path.join(DIR, 'out');
@@ -411,7 +412,7 @@ async function nastepnyScenariusz() {
   // ноль считался «не задано», и первый сценарий нельзя было пересобрать
   // явно вообще: приходилось выковыривать его из очереди, чтобы до него
   // добрался круг.
-  if (JAWNY !== '') return { scen: SCENARIUSZE[NR] || SCENARIUSZE[0], idx: NR };
+  if (JAWNY !== '') return { scen: SCENARIUSZE[NR] || SCENARIUSZE[0], idx: NR, wydanie: NR };
   let stan = {};
   try { stan = JSON.parse(await readFile(STAN, 'utf8')); } catch { stan = {}; }
   const zajete = await czekajaceScenariusze();
@@ -424,10 +425,15 @@ async function nastepnyScenariusz() {
     idx = (idx + 1) % SCENARIUSZE.length;
   }
   stan.scenariusz = idx;
+  // Сквозной номер выпуска. Номер сценария для хэштегов не годится: он ходит
+  // по кругу, значит на втором круге тот же сценарий получил бы тот же набор
+  // тегов — ровно тот повтор, от которого площадка режет показы. Счётчик
+  // растёт всегда и делает набор новым даже при повторе сценария.
+  stan.wydanie = (stan.wydanie ?? 0) + 1;
   stan.kiedy = new Date().toISOString();
   await mkdir(path.dirname(STAN), { recursive: true });
   await writeFile(STAN, JSON.stringify(stan, null, 2) + String.fromCharCode(10), 'utf8');
-  return { scen: SCENARIUSZE[idx], idx };
+  return { scen: SCENARIUSZE[idx], idx, wydanie: stan.wydanie };
 }
 
 // ── музыка по кругу ───────────────────────────────────────────────
@@ -456,7 +462,7 @@ async function nastepnaMuzyka() {
   return path.join(kat, pliki[idx]);
 }
 
-const { scen, idx: scenIdx } = await nastepnyScenariusz();
+const { scen, idx: scenIdx, wydanie } = await nastepnyScenariusz();
 console.log(`[rolka-auto] сценарий ${scenIdx + 1} из ${SCENARIUSZE.length}: ${scen.nazwa}`);
 
 // 1. Голос. Фразы озвучиваются по одной — так границы каждой известны точно.
@@ -580,8 +586,19 @@ console.log('[rolka-auto] собрано:', JSON.stringify(wynik));
 // Хук в описании ДРУГОЙ, чем в ролике — кто видео не досмотрел, цепляется
 // за текст. Призыв — одно слово в директ: на такое отвечают чаще, и сразу
 // видно, сколько людей пришло именно с этого рилса.
+// Хэштеги в тексте сценария — заглушка: их подменяет общий генератор.
+// Держать теги в сценарии нельзя по двум причинам. Первая: там годами
+// стояли общие слова (#marketing, #socialmedia), по которым аккаунт с
+// охватом 11 не показывается никому. Вторая: сценарии крутятся по кругу,
+// значит один и тот же набор повторяется под каждым третьим роликом, а
+// повтор площадка читает как шаблон и режет показы сама.
 if (scen.opis) {
-  await writeFile(path.join(OUT, `${plan.nazwa}-opis.txt`), scen.opis, 'utf8');
+  const opis = podmienHasztagi(scen.opis, {
+    temat: scen.temat,
+    forma: scen.forma,
+    nr: wydanie,
+  });
+  await writeFile(path.join(OUT, `${plan.nazwa}-opis.txt`), opis, 'utf8');
 }
 
 // ── паспорт ролика ────────────────────────────────────────────────
