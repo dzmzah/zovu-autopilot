@@ -48,6 +48,17 @@ const FRAZY = [
 // достаточно: важно, ЧТО и КОГДА появляется, а не как оно звучит.
 const BEZ_GLOSU = process.argv.includes('--bez-glosu');
 
+// Размытие полотна. Захар: «топография нравится, но заблюрил бы, чтобы не
+// было сильного акцента на нём, но его было видно». Ровно то, что делает
+// камера с настоящим фоном: рисунок остаётся, но глубина резкости уводит его
+// назад, и первым в кадре читается предмет, а не узор.
+//
+// Заодно сажаем контраст: одно размытие оставляет линии тёмными, они всё
+// равно тянут взгляд, просто нерезкие.
+const ROZMYCIE = +(
+  (process.argv.find((a) => a.startsWith('--rozmycie=')) || '').split('=')[1] ?? 18
+);
+
 function udawanyGlos(frazy, przedPierwsza = 0.45) {
   const TEMPO = 4.2; // слогов в секунду — то, к чему стремимся в живом дубле
   const sylaby = (s) => (String(s).toLowerCase().match(/[aeiouyąęó]/g) || []).length || 1;
@@ -283,12 +294,12 @@ console.log(`[grafika] отрисовано кадров: ${klatek} (${FPS} к/�
 // `abstrakcja-3` тоже светлый, но насыщенно-розовый: объекты у нас розовые
 // и красные, на нём они тонут, а тень пропадает в цвете. Светлый и НЕЙТРАЛЬНЫЙ
 // — вот условие. Четыре новых взяты из пака YoEdit тем же критерием.
+// Выбор Захара 17.08 из шести показанных: топография. Бумага, точки и
+// однотонное остаются в папке — если понадобится развести ленту, они уже
+// готовы, но сами по себе больше не выпадают.
 const TLA = [
-  'topografia-jasna.mp4', // белая топография — ближе всего к образцам
   'topografia-3.mp4',     // бежевая, на ней собран «Scenariusz 1» Захара
-  'kropki-jasne.mp4',
-  'papier-4.mp4',
-  'papier-6.mp4',
+  'topografia-jasna.mp4', // белая — тот же рисунок, светлее и холоднее
 ];
 const stanPlik = path.join(DIR, 'rolki', 'stan.json');
 let stan = {};
@@ -308,7 +319,7 @@ await ffmpeg(
         '-framerate', String(FPS), '-i', path.join(katKlatek, 'f%05d.png'),
         '-filter_complex',
         `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},` +
-          `fps=${FPS},eq=brightness=-0.04:saturation=1.15[tlo];` +
+          `fps=${FPS},gblur=sigma=${ROZMYCIE},eq=contrast=0.80:brightness=0.03:saturation=1.05[tlo];` +
           `[tlo][1:v]overlay=0:0:format=auto,format=yuv420p,setsar=1[v]`,
         '-map', '[v]', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18',
         '-t', String(total), wideo,
