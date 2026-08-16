@@ -39,8 +39,49 @@ const FRAZY = [
   { rola: 'cta', tekst: 'Napisz CZAS, a policzymy twoje.', pauza: 0.20 },
 ];
 
-const glos = await zbudujGlos(FRAZY, { tmp: path.join(OUT, 'grafika-glos'), przedPierwsza: 0.45 });
-console.log(`[grafika] голос ${glos.dlugosc.toFixed(2)} с, слов ${glos.slowa.length}`);
+// ── проба без озвучки ─────────────────────────────────────────────
+// Каждая проба картинки стоила дубля ElevenLabs, а правок по анимации нужны
+// десятки: подвинуть тень, увеличить объект, сменить фон. Платить голосом за
+// то, что решается глазами, бессмысленно — и именно так мы сожгли квоту.
+//
+// Тайминги считаем по слогам в темпе живой речи. Для проверки картинки этого
+// достаточно: важно, ЧТО и КОГДА появляется, а не как оно звучит.
+const BEZ_GLOSU = process.argv.includes('--bez-glosu');
+
+function udawanyGlos(frazy, przedPierwsza = 0.45) {
+  const TEMPO = 4.2; // слогов в секунду — то, к чему стремимся в живом дубле
+  const sylaby = (s) => (String(s).toLowerCase().match(/[aeiouyąęó]/g) || []).length || 1;
+  const meta = [];
+  let czas = przedPierwsza;
+  for (const f of frazy) {
+    const d = sylaby(f.tekst) / TEMPO;
+    meta.push({ tekst: f.tekst, a: +czas.toFixed(3), b: +(czas + d).toFixed(3) });
+    czas += d + (f.pauza ?? 0.3);
+  }
+  // Слова раскладываем по фразе пропорционально длине — подписи должны
+  // сменяться, иначе на пробе не видно, попадают ли они под объекты.
+  const slowa = meta.flatMap((m) => {
+    const ws = m.tekst.split(/\s+/).filter(Boolean);
+    const suma = ws.reduce((s, w) => s + w.length, 0) || 1;
+    let t = m.a;
+    return ws.map((w) => {
+      const d = ((m.b - m.a) * w.length) / suma;
+      const s = { tekst: w, a: +t.toFixed(3), b: +(t + d).toFixed(3) };
+      t += d;
+      return s;
+    });
+  });
+  return { plik: null, frazy: meta, slowa, dlugosc: +(czas + 0.35).toFixed(3) };
+}
+
+const glos = BEZ_GLOSU
+  ? udawanyGlos(FRAZY)
+  : await zbudujGlos(FRAZY, { tmp: path.join(OUT, 'grafika-glos'), przedPierwsza: 0.45 });
+console.log(
+  BEZ_GLOSU
+    ? `[grafika] ПРОБА без озвучки: ${glos.dlugosc.toFixed(2)} с по слогам, голос не тратим`
+    : `[grafika] голос ${glos.dlugosc.toFixed(2)} с, слов ${glos.slowa.length}`
+);
 
 const F = glos.frazy;
 const total = +(glos.dlugosc + 0.5).toFixed(2);
@@ -51,36 +92,78 @@ const t = (i, d = 0) => +(F[i].a + d).toFixed(2);
 // главное отличие от первой версии, где всё копилось до конца и кадр к
 // финалу стоял неподвижной кучей.
 const scena = [
-  { obiekt: 'mobile_phone_3d', x: 540, y: 620, skala: 500, obrot: -6, skad: 'gora',
+// Размеры и положения сняты с образцов Захара, а не выбраны на глаз. У него
+// объект занимает половину кадра и ОБРЕЗАЕТСЯ краем: влетает сверху так, что
+// часть остаётся за рамкой. Кадр от этого читается как окно, за которым
+// продолжается сцена. Наш аккуратный предмет по центру, целиком в кадре и с
+// воздухом со всех сторон, выдаёт наклейку — сколько его ни покачивай.
+//
+// Плюс у эмодзи Fluent прозрачные поля по краям PNG: в рамке 500 px сам
+// предмет занимает около 350. Поэтому числа здесь заметно больше тех, что
+// кажутся нужными.
+  { obiekt: 'mobile_phone_3d', x: 520, y: 560, skala: 760, obrot: -6, skad: 'gora',
     start: t(0, 0.05), koniec: t(1, 0.10), dokad: 'lewo' },
-  { obiekt: 'thinking_face_3d', x: 800, y: 1080, skala: 300, obrot: 8, skad: 'prawo',
+  { obiekt: 'thinking_face_3d', x: 880, y: 1120, skala: 440, obrot: 8, skad: 'prawo',
     start: t(0, 0.42), koniec: t(1, 0.10), dokad: 'prawo' },
 
-  { obiekt: 'alarm_clock_3d', x: 330, y: 500, skala: 470, obrot: -10, skad: 'lewo',
+  // Часы и календарь — пара слагаемых. Разводим к краям и даём им вылезти за
+  // рамку: два предмета, вписанные целиком, читаются как иконки в списке.
+  { obiekt: 'alarm_clock_3d', x: 250, y: 470, skala: 700, obrot: -10, skad: 'lewo',
     start: t(2, 0.02), koniec: t(4, 0.55), dokad: 'lewo' },
-  { obiekt: 'calendar_3d', x: 760, y: 560, skala: 430, obrot: 9, skad: 'prawo',
+  { obiekt: 'calendar_3d', x: 830, y: 560, skala: 640, obrot: 9, skad: 'prawo',
     start: t(3, 0.02), koniec: t(4, 0.55), dokad: 'prawo' },
 
-  { obiekt: 'money_with_wings_3d', x: 540, y: 560, skala: 540, obrot: -5, skad: 'gora',
+  // Расплата — самый крупный кадр ролика: одна вещь во весь экран.
+  { obiekt: 'money_with_wings_3d', x: 540, y: 540, skala: 820, obrot: -5, skad: 'gora',
     start: t(4, 0.35), koniec: t(5, 0.15), dokad: 'gora' },
 
-  { obiekt: 'rocket_3d', x: 350, y: 620, skala: 440, obrot: -12, skad: 'dol',
+  { obiekt: 'rocket_3d', x: 300, y: 600, skala: 660, obrot: -12, skad: 'dol',
     start: t(5, 0.05), koniec: t(6, 0.50), dokad: 'lewo' },
-  { obiekt: 'chart_increasing_3d', x: 760, y: 980, skala: 420, obrot: 8, skad: 'prawo',
+  { obiekt: 'chart_increasing_3d', x: 810, y: 1000, skala: 620, obrot: 8, skad: 'prawo',
     start: t(5, 0.30), koniec: t(6, 0.50), dokad: 'prawo' },
 
-  { obiekt: 'envelope_3d', x: 540, y: 700, skala: 470, obrot: 0, skad: 'dol',
+  { obiekt: 'envelope_3d', x: 540, y: 660, skala: 700, obrot: 0, skad: 'dol',
     start: t(6, 0.02) },
 ];
 
 // ── формула ───────────────────────────────────────────────────────
 // Собирается под голос: строка появляется ровно тогда, когда её произносят.
+// Ответ приходит ПОСЛЕ того, как слагаемые ушли, и на их место. Раньше он
+// начинал проявляться за 0,3 с до их исчезновения и садился на 1020 — ровно
+// между строками 980 и 1120. На кадре это читалось как двоение: сквозь
+// «20 MIN» просвечивало красное «= 10 GODZIN». Строки формулы вообще нельзя
+// разводить только по вертикали: они появляются с наездом камеры, и запас в
+// сорок пикселей съедается зумом.
 const wzor = [
-  { tekst: '20 MIN', y: 980, a: t(2, 0.35), b: t(4, 0.60) },
-  { tekst: '×', y: 1120, maly: true, a: t(3, 0.05), b: t(4, 0.60) },
-  { tekst: '30 DNI', y: 1210, a: t(3, 0.30), b: t(4, 0.60) },
-  { tekst: '= 10 GODZIN', y: 1020, kolor: 'czerwony', a: t(4, 0.30), b: t(5, 0.10) },
+  { tekst: '20 MIN', y: 980, a: t(2, 0.35), b: t(4, 0.55) },
+  { tekst: '×', y: 1110, maly: true, a: t(3, 0.05), b: t(4, 0.55) },
+  { tekst: '30 DNI', y: 1250, a: t(3, 0.30), b: t(4, 0.55) },
+  { tekst: '= 10 GODZIN', y: 1080, kolor: 'czerwony', a: t(4, 0.68), b: t(5, 0.10) },
 ];
+
+// Наложение строк ловим замером, а не глазами. Двоение «20 MIN» и
+// «= 10 GODZIN» пролежало в ролике незамеченным, потому что видно его только
+// на трёх кадрах из тысячи — ровно там, где одна строка гаснет, а вторая
+// проявляется. Такое ищут не просмотром, а проверкой.
+for (let i = 0; i < wzor.length; i++) {
+  for (let j = i + 1; j < wzor.length; j++) {
+    const a = wzor[i];
+    const b = wzor[j];
+    const razem = Math.min(a.b ?? 1e9, b.b ?? 1e9) - Math.max(a.a, b.a);
+    const odstep = Math.abs(a.y - b.y);
+    // Нужный зазор — половина высоты одной строки плюс половина другой.
+    // Мерить одним числом нельзя: знак «×» набран 76 пунктами против 118 у
+    // остальных, и общий порог ругался бы на здоровую вёрстку.
+    const wys = (x) => (x.maly ? 76 : 118) * 1.05;
+    const trzeba = (wys(a) + wys(b)) / 2;
+    if (razem > 0 && odstep < trzeba) {
+      throw new Error(
+        `[grafika] строки формулы налезают: «${a.tekst}» (y${a.y}) и «${b.tekst}» (y${b.y}) ` +
+          `видны вместе ${razem.toFixed(2)} с при зазоре ${odstep} px, нужно ${Math.round(trzeba)}`
+      );
+    }
+  }
+}
 
 // ── камера ────────────────────────────────────────────────────────
 // Медленный наезд через весь ролик и подрывы на смысловых точках: на
@@ -114,7 +197,26 @@ const klatek = await renderujKlatki(
 console.log(`[grafika] отрисовано кадров: ${klatek} (${FPS} к/с)`);
 
 // ── подложка ──────────────────────────────────────────────────────
-const TLA = ['topografia-2.mp4', 'topografia-3.mp4', 'abstrakcja-3.mp4', 'gradient-2.mp4'];
+// Только светлые полотна. Тень мы рисуем чёрной — на тёмном фоне её не
+// видно ВООБЩЕ, и вместе с ней пропадает объём, ради которого всё затевалось.
+// Там же умирает красная строка формулы: на почти чёрном она читается как
+// грязное пятно. Проверено покадрово на `17_LUCHSHIY_FINAL.mp4`, собранном
+// на `topografia-2`: тени нет ни на одном кадре.
+//
+// `topografia-3` — то самое бежевое полотно, на котором собран «Scenariusz 1»
+// Захара. Тёмные фоны остаются в папке и включаются через `TLO_WIDEO`, но
+// сами по себе больше не выпадают.
+//
+// `abstrakcja-3` тоже светлый, но насыщенно-розовый: объекты у нас розовые
+// и красные, на нём они тонут, а тень пропадает в цвете. Светлый и НЕЙТРАЛЬНЫЙ
+// — вот условие. Четыре новых взяты из пака YoEdit тем же критерием.
+const TLA = [
+  'topografia-jasna.mp4', // белая топография — ближе всего к образцам
+  'topografia-3.mp4',     // бежевая, на ней собран «Scenariusz 1» Захара
+  'kropki-jasne.mp4',
+  'papier-4.mp4',
+  'papier-6.mp4',
+];
 const stanPlik = path.join(DIR, 'rolki', 'stan.json');
 let stan = {};
 try { stan = JSON.parse(await readFile(stanPlik, 'utf8')); } catch { stan = {}; }
@@ -207,6 +309,23 @@ const muzyka = path.join(DIR, 'music', utwory[idxMuz] || 'pixabay-creative-techn
 // идёт с динамикой LRA 2.5-3.5, у нас было 4.8. Именно эта плотность и
 // читается как «дикторский» звук: ровный, близкий, без провалов.
 const gotowy = path.join(OUT, 'auto-grafika-milczenie.mp4');
+// На пробе голоса нет — сводить нечего. Картинку, щелчки и музыку кладём
+// как есть: этого хватает, чтобы судить о движении и ритме.
+if (BEZ_GLOSU) {
+  await ffmpeg([
+    '-i', wideo, '-i', muzyka, '-i', stuki,
+    '-filter_complex',
+    `[1:a]atrim=0:${total},asetpts=N/SR/TB,volume=0.16[bed];` +
+      `[bed][2:a]amix=inputs=2:normalize=0:duration=longest,alimiter=limit=0.95,` +
+      `aformat=channel_layouts=stereo[a]`,
+    '-map', '0:v', '-map', '[a]',
+    '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-ar', '48000', '-ac', '2',
+    '-t', String(total), gotowy,
+  ]);
+  console.log(`[grafika] ПРОБА готова: ${gotowy}`);
+  process.exit(0);
+}
+
 await ffmpeg([
   '-i', wideo, '-i', glos.plik, '-i', muzyka, '-i', stuki,
   '-f', 'lavfi', '-i', `anoisesrc=c=brown:a=0.02:r=48000:d=${total}`,
