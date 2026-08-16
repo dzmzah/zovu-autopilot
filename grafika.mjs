@@ -195,8 +195,15 @@ body { font-family:'Inter',sans-serif; background:transparent; }
   font-size:54px; letter-spacing:-2px; color:#fff; font-variant-numeric:tabular-nums;
   -webkit-text-stroke:8px #0b0718; paint-order:stroke fill; }
 
-.scrim { position:absolute; left:0; right:0; bottom:0; height:660px; pointer-events:none;
-  background:linear-gradient(to top, rgba(8,5,18,.62) 0%, rgba(8,5,18,.28) 46%, transparent 100%); }
+/* Затемнение под подписью. Оно рисовалось, когда фон был тёмным, и там
+   честно отделяло текст от картинки. На светлом полотне тот же приём
+   размазывает по нижней трети кадра серую грязь — Захар это увидел раньше,
+   чем я, и был прав.
+   Светлому фону нужно ОСВЕТЛЕНИЕ, а не затемнение: подпись у нас белая с
+   тёмной обводкой, её держит обводка, а полотну надо лишь слегка успокоить
+   рисунок под текстом. Держим слабым — заметная плашка выдаёт шаблон. */
+.scrim { position:absolute; left:0; right:0; bottom:0; height:560px; pointer-events:none;
+  background:linear-gradient(to top, rgba(255,255,255,.38) 0%, rgba(255,255,255,.16) 52%, transparent 100%); }
 </style></head><body>
 <div id="kamera">
 ${obiekty}
