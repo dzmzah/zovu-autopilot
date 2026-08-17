@@ -776,7 +776,7 @@ export function plytyHtml(plyty, total, akcent = '#7c3aed', akcent2 = '#a78bfa')
 </div>`;
       }
       const linie = (p.linie || [])
-        .map((l) => `<div class="linia${p.plaszka && l === p.plaszka ? ' chip' : ''}">${esc(l)}</div>`)
+        .map((l) => `<div class="linia${p.plaszka && l.includes(p.plaszka) ? ' chip' : ''}">${esc(l)}</div>`)
         .join('');
       return `<div class="plyta hak" data-i="${i}">${linie}</div>`;
     })
@@ -1370,7 +1370,10 @@ export async function zbuduj(plan) {
     // Держим у самого конца героя, вплотную к аутро: сводка — последнее, что
     // видит зритель до логотипа, и именно её скриншотят.
     const dl = +(plan.podsumowanie.dlugosc ?? 3.0);
-    const b = +(totalHero - 0.15).toFixed(2);
+    // Уходим за 0,8 с до конца героя, а не за 0,15: аутро наезжает снизу
+    // ещё внутри последней секунды, и на пробе сводка оказалась наполовину
+    // закрыта фирменной заставкой ровно в тот момент, когда её скриншотят.
+    const b = +(totalHero - 0.8).toFixed(2);
     plyty.push({
       styl: 'sum',
       punkty: plan.podsumowanie.punkty,
