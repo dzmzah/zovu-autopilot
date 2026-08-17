@@ -225,4 +225,94 @@ const ESPANOLA = {
   },
 };
 
-export const DEMA = [MUSEO, ESPANOLA];
+// ── Maxcom — телефон для старшего человека ────────────────────────
+// Заявка: реклама смартфона для сеньоров, 1200 zł, бюджет назван, ИИ разрешён
+// прямо. Факты (maxcom.pl и корпоративный сайт, проверено 18.08.2026):
+//   · Comfort MM730: батарея 800 mAh, ЧУВАНИЕ до 250 часов, разговор 7 часов
+//   · большие кнопки и широкий экран
+//   · кнопка SOS звонит на ЗАПРОГРАММИРОВАННЫЙ контакт (не в службу)
+//   · фонарик, FM-радио, громкая связь
+//   · марка с 2001 года, с 2008 первой в Польше вывела телефоны с большими
+//     кнопками для пожилых
+// Арифметика честная: 250 часов ÷ 24 = десять с лишним дней. Больше ничего
+// не считаем — цен и числа проданных штук на сайте нет, значит их нет и здесь.
+//
+// БЕЗ КАРТОЧЕК ЖИВОГО ВИДЕО. В `broll/` нет людей старшего возраста: `gadzety`
+// и `nowoczesne` дают молодые руки и модные вещи, то есть ровно не ту
+// аудиторию, для которой телефон сделан. Это та же грабля, что с футбольной
+// школой, и второй раз я в неё не наступаю. Ролик держат предметы и счётчик.
+const MAXCOM = {
+  klucz: 'demo-maxcom',
+  nazwa: 'DEMO Maxcom — telefon dla seniora',
+  frazy: [
+    // Точка внутри каждой фразы — правило, доказанное замерами на трёх дублях.
+    { rola: 'hak', tekst: 'Telefon mamy znowu padł. Trzeci raz w tygodniu.', pauza: 0.40 },
+    { rola: 'hak', tekst: 'A gdyby stał dziesięć dni? Bez ładowania.', pauza: 0.38 },
+    { rola: 'tresc', tekst: 'Dwieście pięćdziesiąt godzin czuwania. Tyle daje.', pauza: 0.34 },
+    { rola: 'tresc', tekst: 'Podziel przez dobę. Wychodzi dziesięć dni.', pauza: 0.34 },
+    { rola: 'tresc', tekst: 'Duże przyciski. Widać je bez okularów.', pauza: 0.38 },
+    { rola: 'zaplata', tekst: 'Z tyłu przycisk SOS. Jeden ruch palcem.', pauza: 0.34 },
+    { rola: 'zaplata', tekst: 'Dzwoni do ciebie. Do numeru z pamięci.', pauza: 0.38 },
+    { rola: 'cta', tekst: 'Maxcom Comfort. Sprawdź w swoim sklepie.', pauza: 0.20 },
+  ],
+  buduj({ t, total }) {
+    const scena = [
+      // Разряженный телефон в хуке — сама беда, о которой говорит голос.
+      { obiekt: 'mobile_phone_3d', x: 520, y: 550, skala: 800, obrot: -6, skad: 'gora',
+        start: t(0, 0.05), koniec: t(2, 0.02), dokad: 'lewo' },
+      // Часы и песочные часы — пара слагаемых счёта: часы чувания и сутки.
+      { obiekt: 'alarm_clock_3d', x: 250, y: 470, skala: 700, obrot: -10, skad: 'lewo',
+        start: t(2, 0.05), koniec: t(4, 0.55), dokad: 'lewo' },
+      { obiekt: 'hourglass_done_3d', x: 840, y: 570, skala: 620, obrot: 10, skad: 'prawo',
+        start: t(3, 0.02), koniec: t(4, 0.55), dokad: 'prawo' },
+      // Кнопки без очков — телефон крупно, во весь кадр.
+      { obiekt: 'mobile_phone_3d', x: 540, y: 540, skala: 860, obrot: 4, skad: 'dol',
+        start: t(4, 0.30), koniec: t(5, 0.30), dokad: 'gora' },
+      // SOS: галочка как «сработало». Крестика тут быть не должно — ролик
+      // про то, что помощь ПРИХОДИТ, а не про то, что её нет.
+      { obiekt: 'check_mark_button_3d', x: 540, y: 520, skala: 780, obrot: -5, skad: 'prawo',
+        start: t(5, 0.40), koniec: t(7, 0.05), dokad: 'gora' },
+      { obiekt: 'mobile_phone_3d', x: 540, y: 430, skala: 470, obrot: 0, skad: 'gora',
+        start: t(7, 0.05) },
+    ];
+
+    // Ценник растёт к зелёному: десять дней без зарядки — это выигрыш.
+    // Обе цифры из их же спецификации, поделённые на двадцать четыре.
+    const metki = [
+      { x: 540, y: 1010, szer: 400, wys: 540, od: 0, do: 10, jednostka: '',
+        barwaOd: 32, barwaDo: 158,
+        odProc: 0, doProc: 100, opis: 'DNI BEZ ŁADOWANIA', a: t(7, 0.12), b: total, czas: 1.2 },
+    ];
+
+    const wzor = [
+      { tekst: '250 H ÷ 24', y: 940, maly: true, a: t(2, 0.40), b: t(4, 0.55) },
+      { tekst: '= 10 DNI', y: 1080, kolor: 'zolty', a: t(4, 0.68), b: t(5, 0.20) },
+    ];
+
+    const liczniki = [
+      { od: 0, do: 250, jednostka: 'H', y: 1120, a: t(0, 0.30), b: t(1, 0.60),
+        czas: 0.85, zPodpisem: true },
+      { od: 0, do: 250, jednostka: 'H', y: 1120, a: t(2, 0.60), b: t(4, 0.55), czas: 1.2 },
+    ];
+
+    const kamera = [
+      { t: 0, zoom: 1.00, x: 0, y: 0 },
+      { t: t(1), zoom: 1.06, x: -16, y: 12 },
+      { t: t(2), zoom: 1.01, x: 18, y: -10 },
+      { t: t(4, 0.30), zoom: 1.11, x: 0, y: 22 },
+      { t: t(5, 0.10), zoom: 1.03, x: 0, y: 0 },
+      { t: t(6, 0.05), zoom: 1.08, x: 14, y: -16 },
+      { t: t(7), zoom: 1.02, x: 0, y: 0 },
+      { t: total, zoom: 1.10, x: 0, y: 8 },
+    ];
+
+    const akcenty = {
+      zolty: ['dziesięć', 'sos', 'sprawdź', 'ciebie'],
+      czerwony: ['padł', 'trzeci'],
+    };
+
+    return { scena, metki, wzor, liczniki, kamera, akcenty };
+  },
+};
+
+export const DEMA = [MUSEO, ESPANOLA, MAXCOM];
