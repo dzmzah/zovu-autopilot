@@ -667,7 +667,7 @@ const plan = {
     ? {
         podsumowanie: {
           punkty: scen.czesci.filter((c) => c.numer).map((c) => c.tytul),
-          zapisz: 'Zapisz, żeby mieć to pod ręką',
+          zapisz: 'Zapisz na potem',
           dlugosc: 3.0,
         },
       }

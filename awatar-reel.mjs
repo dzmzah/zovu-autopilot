@@ -805,7 +805,15 @@ body { background:transparent; overflow:hidden; font-family:'Inter',sans-serif; 
   box-shadow:0 18px 50px rgba(0,0,0,.45); }
 
 /* Сводка. Всё, ради чего смотрели, в одном неподвижном кадре. */
-.plyta.sum { top:560px; }
+.plyta.sum { top:560px; padding:44px 40px 40px; border-radius:34px; }
+/* Подложка под сводкой. Обводка держит текст на любом фоне, но кадр под
+   ним остаётся пёстрым — на пробе сводка легла на скриншот чужого мессенджера
+   и читалась как надпись поверх картинки. Ровное затемнение отделяет её от
+   подложки и делает похожей на карточку, которую и хочется сохранить. */
+.plyta.sum::before { content:''; position:absolute; inset:0; border-radius:34px;
+  background:linear-gradient(160deg, rgba(11,7,24,.80), rgba(11,7,24,.66));
+  box-shadow:0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.07) inset;
+  backdrop-filter:blur(3px); z-index:-1; }
 .punkty { list-style:none; display:grid; gap:26px; }
 .punkty li { display:grid; grid-template-columns:86px 1fr; gap:22px; align-items:start; }
 .punkty b { width:86px; height:86px; border-radius:22px; display:grid; place-items:center;
@@ -816,7 +824,7 @@ body { background:transparent; overflow:hidden; font-family:'Inter',sans-serif; 
   -webkit-text-stroke:9px #0b0718; paint-order:stroke fill;
   text-shadow:0 8px 0 rgba(11,7,24,.45), 0 18px 40px rgba(0,0,0,.55); padding-top:8px; }
 .zapisz { margin-top:52px; text-align:center; font-weight:900; font-size:58px;
-  letter-spacing:-1px; text-transform:uppercase; color:${akcent2};
+  letter-spacing:-1px; text-transform:uppercase; color:${akcent2}; white-space:nowrap;
   -webkit-text-stroke:9px #0b0718; paint-order:stroke fill;
   text-shadow:0 8px 0 rgba(11,7,24,.45); }
 </style></head><body>
