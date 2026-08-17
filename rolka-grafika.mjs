@@ -29,13 +29,30 @@ async function ffmpeg(args) {
   });
 }
 
+// Текст переписан 17.08 после вопроса Захара «что значит — сколько стоит
+// молчание в сети?». Вопрос вскрыл дыру: хук спрашивал про МОЛЧАНИЕ, а
+// ролик считал стоимость РАБОТЫ — двадцать минут на пост, тридцать постов
+// в месяц. Цифра 600 отвечала не на заданный вопрос, и никакая анимация
+// этого не чинит.
+//
+// Теперь вопрос совпадает со счётом: спрашиваем про время, время и считаем.
+//
+// Финал тоже переписан. Было «столько же стоит тот, кто сделает это за
+// тебя» — «столько же» чего? Мы сравнивали твои десять часов с чьими-то
+// деньгами, а числа для второй стороны в ролике нет. Сравнение, которое
+// нечем подкрепить, лучше убрать, чем оставить красивым.
+//
+// Длинную фразу расплаты разбил надвое: девятнадцать слогов на одном
+// дыхании модель проговаривает скороговоркой, а мы потом лечим это
+// растяжкой, от которой слышно ИИ. Короткая фраза не нуждается в лечении.
 const FRAZY = [
-  { rola: 'hak', tekst: 'Ile kosztuje cię milczenie w sieci?', pauza: 0.34 },
+  { rola: 'hak', tekst: 'Ile czasu zjada ci Instagram?', pauza: 0.34 },
   { rola: 'hak', tekst: 'Policzmy.', pauza: 0.42 },
   { rola: 'tresc', tekst: 'Jeden post to dwadzieścia minut.', pauza: 0.30 },
   { rola: 'tresc', tekst: 'Razy trzydzieści dni.', pauza: 0.34 },
   { rola: 'tresc', tekst: 'Dziesięć godzin miesięcznie. Twoich.', pauza: 0.38 },
-  { rola: 'zaplata', tekst: 'Tyle samo kosztuje ktoś, kto zrobi to za ciebie.', pauza: 0.30 },
+  { rola: 'zaplata', tekst: 'Te dziesięć godzin możesz oddać.', pauza: 0.34 },
+  { rola: 'zaplata', tekst: 'Komuś, kto robi to codziennie.', pauza: 0.30 },
   { rola: 'cta', tekst: 'Napisz CZAS, a policzymy twoje.', pauza: 0.20 },
 ];
 
@@ -135,21 +152,22 @@ const scena = [
   // и именно они делают кадр живым. Нарисованный предмет, как его ни крути,
   // остаётся рисунком; человек в кадре — нет.
   //
-  // Момент выбран не случайно: голос говорит «столько же стоит тот, кто
-  // сделает это за тебя», и карточки показывают, ЧТО именно он сделает.
+  // Момент выбран не случайно: голос говорит «эти десять часов можешь
+  // отдать — тому, кто делает это каждый день», и карточки показывают, ЧТО
+  // именно он делает. Живут через обе фразы расплаты и уходят на призыве.
   // Средняя карточка крупнее и выше боковых: тройка одинаковых читается как
   // таблица, а с выделенной серединой — как сцена, у которой есть центр.
   { film: 'barber', x: 235, y: 830, skala: 340, wys: 540, obrot: -7, skad: 'dol',
-    start: t(5, 0.05), koniec: t(6, 0.50), dokad: 'lewo' },
+    start: t(5, 0.05), koniec: t(7, 0.05), dokad: 'lewo' },
   { film: 'moda', x: 552, y: 760, skala: 390, wys: 620, obrot: 1, skad: 'dol',
-    start: t(5, 0.20), koniec: t(6, 0.50), dokad: 'dol' },
+    start: t(5, 0.20), koniec: t(7, 0.05), dokad: 'dol' },
   { film: 'uroda', x: 870, y: 830, skala: 340, wys: 540, obrot: 7, skad: 'dol',
-    start: t(5, 0.35), koniec: t(6, 0.50), dokad: 'prawo' },
+    start: t(5, 0.35), koniec: t(7, 0.05), dokad: 'prawo' },
 
   // Конверт уходит наверх и уменьшается: под ним теперь ценник, и два
   // крупных предмета в одном кадре дерутся за взгляд.
   { obiekt: 'envelope_3d', x: 540, y: 430, skala: 480, obrot: 0, skad: 'gora',
-    start: t(6, 0.02) },
+    start: t(7, 0.02) },
 ];
 
 // ── ценник ────────────────────────────────────────────────────────
@@ -165,7 +183,7 @@ const metki = [
     x: 540, y: 1010, szer: 400, wys: 540,
     od: 10, do: 0, jednostka: 'H',
     odProc: 100, doProc: 0,
-    a: t(6, 0.10), b: total,
+    a: t(7, 0.10), b: total,
     czas: 1.1,
   },
 ];
@@ -246,14 +264,17 @@ const kamera = [
   { t: t(4, 0.25), zoom: 1.12, x: 0, y: 24 },
   { t: t(4, 0.90), zoom: 1.04, x: 0, y: 0 },
   { t: t(5, 0.20), zoom: 1.08, x: 14, y: -16 },
-  { t: t(6), zoom: 1.02, x: 0, y: 0 },
+  { t: t(7), zoom: 1.02, x: 0, y: 0 },
   { t: total, zoom: 1.10, x: 0, y: 8 },
 ];
 
 // Цвет по СМЫСЛУ, а не по длине слова: жёлтый — выгода, красный — потеря.
+// Списки переписаны под новый текст. Слова «milczenie», «zrobi», «ciebie»
+// из ролика ушли — оставленные, они просто никогда не сработали бы, и
+// подсветка молча пропала бы в половине кадров.
 const akcenty = {
-  zolty: ['policzmy', 'zrobi', 'ciebie', 'czas', 'policzymy'],
-  czerwony: ['milczenie', 'dziesięć', 'godzin', 'twoich'],
+  zolty: ['policzmy', 'oddać', 'codziennie', 'czas', 'policzymy'],
+  czerwony: ['zjada', 'dziesięć', 'godzin', 'twoich'],
 };
 
 const obrazki = await wczytajObiekty([...new Set(scena.map((o) => o.obiekt).filter(Boolean))]);
