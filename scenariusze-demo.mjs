@@ -113,7 +113,7 @@ const MUSEO = {
 
     // Слова сверены с текстом дословно. Жёлтый — выигрыш, красный — потеря.
     const akcenty = {
-      zolty: ['dwudziestu', 'językach', 'bezpłatnie', 'pobierz', 'wszystko'],
+      zolty: ['dwudziestu', 'językach', 'darmo', 'pobierz', 'wszystko'],
       czerwony: ['nic', 'jedno', 'kolejki'],
     };
 
