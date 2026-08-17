@@ -466,10 +466,24 @@ await ffmpeg([
   `[1:a]highpass=f=85,equalizer=f=2400:t=q:w=1.2:g=2,` +
     `acompressor=threshold=-20dB:ratio=4:attack=6:release=140:makeup=3,` +
     `loudnorm=I=-15:TP=-1.5:LRA=3[voice];` +
-    `[2:a]atrim=0:${total},asetpts=N/SR/TB,volume=0.11,afade=t=in:st=0:d=0.12,` +
-    `afade=t=out:st=${Math.max(0, total - 1.4).toFixed(2)}:d=1.4[bed];` +
+    // Подложка громче и БЕЗ длинного затухания в конце.
+    //
+    // Замер: разброс громкости у нас 8,1 LU против 2,2 у «Scenariusz 1».
+    // Компрессия шину не спасала — она снимала едва 1 LU, потому что дело не
+    // в пиках. Дело в хвосте: на двенадцатой секунде дорожка проваливалась до
+    // −29 dB, пока у образца там ровные −18. Полуторасекундное затухание
+    // оставляло ролик заканчиваться тишиной, а рилс в ленте крутится по
+    // кругу — эта тишина попадала ровно на стык петли.
+    //
+    // Тише 0,15 подложку опускать тоже нельзя: в паузах между фразами она
+    // должна держать уровень, иначе провал возвращается.
+    `[2:a]atrim=0:${total},asetpts=N/SR/TB,volume=0.15,afade=t=in:st=0:d=0.12,` +
+    `afade=t=out:st=${Math.max(0, total - 0.35).toFixed(2)}:d=0.35[bed];` +
     `[voice]asplit=2[v1][duck];` +
-    `[bed][duck]sidechaincompress=threshold=0.02:ratio=11:attack=10:release=170:makeup=1:level_sc=1[bedDuck];` +
+    // Приглушение подложки под голосом ослаблено с 11 к 1 до 6 к 1. При
+    // прежней хватке подложка в паузах не успевала вернуться, и между
+    // фразами получались те же провалы, только короткие.
+    `[bed][duck]sidechaincompress=threshold=0.03:ratio=6:attack=12:release=220:makeup=1:level_sc=1[bedDuck];` +
     `[v1][bedDuck][3:a][4:a]amix=inputs=4:normalize=0:duration=longest,` +
     `alimiter=limit=0.95,aformat=channel_layouts=stereo[a]`,
   '-map', '0:v', '-map', '[a]',
