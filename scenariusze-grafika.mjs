@@ -127,16 +127,25 @@ const ODPOWIEDZ = {
     // ровно та грабля, что уже ловили: КОРОТКУЮ фразу модель гонит даже на
     // speed 0.94, потому что паузу внутри неё делать негде.
     //
-    // Лечится не растяжкой (от неё слышно ИИ), а длиной и точкой внутри:
-    // девять-четырнадцать слогов, у хука разрыв на две мысли. Проверка —
-    // повторный замер, а не слух.
+    // Лечится не растяжкой (от неё слышно ИИ), а точкой внутри фразы.
+    //
+    // Второй замер это доказал: одной ДЛИНЫ мало. Фразы стали на 10-14 слогов,
+    // и всё равно четыре из восьми ушли за планку, а две — до 7,1 и 6,8. Зато
+    // в соседнем сценарии «rytm» дубль лёг с первого раза (2,8-5,1) — и там
+    // почти в каждой фразе есть точка ВНУТРИ либо числительное. Модель делает
+    // настоящую паузу на точке и притормаживает на числительном; ровный поток
+    // слов без знаков препинания она проговаривает скороговоркой независимо
+    // от того, четыре в нём слога или четырнадцать.
+    //
+    // Поэтому здесь у КАЖДОЙ фразы есть внутренняя точка. Проверка — замер,
+    // а не слух.
     { rola: 'hak', tekst: 'Klient napisał wieczorem. Pyta o cenę.', pauza: 0.40 },
-    { rola: 'hak', tekst: 'Odpowiadasz dopiero jutro rano.', pauza: 0.38 },
+    { rola: 'hak', tekst: 'Ty odpowiadasz jutro. Dopiero rano.', pauza: 0.38 },
     { rola: 'tresc', tekst: 'On w tym czasie pyta trzy inne firmy.', pauza: 0.32 },
-    { rola: 'tresc', tekst: 'Żadna z nich nie czeka do jutra.', pauza: 0.36 },
-    { rola: 'tresc', tekst: 'Wybiera tę, która odpisała pierwsza.', pauza: 0.38 },
+    { rola: 'tresc', tekst: 'Żadna z nich nie czeka. Ani jedna.', pauza: 0.36 },
+    { rola: 'tresc', tekst: 'Wybiera pierwszą odpowiedź. Nie najlepszą.', pauza: 0.38 },
     { rola: 'zaplata', tekst: 'Twoja oferta była lepsza. Naprawdę.', pauza: 0.32 },
-    { rola: 'zaplata', tekst: 'Tylko przyszła o dzień za późno.', pauza: 0.40 },
+    { rola: 'zaplata', tekst: 'Tylko przyszła za późno. O jeden dzień.', pauza: 0.40 },
     { rola: 'cta', tekst: 'Napisz SZYBKO, a ustawimy odpowiedzi.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
@@ -217,8 +226,8 @@ const ODPOWIEDZ = {
     // Слова сверены с новым текстом дословно: подсветка ищет точную форму, и
     // «spóźniona» из первой версии просто никогда бы не сработала — молча.
     const akcenty = {
-      zolty: ['pierwsza', 'szybko', 'odpowiedzi', 'ustawimy'],
-      czerwony: ['jutro', 'jutra', 'późno', 'trzy', 'żadna'],
+      zolty: ['pierwszą', 'szybko', 'odpowiedzi', 'ustawimy'],
+      czerwony: ['jutro', 'późno', 'trzy', 'żadna', 'najlepszą'],
     };
 
     return { scena, metki, wzor, liczniki, kamera, akcenty };
@@ -322,7 +331,299 @@ const RYTM = {
   },
 };
 
-export const SCENARIUSZE = [CZAS, ODPOWIEDZ, RYTM];
+// ── 4. Godzina zdjęć na cały miesiąc ─────────────────────────────
+// Ролик про ВЫГОДУ, а не про потерю: ответ жёлтый, ценник растёт и ведёт к
+// зелёному. Двух «ты теряешь» подряд лента не прощает.
+// Арифметика своя и делится ровно: 12 кадров с одной съёмки, по 3 в неделю —
+// это 4 недели, то есть 28 дней. Ни одной цифры «с рынка»: и 12, и 3 — наша
+// собственная посылка, а 28 получается из них умножением.
+const SESJA = {
+  klucz: 'sesja',
+  nazwa: 'Godzina zdjęć na cały miesiąc',
+  frazy: [
+    // Длина каждой фразы 9-14 слогов и точка внутри хука. Короткую фразу
+    // ElevenLabs гонит: замер давал 6,2 слог/с при планке 5,6, и растяжкой
+    // это не лечится — от неё слышно ИИ. Лечится длиной и настоящей паузой.
+    { rola: 'hak', tekst: 'Godzina zdjęć. I masz spokój na miesiąc.', pauza: 0.40 },
+    { rola: 'hak', tekst: 'Brzmi dziwnie. Ale to zwykły rachunek.', pauza: 0.38 },
+    { rola: 'tresc', tekst: 'Jedna sesja to dwanaście kadrów.', pauza: 0.32 },
+    { rola: 'tresc', tekst: 'Wystawiasz trzy kadry na tydzień.', pauza: 0.34 },
+    { rola: 'tresc', tekst: 'Cztery tygodnie z jednej godziny.', pauza: 0.38 },
+    { rola: 'zaplata', tekst: 'Nic nie wymyślasz w niedzielę.', pauza: 0.34 },
+    { rola: 'zaplata', tekst: 'Zdjęcia czekają gotowe w folderze.', pauza: 0.38 },
+    { rola: 'cta', tekst: 'Napisz SESJA, a zaplanujemy zdjęcia.', pauza: 0.20 },
+  ],
+  buduj({ t, total }) {
+    const scena = [
+      // Телефон в хуке — то, чем эта «сессия» и снимается. Крупно и с
+      // обрезкой краем кадра: вписанный целиком предмет читается наклейкой.
+      { obiekt: 'mobile_phone_3d', x: 520, y: 560, skala: 780, obrot: -6, skad: 'gora',
+        start: t(0, 0.05), koniec: t(1, 0.15), dokad: 'lewo' },
+      // «Brzmi dziwnie» — вопрос в кадре, а не пустое место: без предмета
+      // вторая фраза хука провисает, а провис в первые пять секунд читается
+      // как «ролик кончился».
+      { obiekt: 'thinking_face_3d', x: 560, y: 520, skala: 660, obrot: 8, skad: 'prawo',
+        start: t(1, 0.20), koniec: t(2, 0.30), dokad: 'gora' },
+      // Пара слагаемых: секундомер — час съёмки, календарь — недели.
+      // Разведены к краям и вылезают за рамку.
+      { obiekt: 'stopwatch_3d', x: 250, y: 470, skala: 700, obrot: -10, skad: 'lewo',
+        start: t(2, 0.02), koniec: t(4, 0.60), dokad: 'lewo' },
+      { obiekt: 'calendar_3d', x: 830, y: 560, skala: 640, obrot: 9, skad: 'prawo',
+        start: t(3, 0.02), koniec: t(4, 0.60), dokad: 'prawo' },
+      // Самый крупный кадр ролика — одна вещь во весь экран. Часы «готово»,
+      // а не «песочные с песком»: разница между «время идёт» и «уже сделано».
+      { obiekt: 'hourglass_done_3d', x: 540, y: 540, skala: 820, obrot: -5, skad: 'dol',
+        start: t(4, 0.40), koniec: t(5, 0.20), dokad: 'gora' },
+
+      // Три карточки с живым видео на расплате: это и есть тот отснятый
+      // материал, который лежит готовым. Середина крупнее и выше боковых —
+      // тройка одинаковых читается как таблица.
+      // Не `kosmetyki`: там на флаконах читаются «Luxury Serum» и «Premium
+      // Skincare», и карточка выглядит рекламой чужого бренда.
+      { film: 'fotostudio', x: 235, y: 830, skala: 340, wys: 540, obrot: -7, skad: 'dol',
+        start: t(5, 0.18), koniec: t(7, 0.05), dokad: 'lewo' },
+      { film: 'moda', x: 552, y: 755, skala: 390, wys: 620, obrot: 1, skad: 'dol',
+        start: t(5, 0.36), koniec: t(7, 0.05), dokad: 'dol' },
+      { film: 'kwiaty', x: 870, y: 830, skala: 340, wys: 540, obrot: 7, skad: 'dol',
+        start: t(5, 0.54), koniec: t(7, 0.05), dokad: 'prawo' },
+
+      { obiekt: 'envelope_3d', x: 540, y: 430, skala: 470, obrot: 0, skad: 'gora',
+        start: t(7, 0.05) },
+    ];
+
+    // Ценник РАСТЁТ и ведёт к зелёному: один час превращается в 28 дней
+    // контента. Обе цифры из нашего же счёта — 4 недели это 28 дней.
+    const metki = [
+      { x: 540, y: 1010, szer: 400, wys: 540, od: 1, do: 28, jednostka: '',
+        barwaOd: 32, barwaDo: 158,
+        odProc: 4, doProc: 100, opis: 'DNI TREŚCI', a: t(7, 0.12), b: total, czas: 1.2 },
+    ];
+
+    const wzor = [
+      { tekst: '12 KADRÓW ÷ 3', y: 940, maly: true, a: t(2, 0.55), b: t(4, 0.60) },
+      // Ответ жёлтый: это выигрыш, а не потеря. Красный сказал бы «тревога»
+      // ровно там, где должно читаться «так лучше».
+      { tekst: '= 4 TYGODNIE', y: 1080, kolor: 'zolty', a: t(4, 0.72), b: t(5, 0.08) },
+    ];
+
+    // Ключевая цифра показывается дважды: в хуке быстро — она дразнит, в
+    // середине медленнее — она выводится. Со второго раза её запоминают.
+    const liczniki = [
+      { od: 0, do: 12, jednostka: '', y: 1120, a: t(0, 0.30), b: t(1, 0.55),
+        czas: 0.75, zPodpisem: true },
+      { od: 0, do: 12, jednostka: '', y: 1120, a: t(3, 0.05), b: t(4, 0.55), czas: 1.15 },
+    ];
+
+    const kamera = [
+      { t: 0, zoom: 1.00, x: 0, y: 0 },
+      { t: t(1), zoom: 1.06, x: -16, y: 12 },
+      { t: t(2), zoom: 1.01, x: 20, y: -12 },
+      { t: t(4, 0.30), zoom: 1.12, x: 0, y: 22 },
+      { t: t(4, 0.95), zoom: 1.03, x: 0, y: 0 },
+      { t: t(5, 0.30), zoom: 1.08, x: 14, y: -16 },
+      { t: t(7), zoom: 1.02, x: 0, y: 0 },
+      { t: total, zoom: 1.10, x: 0, y: 8 },
+    ];
+
+    // Каждое слово сверено с текстом дословно: подсветка ищет точную форму и
+    // на непопавшемся слове молча не работает.
+    const akcenty = {
+      zolty: ['spokój', 'cztery', 'gotowe', 'sesja', 'zaplanujemy'],
+      czerwony: ['wymyślasz', 'niedzielę'],
+    };
+
+    return { scena, metki, wzor, liczniki, kamera, akcenty };
+  },
+};
+
+// ── 5. Pierwsze sześć kadrów profilu ─────────────────────────────
+// Арифметика не про время, а про то, что физически видно на экране: сетка
+// профиля это три кадра в ряд, а на первый экран влезает два ряда — шесть.
+// Это проверяемая правда об интерфейсе, а не статистика рынка. Про зрителя
+// мы ничего не утверждаем: просим посмотреть на свои шесть и ответить самому.
+const PROFIL = {
+  klucz: 'profil',
+  nazwa: 'Pierwsze sześć kadrów profilu',
+  frazy: [
+    { rola: 'hak', tekst: 'Ktoś wchodzi na twój profil. Pierwszy raz.', pauza: 0.40 },
+    { rola: 'hak', tekst: 'Widzi sześć kadrów i tyle. Nic więcej.', pauza: 0.38 },
+    { rola: 'tresc', tekst: 'Trzy w rzędzie, dwa rzędy. Tyle widać.', pauza: 0.34 },
+    { rola: 'tresc', tekst: 'Sześć zdjęć decyduje o tobie.', pauza: 0.34 },
+    { rola: 'tresc', tekst: 'Zobacz swoje. Co z nich rozumiesz?', pauza: 0.38 },
+    { rola: 'zaplata', tekst: 'Dalej nikt nie schodzi. Zamyka i wychodzi.', pauza: 0.36 },
+    { rola: 'zaplata', tekst: 'Sześć kadrów, jedna myśl. Tyle wystarczy.', pauza: 0.38 },
+    { rola: 'cta', tekst: 'Napisz PROFIL, a przejrzymy twoje kadry.', pauza: 0.20 },
+  ],
+  buduj({ t, total }) {
+    const scena = [
+      // Глаза в хуке — тот, кто зашёл. Крупно, с обрезкой краем.
+      { obiekt: 'eyes_3d', x: 520, y: 540, skala: 780, obrot: -5, skad: 'gora',
+        start: t(0, 0.05), koniec: t(1, 0.10), dokad: 'lewo' },
+      // Телефон — то, в чём он это листает.
+      { obiekt: 'mobile_phone_3d', x: 560, y: 540, skala: 700, obrot: 7, skad: 'prawo',
+        start: t(1, 0.15), koniec: t(2, 0.30), dokad: 'gora' },
+      // Календарь взят не за смысл «дни», а за форму: это единственная в
+      // наборе СЕТКА из клеток, а считаем мы ровно сетку профиля.
+      { obiekt: 'calendar_3d', x: 250, y: 480, skala: 700, obrot: -9, skad: 'lewo',
+        start: t(2, 0.02), koniec: t(4, 0.55), dokad: 'lewo' },
+      { obiekt: 'thinking_face_3d', x: 840, y: 570, skala: 620, obrot: 10, skad: 'prawo',
+        start: t(3, 0.05), koniec: t(4, 0.55), dokad: 'prawo' },
+      // Крестик во весь экран — самый крупный кадр ролика. Красный предмет
+      // под красную строку: цвет объекта и цвет текста говорят одно и то же.
+      { obiekt: 'cross_mark_3d', x: 540, y: 540, skala: 820, obrot: -5, skad: 'dol',
+        start: t(4, 0.60), koniec: t(5, 0.10), dokad: 'gora' },
+
+      // Три карточки = те самые кадры на виду. Живут через обе расплаты:
+      // сначала «дальше никто не идёт», потом «шести хватит, если они об
+      // одном». Середина крупнее и выше боковых.
+      { film: 'kawa', x: 235, y: 820, skala: 340, wys: 540, obrot: -8, skad: 'dol',
+        start: t(5, 0.20), koniec: t(7, 0.05), dokad: 'lewo' },
+      { film: 'uroda', x: 552, y: 750, skala: 390, wys: 620, obrot: 2, skad: 'dol',
+        start: t(5, 0.40), koniec: t(7, 0.05), dokad: 'dol' },
+      { film: 'spa', x: 870, y: 820, skala: 340, wys: 540, obrot: 8, skad: 'dol',
+        start: t(5, 0.60), koniec: t(7, 0.05), dokad: 'prawo' },
+
+      // Лампочка приходит на поворот «jedna myśl»: у второй расплаты должен
+      // быть свой такт, иначе кадр к финалу стоит неподвижной кучей.
+      // Держим её ВЫШЕ верхнего края средней карточки (её верх на 440): на
+      // первой пробе лампочка легла на фото и читалась наклейкой на кадре.
+      { obiekt: 'light_bulb_3d', x: 540, y: 310, skala: 390, obrot: -4, skad: 'gora',
+        start: t(6, 0.05), koniec: t(7, 0.02), dokad: 'gora' },
+
+      { obiekt: 'envelope_3d', x: 540, y: 430, skala: 470, obrot: 0, skad: 'gora',
+        start: t(7, 0.05) },
+    ];
+
+    // Падение с шести до одного — это не потеря, а то, что мы предлагаем:
+    // свести шесть кадров к одной мысли. Поэтому цвет ведём к зелёному.
+    const metki = [
+      { x: 540, y: 1010, szer: 400, wys: 540, od: 6, do: 1, jednostka: '',
+        barwaOd: 32, barwaDo: 158,
+        odProc: 100, doProc: 17, opis: 'JEDNA MYŚL', a: t(7, 0.12), b: total, czas: 1.2 },
+    ];
+
+    const wzor = [
+      { tekst: '3 W RZĘDZIE × 2', y: 940, maly: true, a: t(2, 0.45), b: t(4, 0.55) },
+      { tekst: '= 6 KADRÓW', y: 1080, kolor: 'czerwony', a: t(4, 0.68), b: t(5, 0.12) },
+    ];
+
+    const liczniki = [
+      { od: 0, do: 6, jednostka: '', y: 1120, a: t(0, 0.30), b: t(1, 0.55),
+        czas: 0.70, zPodpisem: true },
+      { od: 0, do: 6, jednostka: '', y: 1120, a: t(3, 0.05), b: t(4, 0.50), czas: 1.10 },
+    ];
+
+    const kamera = [
+      { t: 0, zoom: 1.00, x: 0, y: 0 },
+      { t: t(1), zoom: 1.05, x: 16, y: 14 },
+      { t: t(2), zoom: 1.01, x: -20, y: -10 },
+      { t: t(4, 0.25), zoom: 1.11, x: 0, y: 20 },
+      { t: t(5, 0.05), zoom: 1.03, x: 0, y: 0 },
+      { t: t(6, 0.05), zoom: 1.09, x: -14, y: -18 },
+      { t: t(7), zoom: 1.02, x: 0, y: 0 },
+      { t: total, zoom: 1.10, x: 0, y: 8 },
+    ];
+
+    const akcenty = {
+      zolty: ['myśl', 'wystarczy', 'profil', 'przejrzymy'],
+      czerwony: ['sześć', 'zamyka', 'wychodzi', 'nich'],
+    };
+
+    return { scena, metki, wzor, liczniki, kamera, akcenty };
+  },
+};
+
+// ── 6. Kwadrans dziennie w komentarzach ──────────────────────────
+// Второй ролик про ВЫГОДУ: ответ жёлтый, ценник растёт к зелёному.
+// Арифметика точная, без округлений в свою пользу: 15 минут × 7 дней = 105
+// минут. Именно 105, а не «прawie dwie godziny» — округление уже было бы
+// цифрой, которой мы не считали.
+const KOMENTARZE = {
+  klucz: 'komentarze',
+  nazwa: 'Kwadrans dziennie w komentarzach',
+  frazy: [
+    { rola: 'hak', tekst: 'Kwadrans dziennie. Tylko na komentarze.', pauza: 0.40 },
+    { rola: 'hak', tekst: 'Zobacz, ile to daje w tygodniu.', pauza: 0.38 },
+    { rola: 'tresc', tekst: 'Piętnaście minut razy siedem dni.', pauza: 0.34 },
+    { rola: 'tresc', tekst: 'To sto pięć minut rozmów z klientami.', pauza: 0.34 },
+    { rola: 'tresc', tekst: 'Prawdziwych rozmów. Nie samych lajków.', pauza: 0.38 },
+    { rola: 'zaplata', tekst: 'Ludzie pamiętają, kto im odpisał.', pauza: 0.34 },
+    { rola: 'zaplata', tekst: 'Kwadrans dziennie robi tę różnicę.', pauza: 0.38 },
+    { rola: 'cta', tekst: 'Napisz KWADRANS, a pokażemy jak.', pauza: 0.20 },
+  ],
+  buduj({ t, total }) {
+    const scena = [
+      { obiekt: 'mobile_phone_3d', x: 520, y: 550, skala: 780, obrot: -6, skad: 'dol',
+        start: t(0, 0.05), koniec: t(1, 0.15), dokad: 'lewo' },
+      // «Zobacz» — глаза: слово и предмет говорят одно и то же.
+      { obiekt: 'eyes_3d', x: 560, y: 530, skala: 640, obrot: 8, skad: 'prawo',
+        start: t(1, 0.20), koniec: t(2, 0.30), dokad: 'gora' },
+      // Слагаемые: будильник — четверть часа, календарь — семь дней.
+      { obiekt: 'alarm_clock_3d', x: 250, y: 470, skala: 700, obrot: -10, skad: 'lewo',
+        start: t(2, 0.02), koniec: t(4, 0.60), dokad: 'lewo' },
+      { obiekt: 'calendar_3d', x: 830, y: 560, skala: 640, obrot: 9, skad: 'prawo',
+        start: t(3, 0.02), koniec: t(4, 0.60), dokad: 'prawo' },
+      // Самый крупный кадр ролика — один предмет во весь экран.
+      // Не `hundred_points_3d`: на пробе эмодзи «100» стояло вплотную к
+      // ответу «= 105 MINUT», и два разных числа в одном кадре читались как
+      // ошибка в счёте. Хлопушка ничего не считает и говорит только «выигрыш».
+      { obiekt: 'party_popper_3d', x: 540, y: 540, skala: 820, obrot: -5, skad: 'dol',
+        start: t(4, 0.40), koniec: t(5, 0.20), dokad: 'gora' },
+
+      // Карточки — ниши, где клиент пишет в комментарии и ждёт ответа.
+      // Справа не `wnetrza`: там пустое кресло на белом, и рядом с двумя
+      // живыми кадрами оно читается как выключенная карточка.
+      { film: 'kawa', x: 235, y: 830, skala: 340, wys: 540, obrot: -7, skad: 'dol',
+        start: t(5, 0.18), koniec: t(7, 0.05), dokad: 'lewo' },
+      { film: 'barber', x: 552, y: 755, skala: 390, wys: 620, obrot: 1, skad: 'dol',
+        start: t(5, 0.36), koniec: t(7, 0.05), dokad: 'dol' },
+      { film: 'jedzenie', x: 870, y: 830, skala: 340, wys: 540, obrot: 7, skad: 'dol',
+        start: t(5, 0.54), koniec: t(7, 0.05), dokad: 'prawo' },
+
+      { obiekt: 'envelope_3d', x: 540, y: 430, skala: 470, obrot: 0, skad: 'gora',
+        start: t(7, 0.05) },
+    ];
+
+    // Ценник растёт: пятнадцать минут в день — это сто пять в неделю. Обе
+    // цифры из собственного счёта, ни одной со стороны.
+    const metki = [
+      { x: 540, y: 1010, szer: 400, wys: 540, od: 15, do: 105, jednostka: 'MIN',
+        barwaOd: 32, barwaDo: 158,
+        odProc: 14, doProc: 100, opis: 'MINUT W TYGODNIU', a: t(7, 0.12), b: total, czas: 1.2 },
+    ];
+
+    const wzor = [
+      { tekst: '15 MIN × 7 DNI', y: 940, maly: true, a: t(2, 0.55), b: t(4, 0.60) },
+      { tekst: '= 105 MINUT', y: 1080, kolor: 'zolty', a: t(4, 0.72), b: t(5, 0.08) },
+    ];
+
+    const liczniki = [
+      { od: 0, do: 105, jednostka: 'MIN', y: 1120, a: t(0, 0.30), b: t(1, 0.55),
+        czas: 0.80, zPodpisem: true },
+      { od: 0, do: 105, jednostka: 'MIN', y: 1120, a: t(3, 0.05), b: t(4, 0.55), czas: 1.20 },
+    ];
+
+    const kamera = [
+      { t: 0, zoom: 1.00, x: 0, y: 0 },
+      { t: t(1), zoom: 1.05, x: -18, y: 10 },
+      { t: t(2), zoom: 1.02, x: 20, y: -12 },
+      { t: t(4, 0.25), zoom: 1.12, x: 0, y: 24 },
+      { t: t(4, 0.90), zoom: 1.04, x: 0, y: 0 },
+      { t: t(5, 0.25), zoom: 1.08, x: 14, y: -16 },
+      { t: t(7), zoom: 1.02, x: 0, y: 0 },
+      { t: total, zoom: 1.10, x: 0, y: 8 },
+    ];
+
+    const akcenty = {
+      zolty: ['rozmów', 'pamiętają', 'odpisał', 'kwadrans', 'pokażemy'],
+      czerwony: ['lajków'],
+    };
+
+    return { scena, metki, wzor, liczniki, kamera, akcenty };
+  },
+};
+
+export const SCENARIUSZE = [CZAS, ODPOWIEDZ, RYTM, SESJA, PROFIL, KOMENTARZE];
 
 // Выбор сценария: по ключу из аргумента или по кругу из состояния. Круг, а не
 // случайность: лента должна перебирать все, а не тыкать в один и тот же.

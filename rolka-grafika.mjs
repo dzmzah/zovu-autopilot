@@ -115,22 +115,58 @@ const t = (i, d = 0) => +(F[i].a + d).toFixed(2);
 // сменилась, иначе кадр к финалу стоит неподвижной кучей.
 const { scena, metki, wzor, liczniki, kamera, akcenty } = scenariusz.buduj({ t, total });
 
-const teksty = [...wzor, ...liczniki.map((l) => ({ ...l, duzy: true, tekst: `счётчик до ${l.do}` }))];
+// Счётчику даём ДВЕ подписи: `tekst` человеку в сообщение об ошибке и
+// `naEkranie` — то, что реально нарисовано. Ширину считаем по второй, иначе
+// служебная строка «счётчик до 600» мерялась как двухстрочная и проверка
+// начинала ругаться на здоровую вёрстку.
+const teksty = [
+  ...wzor,
+  ...liczniki.map((l) => ({
+    ...l,
+    duzy: true,
+    tekst: `счётчик до ${l.do}`,
+    naEkranie: `${l.do}${l.jednostka || ''}`,
+  })),
+];
 for (let i = 0; i < teksty.length; i++) {
   for (let j = i + 1; j < teksty.length; j++) {
     const a = teksty[i];
     const b = teksty[j];
     const razem = Math.min(a.b ?? 1e9, b.b ?? 1e9) - Math.max(a.a, b.a);
     const odstep = Math.abs(a.y - b.y);
-    // Нужный зазор — половина высоты одной строки плюс половина другой.
-    // Мерить одним числом нельзя: знак «×» набран 76 пунктами против 118 у
-    // остальных, и общий порог ругался бы на здоровую вёрстку.
-    const wys = (x) => (x.maly ? 76 : x.duzy ? 136 : 118) * 1.05;
-    const trzeba = (wys(a) + wys(b)) / 2;
-    if (razem > 0 && odstep < trzeba) {
+    // Меряем ПРЯМОУГОЛЬНИКАМИ, а не расстоянием между центрами. И строки, и
+    // счётчик позиционируются по ВЕРХНЕМУ краю (`style.top = y`), поэтому
+    // прежняя формула «половина одной высоты плюс половина другой» описывала
+    // не ту геометрию, что на экране: для строки на y940 она требовала зазор
+    // от центра, которого у неё нет.
+    //
+    // Плюс учитываем ПЕРЕНОС. Проверка считала любую строку однострочной и
+    // поэтому пропустила «1 ZDJĘCIE = 1 HISTORIA»: двадцать два знака в 76
+    // пунктах Archivo Black по ширине кадра не влезли, строка перенеслась, и
+    // её вторая половина встала в двадцати пикселях над счётчиком. Формально
+    // это не наложение — но читается как наложение, а нам важно второе.
+    const kegl = (x) => (x.maly ? 76 : x.duzy ? 136 : 118);
+    const interlinia = (x) => (x.duzy ? 1.0 : 1.05); // .licznik 1, .wiersz 1.05
+    const wysokosc = (x) => {
+      const k = kegl(x);
+      // Полоса текста: кадр минус отступы (.wiersz 60 px, .licznik 40 px).
+      // Средняя ширина знака Archivo Black с плотным трекингом — ~0,58 кегля.
+      const zmiesci = Math.max(1, Math.floor((W - (x.duzy ? 80 : 120)) / (k * 0.58)));
+      const napis = String(x.naEkranie ?? x.tekst ?? '');
+      return k * interlinia(x) * Math.max(1, Math.ceil(napis.length / zmiesci));
+    };
+    // Воздух между блоками. Ноль означал бы «можно вплотную» — а вплотную это
+    // и есть тот кадр, который пришлось переделывать.
+    const POWIETRZE = 28;
+    const gora = (x) => x.y;
+    const dol = (x) => x.y + wysokosc(x);
+    const luka = Math.max(gora(a), gora(b)) - Math.min(dol(a), dol(b));
+    if (razem > 0 && luka < POWIETRZE) {
       throw new Error(
-        `[grafika] строки формулы налезают: «${a.tekst}» (y${a.y}) и «${b.tekst}» (y${b.y}) ` +
-          `видны вместе ${razem.toFixed(2)} с при зазоре ${odstep} px, нужно ${Math.round(trzeba)}`
+        `[grafika] тексты стоят вплотную: «${a.tekst}» (y${a.y}, высота ` +
+          `${Math.round(wysokosc(a))}) и «${b.tekst}» (y${b.y}, высота ` +
+          `${Math.round(wysokosc(b))}) видны вместе ${razem.toFixed(2)} с, ` +
+          `между ними ${Math.round(luka)} px, нужно минимум ${POWIETRZE}`
       );
     }
   }
