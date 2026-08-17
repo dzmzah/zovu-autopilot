@@ -175,7 +175,7 @@ const SCENARIUSZE = [
     ].join(String.fromCharCode(10)),
     czesci: [
       { rola: 'hak', tekst: 'Rolka nie jest lepsza od posta. Wcale.', szukaj: 'two paths choice road', pauza: 0.34 },
-      { rola: 'hak', tekst: 'Robi co innego. I do czego innego.', szukaj: 'phone social media feed scroll', pauza: 0.46 },
+      { rola: 'hak', tekst: 'Robi coś innego. Zupełnie.', szukaj: 'phone social media feed scroll', pauza: 0.46 },
       { rola: 'punkt', numer: 1, tytul: 'rolka przyprowadza', tekst: 'Rolka przyprowadza NOWYCH ludzi.', szukaj: 'crowd people city walking', pauza: 0.28 },
       { rola: 'punkt', numer: 2, tytul: 'post rozmawia', tekst: 'Post rozmawia z tymi, których już masz.', szukaj: 'two people talking coffee', pauza: 0.28 },
       { rola: 'punkt', numer: 3, tytul: 'jedno bez drugiego', tekst: 'Samo jedno z dwóch nie działa.', szukaj: 'broken chain link metal', pauza: 0.26 },
@@ -313,7 +313,7 @@ const SCENARIUSZE = [
     ].join(String.fromCharCode(10)),
     czesci: [
       { rola: 'hak', tekst: 'Jedno pytanie wraca co tydzień. To samo.', szukaj: 'phone message notification hand', pauza: 0.36 },
-      { rola: 'hak', tekst: 'Ile postów muszę mieć. Żeby ruszyło.', szukaj: 'person waiting phone anxious', pauza: 0.46 },
+      { rola: 'hak', tekst: 'Ile postów muszę mieć? Żeby w ogóle ruszyło.', szukaj: 'person waiting phone anxious', pauza: 0.46 },
       { rola: 'tresc', tekst: 'To zła liczba i złe pytanie.', szukaj: 'question mark thinking person', pauza: 0.30 },
       { rola: 'tresc', tekst: 'Dobre brzmi: ile osób wie, co u ciebie kupić.', szukaj: 'shop window products display', pauza: 0.30 },
       { rola: 'zaplata', tekst: 'Bez tego każdy kolejny post to tylko ruch.', szukaj: 'busy street people passing', pauza: 0.30 },
