@@ -745,6 +745,114 @@ window.setT = (t) => {
 //
 // Заодно штамп прикрывает стык двух клипов Veo: на склейке у героя
 // меняется причёска, а под наездом со штампом это не читается.
+// ── плиты: хук с нулевого кадра и сводка перед аутро ──────────────
+// Две беды, которые видны на замерах, а не на глаз.
+//
+// ПЕРВАЯ. Караоке-подпись привязана к таймингам голоса, а голос стартует
+// после затакта — значит первые ~0,3 с БЕЗ ТЕКСТА гарантированы конструкцией,
+// в каждом ролике, всегда. Проверено покадрово на всех шести опубликованных:
+// на 0,00 и 0,20 с текста нет ни в одном. Досмотр 14-27% при том, что решение
+// смотреть принимается ровно там.
+//
+// ВТОРАЯ. Сохранений НОЛЬ у всех шести. Сохраняют то, к чему возвращаются:
+// список, цифру, инструкцию. У нас пункты приходят по одному и уходят — кадра,
+// где видно всё сразу, в ролике нет ни разу. Сохранять нечего.
+//
+// Обе плиты — СТАТИКА без анимации. Влёт тут вреден: плита хука должна быть
+// на месте в нулевом кадре, а сводку скриншотят, и движение мешает попасть.
+export function plytyHtml(plyty, total, akcent = '#7c3aed', akcent2 = '#a78bfa') {
+  const esc = (s) =>
+    String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const divy = plyty
+    .map((p, i) => {
+      if (p.styl === 'sum') {
+        const punkty = (p.punkty || [])
+          .map((t, k) => `<li><b>${k + 1}</b><span>${esc(t)}</span></li>`)
+          .join('');
+        return `<div class="plyta sum" data-i="${i}">
+  <ul class="punkty">${punkty}</ul>
+  ${p.zapisz ? `<div class="zapisz">${esc(p.zapisz)}</div>` : ''}
+</div>`;
+      }
+      const linie = (p.linie || [])
+        .map((l) => `<div class="linia${p.plaszka && l === p.plaszka ? ' chip' : ''}">${esc(l)}</div>`)
+        .join('');
+      return `<div class="plyta hak" data-i="${i}">${linie}</div>`;
+    })
+    .join('\n');
+
+  const meta = JSON.stringify(plyty.map((p) => ({ a: +p.a, b: +p.b })));
+
+  return `<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@800;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { width:${W}px; height:${H}px; }
+body { background:transparent; overflow:hidden; font-family:'Inter',sans-serif; }
+.plyta { position:absolute; left:60px; width:${W - 120}px; opacity:0; }
+
+/* Хук. Кегль 164 — крупнее караоке (118), и это правильно: в первые секунды
+   читаться должно ОДНО. Верхняя треть, чтобы палец не закрывал. */
+.plyta.hak { top:430px; text-align:center; }
+.plyta.hak .linia { font-weight:900; font-size:164px; line-height:1.02; letter-spacing:-4px;
+  text-transform:uppercase; color:#fff; white-space:nowrap;
+  -webkit-text-stroke:11px #0b0718; paint-order:stroke fill;
+  text-shadow:0 12px 0 rgba(11,7,24,.5), 0 22px 48px rgba(0,0,0,.6); }
+.plyta.hak .linia.chip { display:inline-block; padding:6px 26px 14px; border-radius:18px;
+  background:linear-gradient(100deg, ${akcent2} 0%, ${akcent} 100%);
+  -webkit-text-stroke:0; text-shadow:0 8px 26px rgba(0,0,0,.45);
+  box-shadow:0 18px 50px rgba(0,0,0,.45); }
+
+/* Сводка. Всё, ради чего смотрели, в одном неподвижном кадре. */
+.plyta.sum { top:560px; }
+.punkty { list-style:none; display:grid; gap:26px; }
+.punkty li { display:grid; grid-template-columns:86px 1fr; gap:22px; align-items:start; }
+.punkty b { width:86px; height:86px; border-radius:22px; display:grid; place-items:center;
+  background:linear-gradient(140deg, ${akcent2}, ${akcent}); color:#fff;
+  font-weight:900; font-size:52px; box-shadow:0 14px 34px rgba(0,0,0,.45); }
+.punkty span { font-weight:900; font-size:74px; line-height:1.1; letter-spacing:-2px;
+  text-transform:uppercase; color:#fff; white-space:nowrap;
+  -webkit-text-stroke:9px #0b0718; paint-order:stroke fill;
+  text-shadow:0 8px 0 rgba(11,7,24,.45), 0 18px 40px rgba(0,0,0,.55); padding-top:8px; }
+.zapisz { margin-top:52px; text-align:center; font-weight:900; font-size:58px;
+  letter-spacing:-1px; text-transform:uppercase; color:${akcent2};
+  -webkit-text-stroke:9px #0b0718; paint-order:stroke fill;
+  text-shadow:0 8px 0 rgba(11,7,24,.45); }
+</style></head><body>
+${divy}
+<script>
+const P = ${meta};
+const plyty = [...document.querySelectorAll('.plyta')];
+const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
+
+// Подгонка кегля под ширину кадра. Плита с переносом — это ровно та ошибка,
+// которую уже ловили на строках формулы: вторая строка садится на подпись.
+window.__fit = () => {
+  plyty.forEach((e) => {
+    e.querySelectorAll('.linia, .punkty span').forEach((s) => {
+      // Перенос запрещён (white-space:nowrap), поэтому строка ЛИБО влезает,
+      // либо вылезает за кадр — молча. Значит подгонка кегля здесь не
+      // украшение, а единственное, что держит текст внутри рамки.
+      let k = parseFloat(getComputedStyle(s).fontSize);
+      const limit = e.classList.contains('sum') ? e.clientWidth - 108 : e.clientWidth;
+      while (k > 34 && s.scrollWidth > limit) { k -= 4; s.style.fontSize = k + 'px'; }
+    });
+  });
+};
+
+window.setT = (t) => {
+  plyty.forEach((e, i) => {
+    const { a, b } = P[i];
+    if (t < a - 0.02 || t > b + 0.3) { e.style.opacity = 0; return; }
+    // Появление БЕЗ анимации: на нулевом кадре плита уже стоит целиком.
+    // Уход мягкий — резкая пропажа читается как обрыв.
+    e.style.opacity = t > b ? (1 - clamp01((t - b) / 0.25)).toFixed(3) : 1;
+  });
+};
+</script></body></html>`;
+}
+
 function stempleHtml(stemple, total) {
   const esc = (s) =>
     String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -1245,9 +1353,37 @@ export async function zbuduj(plan) {
   // только потому, что штампы и караоке ни разу не встречались в одном ролике.
   const oknaStempli = stemple.map((s) => ({ a: +s.start, b: +s.start + (+s.dlugosc || 1.2) }));
 
+  // Плиты: хук с нулевого кадра и сводка перед аутро. Обе — статика поверх
+  // кадра, обе ГЛУШАТ караоке на своём окне: плита и подпись одновременно
+  // это два текста в кадре, и читается тогда ни один.
+  const plyty = [];
+  if (plan.plakietka?.linie?.length) {
+    plyty.push({
+      styl: 'hak',
+      linie: plan.plakietka.linie,
+      plaszka: plan.plakietka.plaszka || null,
+      a: 0,
+      b: +(plan.plakietka.do ?? 2.4),
+    });
+  }
+  if (plan.podsumowanie?.punkty?.length) {
+    // Держим у самого конца героя, вплотную к аутро: сводка — последнее, что
+    // видит зритель до логотипа, и именно её скриншотят.
+    const dl = +(plan.podsumowanie.dlugosc ?? 3.0);
+    const b = +(totalHero - 0.15).toFixed(2);
+    plyty.push({
+      styl: 'sum',
+      punkty: plan.podsumowanie.punkty,
+      zapisz: plan.podsumowanie.zapisz || null,
+      a: +Math.max(0, b - dl).toFixed(2),
+      b,
+    });
+  }
+  const oknaPlyt = plyty.map((p) => ({ a: p.a, b: p.b }));
+
   const frazy = karaoke
     ? zbierzFrazy(wszystkieSlowa, plan.maxZnakow ?? 20, plan.maxSlow ?? 3).filter(
-        (f) => ![...oknaTytulow, ...oknaStempli].some((o) => f.a < o.b && f.b > o.a)
+        (f) => ![...oknaTytulow, ...oknaStempli, ...oknaPlyt].some((o) => f.a < o.b && f.b > o.a)
       )
     : [];
 
@@ -1270,6 +1406,19 @@ export async function zbuduj(plan) {
     const stpDir = path.join(tmp, 'stemple');
     await renderHtml(stempleHtml(stemple, totalHero), totalHero, stpDir, true);
     warstwy.push(path.join(stpDir, 'f%05d.png'));
+  }
+
+  // Плиты кладём ПОД титры и над подписью: титр с номером пункта важнее
+  // сводки, если они вдруг совпали по времени.
+  if (plyty.length) {
+    const plDir = path.join(tmp, 'plyty');
+    await renderHtml(
+      plytyHtml(plyty, totalHero, plan.akcentPas || '#7c3aed', plan.akcent || '#a78bfa'),
+      totalHero,
+      plDir,
+      true
+    );
+    warstwy.push(path.join(plDir, 'f%05d.png'));
   }
 
   const tytuly = (plan.tytuly || []).map((t) => ({ ...t, dlugosc: t.dlugosc ?? 1.25 }));

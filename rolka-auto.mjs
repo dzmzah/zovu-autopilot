@@ -33,6 +33,10 @@ const OUT = path.join(DIR, 'out');
 const JAWNY = ((process.argv.find((a) => a.startsWith('--scenariusz=')) || '').split('=')[1] || '').trim();
 const NR = +JAWNY;
 const BEZ_KONTROLI = process.argv.includes('--bez-kontroli');
+// Плиты (хук с нулевого кадра и сводка перед аутро) — ПОКА ПО ФЛАГУ.
+// Они меняют вид каждого ролика, а вид ленты решает Захар, не я. Пока он не
+// посмотрел сравнение, ежедневная сборка идёт как раньше.
+const PLYTY = process.argv.includes('--plyty');
 
 // ── банк сценариев ────────────────────────────────────────────────
 // Пока их пишем сами. Когда встанет генерация — сюда будет класть Gemini,
@@ -41,6 +45,7 @@ const BEZ_KONTROLI = process.argv.includes('--bez-kontroli');
 const SCENARIUSZE = [
   {
     nazwa: 'trzy-bledy-w-postach',
+    plyta: { linie: ['3 BŁĘDY', 'W TWOICH POSTACH'], plaszka: '3 BŁĘDY' },
     forma: 'lista',
     temat: 'dlaczego posty nie sprzedają',
     wykres: {
@@ -78,6 +83,7 @@ const SCENARIUSZE = [
   },
   {
     nazwa: 'ile-kosztuje-strona',
+    plyta: { linie: ['CENA STRONY', 'TO 3 RZECZY'], plaszka: '3 RZECZY' },
     temat: 'z czego składa się cena strony',
     opis: [
       'Pytanie „ile kosztuje strona?" jest jak „ile kosztuje samochód".',
@@ -104,6 +110,7 @@ const SCENARIUSZE = [
   },
   {
     nazwa: 'pierwsze-trzy-sekundy',
+    plyta: { linie: ['ROLKA PADA', 'W 3 SEKUNDY'], plaszka: '3 SEKUNDY' },
     temat: 'dlaczego nikt nie ogląda twoich rolek',
     opis: [
       'Nagrałeś dobry materiał, a obejrzało go pięć osób.',
@@ -134,6 +141,7 @@ const SCENARIUSZE = [
   },
   {
     nazwa: 'dlaczego-nikt-nie-pisze',
+    plyta: { linie: ['WIADOMOŚCI ZERO?', '3 POWODY'], plaszka: '3 POWODY' },
     temat: 'dlaczego profil nie generuje wiadomości',
     opis: [
       'Masz zasięgi, masz polubienia, a wiadomości zero.',
@@ -195,6 +203,7 @@ const SCENARIUSZE = [
   // должна выглядеть как один шаблон с подменёнными словами.
   {
     nazwa: 'kulisy-bez-kamery',
+    plyta: { linie: ['TEJ ROLKI', 'NIKT NIE NAGRAŁ'], plaszka: 'NIKT' },
     forma: 'kulisy',
     temat: 'jak powstaje ta rolka',
     // Единственный сценарий, который рассказывает правду о самом себе.
@@ -645,6 +654,19 @@ const plan = {
   dryf: true,
   karaoke: true,
   glos: { plik: glos.plik, slowa: glos.slowa },
+  // Плита хука и кадр-сводка. Пункты для сводки НЕ пишем заново — они уже
+  // есть в сценарии как заголовки титров, и брать их оттуда значит, что
+  // сводка не сможет разойтись с роликом.
+  ...(PLYTY && scen.plyta ? { plakietka: scen.plyta } : {}),
+  ...(PLYTY && scen.czesci.some((c) => c.numer)
+    ? {
+        podsumowanie: {
+          punkty: scen.czesci.filter((c) => c.numer).map((c) => c.tytul),
+          zapisz: 'Zapisz, żeby mieć to pod ręką',
+          dlugosc: 3.0,
+        },
+      }
+    : {}),
   klipy,
   tytuly,
   stemple,

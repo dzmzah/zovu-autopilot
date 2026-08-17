@@ -24,6 +24,10 @@ on:
         description: 'Через сколько дней публиковать (по умолчанию 2)'
         type: string
         default: '2'
+      plyty:
+        description: 'Плита хука с нулевого кадра и кадр-сводка перед аутро (проба)'
+        type: boolean
+        default: false
   schedule:
     # 04:20 UTC = 06:20 по Польше: собираем задолго до слотов публикации,
     # чтобы поломка была видна с утра, а не за минуту до выкладки.
@@ -88,14 +92,20 @@ jobs:
           PIPER_MODEL: ${{ github.workspace }}/modele/pl_PL-darkman-medium.onnx
           ILE: ${{ inputs.ile || '1' }}
           SCENARIUSZ: ${{ inputs.scenariusz }}
+          PLYTY: ${{ inputs.plyty }}
         run: |
           set -e
+          # Плиты пока по флагу: они меняют вид КАЖДОГО ролика, а вид ленты
+          # решает Захар. По расписанию флага нет, значит ежедневная сборка
+          # идёт как раньше, пока он не посмотрит сравнение.
+          FLAGI=""
+          if [ "$PLYTY" = "true" ]; then FLAGI="--plyty"; fi
           for i in $(seq 1 "${ILE:-1}"); do
             echo "::group::rolka $i"
             if [ -n "$SCENARIUSZ" ]; then
-              node rolka-auto.mjs --scenariusz="$SCENARIUSZ"
+              node rolka-auto.mjs --scenariusz="$SCENARIUSZ" $FLAGI
             else
-              node rolka-auto.mjs
+              node rolka-auto.mjs $FLAGI
             fi
             echo "::endgroup::"
           done
