@@ -209,5 +209,29 @@
       4.6,
       3.8
     ]
+  },
+  {
+    "plik": "auto-2026-08-17-1-2.mp4",
+    "kiedy": "2026-08-19T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb"
+    ],
+    "tekst": "Najczęstsze pytanie w naszym DM: „ile postów muszę mieć, żeby ruszyło?\".\n\nTo zła liczba. Dobre pytanie brzmi: ile osób wie, co konkretnie u ciebie kupić. Bez tego każdy kolejny post to tylko ruch.\n\nNapisz PYTANIE, a odpiszemy konkretnie na twój przypadek.\n\nzovu.pl\n\n#katowice #katowicebiznes #lokalnybiznes #jdg #postydlafirm #plantresci #zovu",
+    "opublikowano": null,
+    "zrodlo": "auto-pytanie-z-dm.mp4",
+    "scenariusz": "pytanie-z-dm",
+    "forma": "pytanie",
+    "temat": "ile postów trzeba, żeby ruszyło",
+    "dlugosc": 20.82,
+    "planow": 6,
+    "tempo": [
+      3.4,
+      6,
+      4.1,
+      4.3,
+      4.4,
+      4.8
+    ]
   }
 ]
