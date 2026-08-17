@@ -3,7 +3,7 @@
     "id": "17904017535498586",
     "plik": "kuba-trzy-powody.mp4",
     "opublikowano": "2026-08-12T11:30:46.189Z",
-    "zebrane": "2026-08-17T05:05:07.344Z",
+    "zebrane": "2026-08-17T12:38:06.552Z",
     "godzina": 13,
     "hak": "Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.",
     "dane": {
@@ -25,7 +25,7 @@
     "id": "18102631457151085",
     "plik": "auto-2026-08-12-2.mp4",
     "opublikowano": "2026-08-13T11:42:43.166Z",
-    "zebrane": "2026-08-17T05:05:08.347Z",
+    "zebrane": "2026-08-17T12:38:07.196Z",
     "godzina": 13,
     "hak": "Pytanie „ile kosztuje strona?\" jest jak „ile kosztuje samochód\".",
     "dane": {
@@ -47,7 +47,7 @@
     "id": "18112912228772221",
     "plik": "auto-2026-08-12-1.mp4",
     "opublikowano": "2026-08-14T11:40:56.067Z",
-    "zebrane": "2026-08-17T05:05:07.933Z",
+    "zebrane": "2026-08-17T12:38:06.933Z",
     "godzina": 13,
     "hak": "Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.",
     "dane": {
@@ -73,7 +73,7 @@
     "id": "18138095059859534",
     "plik": "auto-2026-08-13-1.mp4",
     "opublikowano": "2026-08-15T11:15:04.845Z",
-    "zebrane": "2026-08-17T05:05:09.538Z",
+    "zebrane": "2026-08-17T12:38:07.415Z",
     "godzina": 13,
     "hak": "Nagrałeś dobry materiał, a obejrzało go pięć osób.",
     "dane": {
@@ -99,26 +99,52 @@
     "id": "18457979926140557",
     "plik": "auto-2026-08-13-2.mp4",
     "opublikowano": "2026-08-16T11:16:33.780Z",
-    "zebrane": "2026-08-17T05:05:09.892Z",
+    "zebrane": "2026-08-17T12:38:07.824Z",
     "godzina": 13,
     "hak": "Tej rolki nikt nie nagrywał.",
     "dane": {
-      "views": 34,
-      "reach": 20,
+      "views": 47,
+      "reach": 33,
       "saved": 0,
       "shares": 0,
       "comments": 0,
       "likes": 3,
       "total_interactions": 3,
-      "ig_reels_avg_watch_time": 6930,
-      "ig_reels_video_view_total_time": 159412,
-      "plays": 34
+      "ig_reels_avg_watch_time": 5353,
+      "ig_reels_video_view_total_time": 192733,
+      "plays": 47
     },
     "scenariusz": "kulisy-bez-kamery",
     "forma": "kulisy",
     "temat": "jak powstaje ta rolka",
     "dlugosc": 20.43,
     "tempoSrednie": 4.45,
-    "dosmotr": 33.9
+    "dosmotr": 26.2
+  },
+  {
+    "id": "17923111362179968",
+    "plik": "auto-2026-08-13-1-2.mp4",
+    "opublikowano": "2026-08-17T11:20:35.992Z",
+    "zebrane": "2026-08-17T12:38:08.171Z",
+    "godzina": 13,
+    "hak": "Masz zasięgi, masz polubienia, a wiadomości zero.",
+    "dane": {
+      "views": 16,
+      "reach": 12,
+      "saved": 0,
+      "shares": 0,
+      "comments": 0,
+      "likes": 1,
+      "total_interactions": 1,
+      "ig_reels_avg_watch_time": 979,
+      "ig_reels_video_view_total_time": 10776,
+      "plays": 16
+    },
+    "scenariusz": "dlaczego-nikt-nie-pisze",
+    "forma": "lista",
+    "temat": "dlaczego profil nie generuje wiadomości",
+    "dlugosc": 21.9,
+    "tempoSrednie": 4.36,
+    "dosmotr": 4.5
   }
 ]
