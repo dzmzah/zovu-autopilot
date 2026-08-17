@@ -421,9 +421,16 @@ async function askModel(system, user) {
       );
       const j2 = await r2.json();
       if (!r2.ok) {
-        throw new Error(
+        const err = new Error(
           'Gemini ' + r2.status + ' (limit wyczerpany): ' + JSON.stringify(j2).slice(0, 200)
         );
+        // Кончившаяся квота — не брак текста. Без этой метки цикл попыток
+        // ловил ошибку в общий catch, молотил мёртвый ключ ещё три раза и
+        // падал с подписью «tekst nie przeszedł kontroli». 17.08 из-за этой
+        // подмены причины пропал вечерний пост, а в логе искали виноватым
+        // текст, которого модель вообще не написала.
+        err.kwota = r2.status === 429;
+        throw err;
       }
       const t2 = (j2?.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
       return { raw: t2, provider: model };
@@ -588,6 +595,67 @@ function clean(out) {
   return out;
 }
 
+// ── запас на день без модели ─────────────────────────────────────
+const REZERWA_FILE = path.join(import.meta.dirname, 'rezerwa.json');
+
+async function czytajRezerwe() {
+  try {
+    return JSON.parse(await readFile(REZERWA_FILE, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+// Берём следующую заготовку по кругу и прогоняем её через ТОТ ЖЕ contro­l, что и
+// машинный текст. Своя проверка тут была бы самообманом: запас должен падать
+// на моей проверке, а не в ленте.
+async function zRezerwy(multiSlide, layout, state) {
+  const bank = await czytajRezerwe();
+  const lista = (multiSlide ? bank?.karuzele : bank?.pojedyncze) || [];
+  if (!lista.length) {
+    console.warn('[engine] rezerwa pusta — nie ma czym zastąpić modelu');
+    return null;
+  }
+  // Отдельный счётчик на каждую форму: иначе одиночные посты и карусели
+  // сдвигали бы друг другу очередь и запас повторялся бы раньше времени.
+  const klucz = multiSlide ? 'rezerwaK' : 'rezerwaP';
+  const start = (Number(state?.[klucz] ?? -1) + 1) % lista.length;
+  for (let k = 0; k < lista.length; k++) {
+    const nr = (start + k) % lista.length;
+    const kandydat = clean(JSON.parse(JSON.stringify(lista[nr])), layout);
+    const problemy = validate(kandydat, !multiSlide, false, layout);
+    if (!problemy.length) {
+      await saveState({ [klucz]: nr });
+      return { tekst: kandydat, nr: nr + 1 };
+    }
+    console.warn(`[engine] rezerwa #${nr + 1} nie przechodzi kontroli: ${problemy.join('; ')}`);
+  }
+  return null;
+}
+
+// Проверка запаса без публикации — её вызывает сторож (doktor.mjs).
+// Битую заготовку надо ловить в спокойный день, а не в тот, когда она
+// осталась единственным способом выпустить пост.
+export async function sprawdzRezerwe() {
+  const bank = await czytajRezerwe();
+  if (!bank) return [{ gdzie: 'rezerwa.json', problemy: ['pliku nie ma albo nie jest poprawnym JSON'] }];
+  const zle = [];
+  for (const [pole, multi, uklady] of [
+    ['pojedyncze', false, ['lista', 'foto', 'cytat']],
+    ['karuzele', true, [null]],
+  ]) {
+    const lista = bank[pole] || [];
+    if (!lista.length) zle.push({ gdzie: pole, problemy: ['zapas jest pusty'] });
+    lista.forEach((wpis, i) => {
+      for (const uklad of uklady) {
+        const problemy = validate(clean(JSON.parse(JSON.stringify(wpis)), uklad), !multi, false, uklad);
+        if (problemy.length) zle.push({ gdzie: `${pole} #${i + 1}${uklad ? ' / ' + uklad : ''}`, problemy });
+      }
+    });
+  }
+  return zle;
+}
+
 // ── главное: собрать готовый пост ────────────────────────────────
 // Теги живого футажа из папки broll/. Держим списком здесь, чтобы промпт и
 // подстановка запасного клипа не разъезжались.
@@ -732,6 +800,8 @@ export async function makePost({ topic, format, kind, uklad, trends = false, gen
 
   let out = null;
   let provider = null;
+  let brakModelu = null;
+  let zRezerwyNr = null;
   const attempts = [];
   let ostatniKandydat = null;
   let najlepszeProblemy = Infinity;
@@ -768,6 +838,13 @@ export async function makePost({ topic, format, kind, uklad, trends = false, gen
       }
     } catch (e) {
       attempts.push({ attempt: i + 1, problems: [String(e.message).slice(0, 160)] });
+      // Квота кончилась — переспрашивать нечем. Выходим сразу: три оставшиеся
+      // попытки ушли бы в ту же стену, а каждая из них стучит по API дважды.
+      if (e.kwota) {
+        brakModelu = e;
+        console.warn('[engine] model nie odpowiada (limit) — przechodzę na rezerwę: ' + e.message);
+        break;
+      }
     }
   }
 
@@ -786,9 +863,25 @@ export async function makePost({ topic, format, kind, uklad, trends = false, gen
     }
   }
 
+  // Модель недоступна (кончилась квота, лежит API) — берём заготовку из
+  // rezerwa.json. Пост из запаса хуже свежего, но день без поста хуже обоих:
+  // ради ровной ленты весь автопилот и построен, а бесплатный тир Gemini
+  // упирается в суточный потолок предсказуемо.
+  if (!out && brakModelu) {
+    const zapas = await zRezerwy(multiSlide, chosenLayout, state);
+    if (zapas) {
+      out = zapas.tekst;
+      zRezerwyNr = zapas.nr;
+      console.warn(`[engine] REZERWA #${zapas.nr}: model padł, publikuję gotowy tekst z zapasu`);
+    }
+  }
+
   if (!out) {
-    const err = new Error('tekst nie przeszedł kontroli po czterech próbach i naprawie');
+    const err = brakModelu
+      ? new Error('model nie odpowiada i rezerwa nie zadziałała: ' + brakModelu.message)
+      : new Error('tekst nie przeszedł kontroli po czterech próbach i naprawie');
     err.attempts = attempts;
+    err.kwota = Boolean(brakModelu);
     throw err;
   }
 
@@ -925,7 +1018,8 @@ export async function makePost({ topic, format, kind, uklad, trends = false, gen
       topic: chosenTopic,
       trend: trendSeed ? { title: trendSeed.title, sources: trendSeed.sources } : null,
       format: chosenFormat.label,
-      provider,
+      provider: provider || (zRezerwyNr ? `rezerwa #${zRezerwyNr}` : null),
+      zRezerwy: zRezerwyNr,
       attempts,
     },
   };

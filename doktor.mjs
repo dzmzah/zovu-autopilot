@@ -313,9 +313,28 @@ async function glos() {
   }
 }
 
+// ── 9. Запас текстов на день без модели ──────────────────────────
+// Запас включается ровно тогда, когда всё остальное сломалось, — поэтому
+// проверять его надо в спокойный день. Битая заготовка, найденная в момент
+// её единственного применения, это тот же день без поста.
+async function zapas() {
+  try {
+    const { sprawdzRezerwe } = await import('./content-engine.mjs');
+    const zle = await sprawdzRezerwe();
+    if (zle.length) {
+      zapisz('Rezerwa', false, 'zapasowe teksty nie przechodzą kontroli: ' +
+        zle.map((z) => `${z.gdzie} (${z.problemy.join(', ')})`).join(' | ').slice(0, 240));
+      return;
+    }
+    zapisz('Rezerwa', true, 'zapasowe teksty gotowe — dzień bez modelu nie zostawi lenty pustej');
+  } catch (e) {
+    zapisz('Rezerwa', false, 'nie udało się sprawdzić zapasu: ' + e.message);
+  }
+}
+
 // ── поехали ──────────────────────────────────────────────────────
 const ostatni = await ostatniPost();
-await Promise.all([tokenInstagrama(), tokenFacebooka(), mozgTekstowy(), zdjecia(), glos()]);
+await Promise.all([tokenInstagrama(), tokenFacebooka(), mozgTekstowy(), zdjecia(), glos(), zapas()]);
 await kolejka(ostatni?.stan);
 await rolki();
 

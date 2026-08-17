@@ -1,0 +1,255 @@
+{
+  "_czytaj": "Запас на день, когда модель недоступна (кончилась квота, лежит API). Тексты написаны руками и проходят тот же контроль, что и машинные — проверяется командой `node doktor.mjs`. День без поста для автопилота недопустим: лучше проверенный запасной пост, чем красный прогон и тишина в ленте.",
+  "pojedyncze": [
+    {
+      "eyebrow": "ZOVU · SOCIAL MEDIA",
+      "title": "Profil sprzedaje albo tylko istnieje",
+      "subtitle": "Trzy rzeczy, które sprawdzisz u siebie w minutę.",
+      "bullets": [
+        "Bio nie mówi, co konkretnie robisz",
+        "Nigdzie nie ma jednego, jasnego kroku",
+        "Zdjęcia ładne, ale niczego nie tłumaczą"
+      ],
+      "hook": "PROFIL BEZ ZADANIA",
+      "broll": "marka",
+      "photoQuery": "small business owner holding phone at shop counter",
+      "bgIdea": "violet glass phone screen with profile card floating",
+      "caption": "Większość profili nie sprzedaje nie dlatego, że są brzydkie. Są nieczytelne: po trzech sekundach nadal nie wiadomo, co oferujesz i co zrobić dalej.\n\nSprawdź u siebie te trzy rzeczy. Jeśli któraś nie działa, masz najtańszą poprawę w całym marketingu — nic nie trzeba nagrywać od nowa.\n\nNapisz „AUDYT” w wiadomości. Przejrzymy profil i powiemy wprost, co zmienić. Za darmo, bez zobowiązań.\n\nzovu.pl",
+      "hashtags": ["socialmedia", "katowice", "malafirma", "marketing", "zovu"]
+    },
+    {
+      "eyebrow": "ZOVU · SOCIAL MEDIA",
+      "title": "Klient pisze, a odpowiedź idzie dobę",
+      "subtitle": "Najtańsza poprawa w social mediach to szybkość.",
+      "bullets": [
+        "Pytanie z wieczora czeka do rana",
+        "W odpowiedzi sam link, nie zdanie",
+        "Nikt nie proponuje kolejnego kroku"
+      ],
+      "hook": "DOBA CISZY",
+      "broll": "czas",
+      "photoQuery": "hand holding phone with message notification at night",
+      "bgIdea": "violet glass chat bubbles floating over a clock face",
+      "caption": "Zapytanie w social mediach żyje kilka godzin. Potem człowiek pisze do kogoś innego i temat się kończy — nie dlatego, że twoja oferta była gorsza.\n\nSprawdź, ile realnie mija od pytania do twojej odpowiedzi. Jeśli więcej niż godzina w godzinach pracy, tu leży najszybszy zysk, jaki możesz mieć bez złotówki budżetu.\n\nNapisz „AUDYT” i przejrzymy to razem.\n\nzovu.pl",
+      "hashtags": ["socialmedia", "obslugaklienta", "katowice", "marketing", "zovu"]
+    },
+    {
+      "eyebrow": "ZOVU · SOCIAL MEDIA",
+      "title": "Publikujesz dużo i nadal jest cicho",
+      "subtitle": "Częstotliwość bez jednej myśli tylko cię zmęczy.",
+      "bullets": [
+        "Każdy post mówi o czym innym",
+        "Brak zdania, które zostaje w głowie",
+        "Treść o firmie, nie o kliencie"
+      ],
+      "hook": "DUŻO I CICHO",
+      "broll": "marka2",
+      "photoQuery": "empty cafe table with laptop and notebook morning light",
+      "bgIdea": "violet glass grid of identical post cards fading away",
+      "caption": "Dwadzieścia postów w miesiącu nic nie zmienią, jeśli każdy jest o czym innym. Człowiek zapamiętuje jedną myśl na profil, nie dwadzieścia.\n\nWybierz jedno zdanie, które ma zostać w głowie klienta, i mów je przez miesiąc na różne sposoby. Tobie zrobi się nudno dużo wcześniej, niż odbiorca zdąży to zauważyć — i o to właśnie chodzi.\n\nzovu.pl",
+      "hashtags": ["socialmedia", "contentmarketing", "katowice", "marka", "zovu"]
+    },
+    {
+      "eyebrow": "ZOVU · SOCIAL MEDIA",
+      "title": "Zdjęcie z telefonu bije ładny render",
+      "subtitle": "Ludzie ufają temu, co wygląda na prawdziwe.",
+      "bullets": [
+        "Ręce, produkt, warsztat, bałagan",
+        "Twarz kogoś z zespołu",
+        "Kadr z dzisiaj, nie z katalogu"
+      ],
+      "hook": "TELEFON WYGRYWA",
+      "broll": "fotostudio",
+      "photoQuery": "craftsman hands working in workshop daylight real",
+      "bgIdea": "violet glass polaroid photos floating over soft gradient",
+      "caption": "Wypolerowana grafika mówi „ktoś to zamówił”. Zwykły kadr z telefonu mówi „tak tu jest naprawdę” — i to drugie sprzedaje lepiej, choć kosztuje zero.\n\nZrób dziś trzy zdjęcia: ręce przy pracy, gotowa rzecz, ktoś z zespołu. Bez ustawiania, bez filtra. Wstaw jedno z krótkim zdaniem, co widać na kadrze.\n\nzovu.pl",
+      "hashtags": ["socialmedia", "fotografia", "katowice", "malafirma", "zovu"]
+    }
+  ],
+  "karuzele": [
+    {
+      "eyebrow": "ZOVU · SOCIAL MEDIA",
+      "title": "5 rzeczy, które klient sprawdza w 10 sekund",
+      "subtitle": "Zanim zdecyduje, czy w ogóle do ciebie napisać.",
+      "hook": "DZIESIĘĆ SEKUND",
+      "broll": "marka",
+      "photoQuery": "person scanning phone screen quickly in city",
+      "items": [
+        {
+          "heading": "Co dokładnie oferujesz",
+          "text": "Jeśli musi zgadywać, wychodzi. Nazwij usługę wprost.",
+          "photoQuery": "shop window with clear sign daylight",
+          "bgIdea": "violet glass label with bold word floating"
+        },
+        {
+          "heading": "Czy to jest dla niego",
+          "text": "Napisz, dla kogo pracujesz. Konkret przyciąga, ogólnik odbija.",
+          "photoQuery": "two people talking across a table cafe",
+          "bgIdea": "violet glass target with single arrow"
+        },
+        {
+          "heading": "Ile to kosztuje",
+          "text": "Choćby widełki. Milczenie o cenie czyta się jako drogo.",
+          "photoQuery": "price tag on wooden counter close up",
+          "bgIdea": "violet glass price card with scale"
+        },
+        {
+          "heading": "Czy ktoś już ci zaufał",
+          "text": "Realizacje, opinie, twarze. Dowód działa mocniej niż obietnica.",
+          "photoQuery": "happy customer shaking hands with owner",
+          "bgIdea": "violet glass stack of review cards"
+        },
+        {
+          "heading": "Jak się z tobą skontaktować",
+          "text": "Jeden krok, jeden przycisk. Każdy dodatkowy gubi ludzi.",
+          "photoQuery": "finger tapping message button on phone",
+          "bgIdea": "violet glass single button glowing"
+        }
+      ],
+      "cta": {
+        "headline": "Sprawdzimy to za ciebie",
+        "line": "Napisz „AUDYT” i dostaniesz listę poprawek na twoim profilu."
+      },
+      "caption": "Nikt nie czyta profilu. Ludzie go skanują, i to krócej, niż trwa ten opis. W tych dziesięciu sekundach klient szuka pięciu rzeczy — jeśli którejś nie znajdzie, po prostu przewija dalej.\n\nPrzejdź slajdy i sprawdź każdą u siebie. Cztery z pięciu poprawisz sam, dziś, bez pomocy i bez budżetu.\n\nNapisz „AUDYT”, jeśli chcesz, żebyśmy przeszli przez to razem. Za darmo.\n\nzovu.pl",
+      "hashtags": ["socialmedia", "katowice", "malafirma", "marketing", "zovu"]
+    },
+    {
+      "eyebrow": "ZOVU · SOCIAL MEDIA",
+      "title": "Checklista: 5 punktów przed kolejnym postem",
+      "subtitle": "Pięć minut sprawdzania zamiast kolejnego zrywu.",
+      "hook": "PIĘĆ MINUT",
+      "broll": "czas",
+      "photoQuery": "hand checking list in notebook on desk",
+      "items": [
+        {
+          "heading": "Bio mówi, co i dla kogo",
+          "text": "Dwie linijki, zero ozdób. Ktoś obcy ma zrozumieć od razu.",
+          "photoQuery": "phone screen showing profile in hand",
+          "bgIdea": "violet glass two lines of text card"
+        },
+        {
+          "heading": "Pierwsze trzy kadry z sensem",
+          "text": "To twoja witryna. Ustaw tam najlepsze, nie najnowsze.",
+          "photoQuery": "three framed photos on white wall",
+          "bgIdea": "violet glass three tiles in a row"
+        },
+        {
+          "heading": "Jedna myśl w poście",
+          "text": "Dwie myśli to zero. Wybierz tę, która zostaje w głowie.",
+          "photoQuery": "single lightbulb on plain background",
+          "bgIdea": "violet glass single glowing dot"
+        },
+        {
+          "heading": "Jasny krok na koniec",
+          "text": "Napisz, zadzwoń, przyjdź. Bez tego post jest tylko ładny.",
+          "photoQuery": "open door with welcome sign shop",
+          "bgIdea": "violet glass arrow pointing forward"
+        },
+        {
+          "heading": "Ktoś odbiera wiadomości",
+          "text": "Najlepszy post przepada, gdy odpowiedź idzie dwa dni.",
+          "photoQuery": "person replying to messages on laptop",
+          "bgIdea": "violet glass chat bubble with clock"
+        }
+      ],
+      "cta": {
+        "headline": "Zrób to przed publikacją",
+        "line": "Pięć punktów zajmuje pięć minut i ratuje cały post."
+      },
+      "caption": "Większość postów przepada nie z powodu treści, a z powodu tego, co jest wokół: bio bez sensu, brak kroku, cisza w wiadomościach. To wszystko sprawdza się szybciej, niż pisze się kolejny post.\n\nPrzejdź te pięć punktów, zanim klikniesz publikuj. Jeśli któryś jest na nie, napraw najpierw jego — zyskasz więcej niż na dziesięciu nowych postach.\n\nzovu.pl",
+      "hashtags": ["socialmedia", "checklista", "katowice", "marketing", "zovu"]
+    },
+    {
+      "eyebrow": "ZOVU · SOCIAL MEDIA",
+      "title": "5 sygnałów, że twoje treści mówią do nikogo",
+      "subtitle": "Każdy z nich rozpoznasz u siebie w minutę.",
+      "hook": "MÓWISZ DO NIKOGO",
+      "broll": "marka3",
+      "photoQuery": "empty chairs in a room nobody listening",
+      "items": [
+        {
+          "heading": "Same zdania o sobie",
+          "text": "Jesteśmy, oferujemy, posiadamy. Klienta w tym nie ma.",
+          "photoQuery": "person talking to empty room presentation",
+          "bgIdea": "violet glass mirror reflecting text"
+        },
+        {
+          "heading": "Nikt nie pisze w wiadomościach",
+          "text": "Polubienia bez pytań znaczą, że nic nie zaczepiło.",
+          "photoQuery": "silent phone on empty desk",
+          "bgIdea": "violet glass empty chat window"
+        },
+        {
+          "heading": "Zero zapisów i przesłań",
+          "text": "Zapisują to, co się przyda. Reszta znika po dwóch dniach.",
+          "photoQuery": "bookmark in a closed notebook",
+          "bgIdea": "violet glass bookmark icon dimmed"
+        },
+        {
+          "heading": "Każdy post o czym innym",
+          "text": "Profil bez jednej myśli nie zostaje w niczyjej pamięci.",
+          "photoQuery": "scattered papers on table mess",
+          "bgIdea": "violet glass scattered cards drifting"
+        },
+        {
+          "heading": "Piszesz językiem, którym nie mówisz",
+          "text": "Przeczytaj na głos. Jeśli brzmi obco, tak też się czyta.",
+          "photoQuery": "person reading text aloud microphone",
+          "bgIdea": "violet glass speech wave over paper"
+        }
+      ],
+      "cta": {
+        "headline": "Powiemy ci, który to twój",
+        "line": "Napisz „AUDYT” i przejrzymy profil bez owijania."
+      },
+      "caption": "Treść, która nie trafia, nie wygląda źle. Wygląda porządnie i mija bez śladu — dlatego tak trudno to u siebie zauważyć.\n\nTych pięć sygnałów widać z zewnątrz w minutę. Jeśli rozpoznasz choć dwa, problem nie leży w częstotliwości ani w budżecie, tylko w tym, do kogo mówisz.\n\nNapisz „AUDYT”, powiemy wprost, który sygnał świeci u ciebie. Za darmo.\n\nzovu.pl",
+      "hashtags": ["socialmedia", "contentmarketing", "katowice", "marka", "zovu"]
+    },
+    {
+      "eyebrow": "ZOVU · SOCIAL MEDIA",
+      "title": "Zamiast tego zrób tak: 5 podmian w social",
+      "subtitle": "Każda podmiana zajmuje jeden wieczór.",
+      "hook": "PIĘĆ PODMIAN",
+      "broll": "nowoczesne",
+      "photoQuery": "hands swapping two objects on table",
+      "items": [
+        {
+          "heading": "Zamiast ładnej grafiki: kadr z pracy",
+          "text": "Prawdziwe ręce i produkt budują zaufanie szybciej.",
+          "photoQuery": "real hands packing product in workshop",
+          "bgIdea": "violet glass photo replacing flat icon"
+        },
+        {
+          "heading": "Zamiast o sobie: o jego problemie",
+          "text": "Zacznij od tego, co klienta boli. Reszta poczeka.",
+          "photoQuery": "person frowning at laptop problem",
+          "bgIdea": "violet glass question mark over card"
+        },
+        {
+          "heading": "Zamiast pięciu myśli: jedna",
+          "text": "Post z jedną myślą zostaje. Z pięcioma nie zostaje nic.",
+          "photoQuery": "single object on clean table minimal",
+          "bgIdea": "violet glass one card among faded ones"
+        },
+        {
+          "heading": "Zamiast dowiedz się więcej: napisz",
+          "text": "Jasne polecenie zbiera wiadomości. Ogólnik zbiera ciszę.",
+          "photoQuery": "finger tapping send on phone screen",
+          "bgIdea": "violet glass button with short label"
+        },
+        {
+          "heading": "Zamiast zrywu raz w miesiącu: rytm",
+          "text": "Dwa posty tygodniowo stale biją dziesięć naraz.",
+          "photoQuery": "metronome on wooden surface",
+          "bgIdea": "violet glass calendar with steady dots"
+        }
+      ],
+      "cta": {
+        "headline": "Podmień jedną rzecz",
+        "line": "Wybierz pierwszą z listy i zrób ją w tym tygodniu."
+      },
+      "caption": "Nie trzeba przebudowywać całego profilu. Wystarczy pięć podmian, z których każda zajmuje jeden wieczór i nie kosztuje nic poza decyzją.\n\nPrzejdź slajdy i wybierz jedną, którą zrobisz w tym tygodniu. Nie pięć naraz — jedną. Potem wróć po następną.\n\nJeśli nie wiesz, od której zacząć, napisz „AUDYT” i powiemy, co u ciebie da najwięcej.\n\nzovu.pl",
+      "hashtags": ["socialmedia", "katowice", "malafirma", "contentmarketing", "zovu"]
+    }
+  ]
+}
