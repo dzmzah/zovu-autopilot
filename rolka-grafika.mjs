@@ -17,6 +17,7 @@ import { zbudujGlos } from './glos.mjs';
 import { sprawdzRolke } from './kontrola.mjs';
 import { grafikaHtml, renderujKlatki, wczytajObiekty, W, H, FPS } from './grafika.mjs';
 import { wybierzScenariusz } from './scenariusze-grafika.mjs';
+import { DEMA } from './scenariusze-demo.mjs';
 
 const execFileAsync = promisify(execFile);
 const DIR = import.meta.dirname;
@@ -36,8 +37,14 @@ const KLUCZ = (process.argv.find((a) => a.startsWith('--scenariusz=')) || '').sp
 const stanPlik = path.join(DIR, 'rolki', 'stan.json');
 let stan = {};
 try { stan = JSON.parse(await readFile(stanPlik, 'utf8')); } catch { stan = {}; }
-const { scenariusz, idx: idxScen } = wybierzScenariusz(KLUCZ, stan);
-stan.grafikaScen = idxScen;
+// Демо для клиентов лежат отдельно и в ротацию НЕ входят: чужой ролик с чужим
+// призывом, попавший в наш перебор, вышел бы на аккаунте ZOVU как наш пост.
+// Поэтому сначала ищем среди демо и только по явному ключу.
+const demo = KLUCZ ? DEMA.find((d) => d.klucz === KLUCZ) : null;
+const { scenariusz, idx: idxScen } = demo
+  ? { scenariusz: demo, idx: null }
+  : wybierzScenariusz(KLUCZ, stan);
+if (idxScen !== null) stan.grafikaScen = idxScen;
 console.log(`[grafika] сценарий «${scenariusz.klucz}»: ${scenariusz.nazwa}`);
 
 const FRAZY = scenariusz.frazy;
@@ -158,7 +165,11 @@ for (const o of scena.filter((x) => x.film)) {
   console.log(`[grafika] живое видео: ${o.film} → ${path.basename(cel)}`);
 }
 const scenaZFilmami = scena.map((o) => (o.film ? { ...o, film: filmy[o.film] } : o));
-const katKlatek = path.join(OUT, 'grafika-klatki');
+// Папка кадров — своя на каждый сценарий. Общая означала, что два сборщика
+// нельзя запустить одновременно: второй чистил папку под первым, и тот
+// доснимал кадры в пустоту. Падало бы это не сразу и невнятно — на склейке,
+// где ffmpeg просто не находит части кадров.
+const katKlatek = path.join(OUT, `grafika-klatki-${scenariusz.klucz}`);
 await rm(katKlatek, { recursive: true, force: true });
 const klatek = await renderujKlatki(
   grafikaHtml({ scena: scenaZFilmami, wzor, liczniki, metki, kamera, akcenty, slowa: glos.slowa, obrazki }),
