@@ -469,7 +469,23 @@ window.setT = (t) => {
         'translate3d(' + (m.x - szer / 2).toFixed(1) + 'px,' +
         (m.y + wys / 2 + 34 + dy).toFixed(1) + 'px,0)';
       pas.querySelector('.pasek-wype').style.width = ((szer * proc) / 100).toFixed(1) + 'px';
-      pas.querySelector('.pasek-opis').textContent = Math.round(proc) + '%';
+      // Подпись словом, если она задана. Голый процент под биркой ничего не
+      // объясняет: на последнем кадре первого ролика стояло «0 H» и «0%» —
+      // зритель видел два нуля и не мог понять, что именно обнулилось.
+      // Слово «TWOJE GODZINY» отвечает на это за один взгляд.
+      const opis = pas.querySelector('.pasek-opis');
+      opis.textContent = m.opis || Math.round(proc) + '%';
+      // Слово шире процента и в штатных 54 px вылезает за шкалу. Считаем
+      // кегль под длину: «POSTÓW W MIESIĄCU» это семнадцать знаков, и в
+      // четырёхсот пикселях они помещаются только меньшим шрифтом.
+      // Ровно в одну строку. Перенос делит подпись пополам и та начинает
+      // спорить с числом на самой бирке — вместо объяснения выходит второй
+      // блок текста. Кегль считаем под длину, шкалу подпись может перерасти.
+      opis.style.whiteSpace = 'nowrap';
+      opis.style.fontSize = m.opis
+        ? Math.min(46, Math.floor((szer * 1.45) / m.opis.length)) + 'px'
+        : '';
+      opis.style.webkitTextStroke = m.opis ? '6px #0b0718' : '';
     }
   });
 

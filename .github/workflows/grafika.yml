@@ -5,6 +5,16 @@ name: ZOVU rolka rysowana
 # такое попадает только после того, как Захар посмотрит.
 on:
   workflow_dispatch:
+    inputs:
+      scenariusz:
+        description: 'Сценарий: czas | odpowiedz | rytm | wszystkie'
+        required: false
+        default: 'wszystkie'
+      bez_glosu:
+        description: 'Проба без озвучки (не тратит ElevenLabs)'
+        type: boolean
+        required: false
+        default: false
 
 concurrency:
   group: zovu-grafika
@@ -40,7 +50,39 @@ jobs:
         env:
           ELEVENLABS_KEY: ${{ secrets.ELEVENLABS_KEY }}
           ELEVENLABS_VOICE: ${{ secrets.ELEVENLABS_VOICE }}
-        run: node rolka-grafika.mjs
+          SCEN: ${{ inputs.scenariusz }}
+          BEZ: ${{ inputs.bez_glosu }}
+        # Сценарии снимаем ПО ОЧЕРЕДИ в одном прогоне, а не тремя джобами:
+        # ffmpeg и Chromium ставятся четыре минуты, и платить это трижды за
+        # ролики, которые всё равно уедут одним артефактом, нечем оправдать.
+        #
+        # Один упавший сценарий не должен уносить остальные: если ролик не
+        # собрался, пишем это в лог и идём дальше. Три ролика минус один
+        # лучше, чем ноль.
+        # Проверки пишем блоками if, а не через `[ ... ] && ...`: шаг идёт под
+        # `bash -e`, и такая строка на ложном условии возвращает единицу — то
+        # есть роняет прогон ровно в благополучном случае.
+        run: |
+          BG=""
+          if [ "$BEZ" = "true" ]; then BG="--bez-glosu"; fi
+          LISTA="$SCEN"
+          if [ -z "$LISTA" ] || [ "$LISTA" = "wszystkie" ]; then LISTA="czas odpowiedz rytm"; fi
+          padlo=0
+          for s in $LISTA; do
+            echo "::group::$s"
+            if ! node rolka-grafika.mjs --scenariusz="$s" $BG; then
+              echo "::warning::scenariusz $s nie zbudował się"
+              padlo=$((padlo+1))
+            fi
+            echo "::endgroup::"
+          done
+          ls -la out/auto-grafika-*.mp4 || true
+          # Ни одного ролика — это провал прогона, а не предупреждение.
+          if ! ls out/auto-grafika-*.mp4 >/dev/null 2>&1; then
+            echo "::error::żaden scenariusz nie zbudował się"
+            exit 1
+          fi
+          if [ "$padlo" -gt 0 ]; then echo "::warning::gotowe nie wszystkie — padło $padlo"; fi
 
       - uses: actions/upload-artifact@v4
         if: always()
