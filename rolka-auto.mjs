@@ -365,10 +365,26 @@ async function podklad(czesc, i, scenNazwa) {
   const kandydaci = await searchStock(czesc.szukaj, { perPage: 10, minSeconds: 4 });
   if (!kandydaci.length) return null;
 
+  // Кадры не про то, что просили, отбрасываем. В ролике 20.08 под подписью
+  // «фото мебели» стоял салон красоты с чужой косметикой на переднем плане:
+  // запрос был правильный, сток отдал мимо, а проверить было нечем. Ролик
+  // прошёл сборку, лёг в очередь и вышел бы к людям.
+  //
+  // Если по названию не подошло НИЧЕГО — берём как есть, но говорим вслух:
+  // пустой кусок хуже неточного, а молчаливая подмена хуже обоих.
+  const pasujace = kandydaci.filter((k) => k.trafnosc > 0);
+  const pula = pasujace.length ? pasujace : kandydaci;
+  if (!pasujace.length) {
+    console.warn(
+      `[rolka-auto] «${czesc.szukaj}»: ни один кадр не совпал с запросом по названию — ` +
+        `беру первый попавшийся, проверь глазами`
+    );
+  }
+
   // Идём по списку, пока не попадётся кадр без хромакея. Смещение по `i`
   // нужно, чтобы два соседних куска не взяли один и тот же клип.
-  for (let k = 0; k < Math.min(4, kandydaci.length); k++) {
-    const kand = kandydaci[(i + k) % kandydaci.length];
+  for (let k = 0; k < Math.min(4, pula.length); k++) {
+    const kand = pula[(i + k) % pula.length];
     // Имя КЭША обязано содержать сценарий: без этого второй сценарий
     // подтягивал клипы первого — на «co ma robić» стоял парень, снимающий
     // себя на телефон, потому что файл `auto-punkt-2-0` уже лежал с прошлого

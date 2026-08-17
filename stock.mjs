@@ -26,6 +26,39 @@ async function env(key) {
   }
 }
 
+// Слова, которые есть почти в каждом названии и потому ничего не значат.
+// Без этого списка «video of a man» совпадает с «video of a cake».
+const PUSTE = new Set([
+  'video', 'footage', 'clip', 'free', 'stock', 'of', 'the', 'a', 'an', 'in', 'on',
+  'at', 'with', 'and', 'to', 'for', 'from', 'by', 'his', 'her', 'their', 'it',
+  'is', 'are', 'while', 'over', 'up', 'down', 'out', 'into', 'shot', 'view',
+]);
+
+// Название клипа лежит в адресе страницы: .../video/woman-applying-cream-12345/
+function opisZeStrony(url) {
+  const m = String(url || '').match(/\/video\/([^/]+)\//);
+  if (!m) return '';
+  return m[1].replace(/-\d+$/, '').replace(/-/g, ' ');
+}
+
+// Попадание в запрос: сколько значимых слов запроса нашлось в названии.
+// Считаем долей, а не числом: запрос из двух слов и запрос из пяти иначе
+// несравнимы, и длинный запрос всегда проигрывал бы короткому.
+//
+// Сравниваем по началу слова, а не целиком: «photography» и «photo»,
+// «furniture» и «furnitures» — одно и то же для нашей задачи.
+export function trafnosc(zapytanie, opis) {
+  const slowa = (s) =>
+    String(s).toLowerCase().split(/[^a-z]+/).filter((w) => w.length > 2 && !PUSTE.has(w));
+  const q = slowa(zapytanie);
+  const o = slowa(opis);
+  if (!q.length || !o.length) return 0;
+  const trafione = q.filter((w) =>
+    o.some((x) => x.startsWith(w.slice(0, 5)) || w.startsWith(x.slice(0, 5)))
+  );
+  return +(trafione.length / q.length).toFixed(3);
+}
+
 function slug(s) {
   return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 50);
 }
@@ -59,9 +92,20 @@ export async function searchStock(query, { perPage = 12, minSeconds = 4 } = {}) 
         seconds: v.duration,
         author: (v.user || {}).name || '',
         page: v.url,
+        // Название клипа сток отдаёт только внутри ссылки на страницу:
+        // .../video/woman-applying-face-cream-12345/. Другого текстового
+        // описания в ответе нет, а нам оно нужно — по нему и проверяем,
+        // про то ли вообще кадр.
+        opis: opisZeStrony(v.url),
         file: bestFile(v),
       }))
-      .filter((v) => v.file);
+      .filter((v) => v.file)
+      .map((v) => ({ ...v, trafnosc: trafnosc(query, v.opis) }))
+      // Сначала те, что про запрошенное. Сток ранжирует по своему, и на
+      // «furniture product photography studio» первым выдал салон красоты —
+      // этот клип уехал в ролик под подпись «фото мебели» и был бы показан
+      // людям. Своя сортировка дешевле любой ручной проверки.
+      .sort((a, b) => b.trafnosc - a.trafnosc);
   } catch (e) {
     console.warn(`[stock] „${query}": ${e.message}`);
     return [];
