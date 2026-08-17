@@ -68,7 +68,7 @@ const SCENARIUSZE = [
       // без паузы внутри — тот самый случай, который замер признаёт
       // скороговоркой. Переписана целиком, а не подправлена.
       { rola: 'hak', tekst: 'Ładny feed. A klientów z niego zero.', szukaj: 'phone screen scrolling social media', pauza: 0.34 },
-      { rola: 'hak', tekst: 'Trzy powody. Sprawdź, który jest twój.', szukaj: 'person looking at phone thinking', pauza: 0.46 },
+      { rola: 'hak', tekst: 'Trzy powody. Sprawdź, który jest twój.', szukaj: 'person thinking phone hand', pauza: 0.46 },
       { rola: 'punkt', numer: 1, tytul: 'mówisz o sobie', tekst: 'Piszesz o sobie, a nie o kliencie.', szukaj: 'person filming himself phone', pauza: 0.30 },
       { rola: 'punkt', numer: 2, tytul: 'brak powodu', tekst: 'Nie dajesz powodu, żeby odpisać.', szukaj: 'bored person scrolling phone', pauza: 0.30 },
       { rola: 'punkt', numer: 3, tytul: 'znikasz', tekst: 'Znikasz na dwa tygodnie.', szukaj: 'calendar time passing clock', pauza: 0.26 },
@@ -123,7 +123,7 @@ const SCENARIUSZE = [
       // 44-128 у остальных) — смотреть не на что и читать нечего. Теперь
       // сначала соглашаемся со зрителем, потом ломаем, а в кадре живое лицо,
       // подсвеченное экраном.
-      { rola: 'hak', tekst: 'Materiał był dobry. Rolka i tak padła.', szukaj: 'woman face watching phone screen light', pauza: 0.34 },
+      { rola: 'hak', tekst: 'Materiał był dobry. Rolka i tak padła.', szukaj: 'woman face phone screen glow', pauza: 0.34 },
       { rola: 'hak', tekst: 'Winne są trzy sekundy. Te pierwsze.', szukaj: 'camera filming behind scenes', pauza: 0.46 },
       { rola: 'punkt', numer: 1, tytul: 'zaczynasz od siebie', tekst: 'Po pierwsze — zaczynasz od przywitania.', szukaj: 'person waving hello camera', pauza: 0.28 },
       { rola: 'punkt', numer: 2, tytul: 'brak obietnicy', tekst: 'Po drugie — nie mówisz, co widz dostanie.', szukaj: 'person shrugging uncertain', pauza: 0.28 },
@@ -150,7 +150,7 @@ const SCENARIUSZE = [
       // Второй худший — 14,3%. Запрос «empty inbox» выдал телефон с ПОГАШЕННЫМ
       // экраном: полторы секунды кадр держит выключенную вещь. Ставим сам
       // предмет разговора — профиль на светящемся экране.
-      { rola: 'hak', tekst: 'Polubienia są. Wiadomości nie ma żadnej.', szukaj: 'instagram profile screen phone hand', pauza: 0.34 },
+      { rola: 'hak', tekst: 'Polubienia są. Wiadomości nie ma żadnej.', szukaj: 'phone screen instagram profile', pauza: 0.34 },
       { rola: 'hak', tekst: 'To nie algorytm. To trzy rzeczy w profilu.', szukaj: 'person thinking phone confused', pauza: 0.46 },
       { rola: 'punkt', numer: 1, tytul: 'nie wiadomo co robisz', tekst: 'Po pierwsze — z opisu nie wiadomo, co robisz.', szukaj: 'blurry unclear sign street', pauza: 0.28 },
       { rola: 'punkt', numer: 2, tytul: 'brak dowodu', tekst: 'Po drugie — nie pokazujesz efektów pracy.', szukaj: 'before after work result', pauza: 0.28 },
@@ -499,13 +499,64 @@ const { scen, idx: scenIdx, wydanie } = await nastepnyScenariusz();
 console.log(`[rolka-auto] сценарий ${scenIdx + 1} из ${SCENARIUSZE.length}: ${scen.nazwa}`);
 
 // 1. Голос. Фразы озвучиваются по одной — так границы каждой известны точно.
-const glos = await zbudujGlos(
-  scen.czesci.map((c) => ({ tekst: c.tekst, mowa: c.mowa, pauza: c.pauza, rola: c.rola })),
-  // Пол-секунды тишины на старте. Замер показал, что речь начиналась на
-  // 0,04 с — зритель попадал в середину фразы раньше, чем успевал понять,
-  // что смотрит. Первый кадр должен успеть дойти.
-  { tmp: path.join(OUT, `${scen.nazwa}-glos`), przedPierwsza: 0.45 }
-);
+//
+// `--bez-glosu` считает тайминги по слогам и дубль не тратит. Точно так же
+// это сделано у рисованных роликов, и там оно окупилось за одну ночь: правок
+// по картинке нужны десятки, а платить голосом за то, что видно глазами,
+// бессмысленно. Проба годится только для картинки и ритма — как ЗВУЧИТ,
+// по ней судить нельзя.
+const BEZ_GLOSU = process.argv.includes('--bez-glosu');
+
+function udawanyGlos(frazy, przedPierwsza = 0.45) {
+  const TEMPO = 4.6; // слогов в секунду — середина здоровой полосы 3,9-5,6
+  const sylaby = (s) => (String(s).toLowerCase().match(/[aeiouyąęó]/g) || []).length || 1;
+  const meta = [];
+  let czas = przedPierwsza;
+  for (const f of frazy) {
+    const d = sylaby(f.tekst) / TEMPO;
+    meta.push({ tekst: f.tekst, a: +czas.toFixed(3), b: +(czas + d).toFixed(3) });
+    czas += d + (f.pauza ?? 0.3);
+  }
+  const slowa = meta.flatMap((m) => {
+    const ws = m.tekst.split(/\s+/).filter(Boolean);
+    const suma = ws.reduce((s, w) => s + w.length, 0) || 1;
+    let t = m.a;
+    return ws.map((w) => {
+      const d = ((m.b - m.a) * w.length) / suma;
+      const s = { tekst: w, a: +t.toFixed(3), b: +(t + d).toFixed(3) };
+      t += d;
+      return s;
+    });
+  });
+  return { plik: null, frazy: meta, slowa, dlugosc: +(czas + 0.35).toFixed(3) };
+}
+
+const czesciGlosu = scen.czesci.map((c) => ({ tekst: c.tekst, mowa: c.mowa, pauza: c.pauza, rola: c.rola }));
+const glos = BEZ_GLOSU
+  ? udawanyGlos(czesciGlosu)
+  : await zbudujGlos(
+      czesciGlosu,
+      // Пол-секунды тишины на старте. Замер показал, что речь начиналась на
+      // 0,04 с — зритель попадал в середину фразы раньше, чем успевал понять,
+      // что смотрит. Первый кадр должен успеть дойти.
+      { tmp: path.join(OUT, `${scen.nazwa}-glos`), przedPierwsza: 0.45 }
+    );
+if (BEZ_GLOSU) {
+  // Движку нужен ФАЙЛ дорожки: он подкладывает его как отдельный вход ffmpeg.
+  // Подсовываем тишину нужной длины — тогда весь остальной путь (караоке по
+  // словам, сведение, аутро) работает ровно так же, как на живом дубле, и
+  // проба проверяет именно то, что пойдёт в эфир. Трогать ради пробы сам
+  // движок было бы хуже: тогда проба проверяла бы не тот код.
+  await mkdir(OUT, { recursive: true });
+  const cisza = path.join(OUT, 'proba-cisza.wav');
+  await execFileAsync('ffmpeg', [
+    '-y', '-hide_banner', '-loglevel', 'error',
+    '-f', 'lavfi', '-i', `anullsrc=r=48000:cl=stereo:d=${(glos.dlugosc + 0.5).toFixed(2)}`,
+    '-c:a', 'pcm_s16le', cisza,
+  ]);
+  glos.plik = cisza;
+  console.log('[rolka-auto] ПРОБА без озвучки: тайминги по слогам, голос не тратим');
+}
 console.log(`[rolka-auto] голос: ${glos.dlugosc.toFixed(2)} с, слов ${glos.slowa.length}`);
 
 // 2. Подложка. Один кусок стока на одну фразу, длиной ровно в эту фразу
