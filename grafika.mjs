@@ -96,7 +96,8 @@ export function grafikaHtml(plan) {
         `<div class="metka" data-i="${i}" style="width:${m.szer || 380}px;height:${m.wys || 520}px">` +
         `<div class="dziurka"></div><div class="metka-cyfra"></div></div>\n` +
         `<div class="pasek" data-i="${i}" style="width:${m.szer || 380}px">` +
-        `<div class="pasek-wype"></div><div class="pasek-opis"></div></div>`
+        `<div class="pasek-tor"></div><div class="pasek-wype"></div>` +
+        `<div class="pasek-opis"></div></div>`
     )
     .join('\n');
 
@@ -189,6 +190,11 @@ body { font-family:'Inter',sans-serif; background:transparent; }
    есть то, за чем следит глаз. */
 .pasek { position:absolute; left:0; top:0; height:74px; opacity:0;
   display:flex; align-items:center; justify-content:center; will-change:transform,opacity; }
+/* Дорожка под заливкой. Без неё шкала на нуле превращается в белую точку и
+   перестаёт читаться как шкала — а именно на нуле она и должна сказать
+   «здесь ничего не осталось». Пустая дорожка это говорит, точка — нет. */
+.pasek-tor { position:absolute; left:0; right:0; top:22px; height:30px; border-radius:15px;
+  background:rgba(0,0,0,.16); box-shadow:inset 0 2px 5px rgba(0,0,0,.18); }
 .pasek-wype { position:absolute; left:0; top:22px; height:30px; border-radius:15px;
   background:#fff; box-shadow:0 6px 18px rgba(0,0,0,.28); }
 .pasek-opis { position:relative; font-family:'Archivo Black','Inter',sans-serif;
