@@ -121,15 +121,22 @@ const ODPOWIEDZ = {
   klucz: 'odpowiedz',
   nazwa: 'Klient napisał, odpowiadasz jutro',
   frazy: [
-    // Открываемся фактом в два слова — как в первом сценарии, где сработала
-    // точка после «Instagram». Вопрос с разбега слабее короткого утверждения.
-    { rola: 'hak', tekst: 'Klient napisał.', pauza: 0.40 },
-    { rola: 'hak', tekst: 'Odpowiadasz jutro.', pauza: 0.38 },
-    { rola: 'tresc', tekst: 'On pyta trzy firmy naraz.', pauza: 0.32 },
-    { rola: 'tresc', tekst: 'I nie czeka do jutra.', pauza: 0.36 },
-    { rola: 'tresc', tekst: 'Wybiera tę, co odpisze pierwsza.', pauza: 0.38 },
-    { rola: 'zaplata', tekst: 'Twoja oferta była lepsza.', pauza: 0.32 },
-    { rola: 'zaplata', tekst: 'Tylko spóźniona.', pauza: 0.40 },
+    // Первая версия была набрана нарочито короткими фразами: «Klient
+    // napisał.» (четыре слога), «Tylko spóźniona.» (пять). Замер дубля:
+    // четыре фразы из восьми торопливых, до 6,2 слог/с при планке 5,6 —
+    // ровно та грабля, что уже ловили: КОРОТКУЮ фразу модель гонит даже на
+    // speed 0.94, потому что паузу внутри неё делать негде.
+    //
+    // Лечится не растяжкой (от неё слышно ИИ), а длиной и точкой внутри:
+    // девять-четырнадцать слогов, у хука разрыв на две мысли. Проверка —
+    // повторный замер, а не слух.
+    { rola: 'hak', tekst: 'Klient napisał wieczorem. Pyta o cenę.', pauza: 0.40 },
+    { rola: 'hak', tekst: 'Odpowiadasz dopiero jutro rano.', pauza: 0.38 },
+    { rola: 'tresc', tekst: 'On w tym czasie pyta trzy inne firmy.', pauza: 0.32 },
+    { rola: 'tresc', tekst: 'Żadna z nich nie czeka do jutra.', pauza: 0.36 },
+    { rola: 'tresc', tekst: 'Wybiera tę, która odpisała pierwsza.', pauza: 0.38 },
+    { rola: 'zaplata', tekst: 'Twoja oferta była lepsza. Naprawdę.', pauza: 0.32 },
+    { rola: 'zaplata', tekst: 'Tylko przyszła o dzień za późno.', pauza: 0.40 },
     { rola: 'cta', tekst: 'Napisz SZYBKO, a ustawimy odpowiedzi.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
@@ -149,7 +156,9 @@ const ODPOWIEDZ = {
         start: t(2, 0.10), koniec: t(4, 0.85), dokad: 'lewo' },
       { film: 'ekrany', x: 552, y: 750, skala: 390, wys: 620, obrot: 2, skad: 'dol',
         start: t(2, 0.45), koniec: t(4, 0.85), dokad: 'gora' },
-      { film: 'marka', x: 870, y: 820, skala: 340, wys: 540, obrot: 8, skad: 'dol',
+      // Не `marka`: там кроссовок на ярко-синем, и карточка читается как чужая
+      // реклама обуви, а не как «третья фирма, которую он спросил».
+      { film: 'wnetrza', x: 870, y: 820, skala: 340, wys: 540, obrot: 8, skad: 'dol',
         start: t(2, 0.80), koniec: t(4, 0.85), dokad: 'prawo' },
 
       // Галочка — выбор, сделанный без тебя. Один предмет во весь экран:
@@ -205,9 +214,11 @@ const ODPOWIEDZ = {
       { t: total, zoom: 1.10, x: 0, y: 8 },
     ];
 
+    // Слова сверены с новым текстом дословно: подсветка ищет точную форму, и
+    // «spóźniona» из первой версии просто никогда бы не сработала — молча.
     const akcenty = {
       zolty: ['pierwsza', 'szybko', 'odpowiedzi', 'ustawimy'],
-      czerwony: ['jutro', 'spóźniona', 'trzy', 'nie'],
+      czerwony: ['jutro', 'jutra', 'późno', 'trzy', 'żadna'],
     };
 
     return { scena, metki, wzor, liczniki, kamera, akcenty };
