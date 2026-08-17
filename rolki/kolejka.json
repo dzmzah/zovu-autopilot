@@ -121,7 +121,7 @@
       "fb"
     ],
     "tekst": "Masz zasięgi, masz polubienia, a wiadomości zero.\n\nTo nie przypadek i nie algorytm. To trzy rzeczy w twoim profilu, które mówią „nie pisz do mnie\".\n\nNapisz PROFIL, a powiemy, która z nich blokuje cię najbardziej.\n\nzovu.pl\n\n#katowice #katowicefirmy #mojafirma #firmarodzinna #wizytowkafirmy #pozyskiwanieklientow #zovu",
-    "opublikowano": null,
+    "opublikowano": "2026-08-17T11:20:35.992Z",
     "zrodlo": "auto-dlaczego-nikt-nie-pisze.mp4",
     "scenariusz": "dlaczego-nikt-nie-pisze",
     "forma": "lista",
@@ -136,7 +136,11 @@
       3.4,
       4.7,
       3.5
-    ]
+    ],
+    "wynik": {
+      "instagram": "17923111362179968",
+      "facebook": "1391025729787418"
+    }
   },
   {
     "plik": "auto-2026-08-14-1.mp4",
