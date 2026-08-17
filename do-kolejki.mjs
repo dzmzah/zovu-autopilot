@@ -119,8 +119,21 @@ const juzWKolejce = new Set(kolejka.map((p) => p.plik));
 const juzCzeka = new Set(kolejka.filter((p) => !p.opublikowano && p.zrodlo).map((p) => p.zrodlo));
 
 // Берём только автоматические сборки и только те, что ещё не в очереди.
+//
+// Две вещи маска `auto-*` захватывала зря, и обе выложились бы в ленту сами:
+//
+//   · `-proba` — пробы картинки БЕЗ ОЗВУЧКИ. Они лежат в той же папке, и
+//     ролик без голоса в ленте это брак, который никакая проверка замерами
+//     не поймает: длина, громкость музыки и склейки у него в норме;
+//   · `auto-grafika-*` — рисованные ролики. Они пока эксперимент и попадают
+//     в ленту только после того, как Захар их посмотрит. Показать их можно
+//     флагом `--z-grafika`, то есть осознанным решением, а не тем, что файл
+//     случайно оказался в out/.
+const Z_GRAFIKA = process.argv.includes('--z-grafika');
 const pliki = (await readdir(OUT).catch(() => []))
   .filter((f) => /^auto-.*\.mp4$/.test(f))
+  .filter((f) => !/-proba\.mp4$/.test(f))
+  .filter((f) => Z_GRAFIKA || !/^auto-grafika-/.test(f))
   .sort();
 
 if (!pliki.length) {
