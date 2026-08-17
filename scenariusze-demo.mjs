@@ -27,13 +27,17 @@ const MUSEO = {
   klucz: 'demo-museo',
   nazwa: 'DEMO Museo — audioprzewodnik z kamery',
   frazy: [
+    // Первый дубль этого ролика и доказал правило про паузу: четыре фразы с
+    // точкой внутри легли в 3,4-4,9 слог/с, а четыре без точки — 5,6-6,4.
+    // Разделение вышло без единого исключения, поэтому теперь точка есть в
+    // каждой.
     { rola: 'hak', tekst: 'Stoisz przed obrazem. I nic o nim nie wiesz.', pauza: 0.40 },
-    { rola: 'hak', tekst: 'Tabliczka obok ma jedno zdanie.', pauza: 0.38 },
+    { rola: 'hak', tekst: 'Tabliczka obok. Jedno zdanie i tyle.', pauza: 0.38 },
     { rola: 'tresc', tekst: 'Skieruj telefon na obraz. To wszystko.', pauza: 0.34 },
-    { rola: 'tresc', tekst: 'Aplikacja rozpoznaje go od razu.', pauza: 0.34 },
-    { rola: 'tresc', tekst: 'Opowiada historię w dwudziestu językach.', pauza: 0.38 },
+    { rola: 'tresc', tekst: 'Rozpoznaje go od razu. W sekundę.', pauza: 0.34 },
+    { rola: 'tresc', tekst: 'I opowiada. W dwudziestu językach.', pauza: 0.38 },
     { rola: 'zaplata', tekst: 'Bez wypożyczania sprzętu. Bez kolejki.', pauza: 0.34 },
-    { rola: 'zaplata', tekst: 'Dla zwiedzającego to nic nie kosztuje.', pauza: 0.38 },
+    { rola: 'zaplata', tekst: 'Dla zwiedzającego za darmo. Zawsze.', pauza: 0.38 },
     { rola: 'cta', tekst: 'Museo. Pobierz, zanim wejdziesz do muzeum.', pauza: 0.20 },
   ],
   buduj({ t, total }) {

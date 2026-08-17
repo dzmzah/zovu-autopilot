@@ -63,8 +63,12 @@ const SCENARIUSZE = [
       '#marketing #socialmedia #reels #agencjamarketingowa #contentmarketing #katowice #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Twój post zobaczyło sto osób.', szukaj: 'phone screen scrolling social media', pauza: 0.34 },
-      { rola: 'hak', tekst: 'Napisała zero.', szukaj: 'empty phone notification screen', pauza: 0.46 },
+      // «Napisała zero» — ошибка в польском, и она вышла в ленту: при «sto
+      // osób» нужен средний род, «napisało». Заодно фраза шла на пяти слогах
+      // без паузы внутри — тот самый случай, который замер признаёт
+      // скороговоркой. Переписана целиком, а не подправлена.
+      { rola: 'hak', tekst: 'Ładny feed. A klientów z niego zero.', szukaj: 'phone screen scrolling social media', pauza: 0.34 },
+      { rola: 'hak', tekst: 'Trzy powody. Sprawdź, który jest twój.', szukaj: 'person looking at phone thinking', pauza: 0.46 },
       { rola: 'punkt', numer: 1, tytul: 'mówisz o sobie', tekst: 'Piszesz o sobie, a nie o kliencie.', szukaj: 'person filming himself phone', pauza: 0.30 },
       { rola: 'punkt', numer: 2, tytul: 'brak powodu', tekst: 'Nie dajesz powodu, żeby odpisać.', szukaj: 'bored person scrolling phone', pauza: 0.30 },
       { rola: 'punkt', numer: 3, tytul: 'znikasz', tekst: 'Znikasz na dwa tygodnie.', szukaj: 'calendar time passing clock', pauza: 0.26 },
@@ -87,8 +91,10 @@ const SCENARIUSZE = [
       '#stronainternetowa #webdesign #marketing #agencjamarketingowa #katowice #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Pytasz, ile kosztuje strona?', mowa: 'Pytasz… ile kosztuje strona?', szukaj: 'laptop website design desk', pauza: 0.34 },
-      { rola: 'hak', tekst: 'To pytanie o nic.', szukaj: 'confused person laptop', pauza: 0.46 },
+      // Вопрос заменён утверждением: на вопрос зритель мысленно отвечает и
+      // уходит, а утверждение «злой вопрос» — это конфликт, который держит.
+      { rola: 'hak', tekst: 'Ile kosztuje strona. Złe pytanie.', szukaj: 'laptop website design desk', pauza: 0.34 },
+      { rola: 'hak', tekst: 'Cena zależy od trzech rzeczy. Nie od podstron.', szukaj: 'calculator money desk business', pauza: 0.46 },
       { rola: 'punkt', numer: 1, tytul: 'co ma robić', tekst: 'Po pierwsze — co ta strona ma robić.', szukaj: 'business meeting planning notes', pauza: 0.28 },
       { rola: 'punkt', numer: 2, tytul: 'czyje treści', tekst: 'Po drugie — kto pisze teksty i robi zdjęcia.', szukaj: 'photographer camera studio product', pauza: 0.28 },
       { rola: 'punkt', numer: 3, tytul: 'co potem', tekst: 'Po trzecie — kto się nią zajmie za pół roku.', szukaj: 'developer working code screen', pauza: 0.26 },
@@ -111,8 +117,14 @@ const SCENARIUSZE = [
       '#reels #socialmedia #marketing #contentmarketing #agencjamarketingowa #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Twoją rolkę obejrzało PIĘĆ osób.', szukaj: 'empty theater seats alone', pauza: 0.34 },
-      { rola: 'hak', tekst: 'A materiał był dobry.', szukaj: 'camera filming behind scenes', pauza: 0.46 },
+      // Худший ролик из шести по досмотру — 14,8%. Две причины видны на кадрах.
+      // Первая: «obejrzało PIĘĆ osób» — цифра о зрителе, которой мы не знаем.
+      // Вторая: под неё стоял кадр пустого тёмного зала (яркость 25 против
+      // 44-128 у остальных) — смотреть не на что и читать нечего. Теперь
+      // сначала соглашаемся со зрителем, потом ломаем, а в кадре живое лицо,
+      // подсвеченное экраном.
+      { rola: 'hak', tekst: 'Materiał był dobry. Rolka i tak padła.', szukaj: 'woman face watching phone screen light', pauza: 0.34 },
+      { rola: 'hak', tekst: 'Winne są trzy sekundy. Te pierwsze.', szukaj: 'camera filming behind scenes', pauza: 0.46 },
       { rola: 'punkt', numer: 1, tytul: 'zaczynasz od siebie', tekst: 'Po pierwsze — zaczynasz od przywitania.', szukaj: 'person waving hello camera', pauza: 0.28 },
       { rola: 'punkt', numer: 2, tytul: 'brak obietnicy', tekst: 'Po drugie — nie mówisz, co widz dostanie.', szukaj: 'person shrugging uncertain', pauza: 0.28 },
       { rola: 'punkt', numer: 3, tytul: 'cisza na starcie', tekst: 'Po trzecie — pierwsza sekunda jest pusta.', szukaj: 'silent empty room minimal', pauza: 0.26 },
@@ -135,8 +147,11 @@ const SCENARIUSZE = [
       '#instagram #socialmedia #marketing #malafirma #agencjamarketingowa #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Masz polubienia. A wiadomości ZERO.', szukaj: 'phone notification empty inbox', pauza: 0.34 },
-      { rola: 'hak', tekst: 'I to nie algorytm.', szukaj: 'person thinking phone confused', pauza: 0.46 },
+      // Второй худший — 14,3%. Запрос «empty inbox» выдал телефон с ПОГАШЕННЫМ
+      // экраном: полторы секунды кадр держит выключенную вещь. Ставим сам
+      // предмет разговора — профиль на светящемся экране.
+      { rola: 'hak', tekst: 'Polubienia są. Wiadomości nie ma żadnej.', szukaj: 'instagram profile screen phone hand', pauza: 0.34 },
+      { rola: 'hak', tekst: 'To nie algorytm. To trzy rzeczy w profilu.', szukaj: 'person thinking phone confused', pauza: 0.46 },
       { rola: 'punkt', numer: 1, tytul: 'nie wiadomo co robisz', tekst: 'Po pierwsze — z opisu nie wiadomo, co robisz.', szukaj: 'blurry unclear sign street', pauza: 0.28 },
       { rola: 'punkt', numer: 2, tytul: 'brak dowodu', tekst: 'Po drugie — nie pokazujesz efektów pracy.', szukaj: 'before after work result', pauza: 0.28 },
       { rola: 'punkt', numer: 3, tytul: 'nie ma dokąd', tekst: 'Po trzecie — nie mówisz, gdzie napisać.', szukaj: 'closed door sign shop', pauza: 0.26 },
@@ -159,8 +174,8 @@ const SCENARIUSZE = [
       '#reels #socialmedia #contentmarketing #marketing #agencjamarketingowa #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Rolka NIE jest lepsza od posta.', szukaj: 'two paths choice road', pauza: 0.34 },
-      { rola: 'hak', tekst: 'Robi coś zupełnie innego.', szukaj: 'phone social media feed scroll', pauza: 0.46 },
+      { rola: 'hak', tekst: 'Rolka nie jest lepsza od posta. Wcale.', szukaj: 'two paths choice road', pauza: 0.34 },
+      { rola: 'hak', tekst: 'Robi co innego. I do czego innego.', szukaj: 'phone social media feed scroll', pauza: 0.46 },
       { rola: 'punkt', numer: 1, tytul: 'rolka przyprowadza', tekst: 'Rolka przyprowadza NOWYCH ludzi.', szukaj: 'crowd people city walking', pauza: 0.28 },
       { rola: 'punkt', numer: 2, tytul: 'post rozmawia', tekst: 'Post rozmawia z tymi, których już masz.', szukaj: 'two people talking coffee', pauza: 0.28 },
       { rola: 'punkt', numer: 3, tytul: 'jedno bez drugiego', tekst: 'Samo jedno z dwóch nie działa.', szukaj: 'broken chain link metal', pauza: 0.26 },
@@ -198,8 +213,10 @@ const SCENARIUSZE = [
       '#ai #contentmarketing #socialmedia #reels #agencjamarketingowa #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Tej rolki nikt nie nagrywał.', szukaj: 'empty film studio equipment', pauza: 0.34 },
-      { rola: 'hak', tekst: 'Ani kamery, ani człowieka przed nią.', szukaj: 'camera tripod empty room', pauza: 0.46 },
+      // Этот ролик и так лучший по кадру (живой бэкстейдж с людьми) — правим
+      // только метрику: вторая фраза шла без паузы внутри.
+      { rola: 'hak', tekst: 'Tej rolki nikt nie nagrał. Nie było kamery.', szukaj: 'empty film studio equipment', pauza: 0.34 },
+      { rola: 'hak', tekst: 'Ani człowieka przed nią. Powstała sama.', szukaj: 'camera tripod empty room', pauza: 0.46 },
       { rola: 'tresc', tekst: 'Scenariusz, głos, materiał, montaż.', szukaj: 'code screen developer night', pauza: 0.30 },
       { rola: 'tresc', tekst: 'Wszystko składa się samo, o szóstej rano.', szukaj: 'sunrise city morning window', pauza: 0.30 },
       { rola: 'zaplata', tekst: 'Tak robimy treści, kiedy termin był na wczoraj.', szukaj: 'clock deadline office desk', pauza: 0.30 },
@@ -224,7 +241,7 @@ const SCENARIUSZE = [
     ].join(String.fromCharCode(10)),
     czesci: [
       { rola: 'hak', tekst: 'Trzy sekundy.', stempel: { numer: '3', podpis: 'sekundy' }, szukaj: 'stopwatch timer close up', pauza: 0.40 },
-      { rola: 'hak', tekst: 'Tyle masz, zanim palec pojedzie dalej.', szukaj: 'thumb scrolling phone fast', pauza: 0.46 },
+      { rola: 'hak', tekst: 'Tyle masz. Potem palec jedzie dalej.', szukaj: 'thumb scrolling phone fast', pauza: 0.46 },
       { rola: 'tresc', tekst: 'Widz nie ocenia wtedy jakości.', szukaj: 'person watching phone bored', pauza: 0.30 },
       { rola: 'tresc', tekst: 'Sprawdza jedno: czy to o nim.', szukaj: 'person pointing at himself', pauza: 0.30 },
       { rola: 'zaplata', tekst: 'Dlatego pierwsze zdanie mówi o widzu, nie o tobie.', szukaj: 'conversation two people listening', pauza: 0.30 },
@@ -247,8 +264,8 @@ const SCENARIUSZE = [
       '#socialmedia #marketing #malafirma #contentmarketing #agencjamarketingowa #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Musisz postować codziennie.', szukaj: 'calendar days planning wall', pauza: 0.34 },
-      { rola: 'hak', tekst: 'To najdroższy mit w tej branży.', stempel: { numer: 'MIT', podpis: 'a nie zasada' }, szukaj: 'tired person laptop late', pauza: 0.46 },
+      { rola: 'hak', tekst: 'Musisz postować codziennie. Podobno.', szukaj: 'calendar days planning wall', pauza: 0.34 },
+      { rola: 'hak', tekst: 'To mit. I najdroższy w tej branży.', stempel: { numer: 'MIT', podpis: 'a nie zasada' }, szukaj: 'tired person laptop late', pauza: 0.46 },
       { rola: 'tresc', tekst: 'Codziennie znaczy w pośpiechu.', szukaj: 'rushing hands typing fast', pauza: 0.28 },
       { rola: 'tresc', tekst: 'A w pośpiechu znaczy o niczym.', szukaj: 'empty blank paper desk', pauza: 0.30 },
       { rola: 'zaplata', tekst: 'Algorytm liczy, ile osób zostało. Nie ile razy wrzuciłeś.', szukaj: 'analytics graph screen data', pauza: 0.30 },
@@ -271,8 +288,8 @@ const SCENARIUSZE = [
       '#instagram #socialmedia #malafirma #marketing #agencjamarketingowa #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Pasja, jakość, doświadczenie.', szukaj: 'generic business office stock', pauza: 0.40 },
-      { rola: 'hak', tekst: 'Taki opis ma pół Polski.', szukaj: 'crowd identical people street', pauza: 0.46 },
+      { rola: 'hak', tekst: 'Pasja, jakość, doświadczenie. Brzmi znajomo?', szukaj: 'generic business office stock', pauza: 0.40 },
+      { rola: 'hak', tekst: 'Taki opis ma pół Polski. Dosłownie.', szukaj: 'crowd identical people street', pauza: 0.46 },
       { rola: 'tresc', tekst: 'A teraz to samo, tylko konkretnie.', szukaj: 'sharp focus lens adjust', pauza: 0.30 },
       { rola: 'tresc', tekst: 'Zdjęcia mebli, które sprzedają się w sieci.', szukaj: 'furniture product photography studio', pauza: 0.30 },
       { rola: 'zaplata', tekst: 'Różnica jedna: druga wersja mówi, dla kogo jesteś.', szukaj: 'person reading phone smiling', pauza: 0.30 },
@@ -295,8 +312,8 @@ const SCENARIUSZE = [
       '#marketing #socialmedia #malafirma #agencjamarketingowa #katowice #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Najczęstsze pytanie w naszym DM.', szukaj: 'phone message notification hand', pauza: 0.36 },
-      { rola: 'hak', tekst: 'Ile postów muszę mieć, żeby ruszyło?', szukaj: 'person waiting phone anxious', pauza: 0.46 },
+      { rola: 'hak', tekst: 'Jedno pytanie wraca co tydzień. To samo.', szukaj: 'phone message notification hand', pauza: 0.36 },
+      { rola: 'hak', tekst: 'Ile postów muszę mieć. Żeby ruszyło.', szukaj: 'person waiting phone anxious', pauza: 0.46 },
       { rola: 'tresc', tekst: 'To zła liczba i złe pytanie.', szukaj: 'question mark thinking person', pauza: 0.30 },
       { rola: 'tresc', tekst: 'Dobre brzmi: ile osób wie, co u ciebie kupić.', szukaj: 'shop window products display', pauza: 0.30 },
       { rola: 'zaplata', tekst: 'Bez tego każdy kolejny post to tylko ruch.', szukaj: 'busy street people passing', pauza: 0.30 },
@@ -319,8 +336,8 @@ const SCENARIUSZE = [
       '#marketing #agencjamarketingowa #malafirma #socialmedia #katowice #zovu',
     ].join(String.fromCharCode(10)),
     czesci: [
-      { rola: 'hak', tekst: 'Nie obiecujemy zasięgów.', szukaj: 'handshake business honest meeting', pauza: 0.36 },
-      { rola: 'hak', tekst: 'I to jest dobra wiadomość.', szukaj: 'person smiling relief office', pauza: 0.46 },
+      { rola: 'hak', tekst: 'Nie obiecujemy zasięgów. Nigdy.', szukaj: 'handshake business honest meeting', pauza: 0.36 },
+      { rola: 'hak', tekst: 'I to jest dobra wiadomość. Dla ciebie.', szukaj: 'person smiling relief office', pauza: 0.46 },
       { rola: 'tresc', tekst: 'Zasięg kupisz reklamą w dziesięć minut.', szukaj: 'credit card online payment', pauza: 0.30 },
       { rola: 'tresc', tekst: 'Klienta nie kupisz wcale.', szukaj: 'empty shop counter waiting', pauza: 0.32 },
       { rola: 'zaplata', tekst: 'Płacisz za to, żeby wiedzieli, po co do ciebie pisać.', szukaj: 'customer talking seller shop', pauza: 0.30 },
