@@ -358,6 +358,16 @@ Nagranie z barberem pod punktem o częstotliwości publikacji wygląda przypadko
 // Порядок: Claude (если есть ключ) → Gemini Flash (бесплатный тир) → локальная Ollama.
 // В GitHub Actions Ollama нет, поэтому там работает Gemini.
 async function askModel(system, user) {
+  // Проверочный выключатель модели. Запасной путь включается раз в несколько
+  // недель — в тот самый день, когда всё остальное сломалось, — и проверить
+  // его иначе нечем: подсунуть настоящий 429 нельзя, а битый ключ даёт 400.
+  // Непроверенный аварийный путь аварийным не является.
+  if (process.env.ZOVU_UDAWAJ_BRAK_MODELU) {
+    const err = new Error('Gemini 429 (limit wyczerpany): udawany brak modelu do testu rezerwy');
+    err.kwota = true;
+    throw err;
+  }
+
   const anthropicKey = await env('ANTHROPIC_API_KEY');
   const geminiKey = await env('GEMINI_API_KEY');
 
@@ -888,7 +898,12 @@ export async function makePost({ topic, format, kind, uklad, trends = false, gen
   // Пометка «MIT:» — не просьба к модели, а требование к посту. Модель ставит
   // её через раз, и слайд без пометки заявляет миф от имени ZOVU. Просить
   // вежливо тут нельзя: это единственное, что отличает разоблачение от лжи.
-  if (chosenFormat.key === 'mity' && Array.isArray(out.items)) {
+  //
+  // К тексту из запаса это НЕ применяется: запас заменяет формат целиком, он
+  // не «мифы». Проверка запаса на живом прогоне поймала ровно это — ротация
+  // стояла на мифах, и каждый пункт запасной карусели получил «MIT:»,
+  // превратившись во вранье: «MIT: Co dokładnie oferujesz».
+  if (!zRezerwyNr && chosenFormat.key === 'mity' && Array.isArray(out.items)) {
     out.items = out.items.map((it) => {
       const h = String(it.heading || '').trim();
       if (/^mit\b/i.test(h)) return it;
@@ -1017,7 +1032,10 @@ export async function makePost({ topic, format, kind, uklad, trends = false, gen
       counter,
       topic: chosenTopic,
       trend: trendSeed ? { title: trendSeed.title, sources: trendSeed.sources } : null,
-      format: chosenFormat.label,
+      // Формат называем честно: запас не следует ротации, и записать его под
+      // ярлыком «Мифы» значит испортить сводку охвата по форме — потом будем
+      // сравнивать несравнимое.
+      format: zRezerwyNr ? `Rezerwa #${zRezerwyNr}` : chosenFormat.label,
       provider: provider || (zRezerwyNr ? `rezerwa #${zRezerwyNr}` : null),
       zRezerwy: zRezerwyNr,
       attempts,
