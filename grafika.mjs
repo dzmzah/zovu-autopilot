@@ -143,14 +143,27 @@ body { font-family:'Inter',sans-serif; background:transparent; }
 
 /* Подпись под голос. Белая по умолчанию, цвет — только по смыслу:
    жёлтый на выгоде, красный на потере. Так у Захара в образцах. */
-.slowo { position:absolute; left:50px; right:50px; bottom:250px; text-align:center;
+.slowo { position:absolute; left:70px; right:70px; bottom:230px; text-align:center;
   font-family:'Archivo Black','Inter',sans-serif;
-  font-size:112px; line-height:1.02; letter-spacing:-3px; text-transform:uppercase;
-  color:#fff; opacity:0; transform-origin:50% 60%;
-  -webkit-text-stroke:9px #0b0718; paint-order:stroke fill;
-  text-shadow:0 10px 0 rgba(11,7,24,.55), 0 18px 42px rgba(0,0,0,.55); }
-.slowo.zolty { color:#ffd23f; }
-.slowo.czerwony { color:#ff4d4d; }
+  font-size:88px; line-height:1.06; letter-spacing:-2px; text-transform:uppercase;
+  color:#fff; opacity:0; transform-origin:50% 60%; text-wrap:balance; }
+/* Плашка ОДНА на всю фразу, а не по плашке на слово: отдельные плашки
+   расходятся щелями и на переносе съезжают ступенькой — строка выглядит
+   рваной. Клонирование фона доводит его до края каждой строки,
+   поэтому двухстрочная фраза остаётся цельной подписью.
+   Обводки в 9 пикселей больше нет: она давала ровно тот вид дежурного
+   тиктока, из-за которого подпись читалась как чужой шаблон. */
+.slowo .plyta { display:inline; padding:10px 20px; border-radius:18px;
+  background:rgba(11,7,24,.86); box-decoration-break:clone;
+  -webkit-box-decoration-break:clone;
+  box-shadow:0 14px 40px rgba(0,0,0,.35); }
+/* Слово в фразе: приглушено, пока звучит не оно. Разница по яркости, а не
+   по размеру — прыгающий кегль внутри строки заставляет соседние слова
+   ползать по кадру, и подпись снова выглядит дёрганой. */
+.slowo .s { color:#fff; opacity:.5; }
+.slowo .s.teraz { opacity:1; }
+.slowo .s.zolty.teraz { color:#ffd23f; }
+.slowo .s.czerwony.teraz { color:#ff4d4d; }
 
 /* Окно с живым видео. Скругление крупное — карточка, а не телевизор; рамка
    светлая, чтобы кадр не сливался со светлым полотном фона. */
@@ -222,6 +235,38 @@ ${metki}
 <script>
 const S = ${JSON.stringify(plan.scena)};
 const SLOWA = ${JSON.stringify(plan.slowa || [])};
+// ── подпись группами, а не по одному слову ────────────────────────
+// По слову на кадр экран занимали служебные части речи: целую секунду во
+// весь рост стояло «NA» или «TEN». Читать там нечего, глаз дёргается, а
+// мысль собирается только к концу фразы — уносить из кадра нечего.
+//
+// Собираем 2-3 слова в группу по трём правилам: пауза длиннее 0,34 с
+// означает смену мысли и рвёт группу; строка не длиннее 20 знаков, иначе
+// шрифт мельчает; служебное слово не остаётся последним — оно тянет к себе
+// следующее, потому что «na" в конце строки висит так же сиротливо, как и
+// в одиночку. Активное слово внутри группы подсвечивается — фраза стоит,
+// а голос по ней идёт.
+const GRUPY = (() => {
+  const POMOCNICZE = new Set(['na','w','we','i','a','o','u','z','ze','do','po','od','za','to','ten','ta','te','ci','że','sie','się','nie','ale','czy','jak','bo','by','juz','już','mi','go','jej','ich','im','co','kto','tym','tu','tam','przez','dla','bez','pod','nad','przy','ale','oraz','lub','albo']);
+  const male = (s) => String(s).toLowerCase().replace(/[^\\p{L}\\p{N}]/gu, '');
+  const czysty = (s) => String(s).replace(/[.,!?…]+$/, '');
+  const out = [];
+  let g = null;
+  for (let i = 0; i < SLOWA.length; i++) {
+    const s = SLOWA[i];
+    const nast = SLOWA[i + 1];
+    if (!g) g = { a: s.a, b: s.b, slowa: [] };
+    g.slowa.push({ tekst: czysty(s.tekst), male: male(s.tekst), a: s.a, b: s.b });
+    g.b = s.b;
+    const dlugosc = g.slowa.reduce((n, x) => n + x.tekst.length + 1, -1);
+    const przerwa = nast ? nast.a - s.b : 9;
+    const ogon = POMOCNICZE.has(male(s.tekst));
+    const pelna = g.slowa.length >= 3 || dlugosc >= 20;
+    if (!nast || (!ogon && (pelna || przerwa > 0.34))) { out.push(g); g = null; }
+  }
+  if (g) out.push(g);
+  return out;
+})();
 const WZOR = ${JSON.stringify(plan.wzor || [])};
 const KAM = ${JSON.stringify(plan.kamera || [])};
 const AKC = ${JSON.stringify(plan.akcenty || { zolty: [], czerwony: [] })};
@@ -501,20 +546,36 @@ window.setT = (t) => {
   const wzorNaEkranie =
     WZOR.some((x) => t >= x.a - 0.05 && t <= (x.b ?? 1e9)) ||
     LICZ.some((x) => !x.zPodpisem && t >= x.a - 0.05 && t <= (x.b ?? 1e9));
-  const w = wzorNaEkranie ? null : SLOWA.find((s) => t >= s.a - 0.06 && t < s.b + 0.16);
-  if (w) {
-    const czysty = w.tekst.replace(/[.,!?…]+$/, '');
-    const male = czysty.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
-    elSlowo.textContent = czysty;
-    elSlowo.classList.toggle('zolty', AKC.zolty.includes(male));
-    elSlowo.classList.toggle('czerwony', AKC.czerwony.includes(male));
-    const p = clamp01((t - (w.a - 0.06)) / 0.14);
+  const g = wzorNaEkranie ? null : GRUPY.find((x) => t >= x.a - 0.06 && t < x.b + 0.2);
+  if (g) {
+    // Строку перерисовываем только при смене группы. Трогать innerHTML на
+    // каждом из тысячи кадров — это лишняя раскладка текста, а на глаз
+    // выглядит как мигание строки под подсветкой.
+    if (elSlowo.dataset.g !== String(g.a)) {
+      elSlowo.dataset.g = String(g.a);
+      elSlowo.innerHTML = '<span class="plyta">' + g.slowa
+        .map((s) => {
+          const kl = AKC.zolty.includes(s.male) ? ' zolty'
+            : AKC.czerwony.includes(s.male) ? ' czerwony' : '';
+          return '<span class="s' + kl + '" data-a="' + s.a + '" data-b="' + s.b + '">' + s.tekst + '</span>';
+        })
+        .join(' ') + '</span>';
+    }
+    // Фраза стоит целиком, а голос идёт по ней: слово под голосом полной
+    // яркости, остальные приглушены. Видно и мысль разом, и место, где мы
+    // сейчас находимся.
+    for (const el of elSlowo.querySelectorAll('.s')) {
+      const teraz = t >= +el.dataset.a - 0.04 && t < +el.dataset.b + 0.06;
+      el.classList.toggle('teraz', teraz);
+    }
+    const p = clamp01((t - (g.a - 0.06)) / 0.16);
     const e = backOut(p);
     elSlowo.style.opacity = Math.min(1, p * 2.2);
     elSlowo.style.transform =
-      'scale(' + (0.82 + 0.18 * e).toFixed(3) + ') rotate(' + ((1 - e) * -3.2).toFixed(2) + 'deg)';
+      'scale(' + (0.88 + 0.12 * e).toFixed(3) + ') rotate(' + ((1 - e) * -1.8).toFixed(2) + 'deg)';
   } else {
     elSlowo.style.opacity = 0;
+    elSlowo.dataset.g = '';
   }
 
   return czekaj.length ? Promise.all(czekaj) : null;

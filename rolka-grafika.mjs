@@ -243,7 +243,11 @@ for (const o of scena.filter((x) => x.film)) {
   await ffmpeg([
     '-i', zrodlo, '-t', '8',
     '-vf', `scale=${(o.skala || 300) * 2}:${(o.wys || 470) * 2}:force_original_aspect_ratio=increase,` +
-      `crop=${(o.skala || 300) * 2}:${(o.wys || 470) * 2},fps=25`,
+      // Частота ОБЯЗАНА совпадать с частотой ролика. При 25 к/с внутри
+      // 50-кадрового ролика браузер отдаёт один и тот же кадр видео дважды
+      // подряд: карточка дёргается, и на глаз весь ролик кажется лагающим,
+      // хотя графика вокруг идёт честные 50.
+      `crop=${(o.skala || 300) * 2}:${(o.wys || 470) * 2},fps=${FPS}`,
     '-an', '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '34', '-deadline', 'good', '-cpu-used', '4',
     cel,
   ]);
@@ -292,15 +296,34 @@ const TLO = process.env.TLO_WIDEO || path.join(DIR, 'tlo', TLA[idxTla]);
 const jestTlo = existsSync(TLO);
 console.log(`[grafika] фон: ${jestTlo ? path.basename(TLO) : 'нет, будет чёрный'}`);
 
+// Полотно берём ОДНИМ кадром, а движение ему даём сами.
+//
+// Файлы фона сняты в 25 и 30 к/с, а ролик идёт 50. Фильтр `fps` их не
+// сглаживает — он повторяет кадры, причём для 30 к/с неравномерно: один
+// кадр держится 1/50, следующий 2/50. Такой рваный шаг занимает ВЕСЬ экран
+// и читается как подтормаживание всего ролика, хотя графика поверх идёт
+// честные 50. Именно это и видно на глаз как «видео будто в 30 fps».
+//
+// Полотно всё равно размывается до неузнаваемого узора, поэтому собственное
+// движение файла не несёт смысла. Медленный дрейф по синусу считается на
+// каждый из 50 кадров и потому плавен физически, а не приближённо.
+const tloKadr = path.join(OUT, 'grafika-tlo.png');
+if (jestTlo) {
+  await ffmpeg(['-ss', '1.5', '-i', TLO, '-frames:v', '1', '-y', tloKadr]);
+}
+
 const wideo = path.join(OUT, 'grafika-nieme.mp4');
 await ffmpeg(
   jestTlo
     ? [
-        '-stream_loop', '-1', '-i', TLO,
+        '-loop', '1', '-framerate', String(FPS), '-i', tloKadr,
         '-framerate', String(FPS), '-i', path.join(katKlatek, 'f%05d.png'),
         '-filter_complex',
-        `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},` +
-          `fps=${FPS},gblur=sigma=${ROZMYCIE},eq=contrast=0.80:brightness=0.03:saturation=1.05[tlo];` +
+        // Полотно берём с запасом в 12%, чтобы дрейф не обнажал край кадра.
+        `[0:v]scale=${Math.round(W * 1.12)}:${Math.round(H * 1.12)}:force_original_aspect_ratio=increase,` +
+          `crop=${W}:${H}:'(iw-ow)/2+sin(n/${FPS * 9})*${Math.round(W * 0.045)}':` +
+          `'(ih-oh)/2+cos(n/${FPS * 13})*${Math.round(H * 0.02)}',` +
+          `gblur=sigma=${ROZMYCIE},eq=contrast=0.80:brightness=0.03:saturation=1.05[tlo];` +
           `[tlo][1:v]overlay=0:0:format=auto,format=yuv420p,setsar=1[v]`,
         '-map', '[v]', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18',
         '-t', String(total), wideo,
@@ -405,9 +428,22 @@ await ffmpeg([
   '-i', wideo, '-i', glos.plik, '-i', muzyka, '-i', stuki,
   '-f', 'lavfi', '-i', `anoisesrc=c=brown:a=0.02:r=48000:d=${total}`,
   '-filter_complex',
-  `[1:a]highpass=f=85,equalizer=f=2400:t=q:w=1.2:g=2,` +
-    `acompressor=threshold=-20dB:ratio=4:attack=6:release=140:makeup=3,` +
-    `loudnorm=I=-15:TP=-1.5:LRA=3[voice];` +
+  // Голос. Прежняя цепь сама делала его «искусственным», и слышно это было
+  // ровно в трёх местах:
+  //   • подъём +2 дБ на 2,4 кГц — зона резкости. Он добавлял ту стеклянную
+  //     жёсткость, по которой синтез узнают с первой фразы;
+  //   • атака компрессора 6 мс срезала начало каждого согласного — из речи
+  //     уходил призвук живого рта;
+  //   • loudnorm с LRA=3 ровнял громкость почти в полку. Голос переставал
+  //     дышать: одинаково громкие ударные и безударные — это машина.
+  // Лечим вычитанием, а не новыми фильтрами: резкость снимаем, вместо неё
+  // немного груди на 210 Гц и воздуха сверху, компрессия мягкая и с медленной
+  // атакой, диапазон живой. Плюс общий уровень тише — голос перестаёт
+  // упираться в потолок и оставляет место музыке.
+  `[1:a]highpass=f=90,equalizer=f=210:t=q:w=1.1:g=2,` +
+    `equalizer=f=3100:t=q:w=1.6:g=-2,treble=g=1.8:f=9500:width_type=q:w=0.7,` +
+    `acompressor=threshold=-18dB:ratio=2.5:attack=18:release=190:makeup=1.5,` +
+    `loudnorm=I=-16.5:TP=-1.5:LRA=7[voice];` +
     // Подложка громче и БЕЗ длинного затухания в конце.
     //
     // Замер: разброс громкости у нас 8,1 LU против 2,2 у «Scenariusz 1».
@@ -421,7 +457,11 @@ await ffmpeg([
     // с −50 до −29 dB, но у «Scenariusz 1» в том же месте −18: там подложка
     // просто ГРОМЧЕ. Бояться её нечего — под голосом её убирает боковая
     // цепь, а звучит она только там, где иначе была бы дыра.
-    `[2:a]atrim=0:${total},asetpts=N/SR/TB,volume=0.28,afade=t=in:st=0:d=0.12,` +
+    // Уровень 0,42 вместо 0,28. При прежнем музыки под голосом не было
+    // слышно вообще — она включалась только в паузах, и на слух ролик шёл
+    // «под диктовку с редкими проигрышами». Музыка должна идти всё время,
+    // просто отступая под фразой.
+    `[2:a]atrim=0:${total},asetpts=N/SR/TB,volume=0.42,afade=t=in:st=0:d=0.12,` +
     `afade=t=out:st=${Math.max(0, total - 0.12).toFixed(2)}:d=0.12[bed];` +
     // Ключ боковой цепи ОБЯЗАН тянуться до конца ролика. `sidechaincompress`
     // выдаёт ровно столько, сколько идёт КОРОЧЕ из двух его входов: как
@@ -433,9 +473,13 @@ await ffmpeg([
     // Приглушение подложки под голосом ослаблено с 11 к 1 до 6 к 1. При
     // прежней хватке подложка в паузах не успевала вернуться, и между
     // фразами получались те же провалы, только короткие.
-    `[bed][duck]sidechaincompress=threshold=0.03:ratio=6:attack=12:release=220:makeup=1:level_sc=1[bedDuck];` +
+    // Хватка ослаблена с 6 к 1 до 3 к 1, порог поднят, возврат замедлен.
+    // Прежняя настройка вдавливала подложку почти в ноль на каждой фразе:
+    // формально музыка в миксе была, на слух — нет. Теперь она отступает
+    // на шаг и возвращается плавно, а не выныривает рывком в паузу.
+    `[bed][duck]sidechaincompress=threshold=0.05:ratio=3:attack=15:release=300:makeup=1:level_sc=1[bedDuck];` +
     `[v1][bedDuck][3:a][4:a]amix=inputs=4:normalize=0:duration=longest,` +
-    `alimiter=limit=0.95,aformat=channel_layouts=stereo[a]`,
+    `alimiter=limit=0.9,aformat=channel_layouts=stereo[a]`,
   '-map', '0:v', '-map', '[a]',
   '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2',
   '-t', String(total), gotowy,
