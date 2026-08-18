@@ -3,7 +3,7 @@
     "id": "17904017535498586",
     "plik": "kuba-trzy-powody.mp4",
     "opublikowano": "2026-08-12T11:30:46.189Z",
-    "zebrane": "2026-08-17T19:34:06.418Z",
+    "zebrane": "2026-08-18T04:58:38.798Z",
     "godzina": 13,
     "hak": "Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.",
     "dane": {
@@ -25,7 +25,7 @@
     "id": "18102631457151085",
     "plik": "auto-2026-08-12-2.mp4",
     "opublikowano": "2026-08-13T11:42:43.166Z",
-    "zebrane": "2026-08-17T19:34:07.847Z",
+    "zebrane": "2026-08-18T04:58:39.446Z",
     "godzina": 13,
     "hak": "Pytanie „ile kosztuje strona?\" jest jak „ile kosztuje samochód\".",
     "dane": {
@@ -47,7 +47,7 @@
     "id": "18112912228772221",
     "plik": "auto-2026-08-12-1.mp4",
     "opublikowano": "2026-08-14T11:40:56.067Z",
-    "zebrane": "2026-08-17T19:34:06.942Z",
+    "zebrane": "2026-08-18T04:58:39.195Z",
     "godzina": 13,
     "hak": "Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.",
     "dane": {
@@ -73,7 +73,7 @@
     "id": "18138095059859534",
     "plik": "auto-2026-08-13-1.mp4",
     "opublikowano": "2026-08-15T11:15:04.845Z",
-    "zebrane": "2026-08-17T19:34:08.558Z",
+    "zebrane": "2026-08-18T04:58:39.735Z",
     "godzina": 13,
     "hak": "Nagrałeś dobry materiał, a obejrzało go pięć osób.",
     "dane": {
@@ -99,7 +99,7 @@
     "id": "18457979926140557",
     "plik": "auto-2026-08-13-2.mp4",
     "opublikowano": "2026-08-16T11:16:33.780Z",
-    "zebrane": "2026-08-17T19:34:09.151Z",
+    "zebrane": "2026-08-18T04:58:40.002Z",
     "godzina": 13,
     "hak": "Tej rolki nikt nie nagrywał.",
     "dane": {
@@ -125,26 +125,26 @@
     "id": "17923111362179968",
     "plik": "auto-2026-08-13-1-2.mp4",
     "opublikowano": "2026-08-17T11:20:35.992Z",
-    "zebrane": "2026-08-17T19:34:09.691Z",
+    "zebrane": "2026-08-18T04:58:40.389Z",
     "godzina": 13,
     "hak": "Masz zasięgi, masz polubienia, a wiadomości zero.",
     "dane": {
-      "views": 24,
+      "views": 25,
       "reach": 19,
       "saved": 0,
       "shares": 0,
       "comments": 0,
       "likes": 2,
       "total_interactions": 2,
-      "ig_reels_avg_watch_time": 3135,
-      "ig_reels_video_view_total_time": 62703,
-      "plays": 24
+      "ig_reels_avg_watch_time": 3036,
+      "ig_reels_video_view_total_time": 63769,
+      "plays": 25
     },
     "scenariusz": "dlaczego-nikt-nie-pisze",
     "forma": "lista",
     "temat": "dlaczego profil nie generuje wiadomości",
     "dlugosc": 21.9,
     "tempoSrednie": 4.36,
-    "dosmotr": 14.3
+    "dosmotr": 13.9
   }
 ]

@@ -261,5 +261,30 @@
       6.9,
       4.3
     ]
+  },
+  {
+    "plik": "auto-2026-08-18-1.mp4",
+    "kiedy": "2026-08-20T20:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb"
+    ],
+    "tekst": "Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.\n\nZwykle to nie kwestia pomysłów ani budżetu. To trzy rzeczy, które robi prawie każdy — i każda z nich po cichu kosztuje klientów.\n\nMasz je w 20 sekund. Bez lania wody.\n\nNapisz „AUDYT\" w wiadomości — przejrzymy twój profil i powiemy wprost, który z tych trzech błędów robisz. Za darmo, bez zobowiązań.\n\nzovu.pl\n\n#katowice #firmakatowice #mikrofirma #uslugilokalne #tresciwsocialmediach #postydlafirm #zovu",
+    "opublikowano": null,
+    "zrodlo": "auto-trzy-bledy-w-postach.mp4",
+    "scenariusz": "trzy-bledy-w-postach",
+    "forma": "lista",
+    "temat": "dlaczego posty nie sprzedają",
+    "dlugosc": 18.87,
+    "planow": 7,
+    "tempo": [
+      4,
+      3.6,
+      5.2,
+      6.4,
+      5.4,
+      4.7,
+      5.5
+    ]
   }
 ]
