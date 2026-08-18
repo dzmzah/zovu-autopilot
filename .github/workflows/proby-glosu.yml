@@ -1,0 +1,47 @@
+name: ZOVU próbki lektorów
+
+# Пробы дикторов: одна фраза всеми доступными голосами, чтобы выбрать на слух.
+#
+# Живёт на сервере по простой причине: ключи ElevenLabs и Gemini лежат в
+# секретах GitHub, а на машине Захара их нет. Именно из-за этого локальная
+# сборка молча озвучивала ролики запасным роботом Piper, и голос в них был
+# не наш.
+#
+# Файлы отдаём артефактом, а не коммитом: это разовые пробы, в репозитории
+# им делать нечего.
+on:
+  workflow_dispatch:
+    inputs:
+      tylko_gemini:
+        description: 'Только Gemini (не тратит квоту ElevenLabs)'
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  probki:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Синтез
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ELEVENLABS_KEY: ${{ secrets.ELEVENLABS_KEY }}
+          ELEVENLABS_VOICE: ${{ secrets.ELEVENLABS_VOICE }}
+        run: node proby-glosu.mjs ${{ inputs.tylko_gemini && '--gemini' || '' }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: probki-lektorow
+          path: out/proby-glosu/*.mp3
+          if-no-files-found: error
