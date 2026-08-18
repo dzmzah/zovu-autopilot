@@ -147,23 +147,23 @@ body { font-family:'Inter',sans-serif; background:transparent; }
   font-family:'Archivo Black','Inter',sans-serif;
   font-size:88px; line-height:1.06; letter-spacing:-2px; text-transform:uppercase;
   color:#fff; opacity:0; transform-origin:50% 60%; text-wrap:balance; }
-/* Плашка ОДНА на всю фразу, а не по плашке на слово: отдельные плашки
-   расходятся щелями и на переносе съезжают ступенькой — строка выглядит
-   рваной. Клонирование фона доводит его до края каждой строки,
-   поэтому двухстрочная фраза остаётся цельной подписью.
-   Обводки в 9 пикселей больше нет: она давала ровно тот вид дежурного
-   тиктока, из-за которого подпись читалась как чужой шаблон. */
-.slowo .plyta { display:inline; padding:10px 20px; border-radius:18px;
-  background:rgba(11,7,24,.86); box-decoration-break:clone;
-  -webkit-box-decoration-break:clone;
-  box-shadow:0 14px 40px rgba(0,0,0,.35); }
-/* Слово в фразе: приглушено, пока звучит не оно. Разница по яркости, а не
-   по размеру — прыгающий кегль внутри строки заставляет соседние слова
-   ползать по кадру, и подпись снова выглядит дёрганой. */
-.slowo .s { color:#fff; opacity:.5; }
-.slowo .s.teraz { opacity:1; }
-.slowo .s.zolty.teraz { color:#ffd23f; }
-.slowo .s.czerwony.teraz { color:#ff4d4d; }
+/* Сплошной плашки под фразой нет: она выглядела громоздкой плитой и на
+   переносе занимала треть кадра. Читаемость на светлом полотне держит
+   тонкая обводка — три пикселя вместо прежних девяти, этого хватает на
+   любом фоне и это уже не вид дежурного тиктока. */
+.slowo .plyta { display:inline; }
+/* Отступы у всех слов ОДИНАКОВЫЕ и не зависят от подсветки. Стоит дать
+   активному слову свой padding — и при каждой смене слова строка меняет
+   ширину, а соседние слова ползают по кадру. Меняется только заливка. */
+.slowo .s { display:inline-block; padding:2px 14px; border-radius:14px;
+  color:#fff; opacity:.72;
+  -webkit-text-stroke:3px #0b0718; paint-order:stroke fill;
+  text-shadow:0 8px 20px rgba(0,0,0,.5); }
+/* Слово, которое звучит сейчас, ложится на жёлтую подложку и меняет цвет
+   на тёмный. Обводка там не нужна: на плашке она только грязнит букву. */
+.slowo .s.teraz { opacity:1; background:#ffd23f; color:#0b0718;
+  -webkit-text-stroke:0; text-shadow:none; }
+.slowo .s.czerwony.teraz { background:#ff4d4d; color:#fff; }
 
 /* Окно с живым видео. Скругление крупное — карточка, а не телевизор; рамка
    светлая, чтобы кадр не сливался со светлым полотном фона. */
