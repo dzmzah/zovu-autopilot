@@ -78,7 +78,7 @@ const SCENARIUSZE = [
       { rola: 'punkt', numer: 2, tytul: 'brak powodu', tekst: 'Nie dajesz powodu, żeby odpisać.', szukaj: 'bored person scrolling phone', pauza: 0.30 },
       { rola: 'punkt', numer: 3, tytul: 'znikasz', tekst: 'Znikasz na dwa tygodnie.', szukaj: 'calendar time passing clock', pauza: 0.26 },
       { rola: 'zaplata', tekst: 'Algorytm liczy każdy z tych dni.', szukaj: 'analytics graph screen data', pauza: 0.30 },
-      { rola: 'cta', tekst: 'Napisz AUDYT, a powiemy który błąd robisz.', szukaj: 'typing message phone chat', pauza: 0.20 },
+      { rola: 'cta', tekst: 'Napisz AUDYT, a powiemy który błąd robisz.', szukaj: 'woman texting smartphone street evening', pauza: 0.20 },
     ],
   },
   {
@@ -105,7 +105,7 @@ const SCENARIUSZE = [
       { rola: 'punkt', numer: 2, tytul: 'czyje treści', tekst: 'Po drugie — kto pisze teksty i robi zdjęcia.', szukaj: 'photographer camera studio product', pauza: 0.28 },
       { rola: 'punkt', numer: 3, tytul: 'co potem', tekst: 'Po trzecie — kto się nią zajmie za pół roku.', szukaj: 'developer working code screen', pauza: 0.26 },
       { rola: 'zaplata', tekst: 'Bez tych odpowiedzi cena to ZGADYWANKA.', szukaj: 'calculator money budget desk', pauza: 0.28 },
-      { rola: 'cta', tekst: 'Napisz WYCENA, a odeślemy widełki!', szukaj: 'typing message phone chat', pauza: 0.20 },
+      { rola: 'cta', tekst: 'Napisz WYCENA, a odeślemy widełki!', szukaj: 'hands typing laptop cafe table', pauza: 0.20 },
     ],
   },
   {
@@ -136,7 +136,7 @@ const SCENARIUSZE = [
       { rola: 'punkt', numer: 2, tytul: 'brak obietnicy', tekst: 'Po drugie — nie mówisz, co widz dostanie.', szukaj: 'person shrugging uncertain', pauza: 0.28 },
       { rola: 'punkt', numer: 3, tytul: 'cisza na starcie', tekst: 'Po trzecie — pierwsza sekunda jest pusta.', szukaj: 'silent empty room minimal', pauza: 0.26 },
       { rola: 'zaplata', tekst: 'Widz decyduje, ZANIM zdążysz zacząć.', szukaj: 'fast scrolling thumb phone', pauza: 0.28 },
-      { rola: 'cta', tekst: 'Napisz HOOK, a sprawdzimy twój początek!', szukaj: 'typing message phone chat', pauza: 0.20 },
+      { rola: 'cta', tekst: 'Napisz HOOK, a sprawdzimy twój początek!', szukaj: 'stopwatch timer hand desk', pauza: 0.20 },
     ],
   },
   {
@@ -164,7 +164,7 @@ const SCENARIUSZE = [
       { rola: 'punkt', numer: 2, tytul: 'brak dowodu', tekst: 'Po drugie — nie pokazujesz efektów pracy.', szukaj: 'before after work result', pauza: 0.28 },
       { rola: 'punkt', numer: 3, tytul: 'nie ma dokąd', tekst: 'Po trzecie — nie mówisz, gdzie napisać.', szukaj: 'closed door sign shop', pauza: 0.26 },
       { rola: 'zaplata', tekst: 'Ludzie nie piszą tam, gdzie muszą ZGADYWAĆ.', szukaj: 'crowd walking past street', pauza: 0.28 },
-      { rola: 'cta', tekst: 'Napisz PROFIL, a przejrzymy twój!', szukaj: 'typing message phone chat', pauza: 0.20 },
+      { rola: 'cta', tekst: 'Napisz PROFIL, a przejrzymy twój!', szukaj: 'finger scrolling phone screen closeup', pauza: 0.20 },
     ],
   },
   {
@@ -188,7 +188,7 @@ const SCENARIUSZE = [
       { rola: 'punkt', numer: 2, tytul: 'post rozmawia', tekst: 'Post rozmawia z tymi, których już masz.', szukaj: 'two people talking coffee', pauza: 0.28 },
       { rola: 'punkt', numer: 3, tytul: 'jedno bez drugiego', tekst: 'Samo jedno z dwóch nie działa.', szukaj: 'broken chain link metal', pauza: 0.26 },
       { rola: 'zaplata', tekst: 'Zasięg bez rozmowy to ruch, który NIE kupuje.', szukaj: 'analytics graph screen data', pauza: 0.28 },
-      { rola: 'cta', tekst: 'Napisz PLAN, a odeślemy rozkład na miesiąc!', szukaj: 'typing message phone chat', pauza: 0.20 },
+      { rola: 'cta', tekst: 'Napisz PLAN, a odeślemy rozkład na miesiąc!', szukaj: 'hand writing notebook plan desk', pauza: 0.20 },
     ],
   },
 
@@ -326,7 +326,7 @@ const SCENARIUSZE = [
       { rola: 'tresc', tekst: 'To zła liczba i złe pytanie.', szukaj: 'question mark thinking person', pauza: 0.30 },
       { rola: 'tresc', tekst: 'Dobre brzmi: ile osób wie, co u ciebie kupić.', szukaj: 'shop window products display', pauza: 0.30 },
       { rola: 'zaplata', tekst: 'Bez tego każdy kolejny post to tylko ruch.', szukaj: 'busy street people passing', pauza: 0.30 },
-      { rola: 'cta', tekst: 'Napisz PYTANIE, a odpiszemy konkretnie.', szukaj: 'typing message phone chat', pauza: 0.20 },
+      { rola: 'cta', tekst: 'Napisz PYTANIE, a odpiszemy konkretnie.', szukaj: 'person holding phone reading message', pauza: 0.20 },
     ],
   },
   {
@@ -350,7 +350,7 @@ const SCENARIUSZE = [
       { rola: 'tresc', tekst: 'Zasięg kupisz reklamą w dziesięć minut.', szukaj: 'credit card online payment', pauza: 0.30 },
       { rola: 'tresc', tekst: 'Klienta nie kupisz wcale.', szukaj: 'empty shop counter waiting', pauza: 0.32 },
       { rola: 'zaplata', tekst: 'Płacisz za to, żeby wiedzieli, po co do ciebie pisać.', szukaj: 'customer talking seller shop', pauza: 0.30 },
-      { rola: 'cta', tekst: 'Chcesz usłyszeć to o swojej firmie? Napisz KONKRET.', szukaj: 'typing message phone chat', pauza: 0.20 },
+      { rola: 'cta', tekst: 'Chcesz usłyszeć to o swojej firmie? Napisz KONKRET.', szukaj: 'two people talking office window', pauza: 0.20 },
     ],
   },
 ];
@@ -387,7 +387,12 @@ async function czyChromakey(plik) {
   }
 }
 
-async function podklad(czesc, i, scenNazwa) {
+// `uzyte` — id клипов, уже занятых В ЭТОМ ролике. Без этого списка два
+// куска с похожими запросами («calculator money desk» и «calculator money
+// budget desk») брали ОДИН файл, и он стоял в ролике дважды. Смещение по
+// `i` от этого не спасало: оно двигает позицию внутри выдачи, а выдача у
+// похожих запросов одна и та же.
+async function podklad(czesc, i, scenNazwa, uzyte = new Set()) {
   const kandydaci = await searchStock(czesc.szukaj, { perPage: 10, minSeconds: 4 });
   if (!kandydaci.length) return null;
 
@@ -409,8 +414,11 @@ async function podklad(czesc, i, scenNazwa) {
 
   // Идём по списку, пока не попадётся кадр без хромакея. Смещение по `i`
   // нужно, чтобы два соседних куска не взяли один и тот же клип.
-  for (let k = 0; k < Math.min(4, pula.length); k++) {
+  // Проходим всю выдачу, а не первые четыре: занятые клипы съедают начало
+  // списка, и на коротком проходе кусок оставался вообще без картинки.
+  for (let k = 0; k < pula.length; k++) {
     const kand = pula[(i + k) % pula.length];
+    if (uzyte.has(kand.id)) continue;
     // Имя КЭША обязано содержать сценарий: без этого второй сценарий
     // подтягивал клипы первого — на «co ma robić» стоял парень, снимающий
     // себя на телефон, потому что файл `auto-punkt-2-0` уже лежал с прошлого
@@ -423,6 +431,7 @@ async function podklad(czesc, i, scenNazwa) {
       console.log(`[rolka-auto] пропускаю ${path.basename(c.file)} — зелёный экран`);
       continue;
     }
+    uzyte.add(kand.id);
     return c.file;
   }
   return null;
@@ -571,8 +580,10 @@ console.log(`[rolka-auto] голос: ${glos.dlugosc.toFixed(2)} с, слов ${
 // 2. Подложка. Один кусок стока на одну фразу, длиной ровно в эту фразу
 //    вместе с паузой после неё — чтобы картинка менялась вместе со смыслом.
 const klipy = [];
+// Один список на весь ролик: и основной запрос, и запасные берут из него.
+const uzyteKlipy = new Set();
 for (const [i, c] of scen.czesci.entries()) {
-  let plik = await podklad(c, i, scen.nazwa);
+  let plik = await podklad(c, i, scen.nazwa, uzyteKlipy);
 
   // Запасной запрос. Узкая формулировка иногда не находит на стоке ничего —
   // и тогда падал ВЕСЬ день, из-за одной фразы. Кадр по смыслу лучше
@@ -582,7 +593,7 @@ for (const [i, c] of scen.czesci.entries()) {
     const szersze = [c.szukaj.split(' ').slice(0, 2).join(' '), 'modern office work desk'];
     for (const zapas of szersze) {
       console.warn(`[rolka-auto] под «${c.szukaj}» ничего нет — пробую «${zapas}»`);
-      plik = await podklad({ ...c, szukaj: zapas }, i, scen.nazwa);
+      plik = await podklad({ ...c, szukaj: zapas }, i, scen.nazwa, uzyteKlipy);
       if (plik) break;
     }
   }

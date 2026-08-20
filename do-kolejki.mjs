@@ -38,8 +38,18 @@ const SLOTY_JAWNE = arg('sloty', '') === '' ? null
 // попасть в момент, когда владелец фирмы держит телефон, важнее лишней
 // склейки. Поэтому час перебираем сознательно, пока не наберутся цифры.
 const KANDYDACI = String(arg('godziny', '11,13,18,20')).split(',').map((s) => +s.trim());
-// Сколько роликов в часе нужно, чтобы верить его среднему.
+// Сколько зрелых роликов в часе нужно, чтобы верить его среднему.
 const PROG_UFNOSCI = 3;
+// Возраст, с которого охват можно сравнивать. Инстаграм досыпает показы
+// вторые сутки: ролик, замеренный через 20 часов, всегда выглядит хуже
+// недельного — и тянет свой час вниз ни за что.
+const DOJRZALOSC_H = 36;
+// Час, который набрал меньше этой доли от лучшего, выбывает из перебора.
+// Разница 26 против 3 — это не шум, продолжать её проверять значит жечь
+// ролики на слоте, про который уже всё понятно.
+const PROG_SMIERCI = 0.4;
+// Одна разведка на столько постановок в очередь.
+const CO_ILE_ROZPOZNANIE = 5;
 
 await mkdir(ROLKI, { recursive: true });
 
@@ -69,44 +79,61 @@ async function wybierzGodziny(kolejka) {
   }
 
   const poGodzinie = new Map();
+  let mlodych = 0;
   for (const w of wyniki) {
     const g = w.godzina;
     const z = w.dane?.reach;
-    if (g == null || !z) continue;
+    if (g == null || z == null) continue;
+    const wiek = (new Date(w.zebrane) - new Date(w.opublikowano)) / 36e5;
+    if (!Number.isFinite(wiek) || wiek < DOJRZALOSC_H) { mlodych++; continue; }
     if (!poGodzinie.has(g)) poGodzinie.set(g, []);
     poGodzinie.get(g).push(z);
   }
+  if (mlodych) console.log(`[kolejka] ${mlodych} роликов моложе ${DOJRZALOSC_H} ч — в сравнение не беру`);
 
   const srednie = [...poGodzinie.entries()]
-    .filter(([, xs]) => xs.length >= PROG_UFNOSCI)
     .map(([g, xs]) => [+g, xs.reduce((a, b) => a + b, 0) / xs.length, xs.length])
     .sort((a, b) => b[1] - a[1]);
 
-  // Сколько роликов уже поставлено — этим и сдвигаем круг, чтобы два прогона
-  // подряд не выбрали один и тот же час.
-  const licznik = kolejka.length;
-  // «Лучший» имеет смысл только против кого-то. Пока цифры есть по одному
-  // часу, он лучший по определению — и автоматика закрепила бы 13:00
-  // навсегда ровно потому, что других замеров никто не сделал. Это и есть
-  // та ловушка, из-за которой сравнение по времени не появилось за пять
-  // роликов. Поэтому лучшему верим, только когда часов с цифрами хотя бы два.
-  const najlepszy = srednie.length >= 2 ? srednie[0] : null;
+  // Лучший — первый час, который набрал достаточно зрелых роликов. Требовать
+  // при этом ДВА таких часа нельзя: второй час набирает цифры только если
+  // туда ставить ролики, а ставить их некуда, пока нет лучшего. Круг
+  // замыкался, и перебор шёл вслепую бесконечно.
+  const najlepszy = srednie.find((s) => s[2] >= PROG_UFNOSCI) || null;
 
-  if (najlepszy && licznik % 3 !== 2) {
-    console.log(
-      `[kolejka] лучший час ${najlepszy[0]}:00 — охват ${Math.round(najlepszy[1])} на ${najlepszy[2]} роликах`
-    );
-    return [najlepszy[0], ...KANDYDACI.filter((g) => g !== najlepszy[0])];
+  // Часы, по которым уже видно, что там пусто, из перебора выбывают.
+  let krag = [...KANDYDACI];
+  if (najlepszy) {
+    const martwe = srednie
+      .filter((s) => s[0] !== najlepszy[0] && s[2] >= 2 && s[1] < najlepszy[1] * PROG_SMIERCI)
+      .map((s) => s[0]);
+    if (martwe.length) {
+      console.log(`[kolejka] выбывают из перебора: ${martwe.map((g) => g + ':00').join(', ')} — охват ниже ${Math.round(PROG_SMIERCI * 100)}% от лучшего`);
+      krag = krag.filter((g) => !martwe.includes(g));
+    }
   }
 
-  const start = licznik % KANDYDACI.length;
-  const krag = [...KANDYDACI.slice(start), ...KANDYDACI.slice(0, start)];
+  const licznik = kolejka.length;
+  if (najlepszy && licznik % CO_ILE_ROZPOZNANIE !== CO_ILE_ROZPOZNANIE - 1) {
+    console.log(
+      `[kolejka] лучший час ${najlepszy[0]}:00 — охват ${Math.round(najlepszy[1])} на ${najlepszy[2]} зрелых роликах`
+    );
+    return [najlepszy[0], ...krag.filter((g) => g !== najlepszy[0])];
+  }
+
+  // Разведка. Проверяем не «следующий по кругу», а САМЫЙ непроверенный час:
+  // круг раздавал слоты поровну и тем, про кого уже всё ясно.
+  const ile = (g) => (poGodzinie.get(g) || []).length;
+  const reszta = krag.filter((g) => !najlepszy || g !== najlepszy[0]);
+  reszta.sort((a, b) => ile(a) - ile(b) || a - b);
+  const kolejnosc = reszta.length ? [...reszta, ...krag.filter((g) => !reszta.includes(g))]
+    : [...krag.slice(licznik % krag.length), ...krag.slice(0, licznik % krag.length)];
   console.log(
     najlepszy
-      ? `[kolejka] разведка: беру ${krag[0]}:00 вместо лучшего ${najlepszy[0]}:00`
-      : `[kolejka] цифр по часам пока мало — перебираю: ${krag.join(', ')}`
+      ? `[kolejka] разведка: беру ${kolejnosc[0]}:00 вместо лучшего ${najlepszy[0]}:00 (зрелых роликов там ${ile(kolejnosc[0])})`
+      : `[kolejka] зрелых цифр по часам мало — перебираю: ${kolejnosc.join(', ')}`
   );
-  return krag;
+  return kolejnosc;
 }
 
 const GODZINY = SLOTY_JAWNE || (await wybierzGodziny(kolejka));

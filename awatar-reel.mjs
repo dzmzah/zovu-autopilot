@@ -371,13 +371,14 @@ async function zbudujKolaz(karty, sekundy, tmp, nazwa, akcent = '#7c3aed') {
 //
 // Ставится в зону между лицом и подписью, чтобы не спорить ни с тем, ни с
 // другим. Ею же закрываются места, где герой недоиграл движение.
-function tytulyHtml(tytuly, total, akcent = '#7c3aed', akcent2 = '#a78bfa') {
+export function tytulyHtml(tytuly, total, akcent = '#7c3aed', akcent2 = '#a78bfa') {
   const esc = (s) =>
     String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
   const divy = tytuly
     .map(
-      (t, i) => `<div class="tyt" data-i="${i}">
+      (t, i) => `<div class="cien" data-i="${i}"></div>
+<div class="tyt" data-i="${i}">
   <div class="pas"></div>
   <div class="txt"><span>${
     t.numer ? `<b class="nr">${esc(t.numer)}.</b>` : ''
@@ -393,9 +394,19 @@ function tytulyHtml(tytuly, total, akcent = '#7c3aed', akcent2 = '#a78bfa') {
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { width:${W}px; height:${H}px; }
-body { background:transparent; overflow:hidden; font-family:'Inter',sans-serif; }
+/* Перспектива на теле: без неё rotateX даёт плоский сплюс, а не поворот.
+   Точка схода поднята к 40% — плашка стоит ниже центра и «смотрит» вверх. */
+body { background:transparent; overflow:hidden; font-family:'Inter',sans-serif;
+  perspective:1600px; perspective-origin:50% 40%; }
 .tyt { position:absolute; left:64px; top:1560px; width:${W - 128}px; height:132px;
-  visibility:hidden; }
+  visibility:hidden; will-change:transform; }
+/* Контактная тень. Плашка без неё не лежит на кадре, а наклеена сверху.
+   Тень обязана ЖИТЬ вместе с плашкой: всплыла — тень шире, мягче и светлее.
+   Неподвижная тень под движущимся предметом читается хуже, чем никакой. */
+.cien { position:absolute; left:92px; top:1668px; width:${W - 184}px; height:44px;
+  visibility:hidden; opacity:0; border-radius:50%; will-change:transform,opacity,filter;
+  background:radial-gradient(ellipse at center, rgba(5,3,14,.70) 0%,
+    rgba(5,3,14,.32) 48%, rgba(5,3,14,0) 75%); }
 .pas { position:absolute; inset:0; border-radius:10px;
   background:linear-gradient(100deg, ${akcent} 0%, ${akcent2} 100%);
   transform-origin:left center; transform:scaleX(0);
@@ -414,6 +425,7 @@ ${divy}
 <script>
 const T = ${meta};
 const tyt = [...document.querySelectorAll('.tyt')];
+const cienie = [...document.querySelectorAll('.cien')];
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const easeOut = (x) => 1 - Math.pow(1 - x, 3);
 const easeIn = (x) => x * x * x;
@@ -427,17 +439,52 @@ window.__fit = () => {
   });
 };
 
+// Волна: период в секундах, сдвиг фазы — чтобы две плашки не качались
+// в такт. Синусы с несовпадающими периодами не сходятся в узор, и глаз
+// читает это как «живёт», а не как «зациклено».
+const fala = (t, okres, faza) => Math.sin((t / okres) * 6.2831853 + faza);
+
 window.setT = (t) => {
   tyt.forEach((e, i) => {
     const { a, b } = T[i];
-    if (t < a - 0.02 || t > b + 0.02) { e.style.visibility = 'hidden'; return; }
+    const cien = cienie[i];
+    if (t < a - 0.02 || t > b + 0.02) {
+      e.style.visibility = 'hidden';
+      if (cien) cien.style.visibility = 'hidden';
+      return;
+    }
     e.style.visibility = 'visible';
+    if (cien) cien.style.visibility = 'visible';
     const l = t - a;
     const dur = b - a;
     const wjazd = easeOut(clamp01(l / 0.26));
     const wyjazd = easeIn(clamp01((l - (dur - 0.24)) / 0.24));
     const pas = e.querySelector('.pas');
     const span = e.querySelector('.txt span');
+
+    // Влёт: плашка приходит с наклоном на зрителя и садится. Один сдвиг
+    // вверх-вниз читается как «подвинули слой», поворот — как предмет.
+    const obrot = easeOut(clamp01(l / 0.44));
+    // Плавание включается не сразу: пока идёт посадка, качать нечего.
+    const zyje = clamp01((l - 0.5) / 0.6) * (1 - wyjazd);
+    const faza = i * 1.9;
+    const fy = fala(t, 3.1, faza) * 3.8 * zyje;
+    const fx = fala(t, 5.7, faza + 1.1) * 2.2 * zyje;
+    const rz = fala(t, 4.3, faza + 0.5) * 0.34 * zyje;
+    const rx = (1 - obrot) * -15 + fala(t, 6.7, faza + 2.2) * 1.5 * zyje;
+    e.style.transform =
+      'translate3d(' + fx.toFixed(2) + 'px,' + ((1 - obrot) * 20 + fy).toFixed(2) + 'px,0)' +
+      ' rotateX(' + rx.toFixed(2) + 'deg) rotateZ(' + rz.toFixed(2) + 'deg)';
+
+    if (cien) {
+      // Подъём в долях амплитуды: 1 — плашка в верхней точке.
+      const wzlot = -fy / 3.8;
+      cien.style.opacity = (Math.min(wjazd, 1 - wyjazd) * (0.62 - 0.17 * wzlot)).toFixed(3);
+      cien.style.transform =
+        'scale(' + (0.86 + 0.14 * wjazd + 0.10 * wzlot).toFixed(3) + ',' +
+        (1 + 0.06 * wzlot).toFixed(3) + ') translateX(' + (fx * 0.5).toFixed(2) + 'px)';
+      cien.style.filter = 'blur(' + (16 + 8 * wzlot + 14 * (1 - wjazd)).toFixed(1) + 'px)';
+    }
     // полоса въезжает слева и уходит вправо: origin переставляем на выходе,
     // иначе она схлопывается обратно к началу и движение читается как откат
     if (wyjazd > 0) {
@@ -658,7 +705,7 @@ window.setT = (t) => {
 // длиной карточки, звук разъезжается с картинкой.
 const KROK_MARKI = 0.34;
 
-function markaHtml(karta, seconds, logoDataUri) {
+export function markaHtml(karta, seconds, logoDataUri) {
   const esc = (s) =>
     String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -679,12 +726,16 @@ function markaHtml(karta, seconds, logoDataUri) {
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { width:${W}px; height:${H}px; }
 body { overflow:hidden; font-family:'Inter',sans-serif;
-  background:
-    radial-gradient(ellipse 900px 700px at 50% 26%, rgba(124,58,237,.42), transparent 62%),
-    linear-gradient(180deg, #160e2e 0%, #0d0820 100%);
-  display:flex; flex-direction:column; justify-content:center; padding:0 96px; }
+  background:linear-gradient(180deg, #160e2e 0%, #0d0820 100%);
+  display:flex; flex-direction:column; justify-content:center; padding:0 96px;
+  perspective:1800px; }
+/* Свечение вынесено отдельным слоем: в фоне тела его не подышать, а
+   аутро стоит на экране почти три секунды — это самый мёртвый кусок
+   ролика, если в нём ничего не движется. */
+.blask { position:absolute; inset:0; z-index:-1; will-change:transform,opacity;
+  background:radial-gradient(ellipse 900px 700px at 50% 26%, rgba(124,58,237,.42), transparent 62%); }
 
-.w { opacity:0; }
+.w { opacity:0; will-change:transform; }
 .duzy { font-weight:900; font-size:150px; line-height:0.95; letter-spacing:-4px;
   text-transform:uppercase; color:#fff; text-shadow:0 8px 40px rgba(0,0,0,.45); }
 .maly { font-family:'Playfair Display',serif; font-style:italic; font-weight:400;
@@ -699,6 +750,7 @@ body { overflow:hidden; font-family:'Inter',sans-serif;
   background:linear-gradient(90deg, #7c3aed, #a78bfa); transform-origin:left center;
   transform:scaleX(0); border-radius:3px; }
 </style></head><body>
+<div class="blask"></div>
 ${wiersze}
 <div class="kreska"></div>
 <div class="stopka">${logo}<div class="adres">${esc(karta.adres || 'zovu.pl')}</div></div>
@@ -708,7 +760,10 @@ const KROK = ${KROK_MARKI};
 const el = [...document.querySelectorAll('.w')];
 const stopka = document.querySelector('.stopka');
 const kreska = document.querySelector('.kreska');
+const blask = document.querySelector('.blask');
+const logoEl = document.querySelector('.logo');
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
+const fala = (t, okres, faza) => Math.sin((t / okres) * 6.2831853 + faza);
 const easeOut = (x) => 1 - Math.pow(1 - x, 3);
 
 window.__fit = () => {
@@ -725,12 +780,36 @@ window.setT = (t) => {
   el.forEach((e, i) => {
     const p = easeOut(clamp01((t - i * KROK) / 0.24));
     e.style.opacity = p;
-    e.style.transform = 'translateY(' + Math.round((1 - p) * 30) + 'px)';
+    // После посадки строка не замирает: медленное плавание с разной фазой
+    // у каждой и микро-поворот. Амплитуда нарочно мелкая — это дыхание,
+    // а не движение, заметить его должен глаз, а не ум.
+    const z = clamp01((t - (i * KROK + 0.24)) / 0.7);
+    const fy = fala(t, 3.6, i * 2.1) * 3.6 * z;
+    const rz = fala(t, 5.2, i * 2.1 + 0.7) * 0.22 * z;
+    e.style.transform =
+      'translateY(' + ((1 - p) * 30 + fy).toFixed(2) + 'px) rotate(' + rz.toFixed(2) + 'deg)';
   });
   const tStopka = N * KROK + 0.18;
   const ps = easeOut(clamp01((t - tStopka) / 0.3));
   stopka.style.opacity = ps;
-  stopka.style.transform = 'translateY(' + Math.round((1 - ps) * 24) + 'px)';
+  const zs = clamp01((t - tStopka - 0.3) / 0.7);
+  const sy = fala(t, 4.1, 1.3) * 4.2 * zs;
+  stopka.style.transform = 'translateY(' + ((1 - ps) * 24 + sy).toFixed(2) + 'px)';
+  if (logoEl) {
+    // Лого поворачивается вокруг вертикали — плоский сдвиг на нём читается
+    // как съехавшая картинка, поворот как предмет в объёме.
+    const ry = fala(t, 6.3, 0.4) * 4.5 * zs;
+    const wzlot = -sy / 4.2;
+    logoEl.style.transform = 'rotateY(' + ry.toFixed(2) + 'deg)';
+    logoEl.style.filter =
+      'drop-shadow(0 ' + (10 + 8 * wzlot).toFixed(1) + 'px ' +
+      (30 + 12 * wzlot).toFixed(1) + 'px rgba(124,58,237,' + (0.55 - 0.12 * wzlot).toFixed(2) + '))';
+  }
+  if (blask) {
+    const b = fala(t, 7.4, 0.2);
+    blask.style.transform = 'scale(' + (1 + 0.035 * b).toFixed(4) + ')';
+    blask.style.opacity = (0.88 + 0.12 * b).toFixed(3);
+  }
   kreska.style.transform =
     'scaleX(' + easeOut(clamp01((t - tStopka + 0.1) / 0.55)).toFixed(3) + ')';
 };
@@ -947,7 +1026,7 @@ window.setT = (t) => {
 }
 
 // ── покадровый снимок html ────────────────────────────────────────
-async function renderHtml(html, seconds, outDir, transparent) {
+export async function renderHtml(html, seconds, outDir, transparent) {
   await mkdir(outDir, { recursive: true });
   const htmlPath = path.join(outDir, 'strona.html');
   await writeFile(htmlPath, html, 'utf8');
