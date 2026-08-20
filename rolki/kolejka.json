@@ -327,5 +327,30 @@
       5.7,
       4.9
     ]
+  },
+  {
+    "plik": "auto-2026-08-20-1.mp4",
+    "kiedy": "2026-08-22T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb"
+    ],
+    "tekst": "Nagrałeś dobry materiał, a obejrzało go pięć osób.\n\nProblem prawie nigdy nie leży w treści. Leży w pierwszych trzech sekundach — i to jest do naprawienia w jeden wieczór.\n\nNapisz HOOK, a przejrzymy początek twojej ostatniej rolki i powiemy, co ją zabiło.\n\nzovu.pl\n\n#katowice #slaskiefirmy #jednoosobowadzialalnosc #mojafirma #socialmediadlafirm #marketingdlafirm #zovu",
+    "opublikowano": null,
+    "zrodlo": "auto-pierwsze-trzy-sekundy.mp4",
+    "scenariusz": "pierwsze-trzy-sekundy",
+    "forma": "lista",
+    "temat": "dlaczego nikt nie ogląda twoich rolek",
+    "dlugosc": 21.7,
+    "planow": 7,
+    "tempo": [
+      4.6,
+      4.2,
+      5,
+      5,
+      4.3,
+      5.1,
+      4.1
+    ]
   }
 ]
