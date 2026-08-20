@@ -734,6 +734,14 @@ body { overflow:hidden; font-family:'Inter',sans-serif;
    ролика, если в нём ничего не движется. */
 .blask { position:absolute; inset:0; z-index:-1; will-change:transform,opacity;
   background:radial-gradient(ellipse 900px 700px at 50% 26%, rgba(124,58,237,.42), transparent 62%); }
+/* Блик. Один проход по карточке — то, чем «живая» заставка отличается от
+   картинки. Полоса широкая и слабая: если её видно как полосу, это уже
+   спецэффект, а нужно ощущение отражения. */
+.blysk { position:absolute; top:-25%; bottom:-25%; left:0; width:92%;
+  z-index:0; pointer-events:none; opacity:0; mix-blend-mode:screen;
+  will-change:transform,opacity; filter:blur(46px);
+  background:linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(226,209,255,.13) 50%,
+    rgba(255,255,255,0) 100%); }
 
 .w { opacity:0; will-change:transform; }
 .duzy { font-weight:900; font-size:150px; line-height:0.95; letter-spacing:-4px;
@@ -751,6 +759,7 @@ body { overflow:hidden; font-family:'Inter',sans-serif;
   transform:scaleX(0); border-radius:3px; }
 </style></head><body>
 <div class="blask"></div>
+<div class="blysk"></div>
 ${wiersze}
 <div class="kreska"></div>
 <div class="stopka">${logo}<div class="adres">${esc(karta.adres || 'zovu.pl')}</div></div>
@@ -761,6 +770,7 @@ const el = [...document.querySelectorAll('.w')];
 const stopka = document.querySelector('.stopka');
 const kreska = document.querySelector('.kreska');
 const blask = document.querySelector('.blask');
+const blysk = document.querySelector('.blysk');
 const logoEl = document.querySelector('.logo');
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const fala = (t, okres, faza) => Math.sin((t / okres) * 6.2831853 + faza);
@@ -806,10 +816,22 @@ window.setT = (t) => {
       (30 + 12 * wzlot).toFixed(1) + 'px rgba(124,58,237,' + (0.55 - 0.12 * wzlot).toFixed(2) + '))';
   }
   if (blask) {
-    const b = fala(t, 7.4, 0.2);
-    blask.style.transform = 'scale(' + (1 + 0.035 * b).toFixed(4) + ')';
-    blask.style.opacity = (0.88 + 0.12 * b).toFixed(3);
+    // Дыхание свечения заметное, а не деликатное: карточка висит три с
+    // лишним секунды, и на телефоне слабую пульсацию просто не видно.
+    const b = fala(t, 3.2, 0.2);
+    blask.style.transform = 'scale(' + (1 + 0.11 * b).toFixed(4) + ')';
+    blask.style.opacity = (0.72 + 0.28 * b).toFixed(3);
   }
+  if (blysk) {
+    // Один проход, начинается вместе с подвалом.
+    const bp = clamp01((t - (tStopka - 0.1)) / 1.15);
+    blysk.style.opacity = bp > 0 && bp < 1 ? 1 : 0;
+    blysk.style.transform = 'translateX(' + Math.round((-70 + 240 * easeOut(bp)) ) + '%) rotate(6deg)';
+  }
+  // Медленный наезд на всю карточку. Это единственное, что видно всегда:
+  // неподвижная типографика читается как картинка, даже если внутри неё
+  // что-то мелко колышется.
+  document.body.style.transform = 'scale(' + (1 + 0.055 * clamp01(t / (N * KROK + 3.2))).toFixed(4) + ')';
   kreska.style.transform =
     'scaleX(' + easeOut(clamp01((t - tStopka + 0.1) / 0.55)).toFixed(3) + ')';
 };

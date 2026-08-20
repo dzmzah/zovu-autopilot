@@ -135,8 +135,10 @@ body { font-family:'Inter',sans-serif; background:transparent; }
 .wiersz { position:absolute; left:60px; right:60px; text-align:center;
   font-family:'Archivo Black','Inter',sans-serif; font-size:118px; line-height:1.05;
   letter-spacing:-3px; text-transform:uppercase; color:#fff; opacity:0;
-  -webkit-text-stroke:10px #0b0718; paint-order:stroke fill;
-  text-shadow:0 12px 0 rgba(11,7,24,.5), 0 22px 48px rgba(0,0,0,.6); }
+  /* Обводки нет. В образцах Захара крупный текст держится жёсткой тенью со
+     смещением вниз — буква остаётся чистой, а «приподнятость» даёт тень, а
+     не чёрный контур по краю. Обводка читалась как дежурный тикток. */
+  text-shadow:0 11px 0 rgba(11,7,24,.42), 0 24px 50px rgba(0,0,0,.55); }
 .wiersz.zolty { color:#ffd23f; }
 .wiersz.czerwony { color:#ff4d4d; }
 .wiersz.maly { font-size:76px; }
@@ -147,23 +149,24 @@ body { font-family:'Inter',sans-serif; background:transparent; }
   font-family:'Archivo Black','Inter',sans-serif;
   font-size:88px; line-height:1.06; letter-spacing:-2px; text-transform:uppercase;
   color:#fff; opacity:0; transform-origin:50% 60%; text-wrap:balance; }
-/* Сплошной плашки под фразой нет: она выглядела громоздкой плитой и на
-   переносе занимала треть кадра. Читаемость на светлом полотне держит
-   тонкая обводка — три пикселя вместо прежних девяти, этого хватает на
-   любом фоне и это уже не вид дежурного тиктока. */
+/* Ни плашки, ни обводки. Разобрано 21 вертикальное видео из портфолио —
+   обводки нет ни в одном. Текст держит жёсткая тень со смещением вниз плюс
+   мягкое размытие под ней; на светлом полотне этого достаточно, проверено
+   на том же фоне, где собран «Scenariusz 1». */
 .slowo .plyta { display:inline; }
 /* Отступы у всех слов ОДИНАКОВЫЕ и не зависят от подсветки. Стоит дать
    активному слову свой padding — и при каждой смене слова строка меняет
    ширину, а соседние слова ползают по кадру. Меняется только заливка. */
-.slowo .s { display:inline-block; padding:2px 14px; border-radius:14px;
-  color:#fff; opacity:.72;
-  -webkit-text-stroke:3px #0b0718; paint-order:stroke fill;
-  text-shadow:0 8px 20px rgba(0,0,0,.5); }
-/* Слово, которое звучит сейчас, ложится на жёлтую подложку и меняет цвет
-   на тёмный. Обводка там не нужна: на плашке она только грязнит букву. */
-.slowo .s.teraz { opacity:1; background:#ffd23f; color:#0b0718;
-  -webkit-text-stroke:0; text-shadow:none; }
-.slowo .s.czerwony.teraz { background:#ff4d4d; color:#fff; }
+.slowo .s { display:inline-block; position:relative; padding:2px 14px;
+  border-radius:14px; color:#fff; opacity:.62;
+  text-shadow:0 6px 0 rgba(11,7,24,.28), 0 14px 34px rgba(0,0,0,.55); }
+/* Звучащее слово помечается ЦВЕТОМ, а не подложкой. Жёлтая плита под словом
+   меняла вес строки на каждом слове и читалась как автосубтитры телефона;
+   в образцах цветом помечено смысловое слово, и это выглядит решением, а
+   не приложением. Размеры не трогаем: padding у всех слов одинаковый,
+   иначе на каждой смене строка меняет ширину и слова ползают по кадру. */
+.slowo .s.teraz { opacity:1; color:#ffd23f; }
+.slowo .s.czerwony.teraz { color:#ff4d4d; }
 
 /* Окно с живым видео. Скругление крупное — карточка, а не телевизор; рамка
    светлая, чтобы кадр не сливался со светлым полотном фона. */
@@ -178,9 +181,8 @@ body { font-family:'Inter',sans-serif; background:transparent; }
 .licznik { position:absolute; left:40px; right:40px; text-align:center;
   font-family:'Archivo Black','Inter',sans-serif; font-size:136px; line-height:1;
   letter-spacing:-4px; color:#fff; opacity:0;
-  -webkit-text-stroke:10px #0b0718; paint-order:stroke fill;
   font-variant-numeric:tabular-nums;
-  text-shadow:0 12px 0 rgba(11,7,24,.5), 0 22px 48px rgba(0,0,0,.6); }
+  text-shadow:0 11px 0 rgba(11,7,24,.42), 0 24px 50px rgba(0,0,0,.55); }
 .licznik.zolty { color:#ffd23f; }
 .licznik.czerwony { color:#ff4d4d; }
 .licznik .jedn { font-size:0.46em; letter-spacing:-1px; margin-left:.12em; }
@@ -212,7 +214,7 @@ body { font-family:'Inter',sans-serif; background:transparent; }
   background:#fff; box-shadow:0 6px 18px rgba(0,0,0,.28); }
 .pasek-opis { position:relative; font-family:'Archivo Black','Inter',sans-serif;
   font-size:54px; letter-spacing:-2px; color:#fff; font-variant-numeric:tabular-nums;
-  -webkit-text-stroke:8px #0b0718; paint-order:stroke fill; }
+  text-shadow:0 7px 0 rgba(11,7,24,.34), 0 16px 34px rgba(0,0,0,.5); }
 
 /* Затемнение под подписью. Оно рисовалось, когда фон был тёмным, и там
    честно отделяло текст от картинки. На светлом полотне тот же приём
