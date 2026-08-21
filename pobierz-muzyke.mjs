@@ -12,10 +12,10 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const OUT = path.join(import.meta.dirname, 'muzyka');
-// Разные настроения: под рилс-портфолио нужен драйв, под спокойный пост —
-// фон. Один трек на все ролики делает ленту однообразной на слух.
-const ZAPYTANIA = ['corporate', 'upbeat', 'inspiring', 'technology'];
-const ILE = 4;
+// Прошлый набор был corporate/upbeat/inspiring/technology — четыре имени одного
+// жанра. Ротация честно перебирала пять файлов, а на слух это был один трек.
+const ZAPYTANIA = ['lofi', 'hip hop', 'cinematic', 'ambient', 'funk', 'phonk', 'acoustic guitar', 'drum and bass'];
+const ILE = 10;
 
 await mkdir(OUT, { recursive: true });
 const browser = await chromium.launch();

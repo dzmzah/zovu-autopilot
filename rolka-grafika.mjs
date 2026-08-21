@@ -232,6 +232,12 @@ const obrazki = await wczytajObiekty([...new Set(scena.map((o) => o.obiekt).filt
 //
 // Заодно режем до нужного куска и до размера карточки: полноразмерный клип
 // в окне 300 px — это лишняя работа декодера на каждом из тысячи кадров.
+// Папка вывода создаётся ЗДЕСЬ, а не там, где до неё дойдут руки. На моей
+// машине out/ существует с прошлых сборок, и всё работало; на чистом
+// сервере первый же ffmpeg падал на «No such file or directory», и ни один
+// сценарий не собирался. Ошибка при этом была про кодек, а не про папку.
+await mkdir(OUT, { recursive: true });
+
 const filmy = {};
 for (const o of scena.filter((x) => x.film)) {
   if (filmy[o.film]) continue;
@@ -399,6 +405,45 @@ await mkdir(path.dirname(stanPlik), { recursive: true });
 await writeFile(stanPlik, JSON.stringify(stan, null, 2) + String.fromCharCode(10), 'utf8');
 const muzyka = path.join(DIR, 'music', utwory[idxMuz] || 'pixabay-creative-technology-showreel.mp3');
 
+// Кусок трека тоже по кругу. Ротация файлов работала, но каждый ролик брал
+// одни и те же первые двадцать секунд — то есть интро, самую похожую часть
+// у любых двух треков одного жанра.
+//
+// Сдвиг проверяем: он должен влезать в трек целиком и не попасть в тихое
+// место. Тише −34 дБ — откатываемся к началу.
+const OD_KANDYDAT = [0, 27, 54, 81][(stan.grafikaScen ?? 0) % 4];
+let muzykaOd = 0;
+if (OD_KANDYDAT > 0) {
+  const dl = await (async () => {
+    try {
+      const { stdout } = await execFileAsync('ffprobe', [
+        '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', muzyka,
+      ]);
+      return parseFloat(stdout.trim());
+    } catch { return 0; }
+  })();
+  if (dl && OD_KANDYDAT + total + 1 <= dl) {
+    let gl = null;
+    try {
+      const { stderr } = await execFileAsync('ffmpeg', [
+        '-v', 'info', '-ss', String(OD_KANDYDAT), '-t', String(total), '-i', muzyka,
+        '-af', 'volumedetect', '-f', 'null', '-',
+      ]);
+      const m = String(stderr).match(/mean_volume:\s*(-?[\d.]+) dB/);
+      gl = m ? parseFloat(m[1]) : null;
+    } catch {}
+    if (gl !== null && gl > -34) {
+      muzykaOd = OD_KANDYDAT;
+      console.log(`[grafika] музыка с ${muzykaOd} с (${gl.toFixed(1)} дБ)`);
+    } else {
+      console.log(`[grafika] сдвиг ${OD_KANDYDAT} с отброшен — тихо или непонятно`);
+    }
+  } else {
+    console.log(`[grafika] сдвиг ${OD_KANDYDAT} с не влезает в трек`);
+  }
+}
+const WEJ_MUZYKA = muzykaOd > 0 ? ['-ss', String(muzykaOd), '-i', muzyka] : ['-i', muzyka];
+
 // ── сведение ──────────────────────────────────────────────────────
 // Голос жмём плотнее, чем раньше. Замер по роликам Захара: у него дорожка
 // идёт с динамикой LRA 2.5-3.5, у нас было 4.8. Именно эта плотность и
@@ -411,7 +456,7 @@ const gotowy = path.join(OUT, `auto-grafika-${scenariusz.klucz}${BEZ_GLOSU ? '-p
 // как есть: этого хватает, чтобы судить о движении и ритме.
 if (BEZ_GLOSU) {
   await ffmpeg([
-    '-i', wideo, '-i', muzyka, '-i', stuki,
+    '-i', wideo, ...WEJ_MUZYKA, '-i', stuki,
     '-filter_complex',
     `[1:a]atrim=0:${total},asetpts=N/SR/TB,volume=0.16[bed];` +
       `[bed][2:a]amix=inputs=2:normalize=0:duration=longest,alimiter=limit=0.95,` +
@@ -425,7 +470,7 @@ if (BEZ_GLOSU) {
 }
 
 await ffmpeg([
-  '-i', wideo, '-i', glos.plik, '-i', muzyka, '-i', stuki,
+  '-i', wideo, '-i', glos.plik, ...WEJ_MUZYKA, '-i', stuki,
   '-f', 'lavfi', '-i', `anoisesrc=c=brown:a=0.02:r=48000:d=${total}`,
   '-filter_complex',
   // Голос. Прежняя цепь сама делала его «искусственным», и слышно это было

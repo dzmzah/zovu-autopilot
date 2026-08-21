@@ -1189,6 +1189,21 @@ async function zbudujStuki(zdarzenia, total, tmp) {
 
 // Где в файле начинается звук. Нужно для музыки: у части треков в начале
 // тишина или очень тихое вступление, и подложка стартует пустой.
+// Средняя громкость куска трека. Нужна одна цифра, поэтому volumedetect,
+// а не ebur128: тут решается «звучит или нет», а не «насколько громко».
+async function sredniaGlosnosc(plik, od, ile) {
+  try {
+    const { stderr } = await execFileAsync('ffmpeg', [
+      '-v', 'info', '-ss', String(od), '-t', String(ile), '-i', plik,
+      '-af', 'volumedetect', '-f', 'null', '-',
+    ]);
+    const m = String(stderr).match(/mean_volume:\s*(-?[\d.]+) dB/);
+    return m ? parseFloat(m[1]) : null;
+  } catch {
+    return null;
+  }
+}
+
 async function poczatekDzwieku(plik) {
   try {
     const { stderr } = await execFileAsync(
@@ -1910,8 +1925,32 @@ export async function zbuduj(plan) {
     // у второго трека полсекунды тишины в начале, и проверка честно нашла
     // «провал звука на 0.00 с». Заодно это лечит вялые интро — вступление
     // с нарастанием под двадцатисекундный ролик не годится вовсе.
-    const odMuzyki = await poczatekDzwieku(music);
+    let odMuzyki = await poczatekDzwieku(music);
     if (odMuzyki > 0.05) console.log(`[awatar] музыка со звука: ${odMuzyki.toFixed(2)} с`);
+
+    // Сдвиг по треку. Даже при честной ротации файлов каждый ролик брал
+    // одни и те же первые двадцать секунд — а это как раз интро, самая
+    // похожая часть у любых двух треков одного жанра. Берём другой кусок.
+    //
+    // Слепо доверять сдвигу нельзя: можно попасть в брейк или в затухание
+    // на конце. Поэтому кусок сначала замеряем и, если он тише −34 дБ,
+    // откатываемся к началу — лучше знакомое вступление, чем пустота.
+    const przesun = +(plan.muzykaOd || 0);
+    if (przesun > 0.5) {
+      const dl = await ffprobeDuration(music).catch(() => 0);
+      const kandydat = odMuzyki + przesun;
+      if (dl && kandydat + totalWideo + 1 <= dl) {
+        const gl = await sredniaGlosnosc(music, kandydat, totalWideo);
+        if (gl !== null && gl > -34) {
+          console.log(`[awatar] музыка с ${kandydat.toFixed(1)} с (${gl.toFixed(1)} дБ)`);
+          odMuzyki = kandydat;
+        } else {
+          console.log(`[awatar] сдвиг ${przesun} с отброшен: там ${gl === null ? 'непонятно что' : gl.toFixed(1) + ' дБ'}`);
+        }
+      } else {
+        console.log(`[awatar] сдвиг ${przesun} с не влезает в трек — беру начало`);
+      }
+    }
 
     const wejsciaA = ['-i', wynikV, '-ss', odMuzyki.toFixed(3), '-i', music,
       '-f', 'lavfi', '-i', `anoisesrc=c=brown:a=${powietrzeTlo}:r=48000:d=${(totalWideo + 1).toFixed(2)}`];

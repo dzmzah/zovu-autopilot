@@ -650,6 +650,9 @@ const wstawki = zaplataIdx >= 0
 const plan = {
   nazwa: `auto-${scen.nazwa}`,
   muzyka: (await nastepnaMuzyka()) || path.join(DIR, 'music', 'pixabay-creative-technology-showreel.mp3'),
+  // Кусок трека тоже по кругу: четыре точки входа на выпуск. Трек вернётся
+  // через полторы недели, и вернётся другой своей частью.
+  muzykaOd: [0, 27, 54, 81][wydanie % 4],
   podkladGlosnosc: 0.11,
   podkladOgon: 0.17,
   powietrzeTlo: 0.02,
