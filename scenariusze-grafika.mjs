@@ -33,7 +33,7 @@ const CZAS = {
     { rola: 'tresc', tekst: 'Dziesięć godzin miesięcznie. Twoich.', pauza: 0.38 },
     { rola: 'zaplata', tekst: 'Te dziesięć godzin możesz oddać.', pauza: 0.34 },
     { rola: 'zaplata', tekst: 'Komuś, kto robi to codziennie.', pauza: 0.30 },
-    { rola: 'cta', tekst: 'Napisz CZAS, a policzymy twoje.', pauza: 0.20 },
+    { rola: 'cta', tekst: 'Ile godzin wychodzi tobie? Napisz w komentarzu.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     const scena = [
@@ -250,7 +250,7 @@ const RYTM = {
     { rola: 'tresc', tekst: 'Osiem postów miesięcznie. Bez zrywu.', pauza: 0.38 },
     { rola: 'zaplata', tekst: 'Ten sam wysiłek co wcześniej.', pauza: 0.32 },
     { rola: 'zaplata', tekst: 'Ludzie zapamiętują rytm.', pauza: 0.40 },
-    { rola: 'cta', tekst: 'Napisz RYTM, a ułożymy plan.', pauza: 0.20 },
+    { rola: 'cta', tekst: 'Zapisz sobie ten rachunek na poniedziałek.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     const scena = [
@@ -549,7 +549,7 @@ const KOMENTARZE = {
     { rola: 'tresc', tekst: 'Prawdziwych rozmów. Nie samych lajków.', pauza: 0.38 },
     { rola: 'zaplata', tekst: 'Ludzie pamiętają, kto im odpisał.', pauza: 0.34 },
     { rola: 'zaplata', tekst: 'Kwadrans dziennie robi tę różnicę.', pauza: 0.38 },
-    { rola: 'cta', tekst: 'Napisz KWADRANS, a pokażemy jak.', pauza: 0.20 },
+    { rola: 'cta', tekst: 'Kwadrans dziennie. Zapisz i sprawdź przez tydzień.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     const scena = [
@@ -623,7 +623,72 @@ const KOMENTARZE = {
   },
 };
 
-export const SCENARIUSZE = [CZAS, ODPOWIEDZ, RYTM, SESJA, PROFIL, KOMENTARZE];
+// ── 7. Пять пунктов, которые ОСТАЮТСЯ на экране ──────────────────
+// Первый сценарий с другой грамматикой, а не с другой темой.
+//
+// Во всех предыдущих объекты СМЕНЯЮТСЯ: пришёл, отработал, ушёл. Это верно
+// для рассказа и ровно поэтому у нас ноль сохранений: к моменту призыва на
+// экране не осталось ничего, что стоило бы забрать себе. Здесь наоборот —
+// строки КОПЯТСЯ, и последние секунды ролика это готовый список, который
+// имеет смысл снять скриншотом.
+//
+// Правило «объекты не копятся» не нарушено, а вывернуто сознательно:
+// копится ТЕКСТ, предметов в кадре по-прежнему один за раз.
+//
+// Ничего не выдумано: это то, что мы сами просим у клиента перед съёмкой.
+const LISTA = {
+  klucz: 'lista',
+  nazwa: 'Pięć rzeczy przed sesją zdjęciową',
+  frazy: [
+    { rola: 'hak', tekst: 'Umawiasz sesję. Połowa godziny pójdzie na czekanie.', pauza: 0.34 },
+    { rola: 'hak', tekst: 'Chyba że przygotujesz pięć rzeczy.', pauza: 0.42 },
+    { rola: 'tresc', tekst: 'Lista ujęć. Na kartce, nie w głowie.', pauza: 0.30 },
+    { rola: 'tresc', tekst: 'Produkty odpakowane i czyste.', pauza: 0.30 },
+    { rola: 'tresc', tekst: 'Jedno tło. Nie cztery.', pauza: 0.30 },
+    { rola: 'tresc', tekst: 'Ubrania bez wielkich logo.', pauza: 0.30 },
+    { rola: 'tresc', tekst: 'Ktoś, kto decyduje. Na miejscu.', pauza: 0.36 },
+    { rola: 'zaplata', tekst: 'Bez tego fotograf czeka, a płacisz ty.', pauza: 0.34 },
+    { rola: 'cta', tekst: 'Zapisz tę piątkę przed swoją sesją.', pauza: 0.20 },
+  ],
+  buduj({ t, total }) {
+    // Предметов мало и они мелкие: главное здесь — список, и спорить с ним
+    // нечему. Камера в конце отъезжает, чтобы список читался целиком.
+    const scena = [
+      { obiekt: 'stopwatch_3d', x: 540, y: 430, skala: 620, obrot: -6, skad: 'gora',
+        start: t(0, 0.05), koniec: t(1, 0.60), dokad: 'gora' },
+      { obiekt: 'check_mark_button_3d', x: 880, y: 380, skala: 300, obrot: 8, skad: 'prawo',
+        start: t(7, 0.05), koniec: t(8, 0.10), dokad: 'prawo' },
+    ];
+
+    // Каждая строка приходит под свою фразу и ОСТАЁТСЯ до конца ролика.
+    const wzor = [
+      { tekst: '1. LISTA UJĘĆ', y: 620, maly: true, a: t(2, 0.10), b: total },
+      { tekst: '2. PRODUKTY GOTOWE', y: 760, maly: true, a: t(3, 0.10), b: total },
+      { tekst: '3. JEDNO TŁO', y: 900, maly: true, a: t(4, 0.10), b: total },
+      { tekst: '4. BEZ WIELKICH LOGO', y: 1040, maly: true, a: t(5, 0.10), b: total },
+      { tekst: '5. DECYDENT NA MIEJSCU', y: 1180, maly: true, a: t(6, 0.10), b: total },
+    ];
+
+    const kamera = [
+      { t: 0, zoom: 1.00, x: 0, y: 0 },
+      { t: t(1), zoom: 1.06, x: 0, y: -14 },
+      { t: t(2), zoom: 1.04, x: 0, y: 10 },
+      { t: t(4), zoom: 1.02, x: 0, y: 4 },
+      { t: t(6, 0.40), zoom: 1.00, x: 0, y: 0 },
+      { t: t(7, 0.20), zoom: 1.03, x: 0, y: -8 },
+      { t: total, zoom: 1.00, x: 0, y: 0 },
+    ];
+
+    const akcenty = {
+      zolty: ['pięć', 'przygotujesz', 'zapisz', 'piątkę'],
+      czerwony: ['czekanie', 'czeka', 'płacisz'],
+    };
+
+    return { scena, wzor, kamera, akcenty, metki: [], liczniki: [] };
+  },
+};
+
+export const SCENARIUSZE = [CZAS, ODPOWIEDZ, RYTM, SESJA, PROFIL, KOMENTARZE, LISTA];
 
 // Выбор сценария: по ключу из аргумента или по кругу из состояния. Круг, а не
 // случайность: лента должна перебирать все, а не тыкать в один и тот же.

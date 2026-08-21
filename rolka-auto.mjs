@@ -61,7 +61,7 @@ const SCENARIUSZE = [
       '',
       'Masz je w 20 sekund. Bez lania wody.',
       '',
-      'Napisz „AUDYT" w wiadomości — przejrzymy twój profil i powiemy wprost, który z tych trzech błędów robisz. Za darmo, bez zobowiązań.',
+      'Który z tych trzech robisz u siebie? Napisz w komentarzu — odpiszemy każdemu, co z tym zrobić.',
       '',
       'zovu.pl',
       '',
@@ -78,7 +78,7 @@ const SCENARIUSZE = [
       { rola: 'punkt', numer: 2, tytul: 'brak powodu', tekst: 'Nie dajesz powodu, żeby odpisać.', szukaj: 'bored person scrolling phone', pauza: 0.30 },
       { rola: 'punkt', numer: 3, tytul: 'znikasz', tekst: 'Znikasz na dwa tygodnie.', szukaj: 'calendar time passing clock', pauza: 0.26 },
       { rola: 'zaplata', tekst: 'Algorytm liczy każdy z tych dni.', szukaj: 'analytics graph screen data', pauza: 0.30 },
-      { rola: 'cta', tekst: 'Napisz AUDYT, a powiemy który błąd robisz.', szukaj: 'woman texting smartphone street evening', pauza: 0.20 },
+      { rola: 'cta', tekst: 'Który z tych trzech robisz? Napisz w komentarzu.', szukaj: 'woman texting smartphone street evening', pauza: 0.20 },
     ],
   },
   {
@@ -90,7 +90,7 @@ const SCENARIUSZE = [
       '',
       'Odpowiedź zależy od trzech rzeczy, a nie od liczby podstron. Rozbieramy je w 20 sekund.',
       '',
-      'Chcesz wycenę pod swój przypadek? Napisz WYCENA — odpiszemy z widełkami i bez rozmowy sprzedażowej.',
+      'Zapisz sobie te trzy pytania i zadaj je przed pierwszą rozmową o cenie — oszczędzą ci więcej niż negocjacje.',
       '',
       'zovu.pl',
       '',
@@ -105,7 +105,7 @@ const SCENARIUSZE = [
       { rola: 'punkt', numer: 2, tytul: 'czyje treści', tekst: 'Po drugie — kto pisze teksty i robi zdjęcia.', szukaj: 'photographer camera studio product', pauza: 0.28 },
       { rola: 'punkt', numer: 3, tytul: 'co potem', tekst: 'Po trzecie — kto się nią zajmie za pół roku.', szukaj: 'developer working code screen', pauza: 0.26 },
       { rola: 'zaplata', tekst: 'Bez tych odpowiedzi cena to ZGADYWANKA.', szukaj: 'calculator money budget desk', pauza: 0.28 },
-      { rola: 'cta', tekst: 'Napisz WYCENA, a odeślemy widełki!', szukaj: 'hands typing laptop cafe table', pauza: 0.20 },
+      { rola: 'cta', tekst: 'Zapisz to przed pierwszą rozmową o cenie.', szukaj: 'hands typing laptop cafe table', pauza: 0.20 },
     ],
   },
   {
@@ -188,7 +188,7 @@ const SCENARIUSZE = [
       { rola: 'punkt', numer: 2, tytul: 'post rozmawia', tekst: 'Post rozmawia z tymi, których już masz.', szukaj: 'two people talking coffee', pauza: 0.28 },
       { rola: 'punkt', numer: 3, tytul: 'jedno bez drugiego', tekst: 'Samo jedno z dwóch nie działa.', szukaj: 'broken chain link metal', pauza: 0.26 },
       { rola: 'zaplata', tekst: 'Zasięg bez rozmowy to ruch, który NIE kupuje.', szukaj: 'analytics graph screen data', pauza: 0.28 },
-      { rola: 'cta', tekst: 'Napisz PLAN, a odeślemy rozkład na miesiąc!', szukaj: 'hand writing notebook plan desk', pauza: 0.20 },
+      { rola: 'cta', tekst: 'Rozkład na miesiąc mamy w opisie profilu.', szukaj: 'hand writing notebook plan desk', pauza: 0.20 },
     ],
   },
 
@@ -350,7 +350,7 @@ const SCENARIUSZE = [
       { rola: 'tresc', tekst: 'Zasięg kupisz reklamą w dziesięć minut.', szukaj: 'credit card online payment', pauza: 0.30 },
       { rola: 'tresc', tekst: 'Klienta nie kupisz wcale.', szukaj: 'empty shop counter waiting', pauza: 0.32 },
       { rola: 'zaplata', tekst: 'Płacisz za to, żeby wiedzieli, po co do ciebie pisać.', szukaj: 'customer talking seller shop', pauza: 0.30 },
-      { rola: 'cta', tekst: 'Chcesz usłyszeć to o swojej firmie? Napisz KONKRET.', szukaj: 'two people talking office window', pauza: 0.20 },
+      { rola: 'cta', tekst: 'Nie zgadzasz się? Napisz w komentarzu.', szukaj: 'two people talking office window', pauza: 0.20 },
     ],
   },
 ];
