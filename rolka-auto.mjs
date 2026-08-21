@@ -28,6 +28,7 @@ import { searchStock, fetchClip } from './stock.mjs';
 import { sprawdzRolke } from './kontrola.mjs';
 import { podmienHasztagi } from './tagi.mjs';
 import { rozlozNaklejki } from './naklejki.mjs';
+import { zeSpizarni, SPIZARNIA } from './spizarnia.mjs';
 
 const DIR = import.meta.dirname;
 const OUT = path.join(DIR, 'out');
@@ -583,7 +584,28 @@ console.log(`[rolka-auto] голос: ${glos.dlugosc.toFixed(2)} с, слов ${
 const klipy = [];
 // Один список на весь ролик: и основной запрос, и запасные берут из него.
 const uzyteKlipy = new Set();
+// Что уже взято из кладовой и какого рода был предыдущий кусок. Род нужен,
+// чтобы два соседних плана не оказались одинаковыми по типу материала:
+// разнообразие — это смена рода, а не смена файла.
+const zSpizarni = new Set();
+let poprzedniRodzaj = null;
 for (const [i, c] of scen.czesci.entries()) {
+  // СНАЧАЛА своя кладовая. Наш кадр с реального проекта стоит дороже любого
+  // покупного стока: он единственный, чего у конкурентов нет, и именно из
+  // такого материала собран тот ролик, который Захар назвал образцом.
+  const swoje = zeSpizarni(`${c.tytul || ''} ${c.tekst || ''}`, zSpizarni, poprzedniRodzaj);
+  if (swoje) {
+    zSpizarni.add(swoje.nazwa);
+    poprzedniRodzaj = swoje.rodzaj;
+    const f0 = glos.frazy[i];
+    const nast0 = glos.frazy[i + 1];
+    const dl0 = (nast0 ? nast0.a : glos.dlugosc) - (i === 0 ? 0 : f0.a);
+    klipy.push({ plik: swoje.plik, dlugosc: +dl0.toFixed(3), tekst: c.tekst, od: 0.2 });
+    console.log(`[rolka-auto] ${c.rola}: СВОЁ ${swoje.nazwa}  ${dl0.toFixed(2)} с`);
+    continue;
+  }
+  poprzedniRodzaj = 'stok';
+
   let plik = await podklad(c, i, scen.nazwa, uzyteKlipy);
 
   // Запасной запрос. Узкая формулировка иногда не находит на стоке ничего —
@@ -604,6 +626,41 @@ for (const [i, c] of scen.czesci.entries()) {
   const dlugosc = (nastepna ? nastepna.a : glos.dlugosc) - (i === 0 ? 0 : f.a);
   klipy.push({ plik, dlugosc: +dlugosc.toFixed(3), tekst: c.tekst, od: 0.4 });
   console.log(`[rolka-auto] ${c.rola}: ${path.basename(plik)}  ${dlugosc.toFixed(2)} с`);
+}
+
+// 2б. Длинные планы режем надвое.
+//
+// Порог 3,2 с выбран по образцу: там средний план 1,6 с, и ни один кусок не
+// висит дольше трёх секунд. Второй кадр берём из кладовой, а не из того же
+// файла: смена ракурса внутри одного клипа читается как склейка по браку, а
+// не как приём.
+{
+  const DLUGI = 3.2;
+  const wolne = SPIZARNIA.map((x) => x.plik).filter((p) => !zSpizarni.has(p));
+  const nowe = [];
+  let podzielone = 0;
+  for (const k of klipy) {
+    if (k.dlugosc <= DLUGI || !wolne.length) {
+      nowe.push(k);
+      continue;
+    }
+    const polowa = +(k.dlugosc / 2).toFixed(3);
+    const drugi = wolne.shift();
+    nowe.push({ ...k, dlugosc: polowa });
+    nowe.push({
+      plik: path.join(DIR, 'wlasne', drugi),
+      dlugosc: +(k.dlugosc - polowa).toFixed(3),
+      tekst: k.tekst,
+      od: 0.2,
+    });
+    zSpizarni.add(drugi);
+    podzielone++;
+  }
+  if (podzielone) {
+    klipy.length = 0;
+    klipy.push(...nowe);
+    console.log(`[rolka-auto] длинных планов разрезано: ${podzielone}, планов стало ${klipy.length}`);
+  }
 }
 
 // 3. Титры пунктов — на начало фразы, где пункт называется.
