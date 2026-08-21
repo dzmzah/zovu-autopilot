@@ -1961,14 +1961,40 @@ export async function zbuduj(plan) {
       }
     }
 
-    const wejsciaA = ['-i', wynikV, '-ss', odMuzyki.toFixed(3), '-i', music,
+    // Голос обрабатывается СВОИМ вызовом и приходит в сведение готовым.
+    //
+    // В рисованных роликах ровно эта схема — loudnorm внутри большого графа
+    // рядом с amix, apad и боковой цепью — съедала последнюю фразу, и только
+    // на сервере: тот же файл, собранный локально, фразу сохранял. Фильтр
+    // буферизует три секунды и отдаёт хвост при закрытии потока, а сборки
+    // ffmpeg разбирают такой граф по-разному. Здесь ещё не выстрелило, но
+    // ждать нечего: лишний вызов ffmpeg стоит секунды.
+    const glosGotowy = path.join(tmp, 'glos-gotowy.wav');
+    await ffmpeg([
+      '-i', wynikV, '-af', `${GLOS},${norm},aformat=channel_layouts=stereo`,
+      '-ar', '48000', '-ac', '2', glosGotowy,
+    ]);
+    const dlPrzed = await ffprobeDuration(wynikV).catch(() => 0);
+    const dlPo = await ffprobeDuration(glosGotowy).catch(() => 0);
+    console.log(`[awatar] голос обработан отдельно: ${dlPo.toFixed(2)} с (было ${dlPrzed.toFixed(2)} с)`);
+    if (dlPrzed && dlPo && dlPo < dlPrzed - 0.25) {
+      console.warn(`[awatar] ВНИМАНИЕ: обработка укоротила голос на ${(dlPrzed - dlPo).toFixed(2)} с`);
+    }
+
+    const wejsciaA = ['-i', glosGotowy, '-ss', odMuzyki.toFixed(3), '-i', music,
       '-f', 'lavfi', '-i', `anoisesrc=c=brown:a=${powietrzeTlo}:r=48000:d=${(totalWideo + 1).toFixed(2)}`];
     let idx = 3;
     let stukiIdx = -1;
     if (stuki) { wejsciaA.push('-i', stuki); stukiIdx = idx++; }
+    // Ключ боковой цепи — тот же готовый файл, но ОТДЕЛЬНЫМ входом. При
+    // asplit обе ветки живут в одном графе и разбираются с разной скоростью;
+    // отдельный вход эту связь снимает.
+    wejsciaA.push('-i', glosGotowy);
+    const kluczIdx = idx++;
 
     const chain = [
-      `[0:a]${GLOS},${norm}[voice]`,
+      // Голос уже обработан своим вызовом — здесь только тянем до конца.
+      `[0:a]apad=whole_dur=${totalWideo.toFixed(2)}[voice]`,
       `[2:a]aformat=channel_layouts=stereo,highpass=f=60,lowpass=f=2400,` +
         `atrim=0:${totalWideo.toFixed(2)},asetpts=N/SR/TB,` +
         // У «воздуха» вплывания НЕТ. Он и заведён затем, чтобы в дорожке
@@ -2008,13 +2034,12 @@ export async function zbuduj(plan) {
     // на последних двух секундах −50 dB против ровных −18 у образцов Захара.
     // Искали его в затухании и в компрессии, а он сидел здесь.
     chain.push(
-      '[voice]asplit=2[voiceOut][kluczRaw]',
-      `[kluczRaw]apad=whole_dur=${totalWideo.toFixed(2)}[kluczDuck]`,
+      `[${kluczIdx}:a]apad=whole_dur=${totalWideo.toFixed(2)}[kluczDuck]`,
       '[bed][kluczDuck]sidechaincompress=threshold=0.02:ratio=11:' +
         'attack=10:release=170:makeup=1:level_sc=1[bedDuck]'
     );
 
-    const zrodla = ['[voiceOut]', '[bedDuck]', '[air]'];
+    const zrodla = ['[voice]', '[bedDuck]', '[air]'];
     if (stuki) {
       chain.push(`[${stukiIdx}:a]volume=${plan.stukiGlosnosc ?? 0.5}[klik]`);
       zrodla.push('[klik]');
