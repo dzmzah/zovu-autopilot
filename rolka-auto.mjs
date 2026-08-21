@@ -593,7 +593,11 @@ for (const [i, c] of scen.czesci.entries()) {
   // СНАЧАЛА своя кладовая. Наш кадр с реального проекта стоит дороже любого
   // покупного стока: он единственный, чего у конкурентов нет, и именно из
   // такого материала собран тот ролик, который Захар назвал образцом.
-  const swoje = zeSpizarni(`${c.tytul || ''} ${c.tekst || ''}`, zSpizarni, poprzedniRodzaj);
+  // Только если сценарий САМ назвал, что здесь показывать. Автоподбор по
+  // словам даёт кадр, который к фразе не относится, и ролик рассыпается.
+  const swoje = scen.swoje
+    ? zeSpizarni(`${c.tytul || ''} ${c.tekst || ''}`, zSpizarni, poprzedniRodzaj)
+    : null;
   if (swoje) {
     zSpizarni.add(swoje.nazwa);
     poprzedniRodzaj = swoje.rodzaj;
@@ -636,7 +640,11 @@ for (const [i, c] of scen.czesci.entries()) {
 // не как приём.
 {
   const DLUGI = 3.2;
-  const wolne = SPIZARNIA.map((x) => x.plik).filter((p) => !zSpizarni.has(p));
+  // Резать план надвое имеет смысл, только когда есть ЧЕМ закрыть вторую
+  // половину по смыслу. Иначе это ещё один случайный кадр посреди фразы.
+  const wolne = scen.swoje
+    ? SPIZARNIA.map((x) => x.plik).filter((p) => !zSpizarni.has(p))
+    : [];
   const nowe = [];
   let podzielone = 0;
   for (const k of klipy) {
@@ -751,7 +759,10 @@ const plan = {
   // Стикеры поверх кадра. Не больше двух на ролик и только там, где для
   // фразы нашёлся предмет по смыслу — грань между «разбавили» и «мультик
   // поверх съёмки» проходит именно здесь.
-  naklejki: rozlozNaklejki(scen.czesci, glos.frazy, 2),
+  // Стикеры тоже по разрешению: подобранный по слову предмет читается как
+  // случайная картинка сбоку, а не как приём. Захар: «что за стикеры
+  // какие-то вообще непонятные».
+  naklejki: scen.naklejki ? rozlozNaklejki(scen.czesci, glos.frazy, 2) : [],
   ogon: {
     marka: true,
     dlugosc: 3.8,
