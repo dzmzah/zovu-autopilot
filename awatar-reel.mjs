@@ -1998,6 +1998,8 @@ export async function zbuduj(plan) {
       `measured_thresh=${zm.thresh}:offset=${zm.offset}`
     : `loudnorm=I=${REF.lufs}:TP=${REF.truePeak}:LRA=${REF.lra}`;
 
+  // Считается ниже, когда станет известна длина обработанного голоса.
+  let koniecMowy = totalHero;
   const cichy = plan.podkladGlosnosc ?? 0.11;
   const glosny = plan.ogon ? (plan.podkladOgon ?? 0.5) : cichy;
 
@@ -2083,6 +2085,12 @@ export async function zbuduj(plan) {
     const dlPrzed = await ffprobeDuration(wynikV).catch(() => 0);
     const dlPo = await ffprobeDuration(glosGotowy).catch(() => 0);
     console.log(`[awatar] голос обработан отдельно: ${dlPo.toFixed(2)} с (было ${dlPrzed.toFixed(2)} с)`);
+    // Момент, когда герой замолчал. Подъём подложки был привязан к началу
+    // аутро, а речь кончается РАНЬШЕ него — между последним словом и
+    // хвостовой карточкой оставалась секунда-две на тихой подложке. Замер
+    // ролика 21.08: 18-я секунда −17,7 дБ, 20-я −31,2.
+    koniecMowy = Math.min(totalHero, dlPo || totalHero);
+
     if (dlPrzed && dlPo && dlPo < dlPrzed - 0.25) {
       console.warn(`[awatar] ВНИМАНИЕ: обработка укоротила голос на ${(dlPrzed - dlPo).toFixed(2)} с`);
     }
@@ -2121,7 +2129,7 @@ export async function zbuduj(plan) {
       // выходил на полную — музыка наезжала на последнее слово, и финал
       // читался как обрыв.
       `[1:a]atrim=0:${totalWideo.toFixed(2)},asetpts=N/SR/TB,volume=${korektaMuz.toFixed(2)}dB,` +
-        `volume='${cichy}+(${glosny}-${cichy})*min(1,max(0,(t-${(totalHero + 0.1).toFixed(2)})/1.5))':eval=frame,` +
+        `volume='${cichy}+(${glosny}-${cichy})*min(1,max(0,(t-${(koniecMowy + 0.1).toFixed(2)})/1.2))':eval=frame,` +
         // Вплывание было полсекунды — ровно столько, сколько ролик молчит
         // перед первой фразой. Зритель попадал в кадр, где нет ни текста, ни
         // звука; проверка честно называла это провалом звука на 0.00 с.

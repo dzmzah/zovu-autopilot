@@ -105,11 +105,19 @@ async function glosnosc(plik) {
 
 /**
  * @param {string} plik
- * @param {{oczekiwanePrzejscia?: number[]}} opcje — секунды, где рывок ЗАПЛАНИРОВАН
+ * @param {{oczekiwanePrzejscia?: number[], zakresyRuchu?: Array<[number,number]>}} opcje
+ *        oczekiwanePrzejscia — секунды, где рывок ЗАПЛАНИРОВАН;
+ *        zakresyRuchu — отрезки, где движение внутри кадра нормально
+ *        (наши собственные съёмки: облако пудры, руки, вода)
  *        (въезд врезки, титр, склейка): там скачок это приём, а не брак.
  */
 export async function sprawdzRolke(plik, opcje = {}) {
   const oczekiwane = (opcje.oczekiwanePrzejscia || []).filter((x) => Number.isFinite(x));
+  // Отрезки живого движения. Порог рывка писался под спокойный сток; наши
+  // съёмки живее по определению, и это их достоинство, а не брак.
+  const ruch = (opcje.zakresyRuchu || []).filter(
+    (r) => Array.isArray(r) && Number.isFinite(r[0]) && Number.isFinite(r[1])
+  );
   const uwagi = [];
 
   const dlugosc = +(await ffprobe(['-show_entries', 'format=duration', '-of', 'csv=p=0', plik]));
@@ -127,7 +135,8 @@ export async function sprawdzRolke(plik, opcje = {}) {
   const wszystkieSkoki = await skoki(plik);
   const podejrzane = wszystkieSkoki
     .filter((s) => s.v >= PROGI.skok)
-    .filter((s) => !oczekiwane.some((o) => Math.abs(o - s.t) <= PROGI.toleransPrzejscia));
+    .filter((s) => !oczekiwane.some((o) => Math.abs(o - s.t) <= PROGI.toleransPrzejscia))
+    .filter((s) => !ruch.some(([od, doo]) => s.t >= od - 0.1 && s.t <= doo + 0.1));
   // Соседние кадры одного и того же перехода схлопываем в одно событие.
   const zdarzenia = [];
   for (const s of podejrzane) {

@@ -824,6 +824,18 @@ if (!BEZ_KONTROLI) {
       ...wstawki.map((w) => w.start + w.dlugosc),
       ...klipy.reduce((acc, k) => { acc.push((acc.at(-1) ?? 0) + k.dlugosc); return acc; }, []),
     ],
+    // Куски из кладовой — это НАШИ съёмки, и в них есть настоящее движение:
+    // облако пудры у барбера, руки, вода. Отдаём их границы, чтобы проверка
+    // не принимала жизнь в кадре за склейку по браку.
+    zakresyRuchu: klipy.reduce(
+      (acc, k) => {
+        const od = acc.czas;
+        acc.czas += k.dlugosc;
+        if (String(k.plik).includes('wlasne')) acc.zakresy.push([od, acc.czas]);
+        return acc;
+      },
+      { czas: 0, zakresy: [] }
+    ).zakresy,
   });
   console.log('[rolka-auto] проверка:', JSON.stringify(kontrola, null, 1));
   if (!kontrola.zdal) {
