@@ -642,14 +642,14 @@ const LISTA = {
   frazy: [
     // Один хук, а не два: проба вышла 29 секунд при планке 20-24. Точка
     // внутри фразы держит темп не хуже разрыва на две реплики.
-    { rola: 'hak', tekst: 'Umawiasz sesję. Połowa godziny pójdzie na czekanie. Chyba że przygotujesz pięć rzeczy.', pauza: 0.42 },
-    { rola: 'tresc', tekst: 'Lista ujęć. Na kartce, nie w głowie.', pauza: 0.30 },
+    { rola: 'hak', tekst: 'Sesja zdjęciowa. Pół godziny idzie na czekanie. Chyba że przygotujesz pięć rzeczy.', pauza: 0.42 },
+    { rola: 'tresc', tekst: 'Lista ujęć na kartce.', pauza: 0.30 },
     { rola: 'tresc', tekst: 'Produkty odpakowane i czyste.', pauza: 0.30 },
     { rola: 'tresc', tekst: 'Jedno tło. Nie cztery.', pauza: 0.30 },
     { rola: 'tresc', tekst: 'Ubrania bez wielkich logo.', pauza: 0.30 },
-    { rola: 'tresc', tekst: 'Ktoś, kto decyduje. Na miejscu.', pauza: 0.36 },
+    { rola: 'tresc', tekst: 'Decydent na miejscu.', pauza: 0.36 },
     { rola: 'zaplata', tekst: 'Bez tego fotograf czeka, a płacisz ty.', pauza: 0.34 },
-    { rola: 'cta', tekst: 'Zapisz tę piątkę przed swoją sesją.', pauza: 0.20 },
+    { rola: 'cta', tekst: 'Zapisz tę piątkę przed sesją.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     // Предметов мало и они мелкие: главное здесь — список, и спорить с ним
