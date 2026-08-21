@@ -1,9 +1,10 @@
 {
-  "scenariusz": 2,
-  "kiedy": "2026-08-20T04:57:24.178Z",
-  "muzyka": 3,
-  "wydanie": 5,
+  "scenariusz": 3,
+  "kiedy": "2026-08-21T04:57:55.330Z",
+  "muzyka": 4,
+  "wydanie": 6,
   "grafikaScen": 2,
   "tloGrafika": 1,
-  "muzykaGrafika": 3
+  "muzykaGrafika": 3,
+  "typRolki": 0
 }

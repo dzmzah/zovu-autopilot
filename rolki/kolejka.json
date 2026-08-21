@@ -360,5 +360,30 @@
       5.1,
       4.1
     ]
+  },
+  {
+    "plik": "auto-2026-08-21-1.mp4",
+    "kiedy": "2026-08-23T11:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb"
+    ],
+    "tekst": "Masz zasięgi, masz polubienia, a wiadomości zero.\n\nTo nie przypadek i nie algorytm. To trzy rzeczy w twoim profilu, które mówią „nie pisz do mnie\".\n\nNapisz PROFIL, a powiemy, która z nich blokuje cię najbardziej.\n\nzovu.pl\n\n#katowice #katowicefirmy #uslugilokalne #przedsiebiorcy #profilfirmowy #opisprofilu #zovu",
+    "opublikowano": null,
+    "zrodlo": "auto-dlaczego-nikt-nie-pisze.mp4",
+    "scenariusz": "dlaczego-nikt-nie-pisze",
+    "forma": "lista",
+    "temat": "dlaczego profil nie generuje wiadomości",
+    "dlugosc": 21.56,
+    "planow": 7,
+    "tempo": [
+      5.1,
+      4.3,
+      5.6,
+      5.3,
+      4.8,
+      5.6,
+      3.9
+    ]
   }
 ]
