@@ -18,6 +18,8 @@
 //
 //   node awatar-reel.mjs plan.json
 import { chromium } from 'playwright';
+
+import { wybierzWejscie } from './dzwiek.mjs';
 import { mkdir, readFile, writeFile, rm, readdir } from 'node:fs/promises';
 import { existsSync, statSync } from 'node:fs';
 import path from 'node:path';
@@ -1928,42 +1930,35 @@ export async function zbuduj(plan) {
     let odMuzyki = await poczatekDzwieku(music);
     if (odMuzyki > 0.05) console.log(`[awatar] музыка со звука: ${odMuzyki.toFixed(2)} с`);
 
-    // Сдвиг по треку. Даже при честной ротации файлов каждый ролик брал
-    // одни и те же первые двадцать секунд — а это как раз интро, самая
-    // похожая часть у любых двух треков одного жанра. Берём другой кусок.
+    // Кусок трека выбирается по ХУДШЕЙ секунде, а не по средней.
     //
-    // Слепо доверять сдвигу нельзя: можно попасть в брейк или в затухание
-    // на конце. Поэтому кусок сначала замеряем и, если он тише −34 дБ,
-    // откатываемся к началу — лучше знакомое вступление, чем пустота.
-    const przesun = +(plan.muzykaOd || 0);
-    if (przesun > 0.5) {
-      const dl = await ffprobeDuration(music).catch(() => 0);
-      const kandydat = odMuzyki + przesun;
-      if (dl && kandydat + totalWideo + 1 <= dl) {
-        const gl = await sredniaGlosnosc(music, kandydat, totalWideo);
-        if (gl !== null && gl > -34) {
-          console.log(`[awatar] музыка с ${kandydat.toFixed(1)} с (${gl.toFixed(1)} дБ)`);
-          odMuzyki = kandydat;
-        } else {
-          console.log(`[awatar] сдвиг ${przesun} с отброшен: там ${gl === null ? 'непонятно что' : gl.toFixed(1) + ' дБ'}`);
-        }
-      } else {
-        console.log(`[awatar] сдвиг ${przesun} с не влезает в трек — беру начало`);
-      }
-    }
+    // Средняя врёт: в ролике 21.08 голос кончился на 14-й секунде, и дальше
+    // две секунды шло −38 дБ — на телефоне это тишина. Средняя по тому же
+    // куску была −18 дБ, то есть «нормально». Одна дырка в середине слышна
+    // как обрыв, сколько бы ни было среднее.
+    const dlTracku = await ffprobeDuration(music).catch(() => 0);
+    const kandydaci = [0, 27, 54, 81].map((x) => +(odMuzyki + x).toFixed(3));
+    const wybor = await wybierzWejscie(
+      music,
+      kandydaci,
+      totalWideo,
+      dlTracku,
+      +(odMuzyki + +(plan.muzykaOd || 0)).toFixed(3)
+    );
 
-    // Выравнивание подложки. Множитель ниже — доля от исходного файла, а
-    // файлы в библиотеке различаются на 10 дБ. Без этой поправки «тихая
-    // подложка» на одном треке почти не слышна, на другом лезет вперёд.
-    // Правку зажимаем в ±9 дБ: если трек настолько выбивается, лучше пусть
-    // будет тише задуманного, чем вытянутый шум.
-    const zmierzonaMuz = await sredniaGlosnosc(music, odMuzyki, totalWideo);
-    const korektaMuz =
-      zmierzonaMuz === null ? 0 : Math.max(-9, Math.min(9, -13 - zmierzonaMuz));
-    if (korektaMuz) {
+    let korektaMuz = 0;
+    if (wybor) {
+      odMuzyki = wybor.od;
+      // Выравнивание к общей громкости: множитель ниже — доля от исходного
+      // файла, а файлы в библиотеке различаются на 10 дБ.
+      korektaMuz = Math.max(-9, Math.min(9, -13 - wybor.srednia));
       console.log(
-        `[awatar] подложка ${zmierzonaMuz.toFixed(1)} дБ → правка ${korektaMuz > 0 ? '+' : ''}${korektaMuz.toFixed(1)} дБ`
+        `[awatar] подложка с ${wybor.od.toFixed(1)} с · средняя ${wybor.srednia.toFixed(1)} дБ · ` +
+          `худшая секунда ${wybor.min.toFixed(1)} дБ · правка ${korektaMuz > 0 ? '+' : ''}${korektaMuz.toFixed(1)} дБ`
       );
+      if (wybor.min < -40) {
+        console.warn('[awatar] ВНИМАНИЕ: в подложке есть тихое место — проверь хвост ролика');
+      }
     }
 
     const wejsciaA = ['-i', wynikV, '-ss', odMuzyki.toFixed(3), '-i', music,

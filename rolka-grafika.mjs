@@ -17,6 +17,7 @@ import { zbudujGlos } from './glos.mjs';
 import { sprawdzRolke } from './kontrola.mjs';
 import { grafikaHtml, renderujKlatki, wczytajObiekty, W, H, FPS } from './grafika.mjs';
 import { wybierzScenariusz } from './scenariusze-grafika.mjs';
+import { wybierzWejscie } from './dzwiek.mjs';
 import { podmienHasztagi } from './tagi.mjs';
 import { DEMA } from './scenariusze-demo.mjs';
 
@@ -406,63 +407,41 @@ await mkdir(path.dirname(stanPlik), { recursive: true });
 await writeFile(stanPlik, JSON.stringify(stan, null, 2) + String.fromCharCode(10), 'utf8');
 const muzyka = path.join(DIR, 'music', utwory[idxMuz] || 'pixabay-creative-technology-showreel.mp3');
 
-// Кусок трека тоже по кругу. Ротация файлов работала, но каждый ролик брал
-// одни и те же первые двадцать секунд — то есть интро, самую похожую часть
-// у любых двух треков одного жанра.
+// Кусок трека выбирается по ХУДШЕЙ секунде, а не по средней.
 //
-// Сдвиг проверяем: он должен влезать в трек целиком и не попасть в тихое
-// место. Тише −34 дБ — откатываемся к началу.
-const OD_KANDYDAT = [0, 27, 54, 81][(stan.grafikaScen ?? 0) % 4];
-let muzykaOd = 0;
-if (OD_KANDYDAT > 0) {
-  const dl = await (async () => {
-    try {
-      const { stdout } = await execFileAsync('ffprobe', [
-        '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', muzyka,
-      ]);
-      return parseFloat(stdout.trim());
-    } catch { return 0; }
-  })();
-  if (dl && OD_KANDYDAT + total + 1 <= dl) {
-    let gl = null;
-    try {
-      const { stderr } = await execFileAsync('ffmpeg', [
-        '-v', 'info', '-ss', String(OD_KANDYDAT), '-t', String(total), '-i', muzyka,
-        '-af', 'volumedetect', '-f', 'null', '-',
-      ]);
-      const m = String(stderr).match(/mean_volume:\s*(-?[\d.]+) dB/);
-      gl = m ? parseFloat(m[1]) : null;
-    } catch {}
-    if (gl !== null && gl > -34) {
-      muzykaOd = OD_KANDYDAT;
-      console.log(`[grafika] музыка с ${muzykaOd} с (${gl.toFixed(1)} дБ)`);
-    } else {
-      console.log(`[grafika] сдвиг ${OD_KANDYDAT} с отброшен — тихо или непонятно`);
-    }
-  } else {
-    console.log(`[grafika] сдвиг ${OD_KANDYDAT} с не влезает в трек`);
+// Захар за один вечер поймал два случая, и оба прошли проверку: в одном
+// ролике голос кончился и дальше «ничего не слышно» (две секунды −38 дБ при
+// средней −18), в другом «музыки нет вообще» (самый тихий трек библиотеки,
+// −19,7 дБ, без выравнивания). Средняя обе дырки спрятала.
+const dlTracku = await (async () => {
+  try {
+    const { stdout } = await execFileAsync('ffprobe', [
+      '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', muzyka,
+    ]);
+    return parseFloat(stdout.trim());
+  } catch { return 0; }
+})();
+
+const wybor = await wybierzWejscie(
+  muzyka,
+  [0, 27, 54, 81],
+  total,
+  dlTracku,
+  [0, 27, 54, 81][(stan.grafikaScen ?? 0) % 4]
+);
+
+const muzykaOd = wybor ? wybor.od : 0;
+const korektaMuz = wybor ? Math.max(-9, Math.min(9, -13 - wybor.srednia)) : 0;
+if (wybor) {
+  console.log(
+    `[grafika] подложка с ${wybor.od} с · средняя ${wybor.srednia.toFixed(1)} дБ · ` +
+      `худшая секунда ${wybor.min.toFixed(1)} дБ · правка ${korektaMuz > 0 ? '+' : ''}${korektaMuz.toFixed(1)} дБ`
+  );
+  if (wybor.min < -40) {
+    console.warn('[grafika] ВНИМАНИЕ: в подложке есть тихое место — проверь хвост ролика');
   }
 }
 const WEJ_MUZYKA = muzykaOd > 0 ? ['-ss', String(muzykaOd), '-i', muzyka] : ['-i', muzyka];
-
-// Выравнивание подложки к общей громкости. Множители 0.16-0.18 подбирались
-// на слух на прежней пятёрке треков; в библиотеке разброс 10 дБ, и без
-// поправки один и тот же множитель звучит на разных треках по-разному.
-const korektaMuz = await (async () => {
-  try {
-    const { stderr } = await execFileAsync('ffmpeg', [
-      '-v', 'info', '-ss', String(muzykaOd), '-t', String(total), '-i', muzyka,
-      '-af', 'volumedetect', '-f', 'null', '-',
-    ]);
-    const m = String(stderr).match(/mean_volume:\s*(-?[\d.]+) dB/);
-    if (!m) return 0;
-    const k = Math.max(-9, Math.min(9, -13 - parseFloat(m[1])));
-    console.log(`[grafika] подложка ${m[1]} дБ → правка ${k > 0 ? '+' : ''}${k.toFixed(1)} дБ`);
-    return k;
-  } catch {
-    return 0;
-  }
-})();
 const POPRAW = `volume=${korektaMuz.toFixed(2)}dB,`;
 
 // ── сведение ──────────────────────────────────────────────────────

@@ -21,6 +21,12 @@ const PROGI = {
   skok: 30,          // выше — видимый рывок
   ciszaDb: -50,      // ниже — дырка в дорожке
   ciszaSek: 0.12,
+  // Насколько секунда может быть тише остального ролика, прежде чем это
+  // слышно как обрыв. Порог −50 дБ ловит только цифровую тишину, а Захар
+  // услышал провал на −38 дБ при остальном ролике на −18: формально звук
+  // есть, на телефоне его нет. «Провалов нет» тогда значило только, что
+  // проверка искала не то.
+  spadekDb: 13,
   lufsMin: -17,
   lufsMax: -11,
   dlugoscMin: 8,
@@ -63,6 +69,27 @@ async function dziury(plik) {
     { maxBuffer: 32 * 1024 * 1024 }
   );
   return [...stderr.matchAll(/silence_start:\s*([0-9.]+)/g)].map((m) => +m[1]);
+}
+
+// Посекундный ряд громкости всей дорожки. Нужен, чтобы увидеть яму внутри
+// ролика: одна тихая секунда в середине слышна как обрыв, а по средней и по
+// silencedetect она невидима.
+async function rzadGlosnosci(plik) {
+  try {
+    const { stdout, stderr } = await execFileAsync(
+      'ffmpeg',
+      ['-v', 'info', '-i', plik, '-af',
+        'aresample=48000,asetnsamples=n=48000,astats=metadata=1:reset=1,' +
+          'ametadata=print:key=lavfi.astats.Overall.RMS_level:file=-',
+        '-f', 'null', '-'],
+      { maxBuffer: 32 * 1024 * 1024 }
+    );
+    return [...String(stdout || stderr).matchAll(/RMS_level=(-?[\d.]+|-inf)/g)]
+      .map((m) => (m[1] === '-inf' ? -90 : parseFloat(m[1])))
+      .filter((x) => Number.isFinite(x));
+  } catch {
+    return [];
+  }
 }
 
 async function glosnosc(plik) {
@@ -119,6 +146,23 @@ export async function sprawdzRolke(plik, opcje = {}) {
   // Провал в самом конце — это затухание, оно штатное.
   const realne = cisze.filter((t) => t < dlugosc - 1.6);
   for (const t of realne) uwagi.push(`провал звука на ${t.toFixed(2)} с`);
+
+  // Ямы внутри ролика. Сравниваем с медианой, а не со средней: средняя сама
+  // просядет, если яма длинная, и тогда яма перестанет быть ямой на бумаге.
+  // Последние полторы секунды не смотрим — там штатное затухание.
+  const rzad = await rzadGlosnosci(plik);
+  if (rzad.length > 4) {
+    const bezOgona = rzad.slice(0, Math.max(1, rzad.length - 2));
+    const sort = [...bezOgona].sort((a, b) => a - b);
+    const mediana = sort[Math.floor(sort.length / 2)];
+    bezOgona.forEach((v, i) => {
+      if (mediana - v >= PROGI.spadekDb) {
+        uwagi.push(
+          `провал звука на ${i}-й секунде: ${v.toFixed(1)} дБ против ${mediana.toFixed(1)} по ролику`
+        );
+      }
+    });
+  }
 
   const lufs = await glosnosc(plik);
   if (lufs != null && (lufs < PROGI.lufsMin || lufs > PROGI.lufsMax)) {

@@ -212,9 +212,19 @@ body { font-family:'Inter',sans-serif; background:transparent; }
   background:rgba(0,0,0,.16); box-shadow:inset 0 2px 5px rgba(0,0,0,.18); }
 .pasek-wype { position:absolute; left:0; top:22px; height:30px; border-radius:15px;
   background:#fff; box-shadow:0 6px 18px rgba(0,0,0,.28); }
-.pasek-opis { position:relative; font-family:'Archivo Black','Inter',sans-serif;
-  font-size:54px; letter-spacing:-2px; color:#fff; font-variant-numeric:tabular-nums;
-  text-shadow:0 7px 0 rgba(11,7,24,.34), 0 16px 34px rgba(0,0,0,.5); }
+/* Подпись шкалы лежит ПОВЕРХ белой полосы — единственное место в ролике,
+   где белый текст стоит на белом. Раньше его держала жёсткая тёмная обводка,
+   и когда я снял обводку по всему движку, здесь она была не украшением, а
+   единственным разделителем. Вышла каша: белые буквы, тёмная тень под ними
+   и белая полоса под тенью. Захар поймал сразу.
+
+   Чиню не возвратом обводки, а снятием самого конфликта: подпись получает
+   свою тёмную плашку и становится значком НА шкале, а не текстом, который
+   спорит с ней. Кегль меньше — строка больше не вылезает за полосу. */
+.pasek-opis { position:relative; z-index:2; font-family:'Archivo Black','Inter',sans-serif;
+  font-size:38px; letter-spacing:0; color:#fff; font-variant-numeric:tabular-nums;
+  background:rgba(11,7,24,.84); padding:7px 20px; border-radius:13px;
+  box-shadow:0 6px 18px rgba(0,0,0,.30); }
 
 /* Затемнение под подписью. Оно рисовалось, когда фон был тёмным, и там
    честно отделяло текст от картинки. На светлом полотне тот же приём
