@@ -315,20 +315,38 @@ console.log(`[grafika] фон: ${jestTlo ? path.basename(TLO) : 'нет, буд�
 // Полотно всё равно размывается до неузнаваемого узора, поэтому собственное
 // движение файла не несёт смысла. Медленный дрейф по синусу считается на
 // каждый из 50 кадров и потому плавен физически, а не приближённо.
-const tloKadr = path.join(OUT, 'grafika-tlo.png');
+// Частота полотна. Ролик идёт 50 к/с; если исходник 25, каждый его кадр
+// показывается ровно дважды и шаг ровный. Исходник 30 к/с в 50 не ложится
+// нацело — отсюда и был рваный шаг, из-за которого фон заморозили.
+//
+// Замораживать не нужно: достаточно ЗАМЕДЛИТЬ такой файл до 25 к/с, и шаг
+// снова становится ровным. Полотно и так медленное, замедление на нём не
+// читается, зато движение возвращается — Захар первым делом сказал, что
+// «фон не работает, там чисто фотка».
+let tempoTla = 1;
 if (jestTlo) {
-  await ffmpeg(['-ss', '1.5', '-i', TLO, '-frames:v', '1', '-y', tloKadr]);
+  try {
+    const { stdout } = await execFileAsync('ffprobe', [
+      '-v', 'error', '-select_streams', 'v', '-show_entries', 'stream=r_frame_rate',
+      '-of', 'csv=p=0', TLO,
+    ]);
+    const [licz, mian] = stdout.trim().split('/').map(Number);
+    const kls = mian ? licz / mian : licz;
+    if (kls > 0) tempoTla = +(kls / (FPS / 2)).toFixed(4);
+    console.log(`[grafika] полотно ${kls} к/с → замедляю в ${tempoTla} раза, шаг станет ровным`);
+  } catch {}
 }
 
 const wideo = path.join(OUT, 'grafika-nieme.mp4');
 await ffmpeg(
   jestTlo
     ? [
-        '-loop', '1', '-framerate', String(FPS), '-i', tloKadr,
+        '-stream_loop', '-1', '-i', TLO,
         '-framerate', String(FPS), '-i', path.join(katKlatek, 'f%05d.png'),
         '-filter_complex',
         // Полотно берём с запасом в 12%, чтобы дрейф не обнажал край кадра.
-        `[0:v]scale=${Math.round(W * 1.12)}:${Math.round(H * 1.12)}:force_original_aspect_ratio=increase,` +
+        `[0:v]setpts=${tempoTla}*PTS,fps=${FPS},` +
+          `scale=${Math.round(W * 1.12)}:${Math.round(H * 1.12)}:force_original_aspect_ratio=increase,` +
           `crop=${W}:${H}:'(iw-ow)/2+sin(n/${FPS * 9})*${Math.round(W * 0.045)}':` +
           `'(ih-oh)/2+cos(n/${FPS * 13})*${Math.round(H * 0.02)}',` +
           `gblur=sigma=${ROZMYCIE},eq=contrast=0.80:brightness=0.03:saturation=1.05[tlo];` +
@@ -498,6 +516,16 @@ if (BEZ_GLOSU) {
 await ffmpeg([
   '-i', wideo, '-i', glos.plik, ...WEJ_MUZYKA, '-i', stuki,
   '-f', 'lavfi', '-i', `anoisesrc=c=brown:a=0.02:r=48000:d=${total}`,
+  // Дорожка голоса ВТОРОЙ раз, отдельным входом. Она нужна боковой цепи как
+  // ключ, и раньше её брали через asplit из той же ветки, что идёт в микс.
+  //
+  // Замер показал, чем это кончается: последняя фраза «Napisz SESJA…»
+  // пропала из готового ролика, хотя в самой дорожке она есть и после всей
+  // обработки звучит на −18 дБ. Тот же микс, собранный у меня на машине из
+  // того же файла, фразу сохраняет. Разошлись только сборки ffmpeg — на
+  // сервере ветки asplit разбираются с разной скоростью, и данные теряются.
+  // Второй вход снимает вопрос целиком: ветки больше не связаны.
+  '-i', glos.plik,
   '-filter_complex',
   // Голос. Прежняя цепь сама делала его «искусственным», и слышно это было
   // ровно в трёх местах:
@@ -563,8 +591,8 @@ await ffmpeg([
     // только кончается голос, обрывается и подложка. Отсюда цифровая тишина
     // в хвосте каждого нашего ролика — не затухание, а обрыв. Замер: −50 dB
     // на последних двух секундах, у образца там ровные −18.
-    `[voice]asplit=2[v1][duckRaw];` +
-    `[duckRaw]apad=whole_dur=${total}[duck];` +
+    // Ключу обработка не нужна — он только говорит цепи, когда молчать.
+    `[5:a]apad=whole_dur=${total}[duck];` +
     // Приглушение подложки под голосом ослаблено с 11 к 1 до 6 к 1. При
     // прежней хватке подложка в паузах не успевала вернуться, и между
     // фразами получались те же провалы, только короткие.
@@ -575,7 +603,7 @@ await ffmpeg([
     // что выше −30 дБ, включая остаток дорожки между фразами. Речь у нас
     // идёт на −14,5 LUFS, ей порога 0,08 хватает с запасом.
     `[bed][duck]sidechaincompress=threshold=0.08:ratio=6:attack=12:release=350:makeup=1:level_sc=1[bedDuck];` +
-    `[v1][bedDuck][3:a][4:a]amix=inputs=4:normalize=0:duration=longest,` +
+    `[voice][bedDuck][3:a][4:a]amix=inputs=4:normalize=0:duration=longest,` +
     `alimiter=limit=0.9,aformat=channel_layouts=stereo[a]`,
   '-map', '0:v', '-map', '[a]',
   '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2',
