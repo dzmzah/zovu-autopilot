@@ -152,7 +152,9 @@ export async function sprawdzRolke(plik, opcje = {}) {
   // Последние полторы секунды не смотрим — там штатное затухание.
   const rzad = await rzadGlosnosci(plik);
   if (rzad.length > 4) {
-    const bezOgona = rzad.slice(0, Math.max(1, rzad.length - 2));
+    // Хвост не смотрим: там штатное затухание, и оно обязано быть тише.
+    // Полторы секунды — столько же, сколько отбрасывает проверка тишины.
+    const bezOgona = rzad.slice(0, Math.max(1, Math.floor(dlugosc - 1.5)));
     const sort = [...bezOgona].sort((a, b) => a - b);
     const mediana = sort[Math.floor(sort.length / 2)];
     bezOgona.forEach((v, i) => {

@@ -7,7 +7,7 @@
 // Сами сценарии лежат в `scenariusze-grafika.mjs`. Здесь только сборка: до
 // 18.08 сценарий был вшит в этот файл, и второй ролик требовал его переписать.
 //
-import { mkdir, writeFile, readFile, rm, readdir } from 'node:fs/promises';
+import { mkdir, writeFile, readFile, rm, readdir, copyFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
@@ -550,7 +550,7 @@ await ffmpeg([
     // децибел под медианой на телефоне это тишина, сколько бы формально там
     // ни было сигнала.
     `[2:a]atrim=0:${total},asetpts=N/SR/TB,${POPRAW}` +
-    `volume='0.30+0.12*min(1,max(0,(t-${Math.max(0, koniecMowy + 0.1).toFixed(2)})/1.0))':eval=frame,` +
+    `volume='0.30+0.12*min(1,max(0,(t-${Math.max(0, koniecMowy).toFixed(2)})/0.45))':eval=frame,` +
     `afade=t=in:st=0:d=0.12,` +
     `afade=t=out:st=${Math.max(0, total - 0.12).toFixed(2)}:d=0.12[bed];` +
     // Ключ боковой цепи ОБЯЗАН тянуться до конца ролика. `sidechaincompress`
@@ -565,7 +565,11 @@ await ffmpeg([
     // фразами получались те же провалы, только короткие.
     // Под голосом подложка отступает уверенно (6 к 1), а возвращается за
     // четверть секунды — так речь всегда сверху, но в паузах тишины нет.
-    `[bed][duck]sidechaincompress=threshold=0.03:ratio=6:attack=12:release=250:makeup=1:level_sc=1[bedDuck];` +
+    // Порог 0,08, а не 0,03. Замер синтетической проверкой: при 0,03 цепь
+    // держит подложку прижатой и там, где речи уже нет, — душит её всё,
+    // что выше −30 дБ, включая остаток дорожки между фразами. Речь у нас
+    // идёт на −14,5 LUFS, ей порога 0,08 хватает с запасом.
+    `[bed][duck]sidechaincompress=threshold=0.08:ratio=6:attack=12:release=350:makeup=1:level_sc=1[bedDuck];` +
     `[v1][bedDuck][3:a][4:a]amix=inputs=4:normalize=0:duration=longest,` +
     `alimiter=limit=0.9,aformat=channel_layouts=stereo[a]`,
   '-map', '0:v', '-map', '[a]',
@@ -619,3 +623,11 @@ await writeFile(
   'utf8'
 );
 console.log('[grafika] описание и паспорт записаны');
+
+// Дорожку голоса кладём рядом с роликом. Без неё разбор «почему в паузе
+// тихо» превращается в гадание: по готовому миксу нельзя отличить «голос
+// молчит» от «подложку прижали».
+try {
+  await copyFile(glos.plik, gotowy.replace(/.mp4$/, '-glos.mp3'));
+  console.log('[grafika] дорожка голоса сохранена рядом');
+} catch {}
