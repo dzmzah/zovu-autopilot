@@ -65,13 +65,25 @@ jobs:
         run: |
           git config user.name  "zovu-autopilot"
           git config user.email "autopilot@zovu.pl"
-          git add rolki/kolejka.json || true
-          git diff --cached --quiet && echo "очередь не менялась" && exit 0
-          git commit -m "rolka: stan kolejki [skip ci]"
-          # догоняем main: параллельный прогон автопилота мог уже что-то влить
+          git diff --quiet -- rolki/kolejka.json && echo "очередь не менялась" && exit 0
+          # Наша версия очереди уходит в сторону, дальше мы её ВЛИВАЕМ в свежий
+          # main, а не пытаемся наложить как патч. Текстового конфликта здесь
+          # быть не должно: наше изменение — не строки, а смысл «позиция
+          # выложена тогда-то». Раньше `git pull --rebase` падал на конфликте и
+          # оставлял репозиторий в неразрешённом состоянии, из которого цикл
+          # уже не выбирался; отметка не попадала в main, и следующий прогон
+          # выкладывал тот же рилс повторно.
+          cp rolki/kolejka.json /tmp/nasza-kolejka.json
           for i in 1 2 3; do
-            git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0
+            git fetch -q origin main
+            git reset -q --hard origin/main
+            node scal-kolejke.mjs /tmp/nasza-kolejka.json
+            git add rolki/kolejka.json
+            if git diff --cached --quiet; then echo "нечего вливать"; exit 0; fi
+            git commit -q -m "rolka: stan kolejki [skip ci]"
+            git push -q origin HEAD:main && exit 0
+            echo "не влилось с $i раза, догоняю main"
             sleep 5
           done
-          echo "::error::Не записал состояние очереди — следующий прогон может выложить рилс повторно"
+          echo "::error::Не записал состояние очереди — проверь ленту на повтор"
           exit 1

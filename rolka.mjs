@@ -118,6 +118,41 @@ async function naFacebook(url, tekst) {
   return wynik.id;
 }
 
+// Первая строка текста — то, чем ролик узнаётся среди уже вышедших.
+// Сравнивать весь текст нельзя: хэштеги подставляются генератором и у
+// повтора могут отличаться, а хук — нет.
+function odcisk(tekst) {
+  return String(tekst || '')
+    .split(String.fromCharCode(10))[0]
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 70);
+}
+
+// Что уже вышло в Instagram за последние часы. Ошибку запроса глушим:
+// защита от дубля не должна ронять саму выкладку — иначе одна неудачная
+// проверка оставит ленту пустой на день.
+async function ostatnieWpisy(token) {
+  if (!token) return [];
+  try {
+    const r = await fetch(
+      `${IG_API}/me/media?fields=id,caption,timestamp&limit=8&access_token=${encodeURIComponent(token)}`
+    );
+    const j = await r.json();
+    if (!Array.isArray(j?.data)) {
+      console.warn('[rolka] не смог прочитать последние публикации — иду дальше');
+      return [];
+    }
+    return j.data;
+  } catch (e) {
+    console.warn(`[rolka] проверка повторов недоступна: ${e.message}`);
+    return [];
+  }
+}
+
+const OKNO_POWTORU_H = 12;
+
 const kolejka = JSON.parse(await readFile(KOLEJKA, 'utf8'));
 const teraz = Date.now();
 let zmiany = false;
@@ -148,6 +183,29 @@ for (const poz of kolejka) {
     console.log('[rolka] сухой прогон, ничего не публикую');
     console.log('[rolka] текст:\n' + poz.tekst);
     continue;
+  }
+
+  // Проверка на повтор — прямо перед выкладкой, по площадке.
+  if (!DRY) {
+    const token = await igToken();
+    const wpisy = await ostatnieWpisy(token);
+    const mój = odcisk(poz.tekst);
+    const bliznak = wpisy.find((w) => {
+      if (!w.caption || odcisk(w.caption) !== mój) return false;
+      const wiek = (Date.now() - new Date(w.timestamp).getTime()) / 36e5;
+      return Number.isFinite(wiek) && wiek >= 0 && wiek < OKNO_POWTORU_H;
+    });
+    if (bliznak) {
+      const wiek = ((Date.now() - new Date(bliznak.timestamp).getTime()) / 36e5).toFixed(1);
+      console.log(
+        `::warning::[rolka] ${poz.plik} уже вышел ${wiek} ч назад (id ${bliznak.id}) — ` +
+          'второй раз не выкладываю'
+      );
+      poz.opublikowano = bliznak.timestamp || new Date().toISOString();
+      poz.wynik = { instagram: bliznak.id, powtorka: true };
+      zmiany = true;
+      continue;
+    }
   }
 
   const wynik = {};
