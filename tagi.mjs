@@ -125,7 +125,12 @@ export function hasztagi({ temat = '', forma = '', nr = 0, branza = '', marka = 
   const gotowe = [...new Set(zestaw.map((t) => String(t).replace(/^#/, '').toLowerCase()))]
     .filter((t) => t && !ZAKAZANE.has(t));
 
-  return gotowe.map((t) => `#${t}`).join(' ');
+  // Ровно пять. Instagram сам ограничил пост пятью тегами, а всё сверх того
+  // мы отправляли в никуда. Порядок в наборе не случайный: сначала местные
+  // (там мы реально можем быть заметны при охвате в две сотни), потом
+  // нишевые, потом тематические, и бренд последним — если место осталось.
+  const PIEC = 5;
+  return gotowe.slice(0, PIEC).map((t) => `#${t}`).join(' ');
 }
 
 /**
