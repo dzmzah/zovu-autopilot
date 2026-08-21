@@ -1048,6 +1048,94 @@ window.setT = (t) => {
 </script></body></html>`;
 }
 
+// ── стикеры поверх кадра ──────────────────────────────────────────
+// Предмет выезжает от края, садится с перелётом, живёт и уходит обратно.
+//
+// Живой кадр остаётся главным, поэтому стикер: (1) идёт в верхнюю треть,
+// где нет ни подписи, ни обычно лица; (2) прижат к краю и частично за него
+// уходит — вписанный целиком читается как иконка в списке, а обрезанный
+// как предмет в кадре; (3) уходит, а не копится.
+//
+// Движение то же, что у титра: влёт с поворотом, плавание двумя синусами,
+// контактная тень, которая дышит вместе с предметом. Одна грамматика на
+// оба типа роликов — иначе лента распадается на два разных мира.
+export function naklejkiHtml(naklejki, total) {
+  const divy = naklejki
+    .map(
+      (n, i) => `<div class="nk nk-${n.strona}" data-i="${i}">
+  <div class="cien"></div>
+  <img src="${n.src}" alt="">
+</div>`
+    )
+    .join('\n');
+
+  const meta = JSON.stringify(
+    naklejki.map((n) => ({ a: +n.start, b: +n.start + +n.dlugosc, s: n.strona }))
+  );
+
+  return `<!doctype html><html><head><meta charset="utf-8">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { width:${W}px; height:${H}px; }
+body { background:transparent; overflow:hidden; perspective:1700px; }
+
+.nk { position:absolute; top:430px; width:420px; height:420px; opacity:0;
+  will-change:transform,opacity; }
+.nk-prawo { right:-60px; }
+.nk-lewo { left:-60px; }
+.nk img { width:100%; height:100%; object-fit:contain; display:block;
+  filter:drop-shadow(0 18px 34px rgba(0,0,0,.42)); }
+/* Контактная тень отдельным слоем: у предмета над кадром её взять неоткуда,
+   а без неё он выглядит наклеенным на видео, а не лежащим в нём. */
+.cien { position:absolute; left:14%; right:14%; bottom:-6px; height:52px;
+  border-radius:50%; opacity:0; will-change:transform,opacity,filter;
+  background:radial-gradient(ellipse at center, rgba(5,3,14,.55) 0%,
+    rgba(5,3,14,.26) 48%, rgba(5,3,14,0) 74%); }
+</style></head><body>
+${divy}
+<script>
+const N = ${meta};
+const el = [...document.querySelectorAll('.nk')];
+const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
+const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+const easeIn = (x) => x * x * x;
+const fala = (t, okres, faza) => Math.sin((t / okres) * 6.2831853 + faza);
+
+window.__fit = () => {};
+window.setT = (t) => {
+  el.forEach((e, i) => {
+    const { a, b, s } = N[i];
+    if (t < a - 0.02 || t > b + 0.02) { e.style.opacity = 0; return; }
+    const l = t - a;
+    const dur = b - a;
+    const wjazd = easeOut(clamp01(l / 0.34));
+    const wyjazd = easeIn(clamp01((l - (dur - 0.30)) / 0.30));
+    e.style.opacity = Math.min(1, wjazd * 1.6) * (1 - wyjazd);
+
+    // Знак стороны: справа предмет приезжает справа и туда же уходит.
+    const znak = s === 'prawo' ? 1 : -1;
+    const poza = (1 - wjazd) * 520 + wyjazd * 520;
+    const zyje = clamp01((l - 0.4) / 0.5) * (1 - wyjazd);
+    const faza = i * 2.3;
+    const fy = fala(t, 3.3, faza) * 7 * zyje;
+    const rz = fala(t, 4.7, faza + 0.6) * 2.2 * zyje;
+    const rx = (1 - wjazd) * -18 + fala(t, 6.1, faza + 1.4) * 2.4 * zyje;
+    e.style.transform =
+      'translate3d(' + (znak * poza).toFixed(1) + 'px,' + fy.toFixed(2) + 'px,0)' +
+      ' rotateX(' + rx.toFixed(2) + 'deg) rotateZ(' + rz.toFixed(2) + 'deg)';
+
+    const cien = e.querySelector('.cien');
+    if (cien) {
+      const wzlot = -fy / 7;
+      cien.style.opacity = (Math.min(wjazd, 1 - wyjazd) * (0.5 - 0.15 * wzlot)).toFixed(3);
+      cien.style.transform = 'scale(' + (0.9 + 0.1 * wjazd + 0.08 * wzlot).toFixed(3) + ')';
+      cien.style.filter = 'blur(' + (14 + 7 * wzlot).toFixed(1) + 'px)';
+    }
+  });
+};
+</script></body></html>`;
+}
+
 // ── покадровый снимок html ────────────────────────────────────────
 export async function renderHtml(html, seconds, outDir, transparent) {
   await mkdir(outDir, { recursive: true });
@@ -1559,6 +1647,25 @@ export async function zbuduj(plan) {
       true
     );
     warstwy.push(path.join(tytDir, 'f%05d.png'));
+  }
+
+  // Стикеры. Картинки читаются с диска и вшиваются в страницу: браузер
+  // съёмки ходит по file://, и относительные пути из временной папки он
+  // не увидит.
+  const naklejki = [];
+  for (const n of plan.naklejki || []) {
+    try {
+      const b64 = await readFile(path.join(DIR, 'grafika', 'obiekty', n.plik));
+      naklejki.push({ ...n, src: `data:image/png;base64,${b64.toString('base64')}` });
+    } catch {
+      console.warn(`[awatar] нет предмета ${n.plik} — стикер пропускаю`);
+    }
+  }
+  if (naklejki.length) {
+    const nkDir = path.join(tmp, 'naklejki');
+    await renderHtml(naklejkiHtml(naklejki, totalHero), totalHero, nkDir, true);
+    warstwy.push(path.join(nkDir, 'f%05d.png'));
+    console.log(`[awatar] стикеров: ${naklejki.length}`);
   }
 
   const wejscia = ['-i', heroCat];

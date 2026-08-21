@@ -27,6 +27,7 @@ import { zbuduj } from './awatar-reel.mjs';
 import { searchStock, fetchClip } from './stock.mjs';
 import { sprawdzRolke } from './kontrola.mjs';
 import { podmienHasztagi } from './tagi.mjs';
+import { rozlozNaklejki } from './naklejki.mjs';
 
 const DIR = import.meta.dirname;
 const OUT = path.join(DIR, 'out');
@@ -690,6 +691,10 @@ const plan = {
   tytuly,
   stemple,
   wstawki,
+  // Стикеры поверх кадра. Не больше двух на ролик и только там, где для
+  // фразы нашёлся предмет по смыслу — грань между «разбавили» и «мультик
+  // поверх съёмки» проходит именно здесь.
+  naklejki: rozlozNaklejki(scen.czesci, glos.frazy, 2),
   ogon: {
     marka: true,
     dlugosc: 3.8,
