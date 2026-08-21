@@ -319,7 +319,7 @@
       "fb"
     ],
     "tekst": "Pytanie „ile kosztuje strona?\" jest jak „ile kosztuje samochód\".\n\nOdpowiedź zależy od trzech rzeczy, a nie od liczby podstron. Rozbieramy je w 20 sekund.\n\nChcesz wycenę pod swój przypadek? Napisz WYCENA — odpiszemy z widełkami i bez rozmowy sprzedażowej.\n\nzovu.pl\n\n#katowice #gornyslask #jdg #rzemioslo #kosztymarketingu #oplacalnosc #zovu",
-    "opublikowano": null,
+    "opublikowano": "2026-08-21T09:47:07.731Z",
     "zrodlo": "auto-ile-kosztuje-strona.mp4",
     "scenariusz": "ile-kosztuje-strona",
     "forma": "lista",
@@ -334,7 +334,11 @@
       5,
       5.7,
       4.9
-    ]
+    ],
+    "wynik": {
+      "instagram": "18102025118265224",
+      "facebook": "1437209758462731"
+    }
   },
   {
     "plik": "auto-2026-08-20-1.mp4",
