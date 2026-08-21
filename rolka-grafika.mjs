@@ -445,6 +445,26 @@ if (OD_KANDYDAT > 0) {
 }
 const WEJ_MUZYKA = muzykaOd > 0 ? ['-ss', String(muzykaOd), '-i', muzyka] : ['-i', muzyka];
 
+// Выравнивание подложки к общей громкости. Множители 0.16-0.18 подбирались
+// на слух на прежней пятёрке треков; в библиотеке разброс 10 дБ, и без
+// поправки один и тот же множитель звучит на разных треках по-разному.
+const korektaMuz = await (async () => {
+  try {
+    const { stderr } = await execFileAsync('ffmpeg', [
+      '-v', 'info', '-ss', String(muzykaOd), '-t', String(total), '-i', muzyka,
+      '-af', 'volumedetect', '-f', 'null', '-',
+    ]);
+    const m = String(stderr).match(/mean_volume:\s*(-?[\d.]+) dB/);
+    if (!m) return 0;
+    const k = Math.max(-9, Math.min(9, -13 - parseFloat(m[1])));
+    console.log(`[grafika] подложка ${m[1]} дБ → правка ${k > 0 ? '+' : ''}${k.toFixed(1)} дБ`);
+    return k;
+  } catch {
+    return 0;
+  }
+})();
+const POPRAW = `volume=${korektaMuz.toFixed(2)}dB,`;
+
 // ── сведение ──────────────────────────────────────────────────────
 // Голос жмём плотнее, чем раньше. Замер по роликам Захара: у него дорожка
 // идёт с динамикой LRA 2.5-3.5, у нас было 4.8. Именно эта плотность и
@@ -459,7 +479,7 @@ if (BEZ_GLOSU) {
   await ffmpeg([
     '-i', wideo, ...WEJ_MUZYKA, '-i', stuki,
     '-filter_complex',
-    `[1:a]atrim=0:${total},asetpts=N/SR/TB,volume=0.16[bed];` +
+    `[1:a]atrim=0:${total},asetpts=N/SR/TB,${POPRAW}volume=0.16[bed];` +
       `[bed][2:a]amix=inputs=2:normalize=0:duration=longest,alimiter=limit=0.95,` +
       `aformat=channel_layouts=stereo[a]`,
     '-map', '0:v', '-map', '[a]',
@@ -507,7 +527,7 @@ await ffmpeg([
     // прямо: музыка громко. Под неё уходила речь, потому что кроме музыки в
     // миксе есть ещё щелчки на каждое движение, а их в ролике два десятка.
     // Подложка держит тон и заполняет паузы, но спорить с голосом не должна.
-    `[2:a]atrim=0:${total},asetpts=N/SR/TB,volume=0.18,afade=t=in:st=0:d=0.12,` +
+    `[2:a]atrim=0:${total},asetpts=N/SR/TB,${POPRAW}volume=0.18,afade=t=in:st=0:d=0.12,` +
     `afade=t=out:st=${Math.max(0, total - 0.12).toFixed(2)}:d=0.12[bed];` +
     // Ключ боковой цепи ОБЯЗАН тянуться до конца ролика. `sidechaincompress`
     // выдаёт ровно столько, сколько идёт КОРОЧЕ из двух его входов: как

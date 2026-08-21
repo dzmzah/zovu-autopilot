@@ -1952,6 +1952,20 @@ export async function zbuduj(plan) {
       }
     }
 
+    // Выравнивание подложки. Множитель ниже — доля от исходного файла, а
+    // файлы в библиотеке различаются на 10 дБ. Без этой поправки «тихая
+    // подложка» на одном треке почти не слышна, на другом лезет вперёд.
+    // Правку зажимаем в ±9 дБ: если трек настолько выбивается, лучше пусть
+    // будет тише задуманного, чем вытянутый шум.
+    const zmierzonaMuz = await sredniaGlosnosc(music, odMuzyki, totalWideo);
+    const korektaMuz =
+      zmierzonaMuz === null ? 0 : Math.max(-9, Math.min(9, -13 - zmierzonaMuz));
+    if (korektaMuz) {
+      console.log(
+        `[awatar] подложка ${zmierzonaMuz.toFixed(1)} дБ → правка ${korektaMuz > 0 ? '+' : ''}${korektaMuz.toFixed(1)} дБ`
+      );
+    }
+
     const wejsciaA = ['-i', wynikV, '-ss', odMuzyki.toFixed(3), '-i', music,
       '-f', 'lavfi', '-i', `anoisesrc=c=brown:a=${powietrzeTlo}:r=48000:d=${(totalWideo + 1).toFixed(2)}`];
     let idx = 3;
@@ -1978,7 +1992,7 @@ export async function zbuduj(plan) {
       // секунды. Раньше ramp стартовал за 0.25 с до конца речи и за 0.7 с
       // выходил на полную — музыка наезжала на последнее слово, и финал
       // читался как обрыв.
-      `[1:a]atrim=0:${totalWideo.toFixed(2)},asetpts=N/SR/TB,` +
+      `[1:a]atrim=0:${totalWideo.toFixed(2)},asetpts=N/SR/TB,volume=${korektaMuz.toFixed(2)}dB,` +
         `volume='${cichy}+(${glosny}-${cichy})*min(1,max(0,(t-${(totalHero + 0.1).toFixed(2)})/1.5))':eval=frame,` +
         // Вплывание было полсекунды — ровно столько, сколько ролик молчит
         // перед первой фразой. Зритель попадал в кадр, где нет ни текста, ни
