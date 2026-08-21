@@ -640,8 +640,9 @@ const LISTA = {
   klucz: 'lista',
   nazwa: 'Pięć rzeczy przed sesją zdjęciową',
   frazy: [
-    { rola: 'hak', tekst: 'Umawiasz sesję. Połowa godziny pójdzie na czekanie.', pauza: 0.34 },
-    { rola: 'hak', tekst: 'Chyba że przygotujesz pięć rzeczy.', pauza: 0.42 },
+    // Один хук, а не два: проба вышла 29 секунд при планке 20-24. Точка
+    // внутри фразы держит темп не хуже разрыва на две реплики.
+    { rola: 'hak', tekst: 'Umawiasz sesję. Połowa godziny pójdzie na czekanie. Chyba że przygotujesz pięć rzeczy.', pauza: 0.42 },
     { rola: 'tresc', tekst: 'Lista ujęć. Na kartce, nie w głowie.', pauza: 0.30 },
     { rola: 'tresc', tekst: 'Produkty odpakowane i czyste.', pauza: 0.30 },
     { rola: 'tresc', tekst: 'Jedno tło. Nie cztery.', pauza: 0.30 },
@@ -655,27 +656,29 @@ const LISTA = {
     // нечему. Камера в конце отъезжает, чтобы список читался целиком.
     const scena = [
       { obiekt: 'stopwatch_3d', x: 540, y: 430, skala: 620, obrot: -6, skad: 'gora',
-        start: t(0, 0.05), koniec: t(1, 0.60), dokad: 'gora' },
+        start: t(0, 0.05), koniec: t(0, 0.90), dokad: 'gora' },
       { obiekt: 'check_mark_button_3d', x: 880, y: 380, skala: 300, obrot: 8, skad: 'prawo',
-        start: t(7, 0.05), koniec: t(8, 0.10), dokad: 'prawo' },
+        start: t(6, 0.05), koniec: t(7, 0.10), dokad: 'prawo' },
     ];
 
     // Каждая строка приходит под свою фразу и ОСТАЁТСЯ до конца ролика.
     const wzor = [
-      { tekst: '1. LISTA UJĘĆ', y: 620, maly: true, a: t(2, 0.10), b: total },
-      { tekst: '2. PRODUKTY GOTOWE', y: 760, maly: true, a: t(3, 0.10), b: total },
-      { tekst: '3. JEDNO TŁO', y: 900, maly: true, a: t(4, 0.10), b: total },
-      { tekst: '4. BEZ WIELKICH LOGO', y: 1040, maly: true, a: t(5, 0.10), b: total },
-      { tekst: '5. DECYDENT NA MIEJSCU', y: 1180, maly: true, a: t(6, 0.10), b: total },
+      { tekst: '1. LISTA UJĘĆ', y: 620, maly: true, a: t(1, 0.10), b: total },
+      { tekst: '2. PRODUKTY GOTOWE', y: 760, maly: true, a: t(2, 0.10), b: total },
+      { tekst: '3. JEDNO TŁO', y: 900, maly: true, a: t(3, 0.10), b: total },
+      { tekst: '4. BEZ WIELKICH LOGO', y: 1040, maly: true, a: t(4, 0.10), b: total },
+      // Короче остальных нарочно: в две строки пункт ломает ровный шаг
+      // списка, а список тут — главное, что зритель забирает себе.
+      { tekst: '5. DECYDENT OBECNY', y: 1180, maly: true, a: t(5, 0.10), b: total },
     ];
 
     const kamera = [
       { t: 0, zoom: 1.00, x: 0, y: 0 },
-      { t: t(1), zoom: 1.06, x: 0, y: -14 },
-      { t: t(2), zoom: 1.04, x: 0, y: 10 },
-      { t: t(4), zoom: 1.02, x: 0, y: 4 },
-      { t: t(6, 0.40), zoom: 1.00, x: 0, y: 0 },
-      { t: t(7, 0.20), zoom: 1.03, x: 0, y: -8 },
+      { t: t(0, 0.80), zoom: 1.06, x: 0, y: -14 },
+      { t: t(1), zoom: 1.04, x: 0, y: 10 },
+      { t: t(3), zoom: 1.02, x: 0, y: 4 },
+      { t: t(5, 0.40), zoom: 1.00, x: 0, y: 0 },
+      { t: t(6, 0.20), zoom: 1.03, x: 0, y: -8 },
       { t: total, zoom: 1.00, x: 0, y: 0 },
     ];
 
