@@ -139,14 +139,14 @@ const ODPOWIEDZ = {
     //
     // Поэтому здесь у КАЖДОЙ фразы есть внутренняя точка. Проверка — замер,
     // а не слух.
-    { rola: 'hak', tekst: 'Klient napisał wieczorem. Pyta o cenę.', pauza: 0.40 },
-    { rola: 'hak', tekst: 'Ty odpowiadasz jutro. Dopiero rano.', pauza: 0.38 },
+    { rola: 'hak', tekst: 'Klient pyta o cenę.', pauza: 0.40 },
+    { rola: 'hak', tekst: 'Napisał wieczorem. Ty odpowiadasz rano.', pauza: 0.38 },
     { rola: 'tresc', tekst: 'On w tym czasie pyta trzy inne firmy.', pauza: 0.32 },
     { rola: 'tresc', tekst: 'Żadna z nich nie czeka. Ani jedna.', pauza: 0.36 },
     { rola: 'tresc', tekst: 'Wybiera pierwszą odpowiedź. Nie najlepszą.', pauza: 0.38 },
     { rola: 'zaplata', tekst: 'Twoja oferta była lepsza. Naprawdę.', pauza: 0.32 },
     { rola: 'zaplata', tekst: 'Tylko przyszła za późno. O jeden dzień.', pauza: 0.40 },
-    { rola: 'cta', tekst: 'Napisz SZYBKO, a ustawimy odpowiedzi.', pauza: 0.20 },
+    { rola: 'cta', tekst: 'Wyślij to wspólnikowi, jeśli odpisujecie na zmianę.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     const scena = [
@@ -344,8 +344,8 @@ const SESJA = {
     // Длина каждой фразы 9-14 слогов и точка внутри хука. Короткую фразу
     // ElevenLabs гонит: замер давал 6,2 слог/с при планке 5,6, и растяжкой
     // это не лечится — от неё слышно ИИ. Лечится длиной и настоящей паузой.
-    { rola: 'hak', tekst: 'Godzina zdjęć. I masz spokój na miesiąc.', pauza: 0.40 },
-    { rola: 'hak', tekst: 'Brzmi dziwnie. Ale to zwykły rachunek.', pauza: 0.38 },
+    { rola: 'hak', tekst: 'Godzina zdjęć.', pauza: 0.40 },
+    { rola: 'hak', tekst: 'I masz spokój na miesiąc. To zwykły rachunek.', pauza: 0.38 },
     { rola: 'tresc', tekst: 'Jedna sesja to dwanaście kadrów.', pauza: 0.32 },
     { rola: 'tresc', tekst: 'Wystawiasz trzy kadry na tydzień.', pauza: 0.34 },
     { rola: 'tresc', tekst: 'Cztery tygodnie z jednej godziny.', pauza: 0.38 },
@@ -445,8 +445,8 @@ const PROFIL = {
   klucz: 'profil',
   nazwa: 'Pierwsze sześć kadrów profilu',
   frazy: [
-    { rola: 'hak', tekst: 'Ktoś wchodzi na twój profil. Pierwszy raz.', pauza: 0.40 },
-    { rola: 'hak', tekst: 'Widzi sześć kadrów i tyle. Nic więcej.', pauza: 0.38 },
+    { rola: 'hak', tekst: 'Ktoś wchodzi na twój profil.', pauza: 0.40 },
+    { rola: 'hak', tekst: 'Pierwszy raz. Widzi sześć kadrów i nic więcej.', pauza: 0.38 },
     { rola: 'tresc', tekst: 'Trzy w rzędzie, dwa rzędy. Tyle widać.', pauza: 0.34 },
     { rola: 'tresc', tekst: 'Sześć zdjęć decyduje o tobie.', pauza: 0.34 },
     { rola: 'tresc', tekst: 'Zobacz swoje. Co z nich rozumiesz?', pauza: 0.38 },
@@ -542,8 +542,8 @@ const KOMENTARZE = {
   klucz: 'komentarze',
   nazwa: 'Kwadrans dziennie w komentarzach',
   frazy: [
-    { rola: 'hak', tekst: 'Kwadrans dziennie. Tylko na komentarze.', pauza: 0.40 },
-    { rola: 'hak', tekst: 'Zobacz, ile to daje w tygodniu.', pauza: 0.38 },
+    { rola: 'hak', tekst: 'Kwadrans dziennie.', pauza: 0.40 },
+    { rola: 'hak', tekst: 'Tylko na komentarze. Zobacz, ile daje w tygodniu.', pauza: 0.38 },
     { rola: 'tresc', tekst: 'Piętnaście minut razy siedem dni.', pauza: 0.34 },
     { rola: 'tresc', tekst: 'To sto pięć minut rozmów z klientami.', pauza: 0.34 },
     { rola: 'tresc', tekst: 'Prawdziwych rozmów. Nie samych lajków.', pauza: 0.38 },
@@ -642,14 +642,14 @@ const LISTA = {
   frazy: [
     // Один хук, а не два: проба вышла 29 секунд при планке 20-24. Точка
     // внутри фразы держит темп не хуже разрыва на две реплики.
-    { rola: 'hak', tekst: 'Sesja zdjęciowa. Pół godziny idzie na czekanie. Chyba że przygotujesz pięć rzeczy.', pauza: 0.42 },
-    { rola: 'tresc', tekst: 'Lista ujęć na kartce.', pauza: 0.30 },
+    { rola: 'hak', tekst: 'Sesja? Pół godziny czekania.', pauza: 0.42 },
+    { rola: 'tresc', tekst: 'Chyba że przygotujesz pięć rzeczy. Lista ujęć na kartce.', pauza: 0.30 },
     { rola: 'tresc', tekst: 'Produkty odpakowane i czyste.', pauza: 0.30 },
     { rola: 'tresc', tekst: 'Jedno tło. Nie cztery.', pauza: 0.30 },
     { rola: 'tresc', tekst: 'Ubrania bez wielkich logo.', pauza: 0.30 },
     { rola: 'tresc', tekst: 'Decydent na miejscu.', pauza: 0.36 },
     { rola: 'zaplata', tekst: 'Bez tego fotograf czeka, a płacisz ty.', pauza: 0.34 },
-    { rola: 'cta', tekst: 'Zapisz tę piątkę przed sesją.', pauza: 0.20 },
+    { rola: 'cta', tekst: 'Wyślij to komuś, kto właśnie umawia sesję.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     // Предметов мало и они мелкие: главное здесь — список, и спорить с ним

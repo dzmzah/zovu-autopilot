@@ -622,18 +622,20 @@ body { background:transparent; overflow:hidden; font-family:'Inter',sans-serif; 
 .fraza { position:absolute; left:48px; right:48px; top:1230px; text-align:center;
   font-weight:900; font-size:128px; line-height:1.06; letter-spacing:-3px;
   text-transform:uppercase; visibility:hidden; }
+/* Ни обводки, ни плашки. Разобрано 21 вертикальное видео из портфолио
+   Захара: обводки нет НИ В ОДНОМ, текст держит жёсткая тень со смещением
+   вниз, а цветом помечено смысловое слово. Тень здесь плотнее, чем в
+   рисованных роликах: там полотно ровное и светлое, а тут под текстом
+   живой кадр, который может быть каким угодно. */
 .s { display:inline-block; margin:0 0.10em; padding:2px 16px 8px; color:#fff; opacity:0;
   border-radius:18px;
-  -webkit-text-stroke:11px #0b0718; paint-order:stroke fill;
-  text-shadow:0 8px 26px rgba(0,0,0,.55);
+  text-shadow:0 7px 0 rgba(11,7,24,.38), 0 16px 42px rgba(0,0,0,.70);
   transform-origin:center bottom; }
-/* Произносимое слово — не просто другой цвет, а ПЛАШКА под ним. Цвет текста
-   глаз ловит медленнее, чем цветной прямоугольник. */
-.s.gra { color:#fff; background:linear-gradient(100deg, ${akcent} 0%, #7c3aed 100%);
-  box-shadow:0 10px 30px rgba(124,58,237,.45); }
-/* Служебному слову — только цвет, без плашки: иначе она вспыхивает почти
-   на каждом слове и ритм превращается в мигание. */
-.s.drobne.gra { background:none; box-shadow:none; color:${akcent}; }
+/* Произносимое слово — ЦВЕТОМ. Плашка под ним меняла вес строки на каждом
+   слове и читалась как автосубтитры телефона; Захар забраковал её на
+   рисованных роликах, и здесь она стояла та же. */
+.s.gra { color:#ffd23f; }
+.s.drobne.gra { color:#ffd23f; }
 </style></head><body>
 ${divy}
 <script>
@@ -900,8 +902,7 @@ body { background:transparent; overflow:hidden; font-family:'Inter',sans-serif; 
 .plyta.hak { top:430px; text-align:center; }
 .plyta.hak .linia { font-weight:900; font-size:164px; line-height:1.02; letter-spacing:-4px;
   text-transform:uppercase; color:#fff; white-space:nowrap;
-  -webkit-text-stroke:11px #0b0718; paint-order:stroke fill;
-  text-shadow:0 12px 0 rgba(11,7,24,.5), 0 22px 48px rgba(0,0,0,.6); }
+  text-shadow:0 12px 0 rgba(11,7,24,.45), 0 24px 52px rgba(0,0,0,.62); }
 .plyta.hak .linia.chip { display:inline-block; padding:6px 26px 14px; border-radius:18px;
   background:linear-gradient(100deg, ${akcent2} 0%, ${akcent} 100%);
   -webkit-text-stroke:0; text-shadow:0 8px 26px rgba(0,0,0,.45);
@@ -924,11 +925,9 @@ body { background:transparent; overflow:hidden; font-family:'Inter',sans-serif; 
   font-weight:900; font-size:52px; box-shadow:0 14px 34px rgba(0,0,0,.45); }
 .punkty span { font-weight:900; font-size:74px; line-height:1.1; letter-spacing:-2px;
   text-transform:uppercase; color:#fff; white-space:nowrap;
-  -webkit-text-stroke:9px #0b0718; paint-order:stroke fill;
   text-shadow:0 8px 0 rgba(11,7,24,.45), 0 18px 40px rgba(0,0,0,.55); padding-top:8px; }
 .zapisz { margin-top:52px; text-align:center; font-weight:900; font-size:58px;
   letter-spacing:-1px; text-transform:uppercase; color:${akcent2}; white-space:nowrap;
-  -webkit-text-stroke:9px #0b0718; paint-order:stroke fill;
   text-shadow:0 8px 0 rgba(11,7,24,.45); }
 </style></head><body>
 ${divy}
