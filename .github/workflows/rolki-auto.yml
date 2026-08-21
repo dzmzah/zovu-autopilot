@@ -12,6 +12,10 @@ on:
         description: 'Сколько рилсов собрать'
         type: string
         default: '1'
+      typ:
+        description: 'Тип рилса: stok | grafika (пусто = по кругу)'
+        type: string
+        default: ''
       scenariusz:
         description: 'Номер сценария из банка (пусто = по очереди)'
         type: string
@@ -40,7 +44,10 @@ concurrency:
 jobs:
   zbuduj:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # 70, а не 45: рисованный ролик снимается браузером покадрово и идёт
+    # вдвое дольше стокового. На 45 он упирался в таймаут на последних
+    # минутах — то есть голос уже оплачен, а ролика нет.
+    timeout-minutes: 70
     permissions:
       contents: write
     steps:
@@ -91,21 +98,24 @@ jobs:
           ELEVENLABS_VOICE: ${{ secrets.ELEVENLABS_VOICE }}
           PIPER_MODEL: ${{ github.workspace }}/modele/pl_PL-darkman-medium.onnx
           ILE: ${{ inputs.ile || '1' }}
+          TYP: ${{ inputs.typ }}
           SCENARIUSZ: ${{ inputs.scenariusz }}
           PLYTY: ${{ inputs.plyty }}
         run: |
           set -e
-          # Плиты пока по флагу: они меняют вид КАЖДОГО ролика, а вид ленты
-          # решает Захар. По расписанию флага нет, значит ежедневная сборка
-          # идёт как раньше, пока он не посмотрит сравнение.
+          # Расписание больше не знает, каким сборщиком собирать. Оно зовёт
+          # zbuduj-rolke.mjs, а тот берёт следующий ТИП из реестра
+          # typy-rolek.mjs. Пока типов два — сток и рисованный, — и лента
+          # идёт через день: один такой, один такой.
           FLAGI=""
           if [ "$PLYTY" = "true" ]; then FLAGI="--plyty"; fi
+          if [ -n "$TYP" ]; then FLAGI="$FLAGI --typ=$TYP"; fi
           for i in $(seq 1 "${ILE:-1}"); do
             echo "::group::rolka $i"
             if [ -n "$SCENARIUSZ" ]; then
-              node rolka-auto.mjs --scenariusz="$SCENARIUSZ" $FLAGI
+              node zbuduj-rolke.mjs --scenariusz="$SCENARIUSZ" $FLAGI
             else
-              node rolka-auto.mjs $FLAGI
+              node zbuduj-rolke.mjs $FLAGI
             fi
             echo "::endgroup::"
           done
@@ -113,9 +123,13 @@ jobs:
       # Запас в два дня — норма. Единицу ставим только руками и только чтобы
       # закрыть дыру в ленте: например ту, что осталась от холодного старта,
       # когда первая сборка легла сразу на послезавтра.
+      # `--z-grafika` обязателен: без него очередь отбрасывает всё, что
+      # называется auto-grafika-*, и рисованный ролик собирался бы вхолостую.
+      # Проверку замерами это не ослабляет — она стоит до очереди, внутри
+      # каждого сборщика, и рисованный проходит её на общих правах.
       - name: Do kolejki
         if: ${{ !inputs.bez_kolejki }}
-        run: node do-kolejki.mjs --za-dni=${{ inputs.za_dni || '2' }}
+        run: node do-kolejki.mjs --za-dni=${{ inputs.za_dni || '2' }} --z-grafika
 
       # Цифры по уже вышедшим рилсам. Без обратной связи автоматика не
       # улучшается, а дрейфует: те же шаблоны, тот же голос, и через месяц

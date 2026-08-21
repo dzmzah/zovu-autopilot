@@ -17,6 +17,7 @@ import { zbudujGlos } from './glos.mjs';
 import { sprawdzRolke } from './kontrola.mjs';
 import { grafikaHtml, renderujKlatki, wczytajObiekty, W, H, FPS } from './grafika.mjs';
 import { wybierzScenariusz } from './scenariusze-grafika.mjs';
+import { podmienHasztagi } from './tagi.mjs';
 import { DEMA } from './scenariusze-demo.mjs';
 
 const execFileAsync = promisify(execFile);
@@ -536,3 +537,41 @@ console.log(`[grafika] собрано: ${gotowy} · ${(+inf.duration).toFixed(2)
 
 const kontrola = await sprawdzRolke(gotowy, { oczekiwanePrzejscia: zdarzenia.map((z) => z.t) });
 console.log('[grafika] проверка:', JSON.stringify(kontrola, null, 1));
+
+// ── описание и паспорт ────────────────────────────────────────────
+// Собираются из самого сценария, а не пишутся руками: седьмой сценарий
+// заведут завтра, и он должен уехать в ленту с нормальным описанием без
+// отдельной работы. Берём хук (он же обещание), расплату (она же смысл) и
+// призыв — то, из чего описание и состоит у стоковых роликов.
+const wiersz = (rola) =>
+  scenariusz.frazy.filter((f) => f.rola === rola).map((f) => f.tekst.trim()).join(' ');
+
+const hak = wiersz('hak');
+const zaplata = wiersz('zaplata') || wiersz('tresc');
+const cta = wiersz('cta');
+
+// Тема нужна тегам: по ней подбираются нишевые и тематические хэштеги.
+// Берём её из названия сценария — оно у нас как раз описывает тему.
+const opisTekst = podmienHasztagi(
+  [hak, zaplata, cta, 'zovu.pl'].filter(Boolean).join(String.fromCharCode(10, 10)),
+  { temat: scenariusz.nazwa, forma: 'rysowana', nr: stan.grafikaScen ?? 0 }
+);
+await writeFile(gotowy.replace(/\.mp4$/, '-opis.txt'), opisTekst, 'utf8');
+
+await writeFile(
+  gotowy.replace(/\.mp4$/, '-meta.json'),
+  JSON.stringify(
+    {
+      scenariusz: scenariusz.nazwa,
+      forma: 'rysowana',
+      temat: scenariusz.nazwa,
+      dlugosc: +(+inf.duration).toFixed(2),
+      frazy: scenariusz.frazy.length,
+      typ: 'grafika',
+    },
+    null,
+    2
+  ) + String.fromCharCode(10),
+  'utf8'
+);
+console.log('[grafika] описание и паспорт записаны');
