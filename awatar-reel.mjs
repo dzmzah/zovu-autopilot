@@ -1981,20 +1981,21 @@ export async function zbuduj(plan) {
       console.warn(`[awatar] ВНИМАНИЕ: обработка укоротила голос на ${(dlPrzed - dlPo).toFixed(2)} с`);
     }
 
-    const wejsciaA = ['-i', glosGotowy, '-ss', odMuzyki.toFixed(3), '-i', music,
+    const wejsciaA = ['-i', wynikV, '-ss', odMuzyki.toFixed(3), '-i', music,
       '-f', 'lavfi', '-i', `anoisesrc=c=brown:a=${powietrzeTlo}:r=48000:d=${(totalWideo + 1).toFixed(2)}`];
     let idx = 3;
     let stukiIdx = -1;
     if (stuki) { wejsciaA.push('-i', stuki); stukiIdx = idx++; }
-    // Ключ боковой цепи — тот же готовый файл, но ОТДЕЛЬНЫМ входом. При
-    // asplit обе ветки живут в одном графе и разбираются с разной скоростью;
-    // отдельный вход эту связь снимает.
+    // Готовый голос двумя входами: в микс и в ключ. Один вход развести на
+    // две ветки без asplit нельзя, а asplit мы как раз и убираем.
+    wejsciaA.push('-i', glosGotowy);
+    const glosIdx = idx++;
     wejsciaA.push('-i', glosGotowy);
     const kluczIdx = idx++;
 
     const chain = [
       // Голос уже обработан своим вызовом — здесь только тянем до конца.
-      `[0:a]apad=whole_dur=${totalWideo.toFixed(2)}[voice]`,
+      `[${glosIdx}:a]apad=whole_dur=${totalWideo.toFixed(2)}[voice]`,
       `[2:a]aformat=channel_layouts=stereo,highpass=f=60,lowpass=f=2400,` +
         `atrim=0:${totalWideo.toFixed(2)},asetpts=N/SR/TB,` +
         // У «воздуха» вплывания НЕТ. Он и заведён затем, чтобы в дорожке
