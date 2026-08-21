@@ -180,5 +180,6 @@ jobs:
           path: |
             out/*.mp4
             out/*-glos.mp3
+            out/*-glos-gotowy.wav
           retention-days: 7
           if-no-files-found: ignore

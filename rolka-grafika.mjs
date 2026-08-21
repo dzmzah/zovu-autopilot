@@ -513,8 +513,36 @@ if (BEZ_GLOSU) {
   process.exit(0);
 }
 
+// Голос отдельным проходом. Цепь та же, что была внутри сведения, слово в
+// слово — меняется только место, где она выполняется.
+const glosGotowy = path.join(OUT, 'g-glos-gotowy.wav');
 await ffmpeg([
-  '-i', wideo, '-i', glos.plik, ...WEJ_MUZYKA, '-i', stuki,
+  '-i', glos.plik,
+  '-af',
+  'highpass=f=90,equalizer=f=320:t=q:w=1.2:g=-2,' +
+    'equalizer=f=3800:t=q:w=0.8:g=3,treble=g=1.5:f=11000:width_type=q:w=0.7,' +
+    'acompressor=threshold=-19dB:ratio=3:attack=12:release=160:makeup=2,' +
+    'loudnorm=I=-14.5:TP=-1.5:LRA=5,aformat=channel_layouts=stereo',
+  '-ar', '48000', '-ac', '2', glosGotowy,
+]);
+const dlGotowego = await (async () => {
+  try {
+    const { stdout } = await execFileAsync('ffprobe', [
+      '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', glosGotowy,
+    ]);
+    return parseFloat(stdout.trim());
+  } catch { return 0; }
+})();
+console.log(`[grafika] голос обработан отдельно: ${dlGotowego.toFixed(2)} с (исходник ${dlGlosu.toFixed(2)} с)`);
+if (dlGotowego && dlGlosu && dlGotowego < dlGlosu - 0.25) {
+  console.warn(
+    `[grafika] ВНИМАНИЕ: обработка укоротила голос на ${(dlGlosu - dlGotowego).toFixed(2)} с — ` +
+      'последние слова потеряны ещё до сведения'
+  );
+}
+
+await ffmpeg([
+  '-i', wideo, '-i', glosGotowy, ...WEJ_MUZYKA, '-i', stuki,
   '-f', 'lavfi', '-i', `anoisesrc=c=brown:a=0.02:r=48000:d=${total}`,
   // Дорожка голоса ВТОРОЙ раз, отдельным входом. Она нужна боковой цепи как
   // ключ, и раньше её брали через asplit из той же ветки, что идёт в микс.
@@ -525,7 +553,7 @@ await ffmpeg([
   // того же файла, фразу сохраняет. Разошлись только сборки ffmpeg — на
   // сервере ветки asplit разбираются с разной скоростью, и данные теряются.
   // Второй вход снимает вопрос целиком: ветки больше не связаны.
-  '-i', glos.plik,
+  '-i', glosGotowy,
   '-filter_complex',
   // Голос. Прежняя цепь сама делала его «искусственным», и слышно это было
   // ровно в трёх местах:
@@ -539,10 +567,9 @@ await ffmpeg([
   // немного груди на 210 Гц и воздуха сверху, компрессия мягкая и с медленной
   // атакой, диапазон живой. Плюс общий уровень тише — голос перестаёт
   // упираться в потолок и оставляет место музыке.
-  `[1:a]highpass=f=90,equalizer=f=320:t=q:w=1.2:g=-2,` +
-    `equalizer=f=3800:t=q:w=0.8:g=3,treble=g=1.5:f=11000:width_type=q:w=0.7,` +
-    `acompressor=threshold=-19dB:ratio=3:attack=12:release=160:makeup=2,` +
-    `loudnorm=I=-14.5:TP=-1.5:LRA=5[voice];` +
+  // Голос приходит уже обработанным, здесь его только тянем до конца
+  // ролика: короткая дорожка не должна обрывать микс.
+  `[1:a]apad=whole_dur=${total}[voice];` +
     // Подложка громче и БЕЗ длинного затухания в конце.
     //
     // Замер: разброс громкости у нас 8,1 LU против 2,2 у «Scenariusz 1».
@@ -662,5 +689,6 @@ console.log('[grafika] описание и паспорт записаны');
 // молчит» от «подложку прижали».
 try {
   await copyFile(glos.plik, gotowy.replace(/.mp4$/, '-glos.mp3'));
+  await copyFile(glosGotowy, gotowy.replace(/.mp4$/, '-glos-gotowy.wav'));
   console.log('[grafika] дорожка голоса сохранена рядом');
 } catch {}
