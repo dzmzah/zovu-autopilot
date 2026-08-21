@@ -221,9 +221,14 @@ body { font-family:'Inter',sans-serif; background:transparent; }
    Чиню не возвратом обводки, а снятием самого конфликта: подпись получает
    свою тёмную плашку и становится значком НА шкале, а не текстом, который
    спорит с ней. Кегль меньше — строка больше не вылезает за полосу. */
+/* Высота плашки считается от строки, а не от кегля: у польского Ś значок
+   стоит ВЫШЕ прописной буквы, и при тесном боксе он срезается — «TREŚCI»
+   превращается в «TRESCI». Видно это только в масштабе 1:1, в уменьшенной
+   сетке кадров такого не разглядеть. Отсюда line-height и запас сверху. */
 .pasek-opis { position:relative; z-index:2; font-family:'Archivo Black','Inter',sans-serif;
-  font-size:38px; letter-spacing:0; color:#fff; font-variant-numeric:tabular-nums;
-  background:rgba(11,7,24,.84); padding:7px 20px; border-radius:13px;
+  font-size:38px; line-height:1.28; letter-spacing:0; color:#fff;
+  font-variant-numeric:tabular-nums;
+  background:rgba(11,7,24,.84); padding:6px 20px 8px; border-radius:13px;
   box-shadow:0 6px 18px rgba(0,0,0,.30); }
 
 /* Затемнение под подписью. Оно рисовалось, когда фон был тёмным, и там
