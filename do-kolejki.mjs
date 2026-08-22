@@ -229,7 +229,10 @@ for (const [i, f] of pliki.entries()) {
   kolejka.push({
     plik: nazwa,
     kiedy,
-    sieci: ['ig', 'fb'],
+    // Ютуб с 22.08: тот же ролик, третья площадка. Shorts отдельным типом
+    // помечать не нужно — ютуб сам считает шортсом всё вертикальное короче
+    // трёх минут.
+    sieci: ['ig', 'fb', 'yt'],
     tekst: opis || 'Robimy treści, które sprzedają.\n\nzovu.pl',
     opublikowano: null,
     zrodlo: f,

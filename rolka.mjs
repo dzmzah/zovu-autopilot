@@ -24,6 +24,8 @@ const DIR = import.meta.dirname;
 const KOLEJKA = path.join(DIR, 'rolki', 'kolejka.json');
 const RAW_BASE =
   process.env.RAW_BASE || 'https://raw.githubusercontent.com/dzmzah/zovu-autopilot/main';
+import { naYouTube, tytulZOpisu } from './youtube.mjs';
+
 const IG_API = 'https://graph.instagram.com/v23.0';
 const FB_API = 'https://graph.facebook.com/v21.0';
 
@@ -213,6 +215,25 @@ for (const poz of kolejka) {
     wynik.instagram = await naInstagram(url, poz.tekst);
     console.log(`[rolka] Instagram: ${wynik.instagram}`);
   }
+  // Ютуб. Файл заливается ЦЕЛИКОМ, а не по ссылке, как у Meta: у Google
+  // своя загрузка, и она хочет байты. Ролик и так лежит рядом в репозитории.
+  //
+  // Падение ютуба не должно ронять уже удавшуюся выкладку в Instagram —
+  // как и с Facebook. Три площадки, три независимых исхода.
+  if (sieci.includes('yt')) {
+    try {
+      const plik = path.join(DIR, 'rolki', poz.plik);
+      wynik.youtube = await naYouTube(plik, {
+        tytul: tytulZOpisu(poz.tekst),
+        opis: poz.tekst,
+        prywatnosc: 'public',
+      });
+      console.log(`[rolka] YouTube: ${wynik.youtube}`);
+    } catch (e) {
+      console.error(`[rolka] YouTube не вышел: ${e.message}`);
+    }
+  }
+
   if (sieci.includes('fb')) {
     try {
       wynik.facebook = await naFacebook(url, poz.tekst);
