@@ -10,7 +10,7 @@
 // https-адрес он отвергает («Enter a valid URI»).
 import { createServer } from 'node:http';
 import { execFile } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHash } from 'node:crypto';
 
 const KLUCZ = process.env.TIKTOK_CLIENT_KEY;
 const SEKRET = process.env.TIKTOK_CLIENT_SECRET;
@@ -27,6 +27,15 @@ const REDIRECT = `http://localhost:${PORT}/callback/`;
 const SCOPE = 'user.info.basic,video.upload';
 const STAN = randomBytes(12).toString('hex');
 
+// PKCE. TikTok требует его даже там, где есть секрет приложения: без
+// code_challenge окно согласия сразу отвечает «Что-то пошло не так».
+//
+// Внимание: у TikTok своя мерка — вызов считается ШЕСТНАДЦАТЕРИЧНОЙ записью
+// SHA-256, а не base64url, как в обычном OAuth. На этом легко обжечься:
+// стандартный код даёт base64url и получает отказ.
+const WERYFIKATOR = randomBytes(32).toString('hex'); // 64 знака, в рамках 43-128
+const WYZWANIE = createHash('sha256').update(WERYFIKATOR).digest('hex');
+
 const url =
   'https://www.tiktok.com/v2/auth/authorize/?' +
   new URLSearchParams({
@@ -35,6 +44,8 @@ const url =
     scope: SCOPE,
     redirect_uri: REDIRECT,
     state: STAN,
+    code_challenge: WYZWANIE,
+    code_challenge_method: 'S256',
   });
 
 const kod = await new Promise((res, rej) => {
@@ -71,6 +82,7 @@ const odp = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
     code: kod,
     grant_type: 'authorization_code',
     redirect_uri: REDIRECT,
+    code_verifier: WERYFIKATOR,
   }),
 });
 const j = await odp.json();
