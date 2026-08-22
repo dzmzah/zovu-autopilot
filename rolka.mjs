@@ -25,6 +25,7 @@ const KOLEJKA = path.join(DIR, 'rolki', 'kolejka.json');
 const RAW_BASE =
   process.env.RAW_BASE || 'https://raw.githubusercontent.com/dzmzah/zovu-autopilot/main';
 import { naYouTube, tytulZOpisu } from './youtube.mjs';
+import { naTikTok } from './tiktok.mjs';
 
 const IG_API = 'https://graph.instagram.com/v23.0';
 const FB_API = 'https://graph.facebook.com/v21.0';
@@ -241,6 +242,27 @@ for (const poz of kolejka) {
     } catch (e) {
       // Facebook не должен ронять уже удавшуюся публикацию в Instagram.
       console.error(`[rolka] Facebook не вышел: ${e.message}`);
+    }
+  }
+
+  // TikTok. Пока приложение не прошло проверку, ролик уезжает ЧЕРНОВИКОМ
+  // в приложение на телефоне — публикуется одним нажатием. Права на прямую
+  // публикацию просим отдельно, код для неё уже лежит в tiktok.mjs.
+  //
+  // Без постоянного ключа молчим: пока Захар не нажал «разрешить», это не
+  // поломка, а незаконченная настройка, и кричать о ней в каждом прогоне
+  // незачем.
+  if (sieci.includes('tt')) {
+    if (!process.env.TIKTOK_REFRESH_TOKEN) {
+      console.log('[rolka] TikTok пропущен: нет постоянного ключа (нужен разовый вход)');
+    } else {
+      try {
+        const plik = path.join(DIR, 'rolki', poz.plik);
+        wynik.tiktok = await naTikTok(plik, { tekst: poz.tekst });
+        console.log(`[rolka] TikTok: ${wynik.tiktok}`);
+      } catch (e) {
+        console.error(`[rolka] TikTok не вышел: ${e.message}`);
+      }
     }
   }
 
