@@ -363,6 +363,14 @@ async function askModel(system, user) {
   // его иначе нечем: подсунуть настоящий 429 нельзя, а битый ключ даёт 400.
   // Непроверенный аварийный путь аварийным не является.
   if (process.env.ZOVU_UDAWAJ_BRAK_MODELU) {
+    // "503" — второй режим проверки: сервер модели лежит. Он идёт другой
+    // дорогой (все четыре попытки, потом резерв), и без отдельного
+    // выключателя эту дорогу нечем пройти.
+    if (process.env.ZOVU_UDAWAJ_BRAK_MODELU === '503') {
+      const err = new Error('Gemini 503: udawany padnięty serwer do testu rezerwy');
+      err.serwer = true;
+      throw err;
+    }
     const err = new Error('Gemini 429 (limit wyczerpany): udawany brak modelu do testu rezerwy');
     err.kwota = true;
     throw err;
@@ -440,12 +448,20 @@ async function askModel(system, user) {
         // подмены причины пропал вечерний пост, а в логе искали виноватым
         // текст, которого модель вообще не написала.
         err.kwota = r2.status === 429;
+        // 5xx — сервер модели лежит, текст тут ни при чём. Метка отличает
+        // «модель молчит» от «модель написала плохо»: во втором случае есть
+        // смысл переспросить, в первом — брать запас.
+        err.serwer = r2.status >= 500;
         throw err;
       }
       const t2 = (j2?.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
       return { raw: t2, provider: model };
     }
-    if (!r.ok) throw new Error('Gemini ' + r.status + ': ' + JSON.stringify(j).slice(0, 300));
+    if (!r.ok) {
+      const err = new Error('Gemini ' + r.status + ': ' + JSON.stringify(j).slice(0, 300));
+      err.serwer = r.status >= 500;
+      throw err;
+    }
     const text = (j?.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
     return { raw: text, provider: model };
   }
@@ -811,6 +827,7 @@ export async function makePost({ topic, format, kind, uklad, trends = false, gen
   let out = null;
   let provider = null;
   let brakModelu = null;
+  let padlSerwer = null;
   let zRezerwyNr = null;
   const attempts = [];
   let ostatniKandydat = null;
@@ -855,6 +872,11 @@ export async function makePost({ topic, format, kind, uklad, trends = false, gen
         console.warn('[engine] model nie odpowiada (limit) — przechodzę na rezerwę: ' + e.message);
         break;
       }
+      // 503 «high demand» лечится ожиданием, поэтому попытки не бросаем. Но
+      // если ВСЕ четыре ушли в стену сервера — текста нет и чинить нечего:
+      // запас лучше пустой ленты. 22.08 утренний пост упал именно так, а
+      // резерв не включился, потому что смотрел только на квоту.
+      if (e.serwer) padlSerwer = e;
     }
   }
 
@@ -877,6 +899,11 @@ export async function makePost({ topic, format, kind, uklad, trends = false, gen
   // rezerwa.json. Пост из запаса хуже свежего, но день без поста хуже обоих:
   // ради ровной ленты весь автопилот и построен, а бесплатный тир Gemini
   // упирается в суточный потолок предсказуемо.
+  if (!out && !brakModelu && padlSerwer && !ostatniKandydat) {
+    brakModelu = padlSerwer;
+    console.warn('[engine] model leży (5xx) na wszystkich próbach — przechodzę na rezerwę');
+  }
+
   if (!out && brakModelu) {
     const zapas = await zRezerwy(multiSlide, chosenLayout, state);
     if (zapas) {
