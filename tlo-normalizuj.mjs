@@ -35,6 +35,11 @@ const PROG_POWTOROW = 25;
 // назвал неестественным, слишком быстрое — «лагающим»; 1.9 это та же
 // «topografia-3».
 const CEL_RUCHU = 1.9;
+// Полотна должны идти ОДИНАКОВО, иначе разнобой между роликами возвращается
+// с другой стороны: «topografia-2» при скорости 0.77 выглядит стоячей рядом
+// с «kropki-jasne» на 1.93. Полоса узкая нарочно — лучше два ровных полотна,
+// чем пять разных.
+const PASMO_RUCHU = [1.2, 3.5];
 
 const FPS = 50;
 const SZER = 1210, WYS = 2150; // с запасом на дрейф, как в сборщике
@@ -69,6 +74,8 @@ for (const f of pliki) {
   const zle = [];
   if (m.nierownosc > PROG_NIEROWNOSCI) zle.push(`ход неровный ${m.nierownosc.toFixed(2)}`);
   if (m.powtorow > PROG_POWTOROW) zle.push(`повторов ${Math.round(m.powtorow)} %`);
+  if (m.ruch < PASMO_RUCHU[0]) zle.push(`почти стоит ${m.ruch.toFixed(2)}`);
+  if (m.ruch > PASMO_RUCHU[1]) zle.push(`слишком быстрое ${m.ruch.toFixed(2)}`);
 
   if (zle.length) {
     raport.push({ plik: f, ...m, wynik: 'ОТБРАКОВАНО: ' + zle.join(', ') });
