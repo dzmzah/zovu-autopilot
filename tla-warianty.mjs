@@ -622,6 +622,26 @@ ${kafle.map((k) => `<div class="k ${k.nr === 0 ? 'ob' : ''}"><img src="file:///$
   await browser.close();
 }
 
+// ── полные ролики с выбранным фоном ──────────────────────────────
+// Три секунды фона хватает, чтобы отсеять лишнее, но не хватает, чтобы
+// выбрать: фон живёт весь ролик и спорит с текстом в тех сценах, которых
+// в пробе нет вовсе. Поэтому финальный выбор — на целых пятнадцати.
+//
+//   node tla-warianty.mjs pelne 4 5 6
+if (process.argv.includes('pelne')) {
+  const nry = process.argv.slice(2).filter((x) => /^\d+$/.test(x)).map(Number);
+  const src = await readFile(ZRODLO, 'utf8');
+  for (const w of WARIANTY.filter((x) => nry.includes(x.nr))) {
+    const tmpMjs = path.join(DIR, `tlo-pelne-w${w.nr}.mjs`);
+    await writeFile(tmpMjs, podmien(src, w), 'utf8');
+    const cel = path.join(WYJ, `pelna-w${w.nr}-${w.nazwa.replace(/ /g, '-')}.mp4`);
+    console.log(`[pelne] ${w.nr} ${w.nazwa} —> ${cel}`);
+    await exe(process.execPath, [tmpMjs, '--szkola=wojtek', `--wyjscie=${cel}`], { cwd: DIR });
+    await rm(tmpMjs, { force: true });
+  }
+  process.exit(0);
+}
+
 // ── запуск ───────────────────────────────────────────────────────
 await mkdir(WYJ, { recursive: true });
 // Пересобрать только сводную сетку из уже снятых кадров.
