@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZOVU — pulpit publikacji</title>
+<style>
+  :root{
+    --tlo:#0d0a16; --karta:#161129; --obwod:#241b40;
+    --tekst:#efeaff; --cichy:#9d93bd; --akcent:#7c4dff; --zle:#ff5470;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--tlo);color:var(--tekst);
+    font:15px/1.5 "Segoe UI",system-ui,sans-serif;padding:28px}
+  .glowa{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+  .znak{width:34px;height:34px;border-radius:10px;background:var(--akcent)}
+  h1{font-size:19px;margin:0;letter-spacing:.2px}
+  .podtytul{color:var(--cichy);font-size:13px;margin-top:2px}
+  .karta{background:var(--karta);border:1px solid var(--obwod);
+    border-radius:16px;padding:20px;margin-bottom:16px;max-width:760px}
+  button{font:inherit;border:0;border-radius:10px;padding:11px 18px;cursor:pointer}
+  .glowny{background:var(--akcent);color:#fff;font-weight:600}
+  .glowny:disabled{background:#3a3157;color:#7d739c;cursor:not-allowed}
+  .autor{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+  .autor img{width:44px;height:44px;border-radius:50%}
+  .lista{display:flex;flex-direction:column;gap:8px;max-height:230px;overflow:auto}
+  .rolka{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;
+    border:1px solid var(--obwod);border-radius:12px;cursor:pointer}
+  .rolka.wybrana{border-color:var(--akcent);background:#1d1536}
+  .rolka b{font-weight:600}
+  .rolka span{display:block;color:var(--cichy);font-size:12.5px;margin-top:2px}
+  label{display:block;margin:14px 0 6px;font-size:13px;color:var(--cichy)}
+  select{font:inherit;background:#100c1d;color:var(--tekst);
+    border:1px solid var(--obwod);border-radius:10px;padding:10px 12px;width:100%}
+  .przelacz{display:flex;align-items:center;gap:10px;margin:9px 0;font-size:14px}
+  .przelacz input{width:17px;height:17px;accent-color:var(--akcent)}
+  .przelacz.wylaczony{opacity:.45}
+  .drobne{color:var(--cichy);font-size:12.5px;margin-top:14px;line-height:1.55}
+  .drobne a{color:var(--akcent)}
+  .etykieta{margin-top:10px;padding:10px 12px;border-radius:10px;
+    background:#100c1d;border:1px solid var(--obwod);font-size:13px}
+  .blad{color:var(--zle)}
+  .ok{color:#4ade80}
+  h2{font-size:15px;margin:0 0 12px}
+</style>
+</head>
+<body>
+
+<div class="glowa">
+  <div class="znak"></div>
+  <div>
+    <h1>ZOVU — pulpit publikacji</h1>
+    <div class="podtytul">Gotowe rolki studia ZOVU. Stąd trafiają na nasze konto TikTok.</div>
+  </div>
+</div>
+
+<div id="ekran"></div>
+
+<script>
+const E = document.getElementById('ekran');
+let stan = null;
+let wybrana = null;
+
+const esc = (s) => String(s).replace(/[<>&]/g, (c) => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const mb = (n) => (n / 1048576).toFixed(1) + ' MB';
+
+const NAZWY = {
+  PUBLIC_TO_EVERYONE: 'Wszyscy',
+  MUTUAL_FOLLOW_FRIENDS: 'Znajomi (obserwujemy się wzajemnie)',
+  FOLLOWER_OF_CREATOR: 'Obserwujący',
+  SELF_ONLY: 'Tylko ja',
+};
+
+async function odswiez() {
+  stan = await (await fetch('/api/stan')).json();
+  rysuj();
+}
+
+function rysuj() {
+  if (!stan.zalogowany) {
+    E.innerHTML = `<div class="karta">
+      <h2>Połącz konto TikTok</h2>
+      <p style="color:var(--cichy);margin:0 0 16px">
+        Pulpit publikuje filmy na koncie TikTok, które tu zalogujesz.
+        Nie czyta Twoich filmów i nie zmienia ustawień konta.</p>
+      <button class="glowny" onclick="location.href='/zaloguj'">Zaloguj przez TikTok</button>
+    </div>`;
+    return;
+  }
+
+  const t = stan.tworca || {};
+  const opcje = t.privacy_level_options || [];
+
+  E.innerHTML = `
+    <div class="karta">
+      <div class="autor">
+        ${t.creator_avatar_url ? `<img src="${esc(t.creator_avatar_url)}" alt="">` : ''}
+        <div>
+          <b>${esc(t.creator_nickname || '')}</b>
+          <span style="color:var(--cichy);display:block;font-size:13px">@${esc(t.creator_username || '')}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="karta">
+      <h2>Wybierz rolkę</h2>
+      <div class="lista">
+        ${stan.rolki.map((r, i) => `
+          <div class="rolka${wybrana === i ? ' wybrana' : ''}" onclick="wybierz(${i})">
+            <div>
+              <b>${esc(r.plik)}</b>
+              <span>${mb(r.rozmiar)}${r.opublikowano ? ' · już publikowana' : ''}</span>
+              <span>${esc((r.tekst || '').split('\\n')[0].slice(0, 90))}</span>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="karta">
+      <h2>Jak opublikować</h2>
+
+      <label for="kto">Kto zobaczy film</label>
+      <select id="kto" onchange="sprawdz()">
+        <option value="">— wybierz —</option>
+        ${opcje.map((o) => `<option value="${o}">${NAZWY[o] || o}</option>`).join('')}
+      </select>
+
+      <label>Co wolno widzom</label>
+      <div class="przelacz${t.comment_disabled ? ' wylaczony' : ''}">
+        <input type="checkbox" id="kom" ${t.comment_disabled ? 'disabled' : 'checked'}>
+        <span>Komentarze${t.comment_disabled ? ' — wyłączone w ustawieniach konta' : ''}</span>
+      </div>
+      <div class="przelacz${t.duet_disabled ? ' wylaczony' : ''}">
+        <input type="checkbox" id="duet" ${t.duet_disabled ? 'disabled' : 'checked'}>
+        <span>Duety${t.duet_disabled ? ' — wyłączone w ustawieniach konta' : ''}</span>
+      </div>
+      <div class="przelacz${t.stitch_disabled ? ' wylaczony' : ''}">
+        <input type="checkbox" id="sklej" ${t.stitch_disabled ? 'disabled' : 'checked'}>
+        <span>Sklejki${t.stitch_disabled ? ' — wyłączone w ustawieniach konta' : ''}</span>
+      </div>
+
+      <label>Treść komercyjna</label>
+      <div class="przelacz">
+        <input type="checkbox" id="kom_tak" onchange="sprawdz()">
+        <span>Ten film promuje markę, produkt lub usługę</span>
+      </div>
+      <div id="kom_szczegoly" style="display:none;padding-left:26px">
+        <div class="przelacz">
+          <input type="checkbox" id="marka_wlasna" onchange="sprawdz()">
+          <span>Własna marka</span>
+        </div>
+        <div class="przelacz">
+          <input type="checkbox" id="marka_cudza" onchange="sprawdz()">
+          <span>Treść sponsorowana (marka innej firmy)</span>
+        </div>
+      </div>
+      <div class="etykieta" id="etykieta" style="display:none"></div>
+
+      <div class="drobne" id="zgody"></div>
+
+      <div style="margin-top:18px">
+        <button class="glowny" id="wyslij" disabled onclick="publikuj()">Opublikuj na TikTok</button>
+        <span id="wynik" style="margin-left:12px"></span>
+      </div>
+    </div>`;
+
+  sprawdz();
+}
+
+function wybierz(i) {
+  wybrana = i;
+  rysuj();
+}
+
+function sprawdz() {
+  const kto = document.getElementById('kto');
+  const komTak = document.getElementById('kom_tak');
+  const wlasna = document.getElementById('marka_wlasna');
+  const cudza = document.getElementById('marka_cudza');
+  const et = document.getElementById('etykieta');
+  const zgody = document.getElementById('zgody');
+  const wyslij = document.getElementById('wyslij');
+  if (!kto) return;
+
+  document.getElementById('kom_szczegoly').style.display = komTak.checked ? 'block' : 'none';
+
+  // Ярлык, который увидят зрители — TikTok требует показать его заранее,
+  // словами, а не догадкой.
+  let etykieta = '';
+  if (komTak.checked && cudza.checked) etykieta = 'Płatna współpraca';
+  else if (komTak.checked && wlasna.checked) etykieta = 'Promuje własną markę';
+  et.style.display = etykieta ? 'block' : 'none';
+  et.textContent = etykieta ? 'Widzowie zobaczą podpis: „' + etykieta + '”' : '';
+
+  // Спонсорский контент нельзя выкладывать «только для себя» — TikTok это
+  // запрещает, и честнее сказать об этом до нажатия, а не после отказа.
+  const sponsorDoSiebie = komTak.checked && cudza.checked && kto.value === 'SELF_ONLY';
+
+  zgody.innerHTML =
+    'Publikując, potwierdzasz <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/pl" target="_blank">zasady wykorzystania muzyki</a>' +
+    (komTak.checked && cudza.checked
+      ? ' oraz <a href="https://www.tiktok.com/legal/page/global/bc-policy/pl" target="_blank">zasady treści sponsorowanych</a>'
+      : '') +
+    ' TikTok.' +
+    (sponsorDoSiebie ? '<div class="blad" style="margin-top:8px">Treści sponsorowanej nie można ustawić na „Tylko ja”.</div>' : '') +
+    (komTak.checked && !wlasna.checked && !cudza.checked
+      ? '<div class="blad" style="margin-top:8px">Zaznacz, czyja to marka.</div>'
+      : '');
+
+  wyslij.disabled =
+    wybrana === null ||
+    !kto.value ||
+    sponsorDoSiebie ||
+    (komTak.checked && !wlasna.checked && !cudza.checked);
+}
+
+async function publikuj() {
+  const wynik = document.getElementById('wynik');
+  const wyslij = document.getElementById('wyslij');
+  wyslij.disabled = true;
+  wynik.textContent = 'Wysyłam…';
+  wynik.className = '';
+
+  const r = stan.rolki[wybrana];
+  const odp = await (await fetch('/api/publikuj', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      plik: r.plik,
+      tekst: r.tekst,
+      prywatnosc: document.getElementById('kto').value,
+      komentarze: document.getElementById('kom').checked,
+      duety: document.getElementById('duet').checked,
+      sklejki: document.getElementById('sklej').checked,
+      markaWlasna: document.getElementById('marka_wlasna')?.checked,
+      markaCudza: document.getElementById('marka_cudza')?.checked,
+    }),
+  })).json();
+
+  if (odp.blad) {
+    wynik.textContent = odp.blad;
+    wynik.className = 'blad';
+    wyslij.disabled = false;
+    return;
+  }
+
+  for (let i = 0; i < 20; i++) {
+    const s = await (await fetch('/api/status?id=' + encodeURIComponent(odp.id))).json();
+    if (s.status && s.status !== 'PROCESSING_UPLOAD' && s.status !== 'PROCESSING_DOWNLOAD') {
+      const udane = s.status === 'PUBLISH_COMPLETE' || s.status === 'SEND_TO_USER_INBOX';
+      wynik.textContent = udane ? 'Opublikowane na TikTok' : 'TikTok odmówił: ' + (s.fail_reason || s.status);
+      wynik.className = udane ? 'ok' : 'blad';
+      if (!udane) wyslij.disabled = false;
+      return;
+    }
+    wynik.textContent = 'TikTok przetwarza film…';
+    await new Promise((res) => setTimeout(res, 3000));
+  }
+  wynik.textContent = 'Wysłane — TikTok jeszcze przetwarza.';
+}
+
+odswiez();
+</script>
+</body>
+</html>
