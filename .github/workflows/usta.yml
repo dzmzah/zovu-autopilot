@@ -91,6 +91,12 @@ jobs:
           pip install -q -U "huggingface_hub[cli]" gdown
           bash download_weights.sh
 
+      # Скачивалка весов тянет свежий huggingface_hub, а transformers из
+      # списка MuseTalk работает только со старым. Возвращаем на место ПОСЛЕ
+      # скачивания — иначе не скачается.
+      - name: Вернуть версию библиотеки
+        run: pip install -q "huggingface_hub==0.25.2"
+
       - name: Наш материал
         run: |
           mkdir -p silnik/dane
