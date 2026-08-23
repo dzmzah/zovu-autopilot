@@ -191,8 +191,8 @@ function tlo(t){
   if(!_BOK){ _BOK = [].slice.call(document.querySelectorAll('.bok')); _ODB = [].slice.call(document.querySelectorAll('.odb')); }
   _BOK.forEach(function(e,i){
     var p = BP[i];
-    var dx = Math.sin(t * p.sx * 1.7 + p.ph) * p.ax;
-    var dy = Math.cos(t * p.sy * 1.7 + p.ph * 0.7) * p.ay - t * 5.5;
+    var dx = Math.sin(t * p.sx * 2.4 + p.ph) * p.ax - t * 5;
+    var dy = Math.cos(t * p.sy * 1.7 + p.ph * 0.7) * p.ay - t * 17;
     var sk = 1 + Math.sin(t * p.sy * 2.2 + p.ph) * 0.06;
     e.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px) scale(' + sk.toFixed(3) + ')';
   });
@@ -203,7 +203,7 @@ function tlo(t){
     e.style.opacity = (0.8 + Math.sin(t*1.3+p.ph)*0.18).toFixed(3);
   });
   var pr = document.getElementById('przejazd');
-  var c = (t % 7.5) / 7.5;
+  var c = ((t + 1.1) % 4.4) / 4.4;
   pr.style.transform = 'translateX(' + (c * 2020).toFixed(0) + 'px)';
   pr.style.opacity = (Math.sin(c * Math.PI) * 0.75).toFixed(3);
   var po = document.getElementById('poswiata');
@@ -329,22 +329,22 @@ ${ZIARNO}`;
 
   const js = `
 function tlo(t){
-  var pl = [['d1',9,-0.28],['d2',-7,0.22],['d3',6,-0.19]];
+  var pl = [['d1',16,-1.2],['d2',-11,0.9],['d3',22,-0.8]];
   pl.forEach(function(p,i){
     var e = document.getElementById(p[0]);
-    var x = Math.sin(t * 0.22 + i * 1.7) * (26 + i * 8) - t * p[1] * 0.8;
-    var y = Math.cos(t * 0.17 + i) * (18 + i * 7) + t * p[2] * 4;
-    e.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) scale(' + (1 + Math.sin(t*0.3+i)*0.05).toFixed(3) + ')';
+    var x = Math.sin(t * 0.5 + i * 1.7) * (44 + i * 14) - t * p[1];
+    var y = Math.cos(t * 0.38 + i) * (30 + i * 11) + t * p[2] * 4;
+    e.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) scale(' + (1 + Math.sin(t*0.62+i)*0.07).toFixed(3) + ')';
   });
   var s1 = document.getElementById('s1'), s2 = document.getElementById('s2');
-  s1.style.transform = 'rotate(-14deg) translate(' + (-((t * 26) % 520)).toFixed(1) + 'px,' + (Math.sin(t*0.4)*16).toFixed(1) + 'px)';
-  s2.style.transform = 'rotate(-9deg) translate(' + (((t * 17) % 520) - 260).toFixed(1) + 'px,' + (Math.cos(t*0.33)*13).toFixed(1) + 'px)';
+  s1.style.transform = 'rotate(-14deg) translate(' + (-((t * 62) % 520)).toFixed(1) + 'px,' + (Math.sin(t*0.7)*26).toFixed(1) + 'px)';
+  s2.style.transform = 'rotate(-9deg) translate(' + (((t * 34) % 520) - 260).toFixed(1) + 'px,' + (Math.cos(t*0.55)*20).toFixed(1) + 'px)';
   document.getElementById('kurz').style.backgroundPosition =
-    (-(t * 13) % 150).toFixed(1) + 'px ' + (-(t * 9) % 150).toFixed(1) + 'px';
+    (-(t * 30) % 150).toFixed(1) + 'px ' + (-(t * 21) % 150).toFixed(1) + 'px';
   document.getElementById('b1').style.transform =
-    'translate(' + (Math.sin(t*0.36)*46).toFixed(1) + 'px,' + (Math.cos(t*0.29)*26).toFixed(1) + 'px)';
+    'translate(' + (Math.sin(t*0.62)*76).toFixed(1) + 'px,' + (Math.cos(t*0.5)*40).toFixed(1) + 'px)';
   document.getElementById('b2').style.transform =
-    'translate(' + (Math.cos(t*0.31+1.2)*52).toFixed(1) + 'px,' + (Math.sin(t*0.25)*30).toFixed(1) + 'px)';
+    'translate(' + (Math.cos(t*0.54+1.2)*84).toFixed(1) + 'px,' + (Math.sin(t*0.44)*46).toFixed(1) + 'px)';
 }`;
   return { nr: 4, nazwa: 'Warstwy z glebia', css, html, js };
 })();
@@ -356,14 +356,14 @@ const W5 = (() => {
 
   const css = `
 #tlo{position:absolute;inset:0;overflow:hidden;
-  background:linear-gradient(158deg,#241659 0%,#180f42 34%,#100a2c 66%,#0a0620 100%)}
+  background:linear-gradient(158deg,#2a1a68 0%,#1b1149 34%,#110b30 66%,#0a0620 100%)}
 #swiatlo{position:absolute;left:-20%;top:-14%;width:140%;height:86%;
   background:radial-gradient(ellipse 34% 40% at 50% 50%, rgba(196,176,255,.34), rgba(124,58,237,.14) 46%, rgba(124,58,237,0) 72%)}
 #ciepl{position:absolute;left:-10%;bottom:-18%;width:120%;height:56%;
   background:radial-gradient(ellipse 40% 50% at 50% 50%, rgba(255,210,63,.10), rgba(255,210,63,0) 70%)}
-#platno{position:absolute;inset:-160px;opacity:.30;mix-blend-mode:overlay;
+#platno{position:absolute;inset:-160px;opacity:.19;mix-blend-mode:overlay;
   background-image:${szum};background-size:320px 320px}
-#ziarno{position:absolute;inset:-160px;opacity:.14;
+#ziarno{position:absolute;inset:-160px;opacity:.08;
   background-image:${szum};background-size:170px 170px}
 #tkanina{position:absolute;inset:0;opacity:.075;
   background-image:repeating-linear-gradient(52deg, rgba(255,255,255,.7) 0 1px, rgba(255,255,255,0) 1px 9px)}
@@ -478,11 +478,11 @@ ${ZIARNO}`;
   const js = `
 var _OKNA = null;
 function tlo(t){
-  document.getElementById('dal').style.transform = 'translateX(' + (-((t * 5) % 1120)).toFixed(1) + 'px)';
-  document.getElementById('bli').style.transform = 'translateX(' + (-((t * 13) % 1120)).toFixed(1) + 'px)';
+  document.getElementById('dal').style.transform = 'translateX(' + (-((t * 11) % 1120)).toFixed(1) + 'px)';
+  document.getElementById('bli').style.transform = 'translateX(' + (-((t * 27) % 1120)).toFixed(1) + 'px)';
   document.getElementById('luna').style.transform =
     'translate(' + (Math.sin(t*0.33)*22).toFixed(1) + 'px,' + (Math.sin(t*0.26+1)*13).toFixed(1) + 'px) scale(' + (1+Math.sin(t*0.4)*0.03).toFixed(3) + ')';
-  var jazda = [['a1', 8.5, 1, 0], ['a2', 11.0, -1, 4.2], ['a3', 6.2, 1, 2.1]];
+  var jazda = [['a1', 4.6, 1, 0.4], ['a2', 5.8, -1, 2.2], ['a3', 3.4, 1, 1.1]];
   jazda.forEach(function(p){
     var e = document.getElementById(p[0]);
     var f = ((t + p[3]) % p[1]) / p[1];
@@ -624,6 +624,13 @@ ${kafle.map((k) => `<div class="k ${k.nr === 0 ? 'ob' : ''}"><img src="file:///$
 
 // ── запуск ───────────────────────────────────────────────────────
 await mkdir(WYJ, { recursive: true });
+// Пересобрать только сводную сетку из уже снятых кадров.
+if (process.argv.includes('siatka')) {
+  await siatka([{ nr: 0, nazwa: 'OBECNE', png: path.join(WYJ, 'wariant-0-obecne.png') },
+    ...WARIANTY.map((w) => ({ nr: w.nr, nazwa: w.nazwa, png: path.join(WYJ, `wariant-${w.nr}.png`) }))]);
+  console.log('[siatka] ' + path.join(WYJ, 'porownanie.png'));
+  process.exit(0);
+}
 const tylko = process.argv.slice(2).filter((x) => /^\d+$/.test(x)).map(Number);
 const lista = tylko.length ? WARIANTY.filter((w) => tylko.includes(w.nr)) : WARIANTY;
 const ob = await obecne();
