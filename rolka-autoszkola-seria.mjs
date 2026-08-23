@@ -694,7 +694,7 @@ const AKADEMIA = {
   html() {
     const wiersz = (i, tytul, prawo) =>
       `<div class="wrz" data-i="${i}">
-  <div class="ptak"><i class="k1"></i><i class="k2"></i></div>
+  <div class="ptak"><svg viewBox="0 0 76 76"><path class="kr" d="M21 39 L33 52 L56 24"/></svg></div>
   <div class="wtyt" data-fit="56,32,80">${esc(tytul)}</div>
   <div class="wpr">${prawo}</div>
 </div>`;
@@ -735,8 +735,15 @@ const AKADEMIA = {
 .wrz + .wrz{border-top:0}
 .ptak{position:relative;flex:0 0 76px;height:76px;border-radius:50%;
   background:rgba(255,210,63,.14);border:4px solid rgba(255,210,63,.55)}
-.ptak i{position:absolute;display:block;height:9px;border-radius:5px;background:${KOLOR.zolty};
-  transform-origin:0 50%}
+/* Галочка — ОДИН росчерк, а не две полоски. Двумя было сделано ради
+   дорисовки на ходу, но у них сходится только математика: скруглённые концы
+   в углу дают утолщение, и в кадре это читается как залом. Захар посмотрел
+   четыре варианта и выбрал линию.
+   Рисуется тем же приёмом, что и раньше, только вместо растягивания полоски
+   отпускается пунктир: длина контура 54, смещение от 54 до 0. */
+.ptak svg{position:absolute;left:0;top:0;width:76px;height:76px;overflow:visible}
+.ptak .kr{fill:none;stroke:${KOLOR.zolty};stroke-width:9;stroke-linecap:round;
+  stroke-linejoin:round;stroke-dasharray:54;stroke-dashoffset:54}
 /* Галочка рисуется двумя полосками: короткая идёт вниз-вправо, длинная —
    вверх. Обе растут из своего ЛЕВОГО конца (transform-origin:0 50%), поэтому
    начало длинной обязано совпадать с концом короткой. Не совпадало: разрыв
@@ -746,8 +753,7 @@ const AKADEMIA = {
    Считаем стык честно. Короткая: начало (20, 36+4.5), поворот 45°, длина 22 —
    конец (35.6, 56.1). Длинная начинается ровно там: left 36, top 51 даёт
    начало (36, 55.5), расхождение полпикселя, его съедают скруглённые концы. */
-.ptak .k1{left:20px;top:36px;width:22px;transform:rotate(45deg) scaleX(0)}
-.ptak .k2{left:36px;top:51px;width:40px;transform:rotate(-50deg) scaleX(0)}
+
 .wtyt{flex:1;min-width:0;font-weight:900;font-size:56px;letter-spacing:-2px;color:#fff;
   white-space:nowrap;text-shadow:0 4px 18px rgba(0,0,0,.45)}
 .wpr{flex:0 0 auto;text-align:right;font-weight:900;font-size:88px;letter-spacing:-3px;color:#fff;
@@ -937,8 +943,7 @@ window.setT = (t) => {
           ' rotateY(' + ((1 - p[i]) * 12 + fala(t, i * 1.3, 1.15) * 0.8).toFixed(2) + 'deg)';
         // Галочка ДОРИСОВЫВАЕТСЯ двумя штрихами — это движение внутри строки.
         const k = clamp01((t - CZAS_W[i] - 0.14) / 0.26);
-        w.querySelector('.k1').style.transform = 'rotate(45deg) scaleX(' + easeOut(clamp01(k * 2)).toFixed(3) + ')';
-        w.querySelector('.k2').style.transform = 'rotate(-50deg) scaleX(' + easeOut(clamp01((k - 0.35) / 0.65)).toFixed(3) + ')';
+        w.querySelector('.kr').style.strokeDashoffset = (54 * (1 - easeOut(k))).toFixed(2);
         licznik(w.querySelector('.licz'), (t - CZAS_W[i] - 0.10) / 0.50, 30);
         wys += WYS * p[i];
       });
