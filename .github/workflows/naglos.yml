@@ -1,0 +1,45 @@
+name: ZOVU próba lektora na rolce
+
+# Версия готового ролика с закадровым голосом — для сравнения с немой.
+#
+# На сервере, а не на машине: ключ ElevenLabs лежит в секретах GitHub.
+# Локально сборка молча озвучила бы ролик роботом Piper, и это уже один раз
+# стоило нам часа правки не той причины.
+on:
+  workflow_dispatch:
+    inputs:
+      wideo:
+        description: 'Файл ролика в proba-glosu/'
+        type: string
+        required: false
+        default: 'OSK100_wrzesien.mp4'
+
+jobs:
+  lektor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Голос и сведение
+        env:
+          ELEVENLABS_KEY: ${{ secrets.ELEVENLABS_KEY }}
+          ELEVENLABS_VOICE: ${{ secrets.ELEVENLABS_VOICE }}
+        run: |
+          node naglos.mjs \
+            --wideo=proba-glosu/${{ inputs.wideo }} \
+            --wyjscie=out/z-glosem-${{ inputs.wideo }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rolka-z-glosem
+          path: out/z-glosem-*.mp4
+          if-no-files-found: error
