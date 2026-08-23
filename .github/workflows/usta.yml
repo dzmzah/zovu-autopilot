@@ -57,28 +57,26 @@ jobs:
       - name: Torch без видеокарты
         run: |
           python -m pip install -q -U pip
-          pip install -q torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 \
-            --index-url https://download.pytorch.org/whl/cpu
+          # Версия не случайная: под неё есть ГОТОВЫЕ сборки mmcv, и его не
+          # надо компилировать. Две попытки собрать из исходников упали на
+          # том, что setuptools 81 выбросил pkg_resources.
+          pip install -q torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0             --index-url https://download.pytorch.org/whl/cpu
 
       - name: Зависимости
         working-directory: silnik
         env:
-          # mmcv собирается из исходников и на этапе сборки читает torch.
-          # В изолированном окружении torch не виден, поэтому изоляцию снимаем.
           PIP_NO_BUILD_ISOLATION: '1'
         run: |
-          # setuptools 81 выбросил pkg_resources, а setup.py у mmcv его
-          # импортирует — сборка падает на первой строке. Держим старый.
+          # Старый setuptools нужен пакетам mmlab: часть из них до сих пор
+          # импортирует pkg_resources в setup.py.
           pip install -q "setuptools<80" wheel
-          # tensorflow из их списка нужен для обучения, для счёта — нет,
-          # а тянет он полтора гигабайта и ссорится с numpy.
+          # tensorflow из их списка нужен для обучения, не для счёта, а тянет
+          # полтора гигабайта и ссорится с numpy.
           grep -v -E '^(tensorflow|tensorboard)' requirements.txt > req.txt
           pip install -q -r req.txt
-          pip install -q -U openmim
-          mim install -q mmengine
-          mim install -q "mmcv==2.1.0"
-          mim install -q "mmdet==3.2.0"
-          mim install -q "mmpose==1.2.0"
+          pip install -q mmcv==2.1.0             -f https://download.openmmlab.com/mmcv/dist/cpu/torch2.1.0/index.html
+          pip install -q mmdet==3.2.0 mmpose==1.2.0
+          python -c "import mmcv, mmpose, torch; print('mmcv', mmcv.__version__, '| torch', torch.__version__)"
 
       - name: Веса
         if: steps.wagi.outputs.cache-hit != 'true'
