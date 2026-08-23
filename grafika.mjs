@@ -541,18 +541,36 @@ window.setT = (t) => {
       // зритель видел два нуля и не мог понять, что именно обнулилось.
       // Слово «TWOJE GODZINY» отвечает на это за один взгляд.
       const opis = pas.querySelector('.pasek-opis');
-      opis.textContent = m.opis || Math.round(proc) + '%';
-      // Слово шире процента и в штатных 54 px вылезает за шкалу. Считаем
-      // кегль под длину: «POSTÓW W MIESIĄCU» это семнадцать знаков, и в
-      // четырёхсот пикселях они помещаются только меньшим шрифтом.
-      // Ровно в одну строку. Перенос делит подпись пополам и та начинает
-      // спорить с числом на самой бирке — вместо объяснения выходит второй
-      // блок текста. Кегль считаем под длину, шкалу подпись может перерасти.
-      opis.style.whiteSpace = 'nowrap';
-      opis.style.fontSize = m.opis
-        ? Math.min(46, Math.floor((szer * 1.45) / m.opis.length)) + 'px'
-        : '';
-      opis.style.webkitTextStroke = m.opis ? '6px #0b0718' : '';
+      const tekstOpisu = m.opis || Math.round(proc) + '%';
+      // Подпись словом, если она задана. Голый процент под биркой ничего не
+      // объясняет: на последнем кадре первого ролика стояло «0 H» и «0%» —
+      // зритель видел два нуля и не мог понять, что именно обнулилось.
+      // Слово «TWOJE GODZINY» отвечает на это за один взгляд.
+      //
+      // Кегль ПОДБИРАЕМ ЗАМЕРОМ, а не по числу знаков. Прикидка «ширина
+      // делить на длину строки» врёт: у «POSTÓW W MIESIĄCU» широкие Ó, W и M,
+      // и в четырёхстах пикселях строка вылезла за шкалу с обеих сторон —
+      // Захар это увидел на первом же кадре. Меряем настоящую ширину и
+      // ужимаем, пока не поместится.
+      //
+      // Обводки здесь нет. Она осталась от первого захода, когда текст был
+      // белым поверх картинки; сейчас он тёмный ВНУТРИ белой шкалы, и
+      // тёмная обводка по тёмным буквам только раздувала строку и мазала
+      // края — ровно то, что видно на кадре.
+      if (opis.dataset.tekst !== tekstOpisu || opis.dataset.szer !== String(szer)) {
+        opis.dataset.tekst = tekstOpisu;
+        opis.dataset.szer = String(szer);
+        opis.textContent = tekstOpisu;
+        opis.style.whiteSpace = 'nowrap';
+        opis.style.webkitTextStroke = '';
+        const mieszczaSie = szer - 40; // поля внутри скруглённой шкалы
+        let kegl = 46;
+        opis.style.fontSize = kegl + 'px';
+        while (kegl > 16 && opis.scrollWidth > mieszczaSie) {
+          kegl -= 1;
+          opis.style.fontSize = kegl + 'px';
+        }
+      }
     }
   });
 

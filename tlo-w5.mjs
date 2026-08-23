@@ -62,21 +62,23 @@ html,body{width:${W}px;height:${H}px}
 body{background:${KOLOR.ciemny};overflow:hidden;font-family:'Inter',sans-serif;
   -webkit-font-smoothing:antialiased}
 
-#tlo{position:absolute;inset:0;
-  background:linear-gradient(175deg,${KOLOR.ciemny2} 0%,${KOLOR.ciemny} 62%,#08051a 100%)}
-#lampa{position:absolute;left:-10%;top:-14%;width:120%;height:90%;
-  background:radial-gradient(ellipse 46% 42% at 50% 45%, rgba(124,58,237,.55), rgba(124,58,237,0) 68%)}
-#lampa2{position:absolute;left:-20%;bottom:-24%;width:140%;height:70%;
-  background:radial-gradient(ellipse 40% 46% at 50% 50%, rgba(167,139,250,.20), rgba(0,0,0,0) 70%)}
-/* Дорожная разметка: два ряда штрихов уплывают вверх с разной скоростью.
-   Тема читается боковым зрением, кадр не стоит на месте ни секунды. */
-.pas{position:absolute;top:-260px;height:${H + 520}px;width:16px;border-radius:8px;
-  background:repeating-linear-gradient(to bottom, rgba(255,255,255,.16) 0 96px, rgba(255,255,255,0) 96px 216px)}
-#pas1{left:82px}
-#pas2{right:96px;width:10px;opacity:.6}
-#ziarno{position:absolute;inset:0;opacity:.05;
-  background-image:radial-gradient(rgba(255,255,255,.9) 1px, transparent 1px);
-  background-size:5px 5px}
+#tlo{position:absolute;inset:0;overflow:hidden;
+  background:linear-gradient(158deg,#241659 0%,#180f42 34%,#100a2c 66%,#0a0620 100%)}
+#swiatlo{position:absolute;left:-20%;top:-14%;width:140%;height:86%;
+  background:radial-gradient(ellipse 34% 40% at 50% 50%, rgba(196,176,255,.34), rgba(124,58,237,.14) 46%, rgba(124,58,237,0) 72%)}
+#ciepl{position:absolute;left:-10%;bottom:-18%;width:120%;height:56%;
+  background:radial-gradient(ellipse 40% 50% at 50% 50%, rgba(255,210,63,.10), rgba(255,210,63,0) 70%)}
+#platno{position:absolute;inset:-160px;opacity:.30;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23n)'/%3E%3C/svg%3E");background-size:320px 320px}
+#ziarno{position:absolute;inset:-160px;opacity:.14;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23n)'/%3E%3C/svg%3E");background-size:170px 170px}
+#tkanina{position:absolute;inset:0;opacity:.075;
+  background-image:repeating-linear-gradient(52deg, rgba(255,255,255,.7) 0 1px, rgba(255,255,255,0) 1px 9px)}
+#winieta{position:absolute;inset:0;
+  background:radial-gradient(ellipse 66% 54% at 50% 44%, rgba(0,0,0,0) 34%, rgba(4,2,14,.72) 100%)}
+#pyl{position:absolute;inset:0;opacity:.5;
+  background-image:radial-gradient(rgba(255,236,190,.55) 1.3px, transparent 1.5px);
+  background-size:230px 230px}
 
 .hl{position:relative;display:inline-block;padding:16px 18px 18px;border-radius:18px}
 .hl .pod{color:#fff;text-shadow:0 6px 26px rgba(0,0,0,.5)}
@@ -171,21 +173,35 @@ function cien(el, widocznosc, kolysanie) {
   el.style.opacity = (widocznosc * (0.62 - kolysanie * 0.03)).toFixed(3);
   el.style.transform = 'scaleX(' + (0.94 - kolysanie * 0.008).toFixed(3) + ')';
 }
-function tlo(t) {
-  $('pas1').style.transform = 'translateY(' + (-((t * 132) % 216)).toFixed(1) + 'px)';
-  $('pas2').style.transform = 'translateY(' + (-((t * 86) % 216)).toFixed(1) + 'px)';
-  const l = $('lampa');
-  l.style.transform =
-    'translate(' + (fala(t, 0, .55) * 26).toFixed(1) + 'px,' + (fala(t, 1.7, .42) * 20).toFixed(1) + 'px)' +
-    ' scale(' + (1 + fala(t, .6, .5) * .04).toFixed(3) + ')';
-  $('lampa2').style.transform = 'translate(' + (fala(t, 2.2, .38) * -30).toFixed(1) + 'px,0)';
+function tlo(t){
+  var s = document.getElementById('swiatlo');
+  s.style.transform = 'translate(' + (Math.sin(t * 0.19) * 130).toFixed(1) + 'px,' +
+    (Math.sin(t * 0.14 + 1.2) * 70).toFixed(1) + 'px) scale(' + (1 + Math.sin(t * 0.23) * 0.07).toFixed(3) + ')';
+  s.style.opacity = (0.86 + Math.sin(t * 0.27) * 0.14).toFixed(3);
+  var c = document.getElementById('ciepl');
+  c.style.transform = 'translate(' + (Math.cos(t * 0.16 + 2.1) * 110).toFixed(1) + 'px,0) scale(' + (1 + Math.cos(t*0.2)*0.06).toFixed(3) + ')';
+  // Зерно едет медленно и по кругу: рваный шум по кадрам дал бы мерцание.
+  document.getElementById('platno').style.transform =
+    'translate(' + (Math.sin(t * 1.9) * 46).toFixed(1) + 'px,' + (Math.cos(t * 1.6) * 40).toFixed(1) + 'px)';
+  document.getElementById('ziarno').style.transform =
+    'translate(' + (Math.cos(t * 2.3 + 1) * 34).toFixed(1) + 'px,' + (Math.sin(t * 2.05) * 30).toFixed(1) + 'px)';
+  document.getElementById('pyl').style.backgroundPosition =
+    (-(t * 6) % 230).toFixed(1) + 'px ' + (-(t * 11) % 230).toFixed(1) + 'px';
 }
+
+window.__klip = (x) => { window.setT(9.2); tlo(9.2 + x); blyski(9.2 + x); };
+
 `;
 
 const TLO_HTML = `
-<div id="tlo"><div id="lampa"></div><div id="lampa2"></div></div>
-<div class="pas" id="pas1"></div>
-<div class="pas" id="pas2"></div>
+<div id="tlo">
+  <div id="swiatlo"></div>
+  <div id="ciepl"></div>
+  <div id="tkanina"></div>
+  <div id="pyl"></div>
+  <div id="winieta"></div>
+  <div id="platno"></div>
+</div>
 <div id="ziarno"></div>`;
 
 function dokument(css, body, skrypt) {
