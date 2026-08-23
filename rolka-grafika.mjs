@@ -333,7 +333,38 @@ if (jestTlo) {
     const [licz, mian] = stdout.trim().split('/').map(Number);
     const kls = mian ? licz / mian : licz;
     if (kls > 0) tempoTla = +(kls / (FPS / 2)).toFixed(4);
-    console.log(`[grafika] полотно ${kls} к/с → замедляю в ${tempoTla} раза, шаг станет ровным`);
+
+    // Второе замедление — по ЗАМЕРУ движения, а не по частоте кадров.
+    //
+    // Частота выравнивает ШАГ, но не скорость: «topografia-jasna» дёргается
+    // в восемь раз сильнее остальных полотен (15,8 против 0,3-4,6 по средней
+    // разнице соседних кадров), и именно на ней Захар сказал «фон очень
+    // быстро пошёл». А выбор полотна у нас по кругу — значит ощущение от
+    // ролика менялось случайно, от того, какой файл выпал.
+    //
+    // Целимся в 1,9 — это «topografia-3», полотно, на котором собран
+    // «Scenariusz 1» Захара и с которым претензий не было.
+    // Множитель целый: дробный сломал бы ровный шаг, ради которого считалась
+    // частота выше.
+    const CEL_RUCHU = 1.9;
+    try {
+      const { stdout: st } = await execFileAsync('ffmpeg', [
+        '-hide_banner', '-nostats', '-i', TLO, '-t', '6',
+        '-vf', 'scale=320:-2,tblend=all_mode=difference,signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-',
+        '-f', 'null', '-',
+      ], { maxBuffer: 32 * 1024 * 1024 });
+      const y = [...st.matchAll(/YAVG=([d.]+)/g)].map((m) => +m[1]);
+      if (y.length) {
+        const ruch = y.reduce((a, b) => a + b, 0) / y.length;
+        const mnoznik = Math.min(8, Math.max(1, Math.round(ruch / CEL_RUCHU)));
+        tempoTla = +(tempoTla * mnoznik).toFixed(4);
+        console.log(
+          `[grafika] движение полотна ${ruch.toFixed(2)} (цель ${CEL_RUCHU}) → замедляю ещё в ${mnoznik} раза`
+        );
+      }
+    } catch {}
+
+    console.log(`[grafika] полотно ${kls} к/с → итого замедление ${tempoTla}, шаг ровный`);
   } catch {}
 }
 

@@ -642,6 +642,78 @@ if (process.argv.includes('pelne')) {
   process.exit(0);
 }
 
+// ── подмена фона в ролике OSK 100% ───────────────────────────────
+// Первый ролик собирается ДРУГИМ движком (`rolka-autoszkola.mjs`): фон там
+// вшит прямо в разметку и в `setT`, обёрток `TLO_HTML` и `tlo(t)` нет вовсе.
+// Ставить их туда задним числом опаснее, чем описать вторую подмену: файл
+// уже отдан клиенту и переписывать его структуру ради фона незачем.
+function podmienOsk100(src, w) {
+  let out = src;
+
+  const a = out.indexOf('#tlo{position:absolute');
+  const b = out.indexOf('\n/* ── общий текст');
+  if (a < 0 || b < 0) throw new Error('osk100: nie znalazlem bloku CSS tla');
+  out = out.slice(0, a) + w.css.trim() + '\n' + out.slice(b);
+
+  const c = out.indexOf('<div id="tlo">');
+  const d = out.indexOf('<div id="ziarno"></div>', c);
+  if (c < 0 || d < 0) throw new Error('osk100: nie znalazlem HTML tla');
+  out = out.slice(0, c) + w.html.trim() + out.slice(d + '<div id="ziarno"></div>'.length);
+
+  // Функция кладётся перед setT, а прежние четыре строки анимации фона
+  // заменяются одним вызовом. Границы блока — комментарий «фон» и последняя
+  // строка про lampa2; всё, что между ними, принадлежит только фону.
+  const e = out.indexOf('window.setT = (t) => {');
+  if (e < 0) throw new Error('osk100: nie znalazlem setT');
+  out = out.slice(0, e) + w.js.trim() + '\n\n' + out.slice(e);
+
+  const f = out.indexOf('  // ── фон ');
+  const g = out.indexOf("$('lampa2').style.transform", f);
+  const h = out.indexOf('\n', g);
+  if (f < 0 || g < 0) throw new Error('osk100: nie znalazlem animacji tla');
+  out = out.slice(0, f) + '  tlo(t);\n' + out.slice(h + 1);
+  return out;
+}
+
+// ── вся серия одним фоном ────────────────────────────────────────
+//   node tla-warianty.mjs seria 6
+if (process.argv.includes('seria')) {
+  const nr = process.argv.slice(2).filter((x) => /^[0-9]+$/.test(x)).map(Number)[0];
+  const w = WARIANTY.find((x) => x.nr === nr);
+  if (!w) throw new Error('nie ma wariantu ' + nr);
+  const wyj = path.join(WYJ, `seria-w${nr}`);
+  await mkdir(wyj, { recursive: true });
+
+  // OSK 100% — отдельный движок.
+  const src100 = await readFile(path.join(DIR, 'rolka-autoszkola.mjs'), 'utf8');
+  const tmp100 = path.join(DIR, `tlo-seria-osk100.mjs`);
+  await writeFile(tmp100, podmienOsk100(src100, w), 'utf8');
+  const cel100 = path.join(wyj, '1-OSK100_wrzesien.mp4');
+  console.log(`[seria] OSK 100% —> ${cel100}`);
+  await exe(process.execPath, [tmp100, `--wyjscie=${cel100}`], { cwd: DIR });
+  await rm(tmp100, { force: true });
+
+  // Остальные пять — общий движок серии.
+  const src = await readFile(ZRODLO, 'utf8');
+  const tmpMjs = path.join(DIR, 'tlo-seria.mjs');
+  await writeFile(tmpMjs, podmien(src, w), 'utf8');
+  const szkoly = [
+    ['silesia', '2-Silesia_3wrzesnia'],
+    ['akademia', '3-AkademiaJazdy_3400'],
+    ['wojtek', '4-WOJTEK_toauto'],
+    ['expert', '5-EXPERT_yaris'],
+    ['oskx', '6-OSKX_piec_wariantow'],
+  ];
+  for (const [klucz, nazwa] of szkoly) {
+    const cel = path.join(wyj, `${nazwa}.mp4`);
+    console.log(`[seria] ${klucz} —> ${cel}`);
+    await exe(process.execPath, [tmpMjs, `--szkola=${klucz}`, `--wyjscie=${cel}`], { cwd: DIR });
+  }
+  await rm(tmpMjs, { force: true });
+  console.log(`[seria] gotowe: ${wyj}`);
+  process.exit(0);
+}
+
 // ── запуск ───────────────────────────────────────────────────────
 await mkdir(WYJ, { recursive: true });
 // Пересобрать только сводную сетку из уже снятых кадров.
