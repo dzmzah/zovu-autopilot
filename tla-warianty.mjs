@@ -765,6 +765,24 @@ if (process.argv.includes('mix')) {
   process.exit(0);
 }
 
+// ── одна школа, один фон ─────────────────────────────────────────
+//   node tla-warianty.mjs jedna 4 idance out.mp4
+if (process.argv.includes('jedna')) {
+  const a = process.argv.slice(process.argv.indexOf('jedna') + 1);
+  const nr = Number(a[0]);
+  const szkola = a[1];
+  const cel = a[2];
+  const w = WARIANTY.find((x) => x.nr === nr);
+  if (!w) throw new Error('nie ma wariantu ' + nr);
+  const src = await readFile(ZRODLO, 'utf8');
+  const tmpMjs = path.join(DIR, `tlo-jedna-${szkola}.mjs`);
+  await writeFile(tmpMjs, podmien(src, w), 'utf8');
+  console.log(`[jedna] ${szkola} + tlo ${nr} (${w.nazwa}) —> ${cel}`);
+  await exe(process.execPath, [tmpMjs, `--szkola=${szkola}`, `--wyjscie=${cel}`], { cwd: DIR });
+  await rm(tmpMjs, { force: true });
+  process.exit(0);
+}
+
 // ── запуск ───────────────────────────────────────────────────────
 await mkdir(WYJ, { recursive: true });
 // Пересобрать только сводную сетку из уже снятых кадров.

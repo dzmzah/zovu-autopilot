@@ -2461,7 +2461,2604 @@ window.setT = (t) => {
   },
 };
 
-const SZKOLY = { silesia: SILESIA, akademia: AKADEMIA, wojtek: WOJTEK, expert: EXPERT, oskx: OSKX };
+// ═════════════════════════════════════════════════════════════════
+// ШКОЛА ТАНЦЕВ 1 — i-Dance Katowice (i-dance-katowice.pl).
+//
+// Ролик стоит на одной операции, которую родитель делает в голове и так:
+// карнет OPEN для ребёнка 350 zł — это 11,60 zł в день. Цифра 350 отпугивает
+// и откладывает решение, 11,60 — нет. На сайте школы этого пересчёта нет.
+//
+// Все суммы с их страницы /cennik/, без единой придуманной цифры.
+// «Найдешевшая в городе» не пишем: у СкТ есть 100 zł и это проверяется за две минуты.
+// ═════════════════════════════════════════════════════════════════
+const IDANCE = {
+  plik: 'iDance_11zl',
+  wyjscie: 'D:/My AI/Zovu.pl/Sprzedaz/szkoly-tanca/iDance_11zl.mp4',
+  szkola: 'i-DANCE',
+  muzyka: 'pixabay-audio_59b3a0e3c6.mp3',
+  muzykaOd: 24,
+
+  T: {
+    hak: { a: -0.10, l1: 0.02, l2: 0.50, pod: 1.00, wyjscie: 2.24 },
+    spec: { a: 2.38, kicker: 2.42, panel: 2.54, r1: 2.72, krok: 0.46,
+            kreska: 5.06, kicker2: 5.26, chipA: 5.50, chipB: 5.76, stopka: 6.34, wyjscie: 7.80 },
+    cena: { a: 7.94, kicker: 7.98, k1: 8.10, krok: 0.30, kreska: 9.24,
+            kicker2: 9.36, licznik: 9.52, pakiety: 10.84, wyjscie: 12.16 },
+    fin: { a: 12.30, kicker: 12.34, l1: 12.48, pod: 12.86, kreska: 13.04, marka: 13.28 },
+  },
+
+  dzwieki(T) {
+    const z = [];
+    z.push({ t: 0.02, typ: 'swist', gl: 0.5 });
+    z.push({ t: T.hak.l1 + 0.06, typ: 'dun', gl: 0.85 });
+    z.push({ t: T.hak.l2 + 0.10, typ: 'klik', gl: 0.66 });
+    z.push({ t: T.hak.pod + 0.06, typ: 'klik', gl: 0.36 });
+    z.push({ t: T.hak.wyjscie, typ: 'swist', gl: 0.55 });
+    for (let i = 0; i < 4; i++) z.push({ t: T.spec.r1 + i * T.spec.krok + 0.14, typ: 'klik', gl: 0.64 });
+    z.push({ t: T.spec.kreska + 0.04, typ: 'swist', gl: 0.36 });
+    z.push({ t: T.spec.chipA + 0.14, typ: 'dun', gl: 0.66 });
+    z.push({ t: T.spec.chipB + 0.14, typ: 'dun', gl: 0.66 });
+    z.push({ t: T.spec.stopka + 0.10, typ: 'klik', gl: 0.3 });
+    z.push({ t: T.spec.wyjscie + 0.02, typ: 'swist', gl: 0.56 });
+    for (let i = 0; i < 3; i++) z.push({ t: T.cena.k1 + i * T.cena.krok + 0.14, typ: 'klik', gl: 0.6 });
+    z.push({ t: T.cena.kreska + 0.04, typ: 'swist', gl: 0.4 });
+    z.push({ t: T.cena.licznik + 0.06, typ: 'dun', gl: 0.88 });
+    z.push({ t: T.cena.pakiety + 0.10, typ: 'klik', gl: 0.34 });
+    z.push({ t: T.cena.wyjscie + 0.02, typ: 'swist', gl: 0.55 });
+    z.push({ t: T.fin.l1 + 0.16, typ: 'klik', gl: 0.6 });
+    z.push({ t: T.fin.marka + 0.2, typ: 'dun', gl: 0.9 });
+    return z;
+  },
+
+  html() {
+    const wiersz = (i, etykieta, wartosc) =>
+      `<div class="spr" data-i="${i}">
+  <div class="spl">${esc(etykieta)}</div>
+  <div class="spv" data-fit="62,34,90">${esc(wartosc)}</div>
+</div>`;
+
+    const karta = (i, liczba, jedn, podpis, zolta) =>
+      `<div class="cka${zolta ? ' zol' : ''}" data-i="${i}">
+  <div class="cienEl ckaCien"></div>
+  <div class="ckl">${liczba}<span class="jedn">${esc(jedn)}</span></div>
+  <div class="ckp">${esc(podpis)}</div>
+</div>`;
+
+    const css = `
+/* ── 0–2.25 с: вопрос, который редко задают ───────────────────── */
+#eHak{position:absolute;inset:0}
+#eKicker{position:absolute;left:60px;right:60px;top:550px;font-size:36px}
+#eL1{position:absolute;left:60px;right:60px;top:626px;text-align:center;
+  font-weight:900;font-size:94px;letter-spacing:-3px;color:#fff;white-space:nowrap;
+  text-shadow:0 8px 30px rgba(0,0,0,.55)}
+#eL2{position:absolute;left:60px;right:60px;top:762px;text-align:center;opacity:0}
+#eL2 .hl{font-size:104px;font-weight:900;letter-spacing:-4px}
+#eHakCien{left:30%;right:30%;top:930px;height:44px}
+#ePod{position:absolute;left:60px;right:60px;top:996px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:54px;color:${KOLOR.jasny};opacity:0}
+
+/* ── 2.4–7.8 с: табличка характеристик ────────────────────────── */
+#sp{position:absolute;inset:0}
+#spKicker{position:absolute;left:50px;right:50px;top:320px;font-size:34px;letter-spacing:6px;opacity:0}
+#spPanel{position:absolute;left:62px;right:62px;top:386px;height:752px;border-radius:36px;
+  overflow:hidden;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.045));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 32px 76px rgba(0,0,0,.46)}
+#spSkan{position:absolute;left:0;right:0;height:240px;pointer-events:none;
+  background:linear-gradient(180deg, rgba(167,139,250,0) 0%, rgba(167,139,250,.17) 50%, rgba(167,139,250,0) 100%)}
+.spr{position:absolute;left:44px;right:44px;height:168px;display:flex;align-items:center;
+  gap:24px;opacity:0;transform-origin:50% 0%}
+.spr::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;
+  background:rgba(255,255,255,.10)}
+.spr[data-i="3"]::after{opacity:0}
+.splin{position:absolute;left:44px;right:44px;height:2px;background:rgba(255,255,255,.07)}
+.spr[data-i="0"]{top:40px}
+.spr[data-i="1"]{top:208px}
+.spr[data-i="2"]{top:376px}
+.spr[data-i="3"]{top:544px}
+.spl{flex:0 0 244px;font-weight:800;font-size:32px;letter-spacing:5px;color:${KOLOR.jasny}}
+.spv{flex:1;min-width:0;overflow:hidden;text-align:right;font-weight:900;font-size:62px;
+  letter-spacing:-2px;color:#fff;white-space:nowrap;text-shadow:0 4px 18px rgba(0,0,0,.45)}
+#spPanelCien{left:12%;right:12%;top:1152px;height:46px;opacity:0}
+#spKreska{position:absolute;left:270px;top:1176px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#spKicker2{position:absolute;left:50px;right:50px;top:1212px;font-size:34px;letter-spacing:6px;opacity:0}
+.spchip{position:absolute;top:1272px;width:452px;height:118px;border-radius:26px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:46px;letter-spacing:-1px;color:#fff;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.13), rgba(255,255,255,.05));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.20), 0 22px 54px rgba(0,0,0,.42)}
+#chipA{left:62px}
+#chipB{right:62px}
+#spStopka{position:absolute;left:90px;right:90px;top:1428px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:44px;color:${KOLOR.cichy};opacity:0}
+
+/* ── 7.9–12.2 с: что в цене, потом цена ───────────────────────── */
+#ce{position:absolute;inset:0;opacity:0}
+#ceKicker{position:absolute;left:60px;right:60px;top:410px;font-size:40px;opacity:0}
+.cka{position:absolute;top:478px;width:309px;height:238px;border-radius:30px;
+  padding-top:40px;text-align:center;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.045));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 26px 60px rgba(0,0,0,.42)}
+.cka[data-i="0"]{left:56px}
+.cka[data-i="1"]{left:385px}
+.cka[data-i="2"]{right:56px}
+.cka .ckl{font-weight:900;font-size:96px;letter-spacing:-4px;line-height:1;color:#fff;
+  white-space:nowrap;text-shadow:0 6px 22px rgba(0,0,0,.5)}
+.cka .ckl .jedn{font-size:54px;color:${KOLOR.zolty}}
+.cka .ckp{margin-top:26px;font-weight:800;font-size:32px;letter-spacing:3px;color:${KOLOR.cichy}}
+.cka.zol{background:linear-gradient(140deg,#ffe07a,${KOLOR.zolty});
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 26px 60px rgba(255,210,63,.22)}
+.cka.zol .ckl{color:#150e33;text-shadow:none}
+.cka.zol .ckl .jedn{color:#3d2c00}
+.cka.zol .ckp{color:#4a3600}
+.ckaCien{left:10%;right:10%;bottom:-24px;height:40px;opacity:0}
+#ceKreska{position:absolute;left:270px;top:790px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#ceKicker2{position:absolute;left:60px;right:60px;top:830px;font-size:40px;opacity:0}
+#ceCena{position:absolute;left:60px;right:60px;top:900px;text-align:center;
+  font-weight:900;font-size:198px;letter-spacing:-10px;color:#fff;white-space:nowrap;
+  text-shadow:0 12px 40px rgba(0,0,0,.55)}
+#ceCena .od{font-size:92px;letter-spacing:-2px;color:${KOLOR.cichy};font-weight:800}
+#ceCena .jedn{font-size:112px;color:${KOLOR.zolty};letter-spacing:-4px;margin-left:12px}
+#ceCien{left:28%;right:28%;top:1140px;height:46px;opacity:0}
+#cePak{position:absolute;left:70px;right:70px;top:1216px;text-align:center;
+  font-weight:700;font-size:34px;line-height:1.3;color:${KOLOR.cichy};opacity:0}
+#cePak b{color:#fff}
+
+/* ── 12.3–15 с: марка ─────────────────────────────────────────── */
+#fi{position:absolute;inset:0;opacity:0}
+#fiKicker{position:absolute;left:60px;right:60px;top:426px;font-size:38px;opacity:0}
+#fiL1{position:absolute;left:60px;right:60px;top:490px;text-align:center;opacity:0}
+#fiL1 .hl{font-size:76px;font-weight:900;letter-spacing:-3px}
+#fiPod{position:absolute;left:60px;right:60px;top:702px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:48px;color:${KOLOR.jasny};opacity:0}
+#fiKreska{position:absolute;left:270px;top:800px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#mk{position:absolute;left:50px;right:50px;top:868px;text-align:center;opacity:0}
+#mk .nazwa{font-weight:900;font-size:138px;letter-spacing:-4px;line-height:1;color:#fff;
+  text-shadow:0 10px 40px rgba(0,0,0,.55)}
+#mk .pod{margin-top:22px;font-weight:800;font-size:42px;letter-spacing:6px;color:${KOLOR.zolty}}
+#mk .miasto{margin-top:14px;font-weight:800;font-size:40px;letter-spacing:12px;color:#fff}
+#mk .www{margin-top:24px;font-weight:600;font-size:40px;color:${KOLOR.cichy}}
+#mkCien{left:28%;right:28%;top:1244px;height:44px;opacity:0}
+`;
+
+    const body = `
+<div id="eHak">
+  <div id="eKicker" class="kicker">KARNET OPEN DLA DZIECKA</div>
+  <div id="eL1">350 ZŁ MIESIĘCZNIE</div>
+  <div id="eL2">${hl('CZY 11,60 ZŁ?', 'eHl')}</div>
+  <div id="eHakCien" class="cienEl"></div>
+  <div id="ePod">Ta sama kwota, inaczej policzona.</div>
+</div>
+
+<div id="sp">
+  <div id="spKicker" class="kicker">CENNIK BEZ GWIAZDEK</div>
+  <div id="spPanelCien" class="cienEl"></div>
+  <div id="spPanel">
+    <div id="spSkan"></div>
+    <div class="splin" style="top:207px"></div>
+    <div class="splin" style="top:375px"></div>
+    <div class="splin" style="top:543px"></div>
+    ${wiersz(0, '1× W TYG.', '140 ZŁ')}
+    ${wiersz(1, '2× W TYG.', '230 ZŁ')}
+    ${wiersz(2, 'OPEN DZIECI', '350 ZŁ')}
+    ${wiersz(3, 'OPEN DOROŚLI', '370 ZŁ')}
+  </div>
+  <div id="spKreska"></div>
+  <div id="spKicker2" class="kicker">JEDNORAZOWO</div>
+  <div class="spchip" id="chipA">45 MIN — 45 ZŁ</div>
+  <div class="spchip" id="chipB">60 MIN — 60 ZŁ</div>
+  <div id="spStopka">Karnet ważny cztery tygodnie.</div>
+</div>
+
+<div id="ce">
+  <div id="ceKicker" class="kicker">KARNETY MIESIĘCZNE</div>
+  ${karta(0, '<span class="licz" data-do="140">0</span>', ' zł', '1× W TYGODNIU', false)}
+  ${karta(1, '<span class="licz" data-do="230">0</span>', ' zł', '2× W TYGODNIU', false)}
+  ${karta(2, '350', ' zł', 'OPEN DZIECI', true)}
+  <div id="ceKreska"></div>
+  <div id="ceKicker2" class="kicker">OPEN — WSZYSTKO W MIESIĄCU</div>
+  <div id="ceCena"><span class="licz" data-do="11">0</span><span class="od">,60</span><span class="jedn"> zł</span></div>
+  <div id="ceCien" class="cienEl"></div>
+  <div id="cePak">tyle wychodzi <b>za jeden dzień</b></div>
+</div>
+
+<div id="fi">
+  <div id="fiKicker" class="kicker">OD PRZEDSZKOLAKA DO SENIORA</div>
+  <div id="fiL1">${hl('WSZYSTKIE STYLE', 'finHl')}</div>
+  <div id="fiPod">Rekreacja albo mistrzostwa — wybierasz sam.</div>
+  <div id="fiKreska"></div>
+  <div id="mk">
+    <div class="nazwa">i-DANCE</div>
+    <div class="pod">SZKOŁA TAŃCA</div>
+    <div class="miasto">KATOWICE</div>
+    <div class="www">ul. Lechicka 1 · i-dance-katowice.pl</div>
+  </div>
+  <div id="mkCien" class="cienEl"></div>
+</div>`;
+
+    const skrypt = `
+const T = ${JSON.stringify(this.T)};
+const SEK = ${SEK};
+const wiersze = [].slice.call(document.querySelectorAll('.spr'));
+const karty = [].slice.call(document.querySelectorAll('.cka'));
+
+window.setT = (t) => {
+  blyski(t);
+  tlo(t);
+
+  // ── 0–2.25 с: вопрос ──────────────────────────────────────────
+  {
+    const h = $('eHak');
+    const wyj = easeIn(clamp01((t - T.hak.wyjscie) / 0.28));
+    const widok = wyj < 1;
+    h.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      h.style.opacity = 1 - wyj;
+      h.style.transform = 'translate3d(0,' + (-wyj * 70).toFixed(1) + 'px,0) scale(' + (1 - wyj * 0.05).toFixed(3) + ')';
+
+      const pk = easeOut(clamp01((t - T.hak.a) / 0.30));
+      const kk = $('eKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 18).toFixed(1) + 'px)';
+
+      const p1 = easeBack(clamp01((t - T.hak.l1) / 0.42));
+      const l1 = $('eL1');
+      l1.style.opacity = easeOut(clamp01((t - T.hak.l1) / 0.24));
+      l1.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p1) * 50 + fala(t, 0.3) * 2.6).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p1) * -20).toFixed(2) + 'deg)';
+
+      const p2 = easeBack(clamp01((t - T.hak.l2) / 0.44));
+      const l2 = $('eL2');
+      l2.style.opacity = easeOut(clamp01((t - T.hak.l2) / 0.26));
+      const zy = fala(t, 1.3, 1.3) * 4;
+      l2.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p2) * 54 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p2) * -22 + fala(t, 1.3, 1.3) * 0.8).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - p2) * 0.08).toFixed(3) + ')';
+      plama('eHl', easeOut(clamp01((t - T.hak.l2 - 0.14) / 0.30)));
+      cien($('eHakCien'), easeOut(clamp01((t - T.hak.l2) / 0.26)), zy);
+
+      const pp = easeOut(clamp01((t - T.hak.pod) / 0.32));
+      const pd = $('ePod');
+      pd.style.opacity = pp;
+      pd.style.transform = 'translateY(' + ((1 - pp) * 22 + fala(t, 2.4, 1.1) * 2.4).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 2.4–7.8 с: табличка ───────────────────────────────────────
+  {
+    const s = $('sp');
+    const wyj = easeIn(clamp01((t - T.spec.wyjscie) / 0.28));
+    const widok = t > T.spec.a - 0.05 && wyj < 1;
+    s.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      s.style.opacity = 1 - wyj;
+
+      const pk = easeOut(clamp01((t - T.spec.kicker) / 0.28));
+      const kk = $('spKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      const pp = easeOut(clamp01((t - T.spec.panel) / 0.34));
+      const pan = $('spPanel');
+      pan.style.opacity = pp;
+      pan.style.transform = 'perspective(1800px) rotateX(' + (fala(t, 1.0, 0.85) * 0.6).toFixed(2) + 'deg)' +
+        ' rotateY(' + (fala(t, 2.3, 0.7) * 0.7).toFixed(2) + 'deg)' +
+        ' translateY(' + ((1 - pp) * 24 + fala(t, 1.0, 0.85) * 3).toFixed(1) + 'px)';
+      cien($('spPanelCien'), pp * 0.9, fala(t, 1.0, 0.85) * 3);
+      // Полоса сканера идёт по табличке всю сцену: панель не стоит
+      // мёртвым прямоугольником даже когда строки уже прилетели.
+      $('spSkan').style.transform =
+        'translateY(' + ((((t - T.spec.panel) * 0.40) % 1) * 992 - 240).toFixed(1) + 'px)';
+
+      // Строки ПЕРЕВОРАЧИВАЮТСЯ на оси X, как на механическом табло.
+      wiersze.forEach((w, i) => {
+        const a = T.spec.r1 + i * T.spec.krok;
+        const p = clamp01((t - a) / 0.46);
+        if (p <= 0) { w.style.opacity = 0; return; }
+        const e = easeOut(p);
+        const zy = fala(t, i * 1.1 + 0.5, 1.15) * 2.2;
+        w.style.opacity = Math.min(1, p * 2.2);
+        w.style.transform = 'perspective(1200px) rotateX(' + ((1 - easeBack(p)) * -88).toFixed(2) + 'deg)' +
+          ' translate3d(0,' + zy.toFixed(1) + 'px,0)' +
+          ' scale(' + (0.94 + e * 0.06).toFixed(3) + ')';
+      });
+
+      $('spKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.spec.kreska) / 0.40)).toFixed(3) + ')';
+
+      const pk2 = easeOut(clamp01((t - T.spec.kicker2) / 0.28));
+      const kk2 = $('spKicker2');
+      kk2.style.opacity = pk2;
+      kk2.style.transform = 'translateY(' + ((1 - pk2) * 16).toFixed(1) + 'px)';
+
+      [['chipA', T.spec.chipA, -1], ['chipB', T.spec.chipB, 1]].forEach((c, i) => {
+        const el = $(c[0]);
+        const p = easeBack(clamp01((t - c[1]) / 0.40));
+        el.style.opacity = easeOut(clamp01((t - c[1]) / 0.24));
+        const zy = fala(t, i * 1.6 + 2.2, 1.25) * 3;
+        el.style.transform = 'perspective(1500px) translate3d(' + ((1 - p) * c[2] * 80).toFixed(1) + 'px,' + zy.toFixed(1) + 'px,0)' +
+          ' rotateY(' + ((1 - p) * c[2] * 16 + fala(t, i * 1.6, 1.2) * 1.2).toFixed(2) + 'deg)';
+      });
+
+      const ps = easeOut(clamp01((t - T.spec.stopka) / 0.34));
+      const st = $('spStopka');
+      st.style.opacity = ps * 0.95;
+      st.style.transform = 'translateY(' + ((1 - ps) * 20 + fala(t, 3.8, 1.05) * 2).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 7.9–12.2 с: что в цене, потом цена ────────────────────────
+  {
+    const c = $('ce');
+    const wyj = easeIn(clamp01((t - T.cena.wyjscie) / 0.26));
+    const widok = t > T.cena.a - 0.05 && wyj < 1;
+    c.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      c.style.opacity = 1 - wyj;
+
+      const pk = easeOut(clamp01((t - T.cena.kicker) / 0.28));
+      const kk = $('ceKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      karty.forEach((k, i) => {
+        const a = T.cena.k1 + i * T.cena.krok;
+        const p = clamp01((t - a) / 0.44);
+        if (p <= 0) { k.style.opacity = 0; return; }
+        const e = easeBack(p);
+        k.style.opacity = easeOut(p);
+        const zy = fala(t, i * 1.25 + 0.4) * 3.4;
+        wjazd(k, e, {
+          dy: 40, dx: 0, ry: (i - 1) * 16, rx: 12, sc: 0.14,
+          po: ' translate3d(0,' + zy.toFixed(1) + 'px,0)' +
+              ' rotateY(' + (fala(t, i * 1.25, 1.15) * 1.3).toFixed(2) + 'deg)',
+        });
+        cien(k.querySelector('.ckaCien'), easeOut(p), zy);
+        // Цели у карточек разные (140 и 230), поэтому берём из разметки,
+        // а не из одного числа на все три — иначе счётчик врёт клиенту.
+        const el = k.querySelector('.licz');
+        if (el) licznik(el, (t - a - 0.10) / 0.50, +el.dataset.do);
+      });
+
+      $('ceKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.cena.kreska) / 0.40)).toFixed(3) + ')';
+
+      const pk2 = easeOut(clamp01((t - T.cena.kicker2) / 0.28));
+      const kk2 = $('ceKicker2');
+      kk2.style.opacity = pk2;
+      kk2.style.transform = 'translateY(' + ((1 - pk2) * 16).toFixed(1) + 'px)';
+
+      const pl = clamp01((t - T.cena.licznik) / 0.46);
+      const cc = $('ceCena');
+      const zy = fala(t, 0.6, 1.35) * 5;
+      cc.style.opacity = easeOut(pl);
+      cc.style.transform = 'perspective(1600px) translate3d(0,' + ((1 - easeBack(pl)) * 56 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - easeBack(pl)) * -22 + fala(t, 0.6, 1.35) * 0.7).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - easeBack(pl)) * 0.10).toFixed(3) + ')';
+      licznik(cc.querySelector('.licz'), (t - T.cena.licznik) / 0.82, 11);
+      cien($('ceCien'), easeOut(pl), zy);
+
+      const pp = easeOut(clamp01((t - T.cena.pakiety) / 0.34));
+      const cp = $('cePak');
+      cp.style.opacity = pp * 0.96;
+      cp.style.transform = 'translateY(' + ((1 - pp) * 20 + fala(t, 3.4, 1.1) * 2).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 12.3–15 с: марка ──────────────────────────────────────────
+  {
+    const f = $('fi');
+    const widok = t > T.fin.a - 0.05;
+    f.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      f.style.opacity = 1;
+      f.style.transformOrigin = '50% 46%';
+      f.style.transform = 'scale(' + (1.004 + clamp01((t - T.fin.a) / (SEK - T.fin.a)) * 0.016).toFixed(4) + ')';
+
+      const pk = easeOut(clamp01((t - T.fin.kicker) / 0.30));
+      const fk = $('fiKicker');
+      fk.style.opacity = pk;
+      fk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      const p1 = easeBack(clamp01((t - T.fin.l1) / 0.42));
+      const l1 = $('fiL1');
+      l1.style.opacity = easeOut(clamp01((t - T.fin.l1) / 0.24));
+      l1.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p1) * 48 + fala(t, 0.3) * 2.6).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p1) * -20).toFixed(2) + 'deg)';
+      plama('finHl', easeOut(clamp01((t - T.fin.l1 - 0.16) / 0.30)));
+
+      const pp = easeOut(clamp01((t - T.fin.pod) / 0.32));
+      const fp = $('fiPod');
+      fp.style.opacity = pp;
+      fp.style.transform = 'translateY(' + ((1 - pp) * 20 + fala(t, 2.6, 1.1) * 2).toFixed(1) + 'px)';
+
+      $('fiKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.fin.kreska) / 0.42)).toFixed(3) + ')';
+
+      const m = $('mk');
+      const pm = easeBack(clamp01((t - T.fin.marka) / 0.46));
+      const pmo = easeOut(clamp01((t - T.fin.marka) / 0.26));
+      m.style.opacity = pmo;
+      const zy = fala(t, 3.1, 1.35) * 7;
+      m.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - pm) * 54 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - pm) * -22 + fala(t, 3.1, 1.35) * 0.9).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - pm) * 0.08 + fala(t, 1.9, 0.9) * 0.006).toFixed(4) + ')';
+      cien($('mkCien'), pmo * 0.9, zy);
+      m.querySelector('.pod').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.20) / 0.30));
+      m.querySelector('.miasto').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.28) / 0.30));
+      m.querySelector('.www').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.38) / 0.34));
+    }
+  }
+};`;
+
+    return dokument(css, body, skrypt);
+  },
+};
+
+
+const SKT = {
+  plik: 'SKT_100zl',
+  wyjscie: 'D:/My AI/Zovu.pl/Sprzedaz/szkoly-tanca/SKT_100zl.mp4',
+  szkola: 'SKT',
+  muzyka: 'pixabay-audio_7fd615b293.mp3',
+  muzykaOd: 38,
+
+  T: {
+    hak: { a: -0.10, l1: 0.02, l2: 0.50, pod: 1.00, wyjscie: 2.24 },
+    spec: { a: 2.38, kicker: 2.42, panel: 2.54, r1: 2.72, krok: 0.46,
+            kreska: 5.06, kicker2: 5.26, chipA: 5.50, chipB: 5.76, stopka: 6.34, wyjscie: 7.80 },
+    cena: { a: 7.94, kicker: 7.98, k1: 8.10, krok: 0.30, kreska: 9.24,
+            kicker2: 9.36, licznik: 9.52, pakiety: 10.84, wyjscie: 12.16 },
+    fin: { a: 12.30, kicker: 12.34, l1: 12.48, pod: 12.86, kreska: 13.04, marka: 13.28 },
+  },
+
+  dzwieki(T) {
+    const z = [];
+    z.push({ t: 0.02, typ: 'swist', gl: 0.5 });
+    z.push({ t: T.hak.l1 + 0.06, typ: 'dun', gl: 0.85 });
+    z.push({ t: T.hak.l2 + 0.10, typ: 'klik', gl: 0.66 });
+    z.push({ t: T.hak.pod + 0.06, typ: 'klik', gl: 0.36 });
+    z.push({ t: T.hak.wyjscie, typ: 'swist', gl: 0.55 });
+    for (let i = 0; i < 4; i++) z.push({ t: T.spec.r1 + i * T.spec.krok + 0.14, typ: 'klik', gl: 0.64 });
+    z.push({ t: T.spec.kreska + 0.04, typ: 'swist', gl: 0.36 });
+    z.push({ t: T.spec.chipA + 0.14, typ: 'dun', gl: 0.66 });
+    z.push({ t: T.spec.chipB + 0.14, typ: 'dun', gl: 0.66 });
+    z.push({ t: T.spec.stopka + 0.10, typ: 'klik', gl: 0.3 });
+    z.push({ t: T.spec.wyjscie + 0.02, typ: 'swist', gl: 0.56 });
+    for (let i = 0; i < 3; i++) z.push({ t: T.cena.k1 + i * T.cena.krok + 0.14, typ: 'klik', gl: 0.6 });
+    z.push({ t: T.cena.kreska + 0.04, typ: 'swist', gl: 0.4 });
+    z.push({ t: T.cena.licznik + 0.06, typ: 'dun', gl: 0.88 });
+    z.push({ t: T.cena.pakiety + 0.10, typ: 'klik', gl: 0.34 });
+    z.push({ t: T.cena.wyjscie + 0.02, typ: 'swist', gl: 0.55 });
+    z.push({ t: T.fin.l1 + 0.16, typ: 'klik', gl: 0.6 });
+    z.push({ t: T.fin.marka + 0.2, typ: 'dun', gl: 0.9 });
+    return z;
+  },
+
+  html() {
+    const wiersz = (i, etykieta, wartosc) =>
+      `<div class="spr" data-i="${i}">
+  <div class="spl">${esc(etykieta)}</div>
+  <div class="spv" data-fit="62,34,90">${esc(wartosc)}</div>
+</div>`;
+
+    const karta = (i, liczba, jedn, podpis, zolta) =>
+      `<div class="cka${zolta ? ' zol' : ''}" data-i="${i}">
+  <div class="cienEl ckaCien"></div>
+  <div class="ckl">${liczba}<span class="jedn">${esc(jedn)}</span></div>
+  <div class="ckp">${esc(podpis)}</div>
+</div>`;
+
+    const css = `
+/* ── 0–2.25 с: вопрос, который редко задают ───────────────────── */
+#eHak{position:absolute;inset:0}
+#eKicker{position:absolute;left:60px;right:60px;top:550px;font-size:36px}
+#eL1{position:absolute;left:60px;right:60px;top:626px;text-align:center;
+  font-weight:900;font-size:94px;letter-spacing:-3px;color:#fff;white-space:nowrap;
+  text-shadow:0 8px 30px rgba(0,0,0,.55)}
+#eL2{position:absolute;left:60px;right:60px;top:762px;text-align:center;opacity:0}
+#eL2 .hl{font-size:104px;font-weight:900;letter-spacing:-4px}
+#eHakCien{left:30%;right:30%;top:930px;height:44px}
+#ePod{position:absolute;left:60px;right:60px;top:996px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:54px;color:${KOLOR.jasny};opacity:0}
+
+/* ── 2.4–7.8 с: табличка характеристик ────────────────────────── */
+#sp{position:absolute;inset:0}
+#spKicker{position:absolute;left:50px;right:50px;top:320px;font-size:34px;letter-spacing:6px;opacity:0}
+#spPanel{position:absolute;left:62px;right:62px;top:386px;height:752px;border-radius:36px;
+  overflow:hidden;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.045));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 32px 76px rgba(0,0,0,.46)}
+#spSkan{position:absolute;left:0;right:0;height:240px;pointer-events:none;
+  background:linear-gradient(180deg, rgba(167,139,250,0) 0%, rgba(167,139,250,.17) 50%, rgba(167,139,250,0) 100%)}
+.spr{position:absolute;left:44px;right:44px;height:168px;display:flex;align-items:center;
+  gap:24px;opacity:0;transform-origin:50% 0%}
+.spr::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;
+  background:rgba(255,255,255,.10)}
+.spr[data-i="3"]::after{opacity:0}
+.splin{position:absolute;left:44px;right:44px;height:2px;background:rgba(255,255,255,.07)}
+.spr[data-i="0"]{top:40px}
+.spr[data-i="1"]{top:208px}
+.spr[data-i="2"]{top:376px}
+.spr[data-i="3"]{top:544px}
+.spl{flex:0 0 244px;font-weight:800;font-size:32px;letter-spacing:5px;color:${KOLOR.jasny}}
+.spv{flex:1;min-width:0;overflow:hidden;text-align:right;font-weight:900;font-size:62px;
+  letter-spacing:-2px;color:#fff;white-space:nowrap;text-shadow:0 4px 18px rgba(0,0,0,.45)}
+#spPanelCien{left:12%;right:12%;top:1152px;height:46px;opacity:0}
+#spKreska{position:absolute;left:270px;top:1176px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#spKicker2{position:absolute;left:50px;right:50px;top:1212px;font-size:34px;letter-spacing:6px;opacity:0}
+.spchip{position:absolute;top:1272px;width:452px;height:118px;border-radius:26px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:46px;letter-spacing:-1px;color:#fff;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.13), rgba(255,255,255,.05));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.20), 0 22px 54px rgba(0,0,0,.42)}
+#chipA{left:62px}
+#chipB{right:62px}
+#spStopka{position:absolute;left:90px;right:90px;top:1428px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:44px;color:${KOLOR.cichy};opacity:0}
+
+/* ── 7.9–12.2 с: что в цене, потом цена ───────────────────────── */
+#ce{position:absolute;inset:0;opacity:0}
+#ceKicker{position:absolute;left:60px;right:60px;top:410px;font-size:40px;opacity:0}
+.cka{position:absolute;top:478px;width:309px;height:238px;border-radius:30px;
+  padding-top:40px;text-align:center;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.045));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 26px 60px rgba(0,0,0,.42)}
+.cka[data-i="0"]{left:56px}
+.cka[data-i="1"]{left:385px}
+.cka[data-i="2"]{right:56px}
+.cka .ckl{font-weight:900;font-size:96px;letter-spacing:-4px;line-height:1;color:#fff;
+  white-space:nowrap;text-shadow:0 6px 22px rgba(0,0,0,.5)}
+.cka .ckl .jedn{font-size:54px;color:${KOLOR.zolty}}
+.cka .ckp{margin-top:26px;font-weight:800;font-size:32px;letter-spacing:3px;color:${KOLOR.cichy}}
+.cka.zol{background:linear-gradient(140deg,#ffe07a,${KOLOR.zolty});
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 26px 60px rgba(255,210,63,.22)}
+.cka.zol .ckl{color:#150e33;text-shadow:none}
+.cka.zol .ckl .jedn{color:#3d2c00}
+.cka.zol .ckp{color:#4a3600}
+.ckaCien{left:10%;right:10%;bottom:-24px;height:40px;opacity:0}
+#ceKreska{position:absolute;left:270px;top:790px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#ceKicker2{position:absolute;left:60px;right:60px;top:830px;font-size:40px;opacity:0}
+#ceCena{position:absolute;left:60px;right:60px;top:900px;text-align:center;
+  font-weight:900;font-size:198px;letter-spacing:-10px;color:#fff;white-space:nowrap;
+  text-shadow:0 12px 40px rgba(0,0,0,.55)}
+#ceCena .od{font-size:92px;letter-spacing:-2px;color:${KOLOR.cichy};font-weight:800}
+#ceCena .jedn{font-size:112px;color:${KOLOR.zolty};letter-spacing:-4px;margin-left:12px}
+#ceCien{left:28%;right:28%;top:1140px;height:46px;opacity:0}
+#cePak{position:absolute;left:70px;right:70px;top:1216px;text-align:center;
+  font-weight:700;font-size:34px;line-height:1.3;color:${KOLOR.cichy};opacity:0}
+#cePak b{color:#fff}
+
+/* ── 12.3–15 с: марка ─────────────────────────────────────────── */
+#fi{position:absolute;inset:0;opacity:0}
+#fiKicker{position:absolute;left:60px;right:60px;top:426px;font-size:38px;opacity:0}
+#fiL1{position:absolute;left:60px;right:60px;top:490px;text-align:center;opacity:0}
+#fiL1 .hl{font-size:76px;font-weight:900;letter-spacing:-3px}
+#fiPod{position:absolute;left:60px;right:60px;top:702px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:48px;color:${KOLOR.jasny};opacity:0}
+#fiKreska{position:absolute;left:270px;top:800px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#mk{position:absolute;left:50px;right:50px;top:868px;text-align:center;opacity:0}
+#mk .nazwa{font-weight:900;font-size:138px;letter-spacing:-4px;line-height:1;color:#fff;
+  text-shadow:0 10px 40px rgba(0,0,0,.55)}
+#mk .pod{margin-top:22px;font-weight:800;font-size:42px;letter-spacing:6px;color:${KOLOR.zolty}}
+#mk .miasto{margin-top:14px;font-weight:800;font-size:40px;letter-spacing:12px;color:#fff}
+#mk .www{margin-top:24px;font-weight:600;font-size:40px;color:${KOLOR.cichy}}
+#mkCien{left:28%;right:28%;top:1244px;height:44px;opacity:0}
+`;
+
+    const body = `
+<div id="eHak">
+  <div id="eKicker" class="kicker">A JEŚLI NIE POLUBI?</div>
+  <div id="eL1">SPRAWDŹCIE</div>
+  <div id="eL2">${hl('ZA 100 ZŁ', 'eHl')}</div>
+  <div id="eHakCien" class="cienEl"></div>
+  <div id="ePod">Grupa 4–6 lat, raz w tygodniu.</div>
+</div>
+
+<div id="sp">
+  <div id="spKicker" class="kicker">CAŁY CENNIK MA 13 POZYCJI</div>
+  <div id="spPanelCien" class="cienEl"></div>
+  <div id="spPanel">
+    <div id="spSkan"></div>
+    <div class="splin" style="top:207px"></div>
+    <div class="splin" style="top:375px"></div>
+    <div class="splin" style="top:543px"></div>
+    ${wiersz(0, 'KIDS 4–6 LAT', '100 ZŁ')}
+    ${wiersz(1, 'GRUPA START', '120 ZŁ')}
+    ${wiersz(2, 'DOROŚLI BASIC', '120 ZŁ')}
+    ${wiersz(3, 'TURNIEJOWA', '200 ZŁ')}
+  </div>
+  <div id="spKreska"></div>
+  <div id="spKicker2" class="kicker">MIX PRACTICE</div>
+  <div class="spchip" id="chipA">WEJŚCIE 20 ZŁ</div>
+  <div class="spchip" id="chipB">MIESIĄC 70 ZŁ</div>
+  <div id="spStopka">Cztery mix practice w karnecie.</div>
+</div>
+
+<div id="ce">
+  <div id="ceKicker" class="kicker">NAJNIŻSZY PRÓG</div>
+  ${karta(0, '<span class="licz" data-do="30">0</span>', ' min', 'ZAJĘCIA', false)}
+  ${karta(1, '<span class="licz" data-do="4">0</span>', ' lat', 'WIEK OD', false)}
+  ${karta(2, '100', ' zł', 'MIESIĘCZNIE', true)}
+  <div id="ceKreska"></div>
+  <div id="ceKicker2" class="kicker">TYLE KOSZTUJE SPRAWDZENIE</div>
+  <div id="ceCena"><span class="licz" data-do="25">0</span><span class="jedn"> zł</span><span class="od"> / zajęcia</span></div>
+  <div id="ceCien" class="cienEl"></div>
+  <div id="cePak">cztery zajęcia w miesiącu, <b>bez zobowiązań na rok</b></div>
+</div>
+
+<div id="fi">
+  <div id="fiKicker" class="kicker">OD CZTERECH LAT DO DOROSŁYCH</div>
+  <div id="fiL1">${hl('CENTRUM KATOWIC', 'finHl')}</div>
+  <div id="fiPod">Taniec towarzyski, latino, pierwszy taniec.</div>
+  <div id="fiKreska"></div>
+  <div id="mk">
+    <div class="nazwa">SKT</div>
+    <div class="pod">ŚLĄSKI KLUB TANECZNY</div>
+    <div class="miasto">KATOWICE</div>
+    <div class="www">al. Korfantego 141 · slaskiklubtaneczny.pl</div>
+  </div>
+  <div id="mkCien" class="cienEl"></div>
+</div>`;
+
+    const skrypt = `
+const T = ${JSON.stringify(this.T)};
+const SEK = ${SEK};
+const wiersze = [].slice.call(document.querySelectorAll('.spr'));
+const karty = [].slice.call(document.querySelectorAll('.cka'));
+
+window.setT = (t) => {
+  blyski(t);
+  tlo(t);
+
+  // ── 0–2.25 с: вопрос ──────────────────────────────────────────
+  {
+    const h = $('eHak');
+    const wyj = easeIn(clamp01((t - T.hak.wyjscie) / 0.28));
+    const widok = wyj < 1;
+    h.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      h.style.opacity = 1 - wyj;
+      h.style.transform = 'translate3d(0,' + (-wyj * 70).toFixed(1) + 'px,0) scale(' + (1 - wyj * 0.05).toFixed(3) + ')';
+
+      const pk = easeOut(clamp01((t - T.hak.a) / 0.30));
+      const kk = $('eKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 18).toFixed(1) + 'px)';
+
+      const p1 = easeBack(clamp01((t - T.hak.l1) / 0.42));
+      const l1 = $('eL1');
+      l1.style.opacity = easeOut(clamp01((t - T.hak.l1) / 0.24));
+      l1.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p1) * 50 + fala(t, 0.3) * 2.6).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p1) * -20).toFixed(2) + 'deg)';
+
+      const p2 = easeBack(clamp01((t - T.hak.l2) / 0.44));
+      const l2 = $('eL2');
+      l2.style.opacity = easeOut(clamp01((t - T.hak.l2) / 0.26));
+      const zy = fala(t, 1.3, 1.3) * 4;
+      l2.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p2) * 54 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p2) * -22 + fala(t, 1.3, 1.3) * 0.8).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - p2) * 0.08).toFixed(3) + ')';
+      plama('eHl', easeOut(clamp01((t - T.hak.l2 - 0.14) / 0.30)));
+      cien($('eHakCien'), easeOut(clamp01((t - T.hak.l2) / 0.26)), zy);
+
+      const pp = easeOut(clamp01((t - T.hak.pod) / 0.32));
+      const pd = $('ePod');
+      pd.style.opacity = pp;
+      pd.style.transform = 'translateY(' + ((1 - pp) * 22 + fala(t, 2.4, 1.1) * 2.4).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 2.4–7.8 с: табличка ───────────────────────────────────────
+  {
+    const s = $('sp');
+    const wyj = easeIn(clamp01((t - T.spec.wyjscie) / 0.28));
+    const widok = t > T.spec.a - 0.05 && wyj < 1;
+    s.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      s.style.opacity = 1 - wyj;
+
+      const pk = easeOut(clamp01((t - T.spec.kicker) / 0.28));
+      const kk = $('spKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      const pp = easeOut(clamp01((t - T.spec.panel) / 0.34));
+      const pan = $('spPanel');
+      pan.style.opacity = pp;
+      pan.style.transform = 'perspective(1800px) rotateX(' + (fala(t, 1.0, 0.85) * 0.6).toFixed(2) + 'deg)' +
+        ' rotateY(' + (fala(t, 2.3, 0.7) * 0.7).toFixed(2) + 'deg)' +
+        ' translateY(' + ((1 - pp) * 24 + fala(t, 1.0, 0.85) * 3).toFixed(1) + 'px)';
+      cien($('spPanelCien'), pp * 0.9, fala(t, 1.0, 0.85) * 3);
+      // Полоса сканера идёт по табличке всю сцену: панель не стоит
+      // мёртвым прямоугольником даже когда строки уже прилетели.
+      $('spSkan').style.transform =
+        'translateY(' + ((((t - T.spec.panel) * 0.40) % 1) * 992 - 240).toFixed(1) + 'px)';
+
+      // Строки ПЕРЕВОРАЧИВАЮТСЯ на оси X, как на механическом табло.
+      wiersze.forEach((w, i) => {
+        const a = T.spec.r1 + i * T.spec.krok;
+        const p = clamp01((t - a) / 0.46);
+        if (p <= 0) { w.style.opacity = 0; return; }
+        const e = easeOut(p);
+        const zy = fala(t, i * 1.1 + 0.5, 1.15) * 2.2;
+        w.style.opacity = Math.min(1, p * 2.2);
+        w.style.transform = 'perspective(1200px) rotateX(' + ((1 - easeBack(p)) * -88).toFixed(2) + 'deg)' +
+          ' translate3d(0,' + zy.toFixed(1) + 'px,0)' +
+          ' scale(' + (0.94 + e * 0.06).toFixed(3) + ')';
+      });
+
+      $('spKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.spec.kreska) / 0.40)).toFixed(3) + ')';
+
+      const pk2 = easeOut(clamp01((t - T.spec.kicker2) / 0.28));
+      const kk2 = $('spKicker2');
+      kk2.style.opacity = pk2;
+      kk2.style.transform = 'translateY(' + ((1 - pk2) * 16).toFixed(1) + 'px)';
+
+      [['chipA', T.spec.chipA, -1], ['chipB', T.spec.chipB, 1]].forEach((c, i) => {
+        const el = $(c[0]);
+        const p = easeBack(clamp01((t - c[1]) / 0.40));
+        el.style.opacity = easeOut(clamp01((t - c[1]) / 0.24));
+        const zy = fala(t, i * 1.6 + 2.2, 1.25) * 3;
+        el.style.transform = 'perspective(1500px) translate3d(' + ((1 - p) * c[2] * 80).toFixed(1) + 'px,' + zy.toFixed(1) + 'px,0)' +
+          ' rotateY(' + ((1 - p) * c[2] * 16 + fala(t, i * 1.6, 1.2) * 1.2).toFixed(2) + 'deg)';
+      });
+
+      const ps = easeOut(clamp01((t - T.spec.stopka) / 0.34));
+      const st = $('spStopka');
+      st.style.opacity = ps * 0.95;
+      st.style.transform = 'translateY(' + ((1 - ps) * 20 + fala(t, 3.8, 1.05) * 2).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 7.9–12.2 с: что в цене, потом цена ────────────────────────
+  {
+    const c = $('ce');
+    const wyj = easeIn(clamp01((t - T.cena.wyjscie) / 0.26));
+    const widok = t > T.cena.a - 0.05 && wyj < 1;
+    c.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      c.style.opacity = 1 - wyj;
+
+      const pk = easeOut(clamp01((t - T.cena.kicker) / 0.28));
+      const kk = $('ceKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      karty.forEach((k, i) => {
+        const a = T.cena.k1 + i * T.cena.krok;
+        const p = clamp01((t - a) / 0.44);
+        if (p <= 0) { k.style.opacity = 0; return; }
+        const e = easeBack(p);
+        k.style.opacity = easeOut(p);
+        const zy = fala(t, i * 1.25 + 0.4) * 3.4;
+        wjazd(k, e, {
+          dy: 40, dx: 0, ry: (i - 1) * 16, rx: 12, sc: 0.14,
+          po: ' translate3d(0,' + zy.toFixed(1) + 'px,0)' +
+              ' rotateY(' + (fala(t, i * 1.25, 1.15) * 1.3).toFixed(2) + 'deg)',
+        });
+        cien(k.querySelector('.ckaCien'), easeOut(p), zy);
+        // Цели у карточек разные (140 и 230), поэтому берём из разметки,
+        // а не из одного числа на все три — иначе счётчик врёт клиенту.
+        const el = k.querySelector('.licz');
+        if (el) licznik(el, (t - a - 0.10) / 0.50, +el.dataset.do);
+      });
+
+      $('ceKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.cena.kreska) / 0.40)).toFixed(3) + ')';
+
+      const pk2 = easeOut(clamp01((t - T.cena.kicker2) / 0.28));
+      const kk2 = $('ceKicker2');
+      kk2.style.opacity = pk2;
+      kk2.style.transform = 'translateY(' + ((1 - pk2) * 16).toFixed(1) + 'px)';
+
+      const pl = clamp01((t - T.cena.licznik) / 0.46);
+      const cc = $('ceCena');
+      const zy = fala(t, 0.6, 1.35) * 5;
+      cc.style.opacity = easeOut(pl);
+      cc.style.transform = 'perspective(1600px) translate3d(0,' + ((1 - easeBack(pl)) * 56 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - easeBack(pl)) * -22 + fala(t, 0.6, 1.35) * 0.7).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - easeBack(pl)) * 0.10).toFixed(3) + ')';
+      licznik(cc.querySelector('.licz'), (t - T.cena.licznik) / 0.82, 25);
+      cien($('ceCien'), easeOut(pl), zy);
+
+      const pp = easeOut(clamp01((t - T.cena.pakiety) / 0.34));
+      const cp = $('cePak');
+      cp.style.opacity = pp * 0.96;
+      cp.style.transform = 'translateY(' + ((1 - pp) * 20 + fala(t, 3.4, 1.1) * 2).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 12.3–15 с: марка ──────────────────────────────────────────
+  {
+    const f = $('fi');
+    const widok = t > T.fin.a - 0.05;
+    f.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      f.style.opacity = 1;
+      f.style.transformOrigin = '50% 46%';
+      f.style.transform = 'scale(' + (1.004 + clamp01((t - T.fin.a) / (SEK - T.fin.a)) * 0.016).toFixed(4) + ')';
+
+      const pk = easeOut(clamp01((t - T.fin.kicker) / 0.30));
+      const fk = $('fiKicker');
+      fk.style.opacity = pk;
+      fk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      const p1 = easeBack(clamp01((t - T.fin.l1) / 0.42));
+      const l1 = $('fiL1');
+      l1.style.opacity = easeOut(clamp01((t - T.fin.l1) / 0.24));
+      l1.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p1) * 48 + fala(t, 0.3) * 2.6).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p1) * -20).toFixed(2) + 'deg)';
+      plama('finHl', easeOut(clamp01((t - T.fin.l1 - 0.16) / 0.30)));
+
+      const pp = easeOut(clamp01((t - T.fin.pod) / 0.32));
+      const fp = $('fiPod');
+      fp.style.opacity = pp;
+      fp.style.transform = 'translateY(' + ((1 - pp) * 20 + fala(t, 2.6, 1.1) * 2).toFixed(1) + 'px)';
+
+      $('fiKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.fin.kreska) / 0.42)).toFixed(3) + ')';
+
+      const m = $('mk');
+      const pm = easeBack(clamp01((t - T.fin.marka) / 0.46));
+      const pmo = easeOut(clamp01((t - T.fin.marka) / 0.26));
+      m.style.opacity = pmo;
+      const zy = fala(t, 3.1, 1.35) * 7;
+      m.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - pm) * 54 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - pm) * -22 + fala(t, 3.1, 1.35) * 0.9).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - pm) * 0.08 + fala(t, 1.9, 0.9) * 0.006).toFixed(4) + ')';
+      cien($('mkCien'), pmo * 0.9, zy);
+      m.querySelector('.pod').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.20) / 0.30));
+      m.querySelector('.miasto').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.28) / 0.30));
+      m.querySelector('.www').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.38) / 0.34));
+    }
+  }
+};`;
+
+    return dokument(css, body, skrypt);
+  },
+};
+
+
+const LACLAVE = {
+  plik: 'LaClave_bezterminowo',
+  wyjscie: 'D:/My AI/Zovu.pl/Sprzedaz/szkoly-tanca/LaClave_bezterminowo.mp4',
+  szkola: 'LA CLAVE',
+  muzyka: 'pixabay-audio_1b6f4de1c4.mp3',
+  muzykaOd: 52,
+
+  T: {
+    hak: { a: -0.10, l1: 0.02, l2: 0.50, pod: 1.00, wyjscie: 2.24 },
+    spec: { a: 2.38, kicker: 2.42, panel: 2.54, r1: 2.72, krok: 0.46,
+            kreska: 5.06, kicker2: 5.26, chipA: 5.50, chipB: 5.76, stopka: 6.34, wyjscie: 7.80 },
+    cena: { a: 7.94, kicker: 7.98, k1: 8.10, krok: 0.30, kreska: 9.24,
+            kicker2: 9.36, licznik: 9.52, pakiety: 10.84, wyjscie: 12.16 },
+    fin: { a: 12.30, kicker: 12.34, l1: 12.48, pod: 12.86, kreska: 13.04, marka: 13.28 },
+  },
+
+  dzwieki(T) {
+    const z = [];
+    z.push({ t: 0.02, typ: 'swist', gl: 0.5 });
+    z.push({ t: T.hak.l1 + 0.06, typ: 'dun', gl: 0.85 });
+    z.push({ t: T.hak.l2 + 0.10, typ: 'klik', gl: 0.66 });
+    z.push({ t: T.hak.pod + 0.06, typ: 'klik', gl: 0.36 });
+    z.push({ t: T.hak.wyjscie, typ: 'swist', gl: 0.55 });
+    for (let i = 0; i < 4; i++) z.push({ t: T.spec.r1 + i * T.spec.krok + 0.14, typ: 'klik', gl: 0.64 });
+    z.push({ t: T.spec.kreska + 0.04, typ: 'swist', gl: 0.36 });
+    z.push({ t: T.spec.chipA + 0.14, typ: 'dun', gl: 0.66 });
+    z.push({ t: T.spec.chipB + 0.14, typ: 'dun', gl: 0.66 });
+    z.push({ t: T.spec.stopka + 0.10, typ: 'klik', gl: 0.3 });
+    z.push({ t: T.spec.wyjscie + 0.02, typ: 'swist', gl: 0.56 });
+    for (let i = 0; i < 3; i++) z.push({ t: T.cena.k1 + i * T.cena.krok + 0.14, typ: 'klik', gl: 0.6 });
+    z.push({ t: T.cena.kreska + 0.04, typ: 'swist', gl: 0.4 });
+    z.push({ t: T.cena.licznik + 0.06, typ: 'dun', gl: 0.88 });
+    z.push({ t: T.cena.pakiety + 0.10, typ: 'klik', gl: 0.34 });
+    z.push({ t: T.cena.wyjscie + 0.02, typ: 'swist', gl: 0.55 });
+    z.push({ t: T.fin.l1 + 0.16, typ: 'klik', gl: 0.6 });
+    z.push({ t: T.fin.marka + 0.2, typ: 'dun', gl: 0.9 });
+    return z;
+  },
+
+  html() {
+    const wiersz = (i, etykieta, wartosc) =>
+      `<div class="spr" data-i="${i}">
+  <div class="spl">${esc(etykieta)}</div>
+  <div class="spv" data-fit="62,34,90">${esc(wartosc)}</div>
+</div>`;
+
+    const karta = (i, liczba, jedn, podpis, zolta) =>
+      `<div class="cka${zolta ? ' zol' : ''}" data-i="${i}">
+  <div class="cienEl ckaCien"></div>
+  <div class="ckl">${liczba}<span class="jedn">${esc(jedn)}</span></div>
+  <div class="ckp">${esc(podpis)}</div>
+</div>`;
+
+    const css = `
+/* ── 0–2.25 с: вопрос, который редко задают ───────────────────── */
+#eHak{position:absolute;inset:0}
+#eKicker{position:absolute;left:60px;right:60px;top:550px;font-size:36px}
+#eL1{position:absolute;left:60px;right:60px;top:626px;text-align:center;
+  font-weight:900;font-size:94px;letter-spacing:-3px;color:#fff;white-space:nowrap;
+  text-shadow:0 8px 30px rgba(0,0,0,.55)}
+#eL2{position:absolute;left:60px;right:60px;top:762px;text-align:center;opacity:0}
+#eL2 .hl{font-size:104px;font-weight:900;letter-spacing:-4px}
+#eHakCien{left:30%;right:30%;top:930px;height:44px}
+#ePod{position:absolute;left:60px;right:60px;top:996px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:54px;color:${KOLOR.jasny};opacity:0}
+
+/* ── 2.4–7.8 с: табличка характеристик ────────────────────────── */
+#sp{position:absolute;inset:0}
+#spKicker{position:absolute;left:50px;right:50px;top:320px;font-size:34px;letter-spacing:6px;opacity:0}
+#spPanel{position:absolute;left:62px;right:62px;top:386px;height:752px;border-radius:36px;
+  overflow:hidden;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.045));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 32px 76px rgba(0,0,0,.46)}
+#spSkan{position:absolute;left:0;right:0;height:240px;pointer-events:none;
+  background:linear-gradient(180deg, rgba(167,139,250,0) 0%, rgba(167,139,250,.17) 50%, rgba(167,139,250,0) 100%)}
+.spr{position:absolute;left:44px;right:44px;height:168px;display:flex;align-items:center;
+  gap:24px;opacity:0;transform-origin:50% 0%}
+.spr::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;
+  background:rgba(255,255,255,.10)}
+.spr[data-i="3"]::after{opacity:0}
+.splin{position:absolute;left:44px;right:44px;height:2px;background:rgba(255,255,255,.07)}
+.spr[data-i="0"]{top:40px}
+.spr[data-i="1"]{top:208px}
+.spr[data-i="2"]{top:376px}
+.spr[data-i="3"]{top:544px}
+.spl{flex:0 0 244px;font-weight:800;font-size:32px;letter-spacing:5px;color:${KOLOR.jasny}}
+.spv{flex:1;min-width:0;overflow:hidden;text-align:right;font-weight:900;font-size:62px;
+  letter-spacing:-2px;color:#fff;white-space:nowrap;text-shadow:0 4px 18px rgba(0,0,0,.45)}
+#spPanelCien{left:12%;right:12%;top:1152px;height:46px;opacity:0}
+#spKreska{position:absolute;left:270px;top:1176px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#spKicker2{position:absolute;left:50px;right:50px;top:1212px;font-size:34px;letter-spacing:6px;opacity:0}
+.spchip{position:absolute;top:1272px;width:452px;height:118px;border-radius:26px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:46px;letter-spacing:-1px;color:#fff;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.13), rgba(255,255,255,.05));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.20), 0 22px 54px rgba(0,0,0,.42)}
+#chipA{left:62px}
+#chipB{right:62px}
+#spStopka{position:absolute;left:90px;right:90px;top:1428px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:44px;color:${KOLOR.cichy};opacity:0}
+
+/* ── 7.9–12.2 с: что в цене, потом цена ───────────────────────── */
+#ce{position:absolute;inset:0;opacity:0}
+#ceKicker{position:absolute;left:60px;right:60px;top:410px;font-size:40px;opacity:0}
+.cka{position:absolute;top:478px;width:309px;height:238px;border-radius:30px;
+  padding-top:40px;text-align:center;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.045));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 26px 60px rgba(0,0,0,.42)}
+.cka[data-i="0"]{left:56px}
+.cka[data-i="1"]{left:385px}
+.cka[data-i="2"]{right:56px}
+.cka .ckl{font-weight:900;font-size:96px;letter-spacing:-4px;line-height:1;color:#fff;
+  white-space:nowrap;text-shadow:0 6px 22px rgba(0,0,0,.5)}
+.cka .ckl .jedn{font-size:54px;color:${KOLOR.zolty}}
+.cka .ckp{margin-top:26px;font-weight:800;font-size:32px;letter-spacing:3px;color:${KOLOR.cichy}}
+.cka.zol{background:linear-gradient(140deg,#ffe07a,${KOLOR.zolty});
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 26px 60px rgba(255,210,63,.22)}
+.cka.zol .ckl{color:#150e33;text-shadow:none}
+.cka.zol .ckl .jedn{color:#3d2c00}
+.cka.zol .ckp{color:#4a3600}
+.ckaCien{left:10%;right:10%;bottom:-24px;height:40px;opacity:0}
+#ceKreska{position:absolute;left:270px;top:790px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#ceKicker2{position:absolute;left:60px;right:60px;top:830px;font-size:40px;opacity:0}
+#ceCena{position:absolute;left:60px;right:60px;top:900px;text-align:center;
+  font-weight:900;font-size:198px;letter-spacing:-10px;color:#fff;white-space:nowrap;
+  text-shadow:0 12px 40px rgba(0,0,0,.55)}
+#ceCena .od{font-size:92px;letter-spacing:-2px;color:${KOLOR.cichy};font-weight:800}
+#ceCena .jedn{font-size:112px;color:${KOLOR.zolty};letter-spacing:-4px;margin-left:12px}
+#ceCien{left:28%;right:28%;top:1140px;height:46px;opacity:0}
+#cePak{position:absolute;left:70px;right:70px;top:1216px;text-align:center;
+  font-weight:700;font-size:34px;line-height:1.3;color:${KOLOR.cichy};opacity:0}
+#cePak b{color:#fff}
+
+/* ── 12.3–15 с: марка ─────────────────────────────────────────── */
+#fi{position:absolute;inset:0;opacity:0}
+#fiKicker{position:absolute;left:60px;right:60px;top:426px;font-size:38px;opacity:0}
+#fiL1{position:absolute;left:60px;right:60px;top:490px;text-align:center;opacity:0}
+#fiL1 .hl{font-size:76px;font-weight:900;letter-spacing:-3px}
+#fiPod{position:absolute;left:60px;right:60px;top:702px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:48px;color:${KOLOR.jasny};opacity:0}
+#fiKreska{position:absolute;left:270px;top:800px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#mk{position:absolute;left:50px;right:50px;top:868px;text-align:center;opacity:0}
+#mk .nazwa{font-weight:900;font-size:138px;letter-spacing:-4px;line-height:1;color:#fff;
+  text-shadow:0 10px 40px rgba(0,0,0,.55)}
+#mk .pod{margin-top:22px;font-weight:800;font-size:42px;letter-spacing:6px;color:${KOLOR.zolty}}
+#mk .miasto{margin-top:14px;font-weight:800;font-size:40px;letter-spacing:12px;color:#fff}
+#mk .www{margin-top:24px;font-weight:600;font-size:40px;color:${KOLOR.cichy}}
+#mkCien{left:28%;right:28%;top:1244px;height:44px;opacity:0}
+`;
+
+    const body = `
+<div id="eHak">
+  <div id="eKicker" class="kicker">KARNET, KTÓRY NIE PRZEPADA</div>
+  <div id="eL1">BEZ TERMINU</div>
+  <div id="eL2">${hl('WAŻNOŚCI', 'eHl')}</div>
+  <div id="eHakCien" class="cienEl"></div>
+  <div id="ePod">Chorujesz, wyjeżdżasz — wejścia czekają.</div>
+</div>
+
+<div id="sp">
+  <div id="spKicker" class="kicker">CZTERY SPOSOBY WEJŚCIA</div>
+  <div id="spPanelCien" class="cienEl"></div>
+  <div id="spPanel">
+    <div id="spSkan"></div>
+    <div class="splin" style="top:207px"></div>
+    <div class="splin" style="top:375px"></div>
+    <div class="splin" style="top:543px"></div>
+    ${wiersz(0, 'START · 4 WEJŚCIA', '109 ZŁ')}
+    ${wiersz(1, 'EKO · 8 WEJŚĆ', '189 ZŁ')}
+    ${wiersz(2, 'PRO · 10 WEJŚĆ', '219 ZŁ')}
+    ${wiersz(3, 'OPEN · 4 TYGODNIE', '300 ZŁ')}
+  </div>
+  <div id="spKreska"></div>
+  <div id="spKicker2" class="kicker">JEDNORAZOWO</div>
+  <div class="spchip" id="chipA">WEJŚCIE 30 ZŁ</div>
+  <div class="spchip" id="chipB">GOTÓWKA I BLIK</div>
+  <div id="spStopka">Karnety Start, Eko i Pro — bezterminowe.</div>
+</div>
+
+<div id="ce">
+  <div id="ceKicker" class="kicker">KARNET PRO</div>
+  ${karta(0, '<span class="licz" data-do="10">0</span>', '', 'WEJŚĆ', false)}
+  ${karta(1, '<span class="licz" data-do="219">0</span>', ' zł', 'ZA CAŁOŚĆ', false)}
+  ${karta(2, '0', ' dni', 'TERMINU', true)}
+  <div id="ceKreska"></div>
+  <div id="ceKicker2" class="kicker">WYCHODZI ZA JEDNO WEJŚCIE</div>
+  <div id="ceCena"><span class="licz" data-do="21">0</span><span class="od">,90</span><span class="jedn"> zł</span></div>
+  <div id="ceCien" class="cienEl"></div>
+  <div id="cePak">i <b>żadne nie przepadnie</b></div>
+</div>
+
+<div id="fi">
+  <div id="fiKicker" class="kicker">SALSA W DWÓCH MIASTACH</div>
+  <div id="fiL1">${hl('KATOWICE I GLIWICE', 'finHl')}</div>
+  <div id="fiPod">Chorzowska 11 · Wyszyńskiego 14D</div>
+  <div id="fiKreska"></div>
+  <div id="mk">
+    <div class="nazwa">LA CLAVE</div>
+    <div class="pod">SZKOŁA TAŃCA</div>
+    <div class="miasto">KATOWICE · GLIWICE</div>
+    <div class="www">laclave.pl</div>
+  </div>
+  <div id="mkCien" class="cienEl"></div>
+</div>`;
+
+    const skrypt = `
+const T = ${JSON.stringify(this.T)};
+const SEK = ${SEK};
+const wiersze = [].slice.call(document.querySelectorAll('.spr'));
+const karty = [].slice.call(document.querySelectorAll('.cka'));
+
+window.setT = (t) => {
+  blyski(t);
+  tlo(t);
+
+  // ── 0–2.25 с: вопрос ──────────────────────────────────────────
+  {
+    const h = $('eHak');
+    const wyj = easeIn(clamp01((t - T.hak.wyjscie) / 0.28));
+    const widok = wyj < 1;
+    h.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      h.style.opacity = 1 - wyj;
+      h.style.transform = 'translate3d(0,' + (-wyj * 70).toFixed(1) + 'px,0) scale(' + (1 - wyj * 0.05).toFixed(3) + ')';
+
+      const pk = easeOut(clamp01((t - T.hak.a) / 0.30));
+      const kk = $('eKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 18).toFixed(1) + 'px)';
+
+      const p1 = easeBack(clamp01((t - T.hak.l1) / 0.42));
+      const l1 = $('eL1');
+      l1.style.opacity = easeOut(clamp01((t - T.hak.l1) / 0.24));
+      l1.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p1) * 50 + fala(t, 0.3) * 2.6).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p1) * -20).toFixed(2) + 'deg)';
+
+      const p2 = easeBack(clamp01((t - T.hak.l2) / 0.44));
+      const l2 = $('eL2');
+      l2.style.opacity = easeOut(clamp01((t - T.hak.l2) / 0.26));
+      const zy = fala(t, 1.3, 1.3) * 4;
+      l2.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p2) * 54 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p2) * -22 + fala(t, 1.3, 1.3) * 0.8).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - p2) * 0.08).toFixed(3) + ')';
+      plama('eHl', easeOut(clamp01((t - T.hak.l2 - 0.14) / 0.30)));
+      cien($('eHakCien'), easeOut(clamp01((t - T.hak.l2) / 0.26)), zy);
+
+      const pp = easeOut(clamp01((t - T.hak.pod) / 0.32));
+      const pd = $('ePod');
+      pd.style.opacity = pp;
+      pd.style.transform = 'translateY(' + ((1 - pp) * 22 + fala(t, 2.4, 1.1) * 2.4).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 2.4–7.8 с: табличка ───────────────────────────────────────
+  {
+    const s = $('sp');
+    const wyj = easeIn(clamp01((t - T.spec.wyjscie) / 0.28));
+    const widok = t > T.spec.a - 0.05 && wyj < 1;
+    s.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      s.style.opacity = 1 - wyj;
+
+      const pk = easeOut(clamp01((t - T.spec.kicker) / 0.28));
+      const kk = $('spKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      const pp = easeOut(clamp01((t - T.spec.panel) / 0.34));
+      const pan = $('spPanel');
+      pan.style.opacity = pp;
+      pan.style.transform = 'perspective(1800px) rotateX(' + (fala(t, 1.0, 0.85) * 0.6).toFixed(2) + 'deg)' +
+        ' rotateY(' + (fala(t, 2.3, 0.7) * 0.7).toFixed(2) + 'deg)' +
+        ' translateY(' + ((1 - pp) * 24 + fala(t, 1.0, 0.85) * 3).toFixed(1) + 'px)';
+      cien($('spPanelCien'), pp * 0.9, fala(t, 1.0, 0.85) * 3);
+      // Полоса сканера идёт по табличке всю сцену: панель не стоит
+      // мёртвым прямоугольником даже когда строки уже прилетели.
+      $('spSkan').style.transform =
+        'translateY(' + ((((t - T.spec.panel) * 0.40) % 1) * 992 - 240).toFixed(1) + 'px)';
+
+      // Строки ПЕРЕВОРАЧИВАЮТСЯ на оси X, как на механическом табло.
+      wiersze.forEach((w, i) => {
+        const a = T.spec.r1 + i * T.spec.krok;
+        const p = clamp01((t - a) / 0.46);
+        if (p <= 0) { w.style.opacity = 0; return; }
+        const e = easeOut(p);
+        const zy = fala(t, i * 1.1 + 0.5, 1.15) * 2.2;
+        w.style.opacity = Math.min(1, p * 2.2);
+        w.style.transform = 'perspective(1200px) rotateX(' + ((1 - easeBack(p)) * -88).toFixed(2) + 'deg)' +
+          ' translate3d(0,' + zy.toFixed(1) + 'px,0)' +
+          ' scale(' + (0.94 + e * 0.06).toFixed(3) + ')';
+      });
+
+      $('spKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.spec.kreska) / 0.40)).toFixed(3) + ')';
+
+      const pk2 = easeOut(clamp01((t - T.spec.kicker2) / 0.28));
+      const kk2 = $('spKicker2');
+      kk2.style.opacity = pk2;
+      kk2.style.transform = 'translateY(' + ((1 - pk2) * 16).toFixed(1) + 'px)';
+
+      [['chipA', T.spec.chipA, -1], ['chipB', T.spec.chipB, 1]].forEach((c, i) => {
+        const el = $(c[0]);
+        const p = easeBack(clamp01((t - c[1]) / 0.40));
+        el.style.opacity = easeOut(clamp01((t - c[1]) / 0.24));
+        const zy = fala(t, i * 1.6 + 2.2, 1.25) * 3;
+        el.style.transform = 'perspective(1500px) translate3d(' + ((1 - p) * c[2] * 80).toFixed(1) + 'px,' + zy.toFixed(1) + 'px,0)' +
+          ' rotateY(' + ((1 - p) * c[2] * 16 + fala(t, i * 1.6, 1.2) * 1.2).toFixed(2) + 'deg)';
+      });
+
+      const ps = easeOut(clamp01((t - T.spec.stopka) / 0.34));
+      const st = $('spStopka');
+      st.style.opacity = ps * 0.95;
+      st.style.transform = 'translateY(' + ((1 - ps) * 20 + fala(t, 3.8, 1.05) * 2).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 7.9–12.2 с: что в цене, потом цена ────────────────────────
+  {
+    const c = $('ce');
+    const wyj = easeIn(clamp01((t - T.cena.wyjscie) / 0.26));
+    const widok = t > T.cena.a - 0.05 && wyj < 1;
+    c.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      c.style.opacity = 1 - wyj;
+
+      const pk = easeOut(clamp01((t - T.cena.kicker) / 0.28));
+      const kk = $('ceKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      karty.forEach((k, i) => {
+        const a = T.cena.k1 + i * T.cena.krok;
+        const p = clamp01((t - a) / 0.44);
+        if (p <= 0) { k.style.opacity = 0; return; }
+        const e = easeBack(p);
+        k.style.opacity = easeOut(p);
+        const zy = fala(t, i * 1.25 + 0.4) * 3.4;
+        wjazd(k, e, {
+          dy: 40, dx: 0, ry: (i - 1) * 16, rx: 12, sc: 0.14,
+          po: ' translate3d(0,' + zy.toFixed(1) + 'px,0)' +
+              ' rotateY(' + (fala(t, i * 1.25, 1.15) * 1.3).toFixed(2) + 'deg)',
+        });
+        cien(k.querySelector('.ckaCien'), easeOut(p), zy);
+        // Цели у карточек разные (140 и 230), поэтому берём из разметки,
+        // а не из одного числа на все три — иначе счётчик врёт клиенту.
+        const el = k.querySelector('.licz');
+        if (el) licznik(el, (t - a - 0.10) / 0.50, +el.dataset.do);
+      });
+
+      $('ceKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.cena.kreska) / 0.40)).toFixed(3) + ')';
+
+      const pk2 = easeOut(clamp01((t - T.cena.kicker2) / 0.28));
+      const kk2 = $('ceKicker2');
+      kk2.style.opacity = pk2;
+      kk2.style.transform = 'translateY(' + ((1 - pk2) * 16).toFixed(1) + 'px)';
+
+      const pl = clamp01((t - T.cena.licznik) / 0.46);
+      const cc = $('ceCena');
+      const zy = fala(t, 0.6, 1.35) * 5;
+      cc.style.opacity = easeOut(pl);
+      cc.style.transform = 'perspective(1600px) translate3d(0,' + ((1 - easeBack(pl)) * 56 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - easeBack(pl)) * -22 + fala(t, 0.6, 1.35) * 0.7).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - easeBack(pl)) * 0.10).toFixed(3) + ')';
+      licznik(cc.querySelector('.licz'), (t - T.cena.licznik) / 0.82, 21);
+      cien($('ceCien'), easeOut(pl), zy);
+
+      const pp = easeOut(clamp01((t - T.cena.pakiety) / 0.34));
+      const cp = $('cePak');
+      cp.style.opacity = pp * 0.96;
+      cp.style.transform = 'translateY(' + ((1 - pp) * 20 + fala(t, 3.4, 1.1) * 2).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 12.3–15 с: марка ──────────────────────────────────────────
+  {
+    const f = $('fi');
+    const widok = t > T.fin.a - 0.05;
+    f.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      f.style.opacity = 1;
+      f.style.transformOrigin = '50% 46%';
+      f.style.transform = 'scale(' + (1.004 + clamp01((t - T.fin.a) / (SEK - T.fin.a)) * 0.016).toFixed(4) + ')';
+
+      const pk = easeOut(clamp01((t - T.fin.kicker) / 0.30));
+      const fk = $('fiKicker');
+      fk.style.opacity = pk;
+      fk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      const p1 = easeBack(clamp01((t - T.fin.l1) / 0.42));
+      const l1 = $('fiL1');
+      l1.style.opacity = easeOut(clamp01((t - T.fin.l1) / 0.24));
+      l1.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p1) * 48 + fala(t, 0.3) * 2.6).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p1) * -20).toFixed(2) + 'deg)';
+      plama('finHl', easeOut(clamp01((t - T.fin.l1 - 0.16) / 0.30)));
+
+      const pp = easeOut(clamp01((t - T.fin.pod) / 0.32));
+      const fp = $('fiPod');
+      fp.style.opacity = pp;
+      fp.style.transform = 'translateY(' + ((1 - pp) * 20 + fala(t, 2.6, 1.1) * 2).toFixed(1) + 'px)';
+
+      $('fiKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.fin.kreska) / 0.42)).toFixed(3) + ')';
+
+      const m = $('mk');
+      const pm = easeBack(clamp01((t - T.fin.marka) / 0.46));
+      const pmo = easeOut(clamp01((t - T.fin.marka) / 0.26));
+      m.style.opacity = pmo;
+      const zy = fala(t, 3.1, 1.35) * 7;
+      m.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - pm) * 54 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - pm) * -22 + fala(t, 3.1, 1.35) * 0.9).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - pm) * 0.08 + fala(t, 1.9, 0.9) * 0.006).toFixed(4) + ')';
+      cien($('mkCien'), pmo * 0.9, zy);
+      m.querySelector('.pod').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.20) / 0.30));
+      m.querySelector('.miasto').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.28) / 0.30));
+      m.querySelector('.www').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.38) / 0.34));
+    }
+  }
+};`;
+
+    return dokument(css, body, skrypt);
+  },
+};
+
+
+const LINGUA = {
+  plik: 'LinguaHouse_199start',
+  wyjscie: 'D:/My AI/Zovu.pl/Sprzedaz/szkoly-jezykowe/LinguaHouse_199start.mp4',
+  szkola: 'LINGUA HOUSE',
+  muzyka: 'pixabay-audio_4a325d0f0b.mp3',
+  muzykaOd: 30,
+
+  T: {
+    hak: { a: -0.10, l1: 0.02, l2: 0.50, pod: 1.00, wyjscie: 2.24 },
+    spec: { a: 2.38, kicker: 2.42, panel: 2.54, r1: 2.72, krok: 0.46,
+            kreska: 5.06, kicker2: 5.26, chipA: 5.50, chipB: 5.76, stopka: 6.34, wyjscie: 7.80 },
+    cena: { a: 7.94, kicker: 7.98, k1: 8.10, krok: 0.30, kreska: 9.24,
+            kicker2: 9.36, licznik: 9.52, pakiety: 10.84, wyjscie: 12.16 },
+    fin: { a: 12.30, kicker: 12.34, l1: 12.48, pod: 12.86, kreska: 13.04, marka: 13.28 },
+  },
+
+  dzwieki(T) {
+    const z = [];
+    z.push({ t: 0.02, typ: 'swist', gl: 0.5 });
+    z.push({ t: T.hak.l1 + 0.06, typ: 'dun', gl: 0.85 });
+    z.push({ t: T.hak.l2 + 0.10, typ: 'klik', gl: 0.66 });
+    z.push({ t: T.hak.pod + 0.06, typ: 'klik', gl: 0.36 });
+    z.push({ t: T.hak.wyjscie, typ: 'swist', gl: 0.55 });
+    for (let i = 0; i < 4; i++) z.push({ t: T.spec.r1 + i * T.spec.krok + 0.14, typ: 'klik', gl: 0.64 });
+    z.push({ t: T.spec.kreska + 0.04, typ: 'swist', gl: 0.36 });
+    z.push({ t: T.spec.chipA + 0.14, typ: 'dun', gl: 0.66 });
+    z.push({ t: T.spec.chipB + 0.14, typ: 'dun', gl: 0.66 });
+    z.push({ t: T.spec.stopka + 0.10, typ: 'klik', gl: 0.3 });
+    z.push({ t: T.spec.wyjscie + 0.02, typ: 'swist', gl: 0.56 });
+    for (let i = 0; i < 3; i++) z.push({ t: T.cena.k1 + i * T.cena.krok + 0.14, typ: 'klik', gl: 0.6 });
+    z.push({ t: T.cena.kreska + 0.04, typ: 'swist', gl: 0.4 });
+    z.push({ t: T.cena.licznik + 0.06, typ: 'dun', gl: 0.88 });
+    z.push({ t: T.cena.pakiety + 0.10, typ: 'klik', gl: 0.34 });
+    z.push({ t: T.cena.wyjscie + 0.02, typ: 'swist', gl: 0.55 });
+    z.push({ t: T.fin.l1 + 0.16, typ: 'klik', gl: 0.6 });
+    z.push({ t: T.fin.marka + 0.2, typ: 'dun', gl: 0.9 });
+    return z;
+  },
+
+  html() {
+    const wiersz = (i, etykieta, wartosc) =>
+      `<div class="spr" data-i="${i}">
+  <div class="spl">${esc(etykieta)}</div>
+  <div class="spv" data-fit="62,34,90">${esc(wartosc)}</div>
+</div>`;
+
+    const karta = (i, liczba, jedn, podpis, zolta) =>
+      `<div class="cka${zolta ? ' zol' : ''}" data-i="${i}">
+  <div class="cienEl ckaCien"></div>
+  <div class="ckl">${liczba}<span class="jedn">${esc(jedn)}</span></div>
+  <div class="ckp">${esc(podpis)}</div>
+</div>`;
+
+    const css = `
+/* ── 0–2.25 с: вопрос, который редко задают ───────────────────── */
+#eHak{position:absolute;inset:0}
+#eKicker{position:absolute;left:60px;right:60px;top:550px;font-size:36px}
+#eL1{position:absolute;left:60px;right:60px;top:626px;text-align:center;
+  font-weight:900;font-size:94px;letter-spacing:-3px;color:#fff;white-space:nowrap;
+  text-shadow:0 8px 30px rgba(0,0,0,.55)}
+#eL2{position:absolute;left:60px;right:60px;top:762px;text-align:center;opacity:0}
+#eL2 .hl{font-size:104px;font-weight:900;letter-spacing:-4px}
+#eHakCien{left:30%;right:30%;top:930px;height:44px}
+#ePod{position:absolute;left:60px;right:60px;top:996px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:54px;color:${KOLOR.jasny};opacity:0}
+
+/* ── 2.4–7.8 с: табличка характеристик ────────────────────────── */
+#sp{position:absolute;inset:0}
+#spKicker{position:absolute;left:50px;right:50px;top:320px;font-size:34px;letter-spacing:6px;opacity:0}
+#spPanel{position:absolute;left:62px;right:62px;top:386px;height:752px;border-radius:36px;
+  overflow:hidden;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.045));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 32px 76px rgba(0,0,0,.46)}
+#spSkan{position:absolute;left:0;right:0;height:240px;pointer-events:none;
+  background:linear-gradient(180deg, rgba(167,139,250,0) 0%, rgba(167,139,250,.17) 50%, rgba(167,139,250,0) 100%)}
+.spr{position:absolute;left:44px;right:44px;height:168px;display:flex;align-items:center;
+  gap:24px;opacity:0;transform-origin:50% 0%}
+.spr::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;
+  background:rgba(255,255,255,.10)}
+.spr[data-i="3"]::after{opacity:0}
+.splin{position:absolute;left:44px;right:44px;height:2px;background:rgba(255,255,255,.07)}
+.spr[data-i="0"]{top:40px}
+.spr[data-i="1"]{top:208px}
+.spr[data-i="2"]{top:376px}
+.spr[data-i="3"]{top:544px}
+.spl{flex:0 0 244px;font-weight:800;font-size:32px;letter-spacing:5px;color:${KOLOR.jasny}}
+.spv{flex:1;min-width:0;overflow:hidden;text-align:right;font-weight:900;font-size:62px;
+  letter-spacing:-2px;color:#fff;white-space:nowrap;text-shadow:0 4px 18px rgba(0,0,0,.45)}
+#spPanelCien{left:12%;right:12%;top:1152px;height:46px;opacity:0}
+#spKreska{position:absolute;left:270px;top:1176px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#spKicker2{position:absolute;left:50px;right:50px;top:1212px;font-size:34px;letter-spacing:6px;opacity:0}
+.spchip{position:absolute;top:1272px;width:452px;height:118px;border-radius:26px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:46px;letter-spacing:-1px;color:#fff;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.13), rgba(255,255,255,.05));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.20), 0 22px 54px rgba(0,0,0,.42)}
+#chipA{left:62px}
+#chipB{right:62px}
+#spStopka{position:absolute;left:90px;right:90px;top:1428px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:44px;color:${KOLOR.cichy};opacity:0}
+
+/* ── 7.9–12.2 с: что в цене, потом цена ───────────────────────── */
+#ce{position:absolute;inset:0;opacity:0}
+#ceKicker{position:absolute;left:60px;right:60px;top:410px;font-size:40px;opacity:0}
+.cka{position:absolute;top:478px;width:309px;height:238px;border-radius:30px;
+  padding-top:40px;text-align:center;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.045));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 26px 60px rgba(0,0,0,.42)}
+.cka[data-i="0"]{left:56px}
+.cka[data-i="1"]{left:385px}
+.cka[data-i="2"]{right:56px}
+.cka .ckl{font-weight:900;font-size:96px;letter-spacing:-4px;line-height:1;color:#fff;
+  white-space:nowrap;text-shadow:0 6px 22px rgba(0,0,0,.5)}
+.cka .ckl .jedn{font-size:54px;color:${KOLOR.zolty}}
+.cka .ckp{margin-top:26px;font-weight:800;font-size:32px;letter-spacing:3px;color:${KOLOR.cichy}}
+.cka.zol{background:linear-gradient(140deg,#ffe07a,${KOLOR.zolty});
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 26px 60px rgba(255,210,63,.22)}
+.cka.zol .ckl{color:#150e33;text-shadow:none}
+.cka.zol .ckl .jedn{color:#3d2c00}
+.cka.zol .ckp{color:#4a3600}
+.ckaCien{left:10%;right:10%;bottom:-24px;height:40px;opacity:0}
+#ceKreska{position:absolute;left:270px;top:790px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#ceKicker2{position:absolute;left:60px;right:60px;top:830px;font-size:40px;opacity:0}
+#ceCena{position:absolute;left:60px;right:60px;top:900px;text-align:center;
+  font-weight:900;font-size:198px;letter-spacing:-10px;color:#fff;white-space:nowrap;
+  text-shadow:0 12px 40px rgba(0,0,0,.55)}
+#ceCena .od{font-size:92px;letter-spacing:-2px;color:${KOLOR.cichy};font-weight:800}
+#ceCena .jedn{font-size:112px;color:${KOLOR.zolty};letter-spacing:-4px;margin-left:12px}
+#ceCien{left:28%;right:28%;top:1140px;height:46px;opacity:0}
+#cePak{position:absolute;left:70px;right:70px;top:1216px;text-align:center;
+  font-weight:700;font-size:34px;line-height:1.3;color:${KOLOR.cichy};opacity:0}
+#cePak b{color:#fff}
+
+/* ── 12.3–15 с: марка ─────────────────────────────────────────── */
+#fi{position:absolute;inset:0;opacity:0}
+#fiKicker{position:absolute;left:60px;right:60px;top:426px;font-size:38px;opacity:0}
+#fiL1{position:absolute;left:60px;right:60px;top:490px;text-align:center;opacity:0}
+#fiL1 .hl{font-size:76px;font-weight:900;letter-spacing:-3px}
+#fiPod{position:absolute;left:60px;right:60px;top:702px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:48px;color:${KOLOR.jasny};opacity:0}
+#fiKreska{position:absolute;left:270px;top:800px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#mk{position:absolute;left:50px;right:50px;top:868px;text-align:center;opacity:0}
+#mk .nazwa{font-weight:900;font-size:138px;letter-spacing:-4px;line-height:1;color:#fff;
+  text-shadow:0 10px 40px rgba(0,0,0,.55)}
+#mk .pod{margin-top:22px;font-weight:800;font-size:42px;letter-spacing:6px;color:${KOLOR.zolty}}
+#mk .miasto{margin-top:14px;font-weight:800;font-size:40px;letter-spacing:12px;color:#fff}
+#mk .www{margin-top:24px;font-weight:600;font-size:40px;color:${KOLOR.cichy}}
+#mkCien{left:28%;right:28%;top:1244px;height:44px;opacity:0}
+`;
+
+    const body = `
+<div id="eHak">
+  <div id="eKicker" class="kicker">KURS ROCZNY DLA DZIECKA</div>
+  <div id="eL1">2347 ZŁ ZA ROK?</div>
+  <div id="eL2">${hl('199 NA START', 'eHl')}</div>
+  <div id="eHakCien" class="cienEl"></div>
+  <div id="ePod">Tyle wynosi pierwsza rata.</div>
+</div>
+
+<div id="sp">
+  <div id="spKicker" class="kicker">CENNIK 2025/26</div>
+  <div id="spPanelCien" class="cienEl"></div>
+  <div id="spPanel">
+    <div id="spSkan"></div>
+    <div class="splin" style="top:207px"></div>
+    <div class="splin" style="top:375px"></div>
+    <div class="splin" style="top:543px"></div>
+    ${wiersz(0, 'DZIECI · 3-8 OSÓB', '2347 ZŁ')}
+    ${wiersz(1, 'DZIECI · DWOJE', '2647 ZŁ')}
+    ${wiersz(2, 'DOROŚLI · SEMESTR', '1487 ZŁ')}
+    ${wiersz(3, 'VIP · OD 2 OSÓB', '1587 ZŁ')}
+  </div>
+  <div id="spKreska"></div>
+  <div id="spKicker2" class="kicker">ROZŁOŻENIE</div>
+  <div class="spchip" id="chipA">PIERWSZA RATA 199 ZŁ</div>
+  <div class="spchip" id="chipB">PŁATNE W 4 RATACH</div>
+  <div id="spStopka">E-learning, aplikacja i nagrania w cenie.</div>
+</div>
+
+<div id="ce">
+  <div id="ceKicker" class="kicker">ROK NAUKI DLA DZIECKA</div>
+  ${karta(0, '<span class="licz" data-do="12">0</span>', ' mies.', 'NAUKI', false)}
+  ${karta(1, '<span class="licz" data-do="2347">0</span>', ' zł', 'ZA ROK', false)}
+  ${karta(2, '199', ' zł', 'NA START', true)}
+  <div id="ceKreska"></div>
+  <div id="ceKicker2" class="kicker">WYCHODZI NA MIESIĄC</div>
+  <div id="ceCena"><span class="licz" data-do="196">0</span><span class="jedn"> zł</span></div>
+  <div id="ceCien" class="cienEl"></div>
+  <div id="cePak">czyli mniej niż <b>jedna korepetycja</b></div>
+</div>
+
+<div id="fi">
+  <div id="fiKicker" class="kicker">METODA BEZPOŚREDNIA</div>
+  <div id="fiL1">${hl('DUŻO MÓWIENIA', 'finHl')}</div>
+  <div id="fiPod">Dzieci, dorośli, seniorzy i firmy.</div>
+  <div id="fiKreska"></div>
+  <div id="mk">
+    <div class="nazwa">LINGUA HOUSE</div>
+    <div class="pod">SZKOŁA JĘZYKOWA</div>
+    <div class="miasto">KATOWICE</div>
+    <div class="www">ul. Gliwicka 12 · lingua-house.pl</div>
+  </div>
+  <div id="mkCien" class="cienEl"></div>
+</div>`;
+
+    const skrypt = `
+const T = ${JSON.stringify(this.T)};
+const SEK = ${SEK};
+const wiersze = [].slice.call(document.querySelectorAll('.spr'));
+const karty = [].slice.call(document.querySelectorAll('.cka'));
+
+window.setT = (t) => {
+  blyski(t);
+  tlo(t);
+
+  // ── 0–2.25 с: вопрос ──────────────────────────────────────────
+  {
+    const h = $('eHak');
+    const wyj = easeIn(clamp01((t - T.hak.wyjscie) / 0.28));
+    const widok = wyj < 1;
+    h.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      h.style.opacity = 1 - wyj;
+      h.style.transform = 'translate3d(0,' + (-wyj * 70).toFixed(1) + 'px,0) scale(' + (1 - wyj * 0.05).toFixed(3) + ')';
+
+      const pk = easeOut(clamp01((t - T.hak.a) / 0.30));
+      const kk = $('eKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 18).toFixed(1) + 'px)';
+
+      const p1 = easeBack(clamp01((t - T.hak.l1) / 0.42));
+      const l1 = $('eL1');
+      l1.style.opacity = easeOut(clamp01((t - T.hak.l1) / 0.24));
+      l1.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p1) * 50 + fala(t, 0.3) * 2.6).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p1) * -20).toFixed(2) + 'deg)';
+
+      const p2 = easeBack(clamp01((t - T.hak.l2) / 0.44));
+      const l2 = $('eL2');
+      l2.style.opacity = easeOut(clamp01((t - T.hak.l2) / 0.26));
+      const zy = fala(t, 1.3, 1.3) * 4;
+      l2.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p2) * 54 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p2) * -22 + fala(t, 1.3, 1.3) * 0.8).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - p2) * 0.08).toFixed(3) + ')';
+      plama('eHl', easeOut(clamp01((t - T.hak.l2 - 0.14) / 0.30)));
+      cien($('eHakCien'), easeOut(clamp01((t - T.hak.l2) / 0.26)), zy);
+
+      const pp = easeOut(clamp01((t - T.hak.pod) / 0.32));
+      const pd = $('ePod');
+      pd.style.opacity = pp;
+      pd.style.transform = 'translateY(' + ((1 - pp) * 22 + fala(t, 2.4, 1.1) * 2.4).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 2.4–7.8 с: табличка ───────────────────────────────────────
+  {
+    const s = $('sp');
+    const wyj = easeIn(clamp01((t - T.spec.wyjscie) / 0.28));
+    const widok = t > T.spec.a - 0.05 && wyj < 1;
+    s.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      s.style.opacity = 1 - wyj;
+
+      const pk = easeOut(clamp01((t - T.spec.kicker) / 0.28));
+      const kk = $('spKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      const pp = easeOut(clamp01((t - T.spec.panel) / 0.34));
+      const pan = $('spPanel');
+      pan.style.opacity = pp;
+      pan.style.transform = 'perspective(1800px) rotateX(' + (fala(t, 1.0, 0.85) * 0.6).toFixed(2) + 'deg)' +
+        ' rotateY(' + (fala(t, 2.3, 0.7) * 0.7).toFixed(2) + 'deg)' +
+        ' translateY(' + ((1 - pp) * 24 + fala(t, 1.0, 0.85) * 3).toFixed(1) + 'px)';
+      cien($('spPanelCien'), pp * 0.9, fala(t, 1.0, 0.85) * 3);
+      // Полоса сканера идёт по табличке всю сцену: панель не стоит
+      // мёртвым прямоугольником даже когда строки уже прилетели.
+      $('spSkan').style.transform =
+        'translateY(' + ((((t - T.spec.panel) * 0.40) % 1) * 992 - 240).toFixed(1) + 'px)';
+
+      // Строки ПЕРЕВОРАЧИВАЮТСЯ на оси X, как на механическом табло.
+      wiersze.forEach((w, i) => {
+        const a = T.spec.r1 + i * T.spec.krok;
+        const p = clamp01((t - a) / 0.46);
+        if (p <= 0) { w.style.opacity = 0; return; }
+        const e = easeOut(p);
+        const zy = fala(t, i * 1.1 + 0.5, 1.15) * 2.2;
+        w.style.opacity = Math.min(1, p * 2.2);
+        w.style.transform = 'perspective(1200px) rotateX(' + ((1 - easeBack(p)) * -88).toFixed(2) + 'deg)' +
+          ' translate3d(0,' + zy.toFixed(1) + 'px,0)' +
+          ' scale(' + (0.94 + e * 0.06).toFixed(3) + ')';
+      });
+
+      $('spKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.spec.kreska) / 0.40)).toFixed(3) + ')';
+
+      const pk2 = easeOut(clamp01((t - T.spec.kicker2) / 0.28));
+      const kk2 = $('spKicker2');
+      kk2.style.opacity = pk2;
+      kk2.style.transform = 'translateY(' + ((1 - pk2) * 16).toFixed(1) + 'px)';
+
+      [['chipA', T.spec.chipA, -1], ['chipB', T.spec.chipB, 1]].forEach((c, i) => {
+        const el = $(c[0]);
+        const p = easeBack(clamp01((t - c[1]) / 0.40));
+        el.style.opacity = easeOut(clamp01((t - c[1]) / 0.24));
+        const zy = fala(t, i * 1.6 + 2.2, 1.25) * 3;
+        el.style.transform = 'perspective(1500px) translate3d(' + ((1 - p) * c[2] * 80).toFixed(1) + 'px,' + zy.toFixed(1) + 'px,0)' +
+          ' rotateY(' + ((1 - p) * c[2] * 16 + fala(t, i * 1.6, 1.2) * 1.2).toFixed(2) + 'deg)';
+      });
+
+      const ps = easeOut(clamp01((t - T.spec.stopka) / 0.34));
+      const st = $('spStopka');
+      st.style.opacity = ps * 0.95;
+      st.style.transform = 'translateY(' + ((1 - ps) * 20 + fala(t, 3.8, 1.05) * 2).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 7.9–12.2 с: что в цене, потом цена ────────────────────────
+  {
+    const c = $('ce');
+    const wyj = easeIn(clamp01((t - T.cena.wyjscie) / 0.26));
+    const widok = t > T.cena.a - 0.05 && wyj < 1;
+    c.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      c.style.opacity = 1 - wyj;
+
+      const pk = easeOut(clamp01((t - T.cena.kicker) / 0.28));
+      const kk = $('ceKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      karty.forEach((k, i) => {
+        const a = T.cena.k1 + i * T.cena.krok;
+        const p = clamp01((t - a) / 0.44);
+        if (p <= 0) { k.style.opacity = 0; return; }
+        const e = easeBack(p);
+        k.style.opacity = easeOut(p);
+        const zy = fala(t, i * 1.25 + 0.4) * 3.4;
+        wjazd(k, e, {
+          dy: 40, dx: 0, ry: (i - 1) * 16, rx: 12, sc: 0.14,
+          po: ' translate3d(0,' + zy.toFixed(1) + 'px,0)' +
+              ' rotateY(' + (fala(t, i * 1.25, 1.15) * 1.3).toFixed(2) + 'deg)',
+        });
+        cien(k.querySelector('.ckaCien'), easeOut(p), zy);
+        // Цели у карточек разные (140 и 230), поэтому берём из разметки,
+        // а не из одного числа на все три — иначе счётчик врёт клиенту.
+        const el = k.querySelector('.licz');
+        if (el) licznik(el, (t - a - 0.10) / 0.50, +el.dataset.do);
+      });
+
+      $('ceKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.cena.kreska) / 0.40)).toFixed(3) + ')';
+
+      const pk2 = easeOut(clamp01((t - T.cena.kicker2) / 0.28));
+      const kk2 = $('ceKicker2');
+      kk2.style.opacity = pk2;
+      kk2.style.transform = 'translateY(' + ((1 - pk2) * 16).toFixed(1) + 'px)';
+
+      const pl = clamp01((t - T.cena.licznik) / 0.46);
+      const cc = $('ceCena');
+      const zy = fala(t, 0.6, 1.35) * 5;
+      cc.style.opacity = easeOut(pl);
+      cc.style.transform = 'perspective(1600px) translate3d(0,' + ((1 - easeBack(pl)) * 56 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - easeBack(pl)) * -22 + fala(t, 0.6, 1.35) * 0.7).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - easeBack(pl)) * 0.10).toFixed(3) + ')';
+      licznik(cc.querySelector('.licz'), (t - T.cena.licznik) / 0.82, 196);
+      cien($('ceCien'), easeOut(pl), zy);
+
+      const pp = easeOut(clamp01((t - T.cena.pakiety) / 0.34));
+      const cp = $('cePak');
+      cp.style.opacity = pp * 0.96;
+      cp.style.transform = 'translateY(' + ((1 - pp) * 20 + fala(t, 3.4, 1.1) * 2).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 12.3–15 с: марка ──────────────────────────────────────────
+  {
+    const f = $('fi');
+    const widok = t > T.fin.a - 0.05;
+    f.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      f.style.opacity = 1;
+      f.style.transformOrigin = '50% 46%';
+      f.style.transform = 'scale(' + (1.004 + clamp01((t - T.fin.a) / (SEK - T.fin.a)) * 0.016).toFixed(4) + ')';
+
+      const pk = easeOut(clamp01((t - T.fin.kicker) / 0.30));
+      const fk = $('fiKicker');
+      fk.style.opacity = pk;
+      fk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      const p1 = easeBack(clamp01((t - T.fin.l1) / 0.42));
+      const l1 = $('fiL1');
+      l1.style.opacity = easeOut(clamp01((t - T.fin.l1) / 0.24));
+      l1.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p1) * 48 + fala(t, 0.3) * 2.6).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p1) * -20).toFixed(2) + 'deg)';
+      plama('finHl', easeOut(clamp01((t - T.fin.l1 - 0.16) / 0.30)));
+
+      const pp = easeOut(clamp01((t - T.fin.pod) / 0.32));
+      const fp = $('fiPod');
+      fp.style.opacity = pp;
+      fp.style.transform = 'translateY(' + ((1 - pp) * 20 + fala(t, 2.6, 1.1) * 2).toFixed(1) + 'px)';
+
+      $('fiKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.fin.kreska) / 0.42)).toFixed(3) + ')';
+
+      const m = $('mk');
+      const pm = easeBack(clamp01((t - T.fin.marka) / 0.46));
+      const pmo = easeOut(clamp01((t - T.fin.marka) / 0.26));
+      m.style.opacity = pmo;
+      const zy = fala(t, 3.1, 1.35) * 7;
+      m.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - pm) * 54 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - pm) * -22 + fala(t, 3.1, 1.35) * 0.9).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - pm) * 0.08 + fala(t, 1.9, 0.9) * 0.006).toFixed(4) + ')';
+      cien($('mkCien'), pmo * 0.9, zy);
+      m.querySelector('.pod').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.20) / 0.30));
+      m.querySelector('.miasto').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.28) / 0.30));
+      m.querySelector('.www').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.38) / 0.34));
+    }
+  }
+};`;
+
+    return dokument(css, body, skrypt);
+  },
+};
+
+
+const LOPECIK = {
+  plik: 'Lopecik_95procent',
+  wyjscie: 'D:/My AI/Zovu.pl/Sprzedaz/autoszkoly/Lopecik_95procent.mp4',
+  szkola: 'OSK LOPECIK',
+  muzyka: 'pixabay-audio_5d25481bef.mp3',
+  muzykaOd: 46,
+
+  T: {
+    hak: { a: -0.10, l1: 0.02, l2: 0.50, pod: 1.00, wyjscie: 2.24 },
+    spec: { a: 2.38, kicker: 2.42, panel: 2.54, r1: 2.72, krok: 0.46,
+            kreska: 5.06, kicker2: 5.26, chipA: 5.50, chipB: 5.76, stopka: 6.34, wyjscie: 7.80 },
+    cena: { a: 7.94, kicker: 7.98, k1: 8.10, krok: 0.30, kreska: 9.24,
+            kicker2: 9.36, licznik: 9.52, pakiety: 10.84, wyjscie: 12.16 },
+    fin: { a: 12.30, kicker: 12.34, l1: 12.48, pod: 12.86, kreska: 13.04, marka: 13.28 },
+  },
+
+  dzwieki(T) {
+    const z = [];
+    z.push({ t: 0.02, typ: 'swist', gl: 0.5 });
+    z.push({ t: T.hak.l1 + 0.06, typ: 'dun', gl: 0.85 });
+    z.push({ t: T.hak.l2 + 0.10, typ: 'klik', gl: 0.66 });
+    z.push({ t: T.hak.pod + 0.06, typ: 'klik', gl: 0.36 });
+    z.push({ t: T.hak.wyjscie, typ: 'swist', gl: 0.55 });
+    for (let i = 0; i < 4; i++) z.push({ t: T.spec.r1 + i * T.spec.krok + 0.14, typ: 'klik', gl: 0.64 });
+    z.push({ t: T.spec.kreska + 0.04, typ: 'swist', gl: 0.36 });
+    z.push({ t: T.spec.chipA + 0.14, typ: 'dun', gl: 0.66 });
+    z.push({ t: T.spec.chipB + 0.14, typ: 'dun', gl: 0.66 });
+    z.push({ t: T.spec.stopka + 0.10, typ: 'klik', gl: 0.3 });
+    z.push({ t: T.spec.wyjscie + 0.02, typ: 'swist', gl: 0.56 });
+    for (let i = 0; i < 3; i++) z.push({ t: T.cena.k1 + i * T.cena.krok + 0.14, typ: 'klik', gl: 0.6 });
+    z.push({ t: T.cena.kreska + 0.04, typ: 'swist', gl: 0.4 });
+    z.push({ t: T.cena.licznik + 0.06, typ: 'dun', gl: 0.88 });
+    z.push({ t: T.cena.pakiety + 0.10, typ: 'klik', gl: 0.34 });
+    z.push({ t: T.cena.wyjscie + 0.02, typ: 'swist', gl: 0.55 });
+    z.push({ t: T.fin.l1 + 0.16, typ: 'klik', gl: 0.6 });
+    z.push({ t: T.fin.marka + 0.2, typ: 'dun', gl: 0.9 });
+    return z;
+  },
+
+  html() {
+    const wiersz = (i, etykieta, wartosc) =>
+      `<div class="spr" data-i="${i}">
+  <div class="spl">${esc(etykieta)}</div>
+  <div class="spv" data-fit="62,34,90">${esc(wartosc)}</div>
+</div>`;
+
+    const karta = (i, liczba, jedn, podpis, zolta) =>
+      `<div class="cka${zolta ? ' zol' : ''}" data-i="${i}">
+  <div class="cienEl ckaCien"></div>
+  <div class="ckl">${liczba}<span class="jedn">${esc(jedn)}</span></div>
+  <div class="ckp">${esc(podpis)}</div>
+</div>`;
+
+    const css = `
+/* ── 0–2.25 с: вопрос, который редко задают ───────────────────── */
+#eHak{position:absolute;inset:0}
+#eKicker{position:absolute;left:60px;right:60px;top:550px;font-size:36px}
+#eL1{position:absolute;left:60px;right:60px;top:626px;text-align:center;
+  font-weight:900;font-size:94px;letter-spacing:-3px;color:#fff;white-space:nowrap;
+  text-shadow:0 8px 30px rgba(0,0,0,.55)}
+#eL2{position:absolute;left:60px;right:60px;top:762px;text-align:center;opacity:0}
+#eL2 .hl{font-size:104px;font-weight:900;letter-spacing:-4px}
+#eHakCien{left:30%;right:30%;top:930px;height:44px}
+#ePod{position:absolute;left:60px;right:60px;top:996px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:54px;color:${KOLOR.jasny};opacity:0}
+
+/* ── 2.4–7.8 с: табличка характеристик ────────────────────────── */
+#sp{position:absolute;inset:0}
+#spKicker{position:absolute;left:50px;right:50px;top:320px;font-size:34px;letter-spacing:6px;opacity:0}
+#spPanel{position:absolute;left:62px;right:62px;top:386px;height:752px;border-radius:36px;
+  overflow:hidden;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.045));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 32px 76px rgba(0,0,0,.46)}
+#spSkan{position:absolute;left:0;right:0;height:240px;pointer-events:none;
+  background:linear-gradient(180deg, rgba(167,139,250,0) 0%, rgba(167,139,250,.17) 50%, rgba(167,139,250,0) 100%)}
+.spr{position:absolute;left:44px;right:44px;height:168px;display:flex;align-items:center;
+  gap:24px;opacity:0;transform-origin:50% 0%}
+.spr::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;
+  background:rgba(255,255,255,.10)}
+.spr[data-i="3"]::after{opacity:0}
+.splin{position:absolute;left:44px;right:44px;height:2px;background:rgba(255,255,255,.07)}
+.spr[data-i="0"]{top:40px}
+.spr[data-i="1"]{top:208px}
+.spr[data-i="2"]{top:376px}
+.spr[data-i="3"]{top:544px}
+.spl{flex:0 0 244px;font-weight:800;font-size:32px;letter-spacing:5px;color:${KOLOR.jasny}}
+.spv{flex:1;min-width:0;overflow:hidden;text-align:right;font-weight:900;font-size:62px;
+  letter-spacing:-2px;color:#fff;white-space:nowrap;text-shadow:0 4px 18px rgba(0,0,0,.45)}
+#spPanelCien{left:12%;right:12%;top:1152px;height:46px;opacity:0}
+#spKreska{position:absolute;left:270px;top:1176px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#spKicker2{position:absolute;left:50px;right:50px;top:1212px;font-size:34px;letter-spacing:6px;opacity:0}
+.spchip{position:absolute;top:1272px;width:452px;height:118px;border-radius:26px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:46px;letter-spacing:-1px;color:#fff;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.13), rgba(255,255,255,.05));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.20), 0 22px 54px rgba(0,0,0,.42)}
+#chipA{left:62px}
+#chipB{right:62px}
+#spStopka{position:absolute;left:90px;right:90px;top:1428px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:44px;color:${KOLOR.cichy};opacity:0}
+
+/* ── 7.9–12.2 с: что в цене, потом цена ───────────────────────── */
+#ce{position:absolute;inset:0;opacity:0}
+#ceKicker{position:absolute;left:60px;right:60px;top:410px;font-size:40px;opacity:0}
+.cka{position:absolute;top:478px;width:309px;height:238px;border-radius:30px;
+  padding-top:40px;text-align:center;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.045));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 26px 60px rgba(0,0,0,.42)}
+.cka[data-i="0"]{left:56px}
+.cka[data-i="1"]{left:385px}
+.cka[data-i="2"]{right:56px}
+.cka .ckl{font-weight:900;font-size:96px;letter-spacing:-4px;line-height:1;color:#fff;
+  white-space:nowrap;text-shadow:0 6px 22px rgba(0,0,0,.5)}
+.cka .ckl .jedn{font-size:54px;color:${KOLOR.zolty}}
+.cka .ckp{margin-top:26px;font-weight:800;font-size:32px;letter-spacing:3px;color:${KOLOR.cichy}}
+.cka.zol{background:linear-gradient(140deg,#ffe07a,${KOLOR.zolty});
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 26px 60px rgba(255,210,63,.22)}
+.cka.zol .ckl{color:#150e33;text-shadow:none}
+.cka.zol .ckl .jedn{color:#3d2c00}
+.cka.zol .ckp{color:#4a3600}
+.ckaCien{left:10%;right:10%;bottom:-24px;height:40px;opacity:0}
+#ceKreska{position:absolute;left:270px;top:790px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#ceKicker2{position:absolute;left:60px;right:60px;top:830px;font-size:40px;opacity:0}
+#ceCena{position:absolute;left:60px;right:60px;top:900px;text-align:center;
+  font-weight:900;font-size:198px;letter-spacing:-10px;color:#fff;white-space:nowrap;
+  text-shadow:0 12px 40px rgba(0,0,0,.55)}
+#ceCena .od{font-size:92px;letter-spacing:-2px;color:${KOLOR.cichy};font-weight:800}
+#ceCena .jedn{font-size:112px;color:${KOLOR.zolty};letter-spacing:-4px;margin-left:12px}
+#ceCien{left:28%;right:28%;top:1140px;height:46px;opacity:0}
+#cePak{position:absolute;left:70px;right:70px;top:1216px;text-align:center;
+  font-weight:700;font-size:34px;line-height:1.3;color:${KOLOR.cichy};opacity:0}
+#cePak b{color:#fff}
+
+/* ── 12.3–15 с: марка ─────────────────────────────────────────── */
+#fi{position:absolute;inset:0;opacity:0}
+#fiKicker{position:absolute;left:60px;right:60px;top:426px;font-size:38px;opacity:0}
+#fiL1{position:absolute;left:60px;right:60px;top:490px;text-align:center;opacity:0}
+#fiL1 .hl{font-size:76px;font-weight:900;letter-spacing:-3px}
+#fiPod{position:absolute;left:60px;right:60px;top:702px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:48px;color:${KOLOR.jasny};opacity:0}
+#fiKreska{position:absolute;left:270px;top:800px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#mk{position:absolute;left:50px;right:50px;top:868px;text-align:center;opacity:0}
+#mk .nazwa{font-weight:900;font-size:138px;letter-spacing:-4px;line-height:1;color:#fff;
+  text-shadow:0 10px 40px rgba(0,0,0,.55)}
+#mk .pod{margin-top:22px;font-weight:800;font-size:42px;letter-spacing:6px;color:${KOLOR.zolty}}
+#mk .miasto{margin-top:14px;font-weight:800;font-size:40px;letter-spacing:12px;color:#fff}
+#mk .www{margin-top:24px;font-weight:600;font-size:40px;color:${KOLOR.cichy}}
+#mkCien{left:28%;right:28%;top:1244px;height:44px;opacity:0}
+`;
+
+    const body = `
+<div id="eHak">
+  <div id="eKicker" class="kicker">ZDAWALNOŚĆ ZA PIERWSZYM RAZEM</div>
+  <div id="eL1">ILE OSÓB ZDAJE?</div>
+  <div id="eL2">${hl('95%', 'eHl')}</div>
+  <div id="eHakCien" class="cienEl"></div>
+  <div id="ePod">Liczba ze strony OSK Lopecik.</div>
+</div>
+
+<div id="sp">
+  <div id="spKicker" class="kicker">CO MÓWIĄ ICH LICZBY</div>
+  <div id="spPanelCien" class="cienEl"></div>
+  <div id="spPanel">
+    <div id="spSkan"></div>
+    <div class="splin" style="top:207px"></div>
+    <div class="splin" style="top:375px"></div>
+    <div class="splin" style="top:543px"></div>
+    ${wiersz(0, 'DOŚWIADCZENIE', '10+ LAT')}
+    ${wiersz(1, 'KURSANCI', '3000+')}
+    ${wiersz(2, 'ZDAWALNOŚĆ', '95%+')}
+    ${wiersz(3, 'NAJBLIŻSZY KURS', 'WKRÓTCE')}
+  </div>
+  <div id="spKreska"></div>
+  <div id="spKicker2" class="kicker">SKĄD TE DANE</div>
+  <div class="spchip" id="chipA">ZE STRONY SZKOŁY</div>
+  <div class="spchip" id="chipB">NIC NIE DODANE</div>
+  <div id="spStopka">Zdawalność podaje jedna szkoła na osiem.</div>
+</div>
+
+<div id="ce">
+  <div id="ceKicker" class="kicker">DZIESIĘĆ LAT PRACY</div>
+  ${karta(0, '<span class="licz" data-do="10">0</span>', '+ lat', 'NA RYNKU', false)}
+  ${karta(1, '<span class="licz" data-do="3000">0</span>', '+', 'KURSANTÓW', false)}
+  ${karta(2, '95', '%', 'ZDAJE', true)}
+  <div id="ceKreska"></div>
+  <div id="ceKicker2" class="kicker">ZDAJE ZA PIERWSZYM RAZEM</div>
+  <div id="ceCena"><span class="licz" data-do="95">0</span><span class="jedn">%</span></div>
+  <div id="ceCien" class="cienEl"></div>
+  <div id="cePak">liczba <b>ze strony szkoły</b>, nie nasza</div>
+</div>
+
+<div id="fi">
+  <div id="fiKicker" class="kicker">ZAPISY NA NAJBLIŻSZY KURS</div>
+  <div id="fiL1">${hl('RUSZAMY WKRÓTCE', 'finHl')}</div>
+  <div id="fiPod">Dziesięć lat i trzy tysiące kursantów.</div>
+  <div id="fiKreska"></div>
+  <div id="mk">
+    <div class="nazwa">LOPECIK</div>
+    <div class="pod">OŚRODEK SZKOLENIA KIEROWCÓW</div>
+    <div class="miasto">KATOWICE</div>
+    <div class="www">lopecik.katowice.pl</div>
+  </div>
+  <div id="mkCien" class="cienEl"></div>
+</div>`;
+
+    const skrypt = `
+const T = ${JSON.stringify(this.T)};
+const SEK = ${SEK};
+const wiersze = [].slice.call(document.querySelectorAll('.spr'));
+const karty = [].slice.call(document.querySelectorAll('.cka'));
+
+window.setT = (t) => {
+  blyski(t);
+  tlo(t);
+
+  // ── 0–2.25 с: вопрос ──────────────────────────────────────────
+  {
+    const h = $('eHak');
+    const wyj = easeIn(clamp01((t - T.hak.wyjscie) / 0.28));
+    const widok = wyj < 1;
+    h.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      h.style.opacity = 1 - wyj;
+      h.style.transform = 'translate3d(0,' + (-wyj * 70).toFixed(1) + 'px,0) scale(' + (1 - wyj * 0.05).toFixed(3) + ')';
+
+      const pk = easeOut(clamp01((t - T.hak.a) / 0.30));
+      const kk = $('eKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 18).toFixed(1) + 'px)';
+
+      const p1 = easeBack(clamp01((t - T.hak.l1) / 0.42));
+      const l1 = $('eL1');
+      l1.style.opacity = easeOut(clamp01((t - T.hak.l1) / 0.24));
+      l1.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p1) * 50 + fala(t, 0.3) * 2.6).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p1) * -20).toFixed(2) + 'deg)';
+
+      const p2 = easeBack(clamp01((t - T.hak.l2) / 0.44));
+      const l2 = $('eL2');
+      l2.style.opacity = easeOut(clamp01((t - T.hak.l2) / 0.26));
+      const zy = fala(t, 1.3, 1.3) * 4;
+      l2.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p2) * 54 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p2) * -22 + fala(t, 1.3, 1.3) * 0.8).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - p2) * 0.08).toFixed(3) + ')';
+      plama('eHl', easeOut(clamp01((t - T.hak.l2 - 0.14) / 0.30)));
+      cien($('eHakCien'), easeOut(clamp01((t - T.hak.l2) / 0.26)), zy);
+
+      const pp = easeOut(clamp01((t - T.hak.pod) / 0.32));
+      const pd = $('ePod');
+      pd.style.opacity = pp;
+      pd.style.transform = 'translateY(' + ((1 - pp) * 22 + fala(t, 2.4, 1.1) * 2.4).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 2.4–7.8 с: табличка ───────────────────────────────────────
+  {
+    const s = $('sp');
+    const wyj = easeIn(clamp01((t - T.spec.wyjscie) / 0.28));
+    const widok = t > T.spec.a - 0.05 && wyj < 1;
+    s.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      s.style.opacity = 1 - wyj;
+
+      const pk = easeOut(clamp01((t - T.spec.kicker) / 0.28));
+      const kk = $('spKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      const pp = easeOut(clamp01((t - T.spec.panel) / 0.34));
+      const pan = $('spPanel');
+      pan.style.opacity = pp;
+      pan.style.transform = 'perspective(1800px) rotateX(' + (fala(t, 1.0, 0.85) * 0.6).toFixed(2) + 'deg)' +
+        ' rotateY(' + (fala(t, 2.3, 0.7) * 0.7).toFixed(2) + 'deg)' +
+        ' translateY(' + ((1 - pp) * 24 + fala(t, 1.0, 0.85) * 3).toFixed(1) + 'px)';
+      cien($('spPanelCien'), pp * 0.9, fala(t, 1.0, 0.85) * 3);
+      // Полоса сканера идёт по табличке всю сцену: панель не стоит
+      // мёртвым прямоугольником даже когда строки уже прилетели.
+      $('spSkan').style.transform =
+        'translateY(' + ((((t - T.spec.panel) * 0.40) % 1) * 992 - 240).toFixed(1) + 'px)';
+
+      // Строки ПЕРЕВОРАЧИВАЮТСЯ на оси X, как на механическом табло.
+      wiersze.forEach((w, i) => {
+        const a = T.spec.r1 + i * T.spec.krok;
+        const p = clamp01((t - a) / 0.46);
+        if (p <= 0) { w.style.opacity = 0; return; }
+        const e = easeOut(p);
+        const zy = fala(t, i * 1.1 + 0.5, 1.15) * 2.2;
+        w.style.opacity = Math.min(1, p * 2.2);
+        w.style.transform = 'perspective(1200px) rotateX(' + ((1 - easeBack(p)) * -88).toFixed(2) + 'deg)' +
+          ' translate3d(0,' + zy.toFixed(1) + 'px,0)' +
+          ' scale(' + (0.94 + e * 0.06).toFixed(3) + ')';
+      });
+
+      $('spKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.spec.kreska) / 0.40)).toFixed(3) + ')';
+
+      const pk2 = easeOut(clamp01((t - T.spec.kicker2) / 0.28));
+      const kk2 = $('spKicker2');
+      kk2.style.opacity = pk2;
+      kk2.style.transform = 'translateY(' + ((1 - pk2) * 16).toFixed(1) + 'px)';
+
+      [['chipA', T.spec.chipA, -1], ['chipB', T.spec.chipB, 1]].forEach((c, i) => {
+        const el = $(c[0]);
+        const p = easeBack(clamp01((t - c[1]) / 0.40));
+        el.style.opacity = easeOut(clamp01((t - c[1]) / 0.24));
+        const zy = fala(t, i * 1.6 + 2.2, 1.25) * 3;
+        el.style.transform = 'perspective(1500px) translate3d(' + ((1 - p) * c[2] * 80).toFixed(1) + 'px,' + zy.toFixed(1) + 'px,0)' +
+          ' rotateY(' + ((1 - p) * c[2] * 16 + fala(t, i * 1.6, 1.2) * 1.2).toFixed(2) + 'deg)';
+      });
+
+      const ps = easeOut(clamp01((t - T.spec.stopka) / 0.34));
+      const st = $('spStopka');
+      st.style.opacity = ps * 0.95;
+      st.style.transform = 'translateY(' + ((1 - ps) * 20 + fala(t, 3.8, 1.05) * 2).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 7.9–12.2 с: что в цене, потом цена ────────────────────────
+  {
+    const c = $('ce');
+    const wyj = easeIn(clamp01((t - T.cena.wyjscie) / 0.26));
+    const widok = t > T.cena.a - 0.05 && wyj < 1;
+    c.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      c.style.opacity = 1 - wyj;
+
+      const pk = easeOut(clamp01((t - T.cena.kicker) / 0.28));
+      const kk = $('ceKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      karty.forEach((k, i) => {
+        const a = T.cena.k1 + i * T.cena.krok;
+        const p = clamp01((t - a) / 0.44);
+        if (p <= 0) { k.style.opacity = 0; return; }
+        const e = easeBack(p);
+        k.style.opacity = easeOut(p);
+        const zy = fala(t, i * 1.25 + 0.4) * 3.4;
+        wjazd(k, e, {
+          dy: 40, dx: 0, ry: (i - 1) * 16, rx: 12, sc: 0.14,
+          po: ' translate3d(0,' + zy.toFixed(1) + 'px,0)' +
+              ' rotateY(' + (fala(t, i * 1.25, 1.15) * 1.3).toFixed(2) + 'deg)',
+        });
+        cien(k.querySelector('.ckaCien'), easeOut(p), zy);
+        // Цели у карточек разные (140 и 230), поэтому берём из разметки,
+        // а не из одного числа на все три — иначе счётчик врёт клиенту.
+        const el = k.querySelector('.licz');
+        if (el) licznik(el, (t - a - 0.10) / 0.50, +el.dataset.do);
+      });
+
+      $('ceKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.cena.kreska) / 0.40)).toFixed(3) + ')';
+
+      const pk2 = easeOut(clamp01((t - T.cena.kicker2) / 0.28));
+      const kk2 = $('ceKicker2');
+      kk2.style.opacity = pk2;
+      kk2.style.transform = 'translateY(' + ((1 - pk2) * 16).toFixed(1) + 'px)';
+
+      const pl = clamp01((t - T.cena.licznik) / 0.46);
+      const cc = $('ceCena');
+      const zy = fala(t, 0.6, 1.35) * 5;
+      cc.style.opacity = easeOut(pl);
+      cc.style.transform = 'perspective(1600px) translate3d(0,' + ((1 - easeBack(pl)) * 56 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - easeBack(pl)) * -22 + fala(t, 0.6, 1.35) * 0.7).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - easeBack(pl)) * 0.10).toFixed(3) + ')';
+      licznik(cc.querySelector('.licz'), (t - T.cena.licznik) / 0.82, 95);
+      cien($('ceCien'), easeOut(pl), zy);
+
+      const pp = easeOut(clamp01((t - T.cena.pakiety) / 0.34));
+      const cp = $('cePak');
+      cp.style.opacity = pp * 0.96;
+      cp.style.transform = 'translateY(' + ((1 - pp) * 20 + fala(t, 3.4, 1.1) * 2).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 12.3–15 с: марка ──────────────────────────────────────────
+  {
+    const f = $('fi');
+    const widok = t > T.fin.a - 0.05;
+    f.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      f.style.opacity = 1;
+      f.style.transformOrigin = '50% 46%';
+      f.style.transform = 'scale(' + (1.004 + clamp01((t - T.fin.a) / (SEK - T.fin.a)) * 0.016).toFixed(4) + ')';
+
+      const pk = easeOut(clamp01((t - T.fin.kicker) / 0.30));
+      const fk = $('fiKicker');
+      fk.style.opacity = pk;
+      fk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      const p1 = easeBack(clamp01((t - T.fin.l1) / 0.42));
+      const l1 = $('fiL1');
+      l1.style.opacity = easeOut(clamp01((t - T.fin.l1) / 0.24));
+      l1.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p1) * 48 + fala(t, 0.3) * 2.6).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p1) * -20).toFixed(2) + 'deg)';
+      plama('finHl', easeOut(clamp01((t - T.fin.l1 - 0.16) / 0.30)));
+
+      const pp = easeOut(clamp01((t - T.fin.pod) / 0.32));
+      const fp = $('fiPod');
+      fp.style.opacity = pp;
+      fp.style.transform = 'translateY(' + ((1 - pp) * 20 + fala(t, 2.6, 1.1) * 2).toFixed(1) + 'px)';
+
+      $('fiKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.fin.kreska) / 0.42)).toFixed(3) + ')';
+
+      const m = $('mk');
+      const pm = easeBack(clamp01((t - T.fin.marka) / 0.46));
+      const pmo = easeOut(clamp01((t - T.fin.marka) / 0.26));
+      m.style.opacity = pmo;
+      const zy = fala(t, 3.1, 1.35) * 7;
+      m.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - pm) * 54 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - pm) * -22 + fala(t, 3.1, 1.35) * 0.9).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - pm) * 0.08 + fala(t, 1.9, 0.9) * 0.006).toFixed(4) + ')';
+      cien($('mkCien'), pmo * 0.9, zy);
+      m.querySelector('.pod').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.20) / 0.30));
+      m.querySelector('.miasto').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.28) / 0.30));
+      m.querySelector('.www').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.38) / 0.34));
+    }
+  }
+};`;
+
+    return dokument(css, body, skrypt);
+  },
+};
+
+
+const AUTOEXPERT = {
+  plik: 'Autoexpert_7do22',
+  wyjscie: 'D:/My AI/Zovu.pl/Sprzedaz/autoszkoly/Autoexpert_7do22.mp4',
+  szkola: 'OSK AUTOEXPERT',
+  muzyka: 'pixabay-creative-technology-showreel.mp3',
+  muzykaOd: 74,
+
+  T: {
+    hak: { a: -0.10, l1: 0.02, l2: 0.50, pod: 1.00, wyjscie: 2.24 },
+    spec: { a: 2.38, kicker: 2.42, panel: 2.54, r1: 2.72, krok: 0.46,
+            kreska: 5.06, kicker2: 5.26, chipA: 5.50, chipB: 5.76, stopka: 6.34, wyjscie: 7.80 },
+    cena: { a: 7.94, kicker: 7.98, k1: 8.10, krok: 0.30, kreska: 9.24,
+            kicker2: 9.36, licznik: 9.52, pakiety: 10.84, wyjscie: 12.16 },
+    fin: { a: 12.30, kicker: 12.34, l1: 12.48, pod: 12.86, kreska: 13.04, marka: 13.28 },
+  },
+
+  dzwieki(T) {
+    const z = [];
+    z.push({ t: 0.02, typ: 'swist', gl: 0.5 });
+    z.push({ t: T.hak.l1 + 0.06, typ: 'dun', gl: 0.85 });
+    z.push({ t: T.hak.l2 + 0.10, typ: 'klik', gl: 0.66 });
+    z.push({ t: T.hak.pod + 0.06, typ: 'klik', gl: 0.36 });
+    z.push({ t: T.hak.wyjscie, typ: 'swist', gl: 0.55 });
+    for (let i = 0; i < 4; i++) z.push({ t: T.spec.r1 + i * T.spec.krok + 0.14, typ: 'klik', gl: 0.64 });
+    z.push({ t: T.spec.kreska + 0.04, typ: 'swist', gl: 0.36 });
+    z.push({ t: T.spec.chipA + 0.14, typ: 'dun', gl: 0.66 });
+    z.push({ t: T.spec.chipB + 0.14, typ: 'dun', gl: 0.66 });
+    z.push({ t: T.spec.stopka + 0.10, typ: 'klik', gl: 0.3 });
+    z.push({ t: T.spec.wyjscie + 0.02, typ: 'swist', gl: 0.56 });
+    for (let i = 0; i < 3; i++) z.push({ t: T.cena.k1 + i * T.cena.krok + 0.14, typ: 'klik', gl: 0.6 });
+    z.push({ t: T.cena.kreska + 0.04, typ: 'swist', gl: 0.4 });
+    z.push({ t: T.cena.licznik + 0.06, typ: 'dun', gl: 0.88 });
+    z.push({ t: T.cena.pakiety + 0.10, typ: 'klik', gl: 0.34 });
+    z.push({ t: T.cena.wyjscie + 0.02, typ: 'swist', gl: 0.55 });
+    z.push({ t: T.fin.l1 + 0.16, typ: 'klik', gl: 0.6 });
+    z.push({ t: T.fin.marka + 0.2, typ: 'dun', gl: 0.9 });
+    return z;
+  },
+
+  html() {
+    const wiersz = (i, etykieta, wartosc) =>
+      `<div class="spr" data-i="${i}">
+  <div class="spl">${esc(etykieta)}</div>
+  <div class="spv" data-fit="62,34,90">${esc(wartosc)}</div>
+</div>`;
+
+    const karta = (i, liczba, jedn, podpis, zolta) =>
+      `<div class="cka${zolta ? ' zol' : ''}" data-i="${i}">
+  <div class="cienEl ckaCien"></div>
+  <div class="ckl">${liczba}<span class="jedn">${esc(jedn)}</span></div>
+  <div class="ckp">${esc(podpis)}</div>
+</div>`;
+
+    const css = `
+/* ── 0–2.25 с: вопрос, который редко задают ───────────────────── */
+#eHak{position:absolute;inset:0}
+#eKicker{position:absolute;left:60px;right:60px;top:550px;font-size:36px}
+#eL1{position:absolute;left:60px;right:60px;top:626px;text-align:center;
+  font-weight:900;font-size:94px;letter-spacing:-3px;color:#fff;white-space:nowrap;
+  text-shadow:0 8px 30px rgba(0,0,0,.55)}
+#eL2{position:absolute;left:60px;right:60px;top:762px;text-align:center;opacity:0}
+#eL2 .hl{font-size:104px;font-weight:900;letter-spacing:-4px}
+#eHakCien{left:30%;right:30%;top:930px;height:44px}
+#ePod{position:absolute;left:60px;right:60px;top:996px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:54px;color:${KOLOR.jasny};opacity:0}
+
+/* ── 2.4–7.8 с: табличка характеристик ────────────────────────── */
+#sp{position:absolute;inset:0}
+#spKicker{position:absolute;left:50px;right:50px;top:320px;font-size:34px;letter-spacing:6px;opacity:0}
+#spPanel{position:absolute;left:62px;right:62px;top:386px;height:752px;border-radius:36px;
+  overflow:hidden;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.045));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 32px 76px rgba(0,0,0,.46)}
+#spSkan{position:absolute;left:0;right:0;height:240px;pointer-events:none;
+  background:linear-gradient(180deg, rgba(167,139,250,0) 0%, rgba(167,139,250,.17) 50%, rgba(167,139,250,0) 100%)}
+.spr{position:absolute;left:44px;right:44px;height:168px;display:flex;align-items:center;
+  gap:24px;opacity:0;transform-origin:50% 0%}
+.spr::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;
+  background:rgba(255,255,255,.10)}
+.spr[data-i="3"]::after{opacity:0}
+.splin{position:absolute;left:44px;right:44px;height:2px;background:rgba(255,255,255,.07)}
+.spr[data-i="0"]{top:40px}
+.spr[data-i="1"]{top:208px}
+.spr[data-i="2"]{top:376px}
+.spr[data-i="3"]{top:544px}
+.spl{flex:0 0 244px;font-weight:800;font-size:32px;letter-spacing:5px;color:${KOLOR.jasny}}
+.spv{flex:1;min-width:0;overflow:hidden;text-align:right;font-weight:900;font-size:62px;
+  letter-spacing:-2px;color:#fff;white-space:nowrap;text-shadow:0 4px 18px rgba(0,0,0,.45)}
+#spPanelCien{left:12%;right:12%;top:1152px;height:46px;opacity:0}
+#spKreska{position:absolute;left:270px;top:1176px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#spKicker2{position:absolute;left:50px;right:50px;top:1212px;font-size:34px;letter-spacing:6px;opacity:0}
+.spchip{position:absolute;top:1272px;width:452px;height:118px;border-radius:26px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:46px;letter-spacing:-1px;color:#fff;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.13), rgba(255,255,255,.05));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.20), 0 22px 54px rgba(0,0,0,.42)}
+#chipA{left:62px}
+#chipB{right:62px}
+#spStopka{position:absolute;left:90px;right:90px;top:1428px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:44px;color:${KOLOR.cichy};opacity:0}
+
+/* ── 7.9–12.2 с: что в цене, потом цена ───────────────────────── */
+#ce{position:absolute;inset:0;opacity:0}
+#ceKicker{position:absolute;left:60px;right:60px;top:410px;font-size:40px;opacity:0}
+.cka{position:absolute;top:478px;width:309px;height:238px;border-radius:30px;
+  padding-top:40px;text-align:center;opacity:0;
+  background:linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.045));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 26px 60px rgba(0,0,0,.42)}
+.cka[data-i="0"]{left:56px}
+.cka[data-i="1"]{left:385px}
+.cka[data-i="2"]{right:56px}
+.cka .ckl{font-weight:900;font-size:96px;letter-spacing:-4px;line-height:1;color:#fff;
+  white-space:nowrap;text-shadow:0 6px 22px rgba(0,0,0,.5)}
+.cka .ckl .jedn{font-size:54px;color:${KOLOR.zolty}}
+.cka .ckp{margin-top:26px;font-weight:800;font-size:32px;letter-spacing:3px;color:${KOLOR.cichy}}
+.cka.zol{background:linear-gradient(140deg,#ffe07a,${KOLOR.zolty});
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 26px 60px rgba(255,210,63,.22)}
+.cka.zol .ckl{color:#150e33;text-shadow:none}
+.cka.zol .ckl .jedn{color:#3d2c00}
+.cka.zol .ckp{color:#4a3600}
+.ckaCien{left:10%;right:10%;bottom:-24px;height:40px;opacity:0}
+#ceKreska{position:absolute;left:270px;top:790px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#ceKicker2{position:absolute;left:60px;right:60px;top:830px;font-size:40px;opacity:0}
+#ceCena{position:absolute;left:60px;right:60px;top:900px;text-align:center;
+  font-weight:900;font-size:198px;letter-spacing:-10px;color:#fff;white-space:nowrap;
+  text-shadow:0 12px 40px rgba(0,0,0,.55)}
+#ceCena .od{font-size:92px;letter-spacing:-2px;color:${KOLOR.cichy};font-weight:800}
+#ceCena .jedn{font-size:112px;color:${KOLOR.zolty};letter-spacing:-4px;margin-left:12px}
+#ceCien{left:28%;right:28%;top:1140px;height:46px;opacity:0}
+#cePak{position:absolute;left:70px;right:70px;top:1216px;text-align:center;
+  font-weight:700;font-size:34px;line-height:1.3;color:${KOLOR.cichy};opacity:0}
+#cePak b{color:#fff}
+
+/* ── 12.3–15 с: марка ─────────────────────────────────────────── */
+#fi{position:absolute;inset:0;opacity:0}
+#fiKicker{position:absolute;left:60px;right:60px;top:426px;font-size:38px;opacity:0}
+#fiL1{position:absolute;left:60px;right:60px;top:490px;text-align:center;opacity:0}
+#fiL1 .hl{font-size:76px;font-weight:900;letter-spacing:-3px}
+#fiPod{position:absolute;left:60px;right:60px;top:702px;text-align:center;
+  font-family:'Playfair Display',serif;font-style:italic;font-size:48px;color:${KOLOR.jasny};opacity:0}
+#fiKreska{position:absolute;left:270px;top:800px;width:540px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,${KOLOR.akcent},${KOLOR.zolty});transform-origin:left center;
+  transform:scaleX(0)}
+#mk{position:absolute;left:50px;right:50px;top:868px;text-align:center;opacity:0}
+#mk .nazwa{font-weight:900;font-size:138px;letter-spacing:-4px;line-height:1;color:#fff;
+  text-shadow:0 10px 40px rgba(0,0,0,.55)}
+#mk .pod{margin-top:22px;font-weight:800;font-size:42px;letter-spacing:6px;color:${KOLOR.zolty}}
+#mk .miasto{margin-top:14px;font-weight:800;font-size:40px;letter-spacing:12px;color:#fff}
+#mk .www{margin-top:24px;font-weight:600;font-size:40px;color:${KOLOR.cichy}}
+#mkCien{left:28%;right:28%;top:1244px;height:44px;opacity:0}
+`;
+
+    const body = `
+<div id="eHak">
+  <div id="eKicker" class="kicker">PRACUJESZ NA ZMIANY?</div>
+  <div id="eL1">JAZDY OD</div>
+  <div id="eL2">${hl('7:00 DO 22:00', 'eHl')}</div>
+  <div id="eHakCien" class="cienEl"></div>
+  <div id="ePod">Piętnaście godzin na dobę.</div>
+</div>
+
+<div id="sp">
+  <div id="spKicker" class="kicker">CO JEST NA ICH STRONIE</div>
+  <div id="spPanelCien" class="cienEl"></div>
+  <div id="spPanel">
+    <div id="spSkan"></div>
+    <div class="splin" style="top:207px"></div>
+    <div class="splin" style="top:375px"></div>
+    <div class="splin" style="top:543px"></div>
+    ${wiersz(0, 'JAZDY', '7:00–22:00')}
+    ${wiersz(1, 'AUTA', 'TOYOTA YARIS')}
+    ${wiersz(2, 'POZYCJA', 'PIERWSZA TRÓJKA')}
+    ${wiersz(3, 'OD ILU LAT', 'OD TRZECH')}
+  </div>
+  <div id="spKreska"></div>
+  <div id="spKicker2" class="kicker">DLACZEGO TO WAŻNE</div>
+  <div class="spchip" id="chipA">PRZED PRACĄ</div>
+  <div class="spchip" id="chipB">ALBO PO PRACY</div>
+  <div id="spStopka">Egzaminacyjne Toyoty Yaris — te same co w WORD.</div>
+</div>
+
+<div id="ce">
+  <div id="ceKicker" class="kicker">PIĘTNAŚCIE GODZIN DZIENNIE</div>
+  ${karta(0, '<span class="licz" data-do="7">0</span>', ':00', 'OD', false)}
+  ${karta(1, '<span class="licz" data-do="22">0</span>', ':00', 'DO', false)}
+  ${karta(2, '15', ' h', 'DO WYBORU', true)}
+  <div id="ceKreska"></div>
+  <div id="ceKicker2" class="kicker">TYLE TRWA ICH DZIEŃ</div>
+  <div id="ceCena"><span class="licz" data-do="15">0</span><span class="jedn"> h</span></div>
+  <div id="ceCien" class="cienEl"></div>
+  <div id="cePak">kurs <b>dopasujesz do pracy</b>, nie odwrotnie</div>
+</div>
+
+<div id="fi">
+  <div id="fiKicker" class="kicker">ZDAWALNOŚĆ W KATOWICACH</div>
+  <div id="fiL1">${hl('PIERWSZA TRÓJKA', 'finHl')}</div>
+  <div id="fiPod">Od trzech lat. Jazdy od 7:00 do 22:00.</div>
+  <div id="fiKreska"></div>
+  <div id="mk">
+    <div class="nazwa">AUTOEXPERT</div>
+    <div class="pod">OŚRODEK SZKOLENIA KIEROWCÓW</div>
+    <div class="miasto">KATOWICE</div>
+    <div class="www">oskautoexpert.pl</div>
+  </div>
+  <div id="mkCien" class="cienEl"></div>
+</div>`;
+
+    const skrypt = `
+const T = ${JSON.stringify(this.T)};
+const SEK = ${SEK};
+const wiersze = [].slice.call(document.querySelectorAll('.spr'));
+const karty = [].slice.call(document.querySelectorAll('.cka'));
+
+window.setT = (t) => {
+  blyski(t);
+  tlo(t);
+
+  // ── 0–2.25 с: вопрос ──────────────────────────────────────────
+  {
+    const h = $('eHak');
+    const wyj = easeIn(clamp01((t - T.hak.wyjscie) / 0.28));
+    const widok = wyj < 1;
+    h.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      h.style.opacity = 1 - wyj;
+      h.style.transform = 'translate3d(0,' + (-wyj * 70).toFixed(1) + 'px,0) scale(' + (1 - wyj * 0.05).toFixed(3) + ')';
+
+      const pk = easeOut(clamp01((t - T.hak.a) / 0.30));
+      const kk = $('eKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 18).toFixed(1) + 'px)';
+
+      const p1 = easeBack(clamp01((t - T.hak.l1) / 0.42));
+      const l1 = $('eL1');
+      l1.style.opacity = easeOut(clamp01((t - T.hak.l1) / 0.24));
+      l1.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p1) * 50 + fala(t, 0.3) * 2.6).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p1) * -20).toFixed(2) + 'deg)';
+
+      const p2 = easeBack(clamp01((t - T.hak.l2) / 0.44));
+      const l2 = $('eL2');
+      l2.style.opacity = easeOut(clamp01((t - T.hak.l2) / 0.26));
+      const zy = fala(t, 1.3, 1.3) * 4;
+      l2.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p2) * 54 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p2) * -22 + fala(t, 1.3, 1.3) * 0.8).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - p2) * 0.08).toFixed(3) + ')';
+      plama('eHl', easeOut(clamp01((t - T.hak.l2 - 0.14) / 0.30)));
+      cien($('eHakCien'), easeOut(clamp01((t - T.hak.l2) / 0.26)), zy);
+
+      const pp = easeOut(clamp01((t - T.hak.pod) / 0.32));
+      const pd = $('ePod');
+      pd.style.opacity = pp;
+      pd.style.transform = 'translateY(' + ((1 - pp) * 22 + fala(t, 2.4, 1.1) * 2.4).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 2.4–7.8 с: табличка ───────────────────────────────────────
+  {
+    const s = $('sp');
+    const wyj = easeIn(clamp01((t - T.spec.wyjscie) / 0.28));
+    const widok = t > T.spec.a - 0.05 && wyj < 1;
+    s.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      s.style.opacity = 1 - wyj;
+
+      const pk = easeOut(clamp01((t - T.spec.kicker) / 0.28));
+      const kk = $('spKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      const pp = easeOut(clamp01((t - T.spec.panel) / 0.34));
+      const pan = $('spPanel');
+      pan.style.opacity = pp;
+      pan.style.transform = 'perspective(1800px) rotateX(' + (fala(t, 1.0, 0.85) * 0.6).toFixed(2) + 'deg)' +
+        ' rotateY(' + (fala(t, 2.3, 0.7) * 0.7).toFixed(2) + 'deg)' +
+        ' translateY(' + ((1 - pp) * 24 + fala(t, 1.0, 0.85) * 3).toFixed(1) + 'px)';
+      cien($('spPanelCien'), pp * 0.9, fala(t, 1.0, 0.85) * 3);
+      // Полоса сканера идёт по табличке всю сцену: панель не стоит
+      // мёртвым прямоугольником даже когда строки уже прилетели.
+      $('spSkan').style.transform =
+        'translateY(' + ((((t - T.spec.panel) * 0.40) % 1) * 992 - 240).toFixed(1) + 'px)';
+
+      // Строки ПЕРЕВОРАЧИВАЮТСЯ на оси X, как на механическом табло.
+      wiersze.forEach((w, i) => {
+        const a = T.spec.r1 + i * T.spec.krok;
+        const p = clamp01((t - a) / 0.46);
+        if (p <= 0) { w.style.opacity = 0; return; }
+        const e = easeOut(p);
+        const zy = fala(t, i * 1.1 + 0.5, 1.15) * 2.2;
+        w.style.opacity = Math.min(1, p * 2.2);
+        w.style.transform = 'perspective(1200px) rotateX(' + ((1 - easeBack(p)) * -88).toFixed(2) + 'deg)' +
+          ' translate3d(0,' + zy.toFixed(1) + 'px,0)' +
+          ' scale(' + (0.94 + e * 0.06).toFixed(3) + ')';
+      });
+
+      $('spKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.spec.kreska) / 0.40)).toFixed(3) + ')';
+
+      const pk2 = easeOut(clamp01((t - T.spec.kicker2) / 0.28));
+      const kk2 = $('spKicker2');
+      kk2.style.opacity = pk2;
+      kk2.style.transform = 'translateY(' + ((1 - pk2) * 16).toFixed(1) + 'px)';
+
+      [['chipA', T.spec.chipA, -1], ['chipB', T.spec.chipB, 1]].forEach((c, i) => {
+        const el = $(c[0]);
+        const p = easeBack(clamp01((t - c[1]) / 0.40));
+        el.style.opacity = easeOut(clamp01((t - c[1]) / 0.24));
+        const zy = fala(t, i * 1.6 + 2.2, 1.25) * 3;
+        el.style.transform = 'perspective(1500px) translate3d(' + ((1 - p) * c[2] * 80).toFixed(1) + 'px,' + zy.toFixed(1) + 'px,0)' +
+          ' rotateY(' + ((1 - p) * c[2] * 16 + fala(t, i * 1.6, 1.2) * 1.2).toFixed(2) + 'deg)';
+      });
+
+      const ps = easeOut(clamp01((t - T.spec.stopka) / 0.34));
+      const st = $('spStopka');
+      st.style.opacity = ps * 0.95;
+      st.style.transform = 'translateY(' + ((1 - ps) * 20 + fala(t, 3.8, 1.05) * 2).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 7.9–12.2 с: что в цене, потом цена ────────────────────────
+  {
+    const c = $('ce');
+    const wyj = easeIn(clamp01((t - T.cena.wyjscie) / 0.26));
+    const widok = t > T.cena.a - 0.05 && wyj < 1;
+    c.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      c.style.opacity = 1 - wyj;
+
+      const pk = easeOut(clamp01((t - T.cena.kicker) / 0.28));
+      const kk = $('ceKicker');
+      kk.style.opacity = pk;
+      kk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      karty.forEach((k, i) => {
+        const a = T.cena.k1 + i * T.cena.krok;
+        const p = clamp01((t - a) / 0.44);
+        if (p <= 0) { k.style.opacity = 0; return; }
+        const e = easeBack(p);
+        k.style.opacity = easeOut(p);
+        const zy = fala(t, i * 1.25 + 0.4) * 3.4;
+        wjazd(k, e, {
+          dy: 40, dx: 0, ry: (i - 1) * 16, rx: 12, sc: 0.14,
+          po: ' translate3d(0,' + zy.toFixed(1) + 'px,0)' +
+              ' rotateY(' + (fala(t, i * 1.25, 1.15) * 1.3).toFixed(2) + 'deg)',
+        });
+        cien(k.querySelector('.ckaCien'), easeOut(p), zy);
+        // Цели у карточек разные (140 и 230), поэтому берём из разметки,
+        // а не из одного числа на все три — иначе счётчик врёт клиенту.
+        const el = k.querySelector('.licz');
+        if (el) licznik(el, (t - a - 0.10) / 0.50, +el.dataset.do);
+      });
+
+      $('ceKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.cena.kreska) / 0.40)).toFixed(3) + ')';
+
+      const pk2 = easeOut(clamp01((t - T.cena.kicker2) / 0.28));
+      const kk2 = $('ceKicker2');
+      kk2.style.opacity = pk2;
+      kk2.style.transform = 'translateY(' + ((1 - pk2) * 16).toFixed(1) + 'px)';
+
+      const pl = clamp01((t - T.cena.licznik) / 0.46);
+      const cc = $('ceCena');
+      const zy = fala(t, 0.6, 1.35) * 5;
+      cc.style.opacity = easeOut(pl);
+      cc.style.transform = 'perspective(1600px) translate3d(0,' + ((1 - easeBack(pl)) * 56 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - easeBack(pl)) * -22 + fala(t, 0.6, 1.35) * 0.7).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - easeBack(pl)) * 0.10).toFixed(3) + ')';
+      licznik(cc.querySelector('.licz'), (t - T.cena.licznik) / 0.82, 15);
+      cien($('ceCien'), easeOut(pl), zy);
+
+      const pp = easeOut(clamp01((t - T.cena.pakiety) / 0.34));
+      const cp = $('cePak');
+      cp.style.opacity = pp * 0.96;
+      cp.style.transform = 'translateY(' + ((1 - pp) * 20 + fala(t, 3.4, 1.1) * 2).toFixed(1) + 'px)';
+    }
+  }
+
+  // ── 12.3–15 с: марка ──────────────────────────────────────────
+  {
+    const f = $('fi');
+    const widok = t > T.fin.a - 0.05;
+    f.style.display = widok ? 'block' : 'none';
+    if (widok) {
+      f.style.opacity = 1;
+      f.style.transformOrigin = '50% 46%';
+      f.style.transform = 'scale(' + (1.004 + clamp01((t - T.fin.a) / (SEK - T.fin.a)) * 0.016).toFixed(4) + ')';
+
+      const pk = easeOut(clamp01((t - T.fin.kicker) / 0.30));
+      const fk = $('fiKicker');
+      fk.style.opacity = pk;
+      fk.style.transform = 'translateY(' + ((1 - pk) * 16).toFixed(1) + 'px)';
+
+      const p1 = easeBack(clamp01((t - T.fin.l1) / 0.42));
+      const l1 = $('fiL1');
+      l1.style.opacity = easeOut(clamp01((t - T.fin.l1) / 0.24));
+      l1.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - p1) * 48 + fala(t, 0.3) * 2.6).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - p1) * -20).toFixed(2) + 'deg)';
+      plama('finHl', easeOut(clamp01((t - T.fin.l1 - 0.16) / 0.30)));
+
+      const pp = easeOut(clamp01((t - T.fin.pod) / 0.32));
+      const fp = $('fiPod');
+      fp.style.opacity = pp;
+      fp.style.transform = 'translateY(' + ((1 - pp) * 20 + fala(t, 2.6, 1.1) * 2).toFixed(1) + 'px)';
+
+      $('fiKreska').style.transform =
+        'scaleX(' + easeOut(clamp01((t - T.fin.kreska) / 0.42)).toFixed(3) + ')';
+
+      const m = $('mk');
+      const pm = easeBack(clamp01((t - T.fin.marka) / 0.46));
+      const pmo = easeOut(clamp01((t - T.fin.marka) / 0.26));
+      m.style.opacity = pmo;
+      const zy = fala(t, 3.1, 1.35) * 7;
+      m.style.transform = 'perspective(1500px) translate3d(0,' + ((1 - pm) * 54 + zy).toFixed(1) + 'px,0)' +
+        ' rotateX(' + ((1 - pm) * -22 + fala(t, 3.1, 1.35) * 0.9).toFixed(2) + 'deg)' +
+        ' scale(' + (1 - (1 - pm) * 0.08 + fala(t, 1.9, 0.9) * 0.006).toFixed(4) + ')';
+      cien($('mkCien'), pmo * 0.9, zy);
+      m.querySelector('.pod').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.20) / 0.30));
+      m.querySelector('.miasto').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.28) / 0.30));
+      m.querySelector('.www').style.opacity = easeOut(clamp01((t - T.fin.marka - 0.38) / 0.34));
+    }
+  }
+};`;
+
+    return dokument(css, body, skrypt);
+  },
+};
+
+
+const SZKOLY = { silesia: SILESIA, akademia: AKADEMIA, wojtek: WOJTEK, expert: EXPERT, oskx: OSKX,
+  idance: IDANCE, skt: SKT, laclave: LACLAVE, lingua: LINGUA, lopecik: LOPECIK, autoexpert: AUTOEXPERT };
 
 // ── аргументы ─────────────────────────────────────────────────────
 const argv = process.argv.slice(2);
