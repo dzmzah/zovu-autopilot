@@ -10,7 +10,7 @@
 import { chromium } from 'playwright';
 import path from 'node:path';
 import { mkdir } from 'node:fs/promises';
-import { grafikaHtml, wczytajObiekty, W, H } from './grafika.mjs';
+import { grafikaHtml, wczytajObiekty, W, H, SKALA_OBIEKTU } from './grafika.mjs';
 import { SCENARIUSZE } from './scenariusze-grafika.mjs';
 
 const arg = (n, d) => (process.argv.find((a) => a.startsWith('--' + n + '=')) || '').split('=')[1] || d;
@@ -37,7 +37,9 @@ for (const m of MNOZNIKI) {
   const plan = scen.buduj({ t, total });
   const scena = (plan.scena || plan)
     .filter((o) => o.obiekt)
-    .map((o) => ({ ...o, skala: Math.round((o.skala || 380) * m) }));
+    // Сборщик сам уменьшает объекты на SKALA_OBIEKTU. Делим на него, иначе
+    // проба показывает долю от уже уменьшенного, а не от числа в сценарии.
+    .map((o) => ({ ...o, skala: Math.round(((o.skala || 380) * m) / SKALA_OBIEKTU) }));
   const obrazki = await wczytajObiekty([...new Set(scena.map((o) => o.obiekt))]);
 
   const html = grafikaHtml({ scena, wzor: [], liczniki: [], metki: [], kamera: [], akcenty: [], slowa: [], obrazki });
