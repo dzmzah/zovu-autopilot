@@ -63,31 +63,22 @@ body{background:${KOLOR.ciemny};overflow:hidden;font-family:'Inter',sans-serif;
   -webkit-font-smoothing:antialiased}
 
 #tlo{position:absolute;inset:0;overflow:hidden;
-  background:linear-gradient(180deg,#1a1048 0%,#150d3a 34%,#120b30 60%,#0d0824 100%)}
-#luna{position:absolute;left:-12%;right:-12%;top:2%;height:56%;
-  background:radial-gradient(ellipse 40% 44% at 50% 46%, rgba(124,58,237,.46), rgba(124,58,237,0) 70%)}
-#lupa{position:absolute;left:0;right:0;bottom:140px;height:520px;
-  background:linear-gradient(180deg, rgba(124,58,237,0) 0%, rgba(124,58,237,.16) 62%, rgba(124,58,237,.05) 100%)}
-.pas{position:absolute;left:0;width:2240px;height:520px}
-.pas b{position:absolute;bottom:0;display:block;border-radius:4px 4px 0 0}
-.pas b u{position:absolute;left:50%;top:-46px;margin-left:-1.5px;width:3px;height:46px;background:inherit}
-.pas b i{position:absolute;width:9px;height:16px;border-radius:2px;background:rgba(255,210,63,.5)}
-#dal{bottom:176px}
-#dal b{background:#2a1c66;opacity:.5}
-#dal b i{display:none}
-#bli{bottom:76px}
-#bli b{background:#120c2e}
-#droga{position:absolute;left:0;right:0;bottom:0;height:110px;
-  background:linear-gradient(180deg,#191038 0%,#0d0824 60%,#090519 100%)}
-/* Дымка между планами: без неё силуэты читаются как плоская вырезка. */
-#dymka{position:absolute;left:0;right:0;bottom:70px;height:420px;
-  background:linear-gradient(180deg, rgba(124,58,237,0) 0%, rgba(124,58,237,.16) 46%, rgba(124,58,237,.06) 100%)}
-.auta{position:absolute;height:8px;border-radius:4px;filter:blur(3px)}
-#czytelnia{position:absolute;inset:0;
-  background:linear-gradient(180deg, rgba(13,8,32,.30) 0%, rgba(13,8,32,.40) 40%, rgba(13,8,32,.34) 70%, rgba(13,8,32,0) 100%)}
-#ziarno{position:absolute;inset:0;opacity:.05;
-  background-image:radial-gradient(rgba(255,255,255,.9) 1px, transparent 1px);
-  background-size:5px 5px}
+  background:linear-gradient(158deg,#2a1a68 0%,#1b1149 34%,#110b30 66%,#0a0620 100%)}
+#swiatlo{position:absolute;left:-20%;top:-14%;width:140%;height:86%;
+  background:radial-gradient(ellipse 34% 40% at 50% 50%, rgba(196,176,255,.34), rgba(124,58,237,.14) 46%, rgba(124,58,237,0) 72%)}
+#ciepl{position:absolute;left:-10%;bottom:-18%;width:120%;height:56%;
+  background:radial-gradient(ellipse 40% 50% at 50% 50%, rgba(255,210,63,.10), rgba(255,210,63,0) 70%)}
+#platno{position:absolute;inset:-160px;opacity:.19;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23n)'/%3E%3C/svg%3E");background-size:320px 320px}
+#ziarno{position:absolute;inset:-160px;opacity:.08;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23n)'/%3E%3C/svg%3E");background-size:170px 170px}
+#tkanina{position:absolute;inset:0;opacity:.075;
+  background-image:repeating-linear-gradient(52deg, rgba(255,255,255,.7) 0 1px, rgba(255,255,255,0) 1px 9px)}
+#winieta{position:absolute;inset:0;
+  background:radial-gradient(ellipse 66% 54% at 50% 44%, rgba(0,0,0,0) 34%, rgba(4,2,14,.72) 100%)}
+#pyl{position:absolute;inset:0;opacity:.5;
+  background-image:radial-gradient(rgba(255,236,190,.55) 1.3px, transparent 1.5px);
+  background-size:230px 230px}
 
 .hl{position:relative;display:inline-block;padding:16px 18px 18px;border-radius:18px}
 .hl .pod{color:#fff;text-shadow:0 6px 26px rgba(0,0,0,.5)}
@@ -182,25 +173,20 @@ function cien(el, widocznosc, kolysanie) {
   el.style.opacity = (widocznosc * (0.62 - kolysanie * 0.03)).toFixed(3);
   el.style.transform = 'scaleX(' + (0.94 - kolysanie * 0.008).toFixed(3) + ')';
 }
-var _OKNA = null;
 function tlo(t){
-  document.getElementById('dal').style.transform = 'translateX(' + (-((t * 11) % 1120)).toFixed(1) + 'px)';
-  document.getElementById('bli').style.transform = 'translateX(' + (-((t * 27) % 1120)).toFixed(1) + 'px)';
-  document.getElementById('luna').style.transform =
-    'translate(' + (Math.sin(t*0.33)*22).toFixed(1) + 'px,' + (Math.sin(t*0.26+1)*13).toFixed(1) + 'px) scale(' + (1+Math.sin(t*0.4)*0.03).toFixed(3) + ')';
-  var jazda = [['a1', 4.6, 1, 0.4], ['a2', 5.8, -1, 2.2], ['a3', 3.4, 1, 1.1]];
-  jazda.forEach(function(p){
-    var e = document.getElementById(p[0]);
-    var f = ((t + p[3]) % p[1]) / p[1];
-    var x = p[2] > 0 ? f * 1360 - 240 : 1360 - f * 1600;
-    e.style.transform = 'translateX(' + x.toFixed(0) + 'px)';
-    e.style.opacity = (Math.sin(f * Math.PI) * 0.9).toFixed(3);
-  });
-  if(!_OKNA) _OKNA = [].slice.call(document.querySelectorAll('#bli b i'));
-  _OKNA.forEach(function(e,i){
-    if(i % 11) return;
-    e.style.opacity = (0.45 + Math.sin(t * (0.6 + (i % 7) * 0.13) + i) * 0.4).toFixed(3);
-  });
+  var s = document.getElementById('swiatlo');
+  s.style.transform = 'translate(' + (Math.sin(t * 0.19) * 130).toFixed(1) + 'px,' +
+    (Math.sin(t * 0.14 + 1.2) * 70).toFixed(1) + 'px) scale(' + (1 + Math.sin(t * 0.23) * 0.07).toFixed(3) + ')';
+  s.style.opacity = (0.86 + Math.sin(t * 0.27) * 0.14).toFixed(3);
+  var c = document.getElementById('ciepl');
+  c.style.transform = 'translate(' + (Math.cos(t * 0.16 + 2.1) * 110).toFixed(1) + 'px,0) scale(' + (1 + Math.cos(t*0.2)*0.06).toFixed(3) + ')';
+  // Зерно едет медленно и по кругу: рваный шум по кадрам дал бы мерцание.
+  document.getElementById('platno').style.transform =
+    'translate(' + (Math.sin(t * 1.9) * 46).toFixed(1) + 'px,' + (Math.cos(t * 1.6) * 40).toFixed(1) + 'px)';
+  document.getElementById('ziarno').style.transform =
+    'translate(' + (Math.cos(t * 2.3 + 1) * 34).toFixed(1) + 'px,' + (Math.sin(t * 2.05) * 30).toFixed(1) + 'px)';
+  document.getElementById('pyl').style.backgroundPosition =
+    (-(t * 6) % 230).toFixed(1) + 'px ' + (-(t * 11) % 230).toFixed(1) + 'px';
 }
 
 window.__klip = (x) => { window.setT(9.2); tlo(9.2 + x); blyski(9.2 + x); };
@@ -209,16 +195,12 @@ window.__klip = (x) => { window.setT(9.2); tlo(9.2 + x); blyski(9.2 + x); };
 
 const TLO_HTML = `
 <div id="tlo">
-  <div id="luna"></div>
-  <div id="lupa"></div>
-  <div class="pas" id="dal"><b style="left:0px;width:149px;height:126px"></b><b style="left:170px;width:118px;height:173px"></b><b style="left:315px;width:113px;height:156px"></b><b style="left:450px;width:111px;height:184px"></b><b style="left:582px;width:105px;height:223px"><u></u></b><b style="left:701px;width:80px;height:128px"></b><b style="left:797px;width:71px;height:176px"></b><b style="left:886px;width:146px;height:220px"><u></u></b><b style="left:1039px;width:137px;height:210px"></b><b style="left:1120px;width:149px;height:126px"></b><b style="left:1290px;width:118px;height:173px"></b><b style="left:1435px;width:113px;height:156px"></b><b style="left:1570px;width:111px;height:184px"></b><b style="left:1702px;width:105px;height:223px"><u></u></b><b style="left:1821px;width:80px;height:128px"></b><b style="left:1917px;width:71px;height:176px"></b><b style="left:2006px;width:146px;height:220px"><u></u></b><b style="left:2159px;width:137px;height:210px"></b></div>
-  <div class="pas" id="bli"><b style="left:0px;width:114px;height:167px"><i style="left:10px;top:100px"></i><i style="left:36px;top:16px"></i><i style="left:62px;top:100px"></i></b><b style="left:122px;width:150px;height:301px"><i style="left:10px;top:226px"></i><i style="left:36px;top:16px"></i><i style="left:36px;top:100px"></i><i style="left:36px;top:184px"></i><i style="left:62px;top:58px"></i><i style="left:62px;top:142px"></i><i style="left:62px;top:184px"></i><i style="left:62px;top:226px"></i><i style="left:88px;top:142px"></i></b><b style="left:295px;width:205px;height:215px"><i style="left:10px;top:16px"></i><i style="left:10px;top:58px"></i><i style="left:36px;top:100px"></i><i style="left:36px;top:142px"></i><i style="left:62px;top:100px"></i><i style="left:62px;top:142px"></i><i style="left:114px;top:16px"></i><i style="left:140px;top:16px"></i><i style="left:140px;top:142px"></i><i style="left:166px;top:16px"></i></b><b style="left:523px;width:191px;height:245px"><i style="left:10px;top:58px"></i><i style="left:10px;top:184px"></i><i style="left:36px;top:58px"></i><i style="left:36px;top:100px"></i><i style="left:36px;top:142px"></i><i style="left:36px;top:184px"></i><i style="left:62px;top:100px"></i><i style="left:62px;top:142px"></i><i style="left:88px;top:142px"></i><i style="left:88px;top:184px"></i><i style="left:114px;top:58px"></i><i style="left:114px;top:142px"></i><i style="left:114px;top:184px"></i><i style="left:140px;top:16px"></i><u></u></b><b style="left:732px;width:194px;height:176px"><i style="left:10px;top:58px"></i><i style="left:36px;top:100px"></i><i style="left:88px;top:16px"></i><i style="left:114px;top:58px"></i><i style="left:114px;top:100px"></i><u></u></b><b style="left:947px;width:171px;height:191px"><i style="left:36px;top:16px"></i><i style="left:62px;top:100px"></i><i style="left:88px;top:16px"></i><i style="left:88px;top:100px"></i><i style="left:88px;top:142px"></i><i style="left:114px;top:142px"></i><u></u></b><b style="left:1120px;width:114px;height:167px"><i style="left:10px;top:16px"></i><i style="left:10px;top:58px"></i><i style="left:62px;top:16px"></i></b><b style="left:1242px;width:150px;height:301px"><i style="left:10px;top:16px"></i><i style="left:10px;top:58px"></i><i style="left:10px;top:100px"></i><i style="left:10px;top:226px"></i><i style="left:36px;top:58px"></i><i style="left:36px;top:184px"></i><i style="left:62px;top:58px"></i><i style="left:88px;top:58px"></i><i style="left:88px;top:100px"></i><i style="left:88px;top:226px"></i><i style="left:114px;top:16px"></i><i style="left:114px;top:100px"></i><i style="left:114px;top:142px"></i></b><b style="left:1415px;width:205px;height:215px"><i style="left:10px;top:16px"></i><i style="left:36px;top:100px"></i><i style="left:62px;top:100px"></i><i style="left:62px;top:142px"></i><i style="left:88px;top:58px"></i><i style="left:114px;top:100px"></i><i style="left:140px;top:58px"></i><i style="left:140px;top:142px"></i><i style="left:166px;top:58px"></i><i style="left:166px;top:100px"></i></b><b style="left:1643px;width:191px;height:245px"><i style="left:10px;top:16px"></i><i style="left:10px;top:142px"></i><i style="left:10px;top:184px"></i><i style="left:36px;top:58px"></i><i style="left:36px;top:142px"></i><i style="left:36px;top:184px"></i><i style="left:62px;top:16px"></i><i style="left:62px;top:58px"></i><i style="left:62px;top:100px"></i><i style="left:88px;top:16px"></i><i style="left:88px;top:58px"></i><i style="left:88px;top:142px"></i><i style="left:88px;top:184px"></i><i style="left:114px;top:16px"></i><i style="left:114px;top:58px"></i><i style="left:114px;top:100px"></i><i style="left:114px;top:142px"></i><i style="left:140px;top:16px"></i><i style="left:140px;top:100px"></i><i style="left:140px;top:142px"></i><i style="left:140px;top:184px"></i><u></u></b><b style="left:1852px;width:194px;height:176px"><i style="left:10px;top:16px"></i><i style="left:10px;top:58px"></i><i style="left:62px;top:16px"></i><i style="left:62px;top:100px"></i><i style="left:88px;top:16px"></i><i style="left:88px;top:58px"></i><i style="left:88px;top:100px"></i><i style="left:114px;top:58px"></i><i style="left:140px;top:16px"></i><u></u></b><b style="left:2067px;width:171px;height:191px"><i style="left:10px;top:16px"></i><i style="left:10px;top:58px"></i><i style="left:36px;top:16px"></i><i style="left:36px;top:142px"></i><i style="left:62px;top:16px"></i><i style="left:62px;top:100px"></i><i style="left:62px;top:142px"></i><i style="left:88px;top:16px"></i><u></u></b></div>
-  <div id="dymka"></div>
-  <div id="droga"></div>
-  <i class="auta" id="a1" style="bottom:74px;width:120px;background:linear-gradient(90deg, rgba(255,236,170,0), rgba(255,236,170,.9))"></i>
-  <i class="auta" id="a2" style="bottom:46px;width:150px;background:linear-gradient(270deg, rgba(255,120,120,0), rgba(255,140,140,.75))"></i>
-  <i class="auta" id="a3" style="bottom:20px;width:190px;background:linear-gradient(90deg, rgba(255,236,170,0), rgba(255,246,200,.95))"></i>
-  <div id="czytelnia"></div>
+  <div id="swiatlo"></div>
+  <div id="ciepl"></div>
+  <div id="tkanina"></div>
+  <div id="pyl"></div>
+  <div id="winieta"></div>
+  <div id="platno"></div>
 </div>
 <div id="ziarno"></div>`;
 

@@ -349,7 +349,7 @@ if (jestTlo) {
       '-vf', 'scale=320:-2,tblend=all_mode=difference,signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-',
       '-f', 'null', '-',
     ], { maxBuffer: 32 * 1024 * 1024 });
-    const y = [...st.matchAll(/YAVG=([d.]+)/g)].map((m) => +m[1]);
+    const y = [...st.matchAll(/YAVG=([\d.]+)/g)].map((m) => +m[1]);
     if (y.length) {
       const ruch = y.reduce((a, b) => a + b, 0) / y.length;
       // Делитель подобран замером: при 16,8 он даёт тройку, а тройка со
@@ -359,8 +359,15 @@ if (jestTlo) {
       console.log(
         `[grafika] движение полотна ${ruch.toFixed(2)} → замедляю в ${tempoTla} раза + сглаживание`
       );
+    } else {
+      // Молчание тут дорого стоило: из-за потерянного слэша в регулярке
+      // замер не совпадал ни с чем, блок тихо пропускался, и полотно шло
+      // без замедления. Проверка сборки этого не ловит — фон ей безразличен.
+      console.warn('[grafika] ВНИМАНИЕ: движение полотна не замерилось, иду без замедления');
     }
-  } catch {}
+  } catch (e) {
+    console.warn('[grafika] ВНИМАНИЕ: замер полотна не вышел: ' + e.message);
+  }
 }
 
 const wideo = path.join(OUT, 'grafika-nieme.mp4');
