@@ -62,7 +62,14 @@ jobs:
 
       - name: Зависимости
         working-directory: silnik
+        env:
+          # mmcv собирается из исходников и на этапе сборки читает torch.
+          # В изолированном окружении torch не виден, поэтому изоляцию снимаем.
+          PIP_NO_BUILD_ISOLATION: '1'
         run: |
+          # setuptools 81 выбросил pkg_resources, а setup.py у mmcv его
+          # импортирует — сборка падает на первой строке. Держим старый.
+          pip install -q "setuptools<80" wheel
           # tensorflow из их списка нужен для обучения, для счёта — нет,
           # а тянет он полтора гигабайта и ссорится с numpy.
           grep -v -E '^(tensorflow|tensorboard)' requirements.txt > req.txt
