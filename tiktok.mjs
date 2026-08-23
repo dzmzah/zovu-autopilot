@@ -47,7 +47,7 @@ async function token() {
  * Заливка.
  *
  * @param {string} plik — путь к mp4
- * @param {{tekst?:string, tryb?:'inbox'|'direct'}} o
+ * @param {{tekst?:string, tryb?:'inbox'|'direct', prywatnosc?:string}} o
  * @returns {Promise<string>} идентификатор публикации
  */
 export async function naTikTok(plik, o = {}) {
@@ -62,7 +62,10 @@ export async function naTikTok(plik, o = {}) {
       ? {
           post_info: {
             title: String(o.tekst || '').split(String.fromCharCode(10))[0].slice(0, 150),
-            privacy_level: 'PUBLIC_TO_EVERYONE',
+            // Уровни, которые нам разрешены, отдаёт сам TikTok в
+            // creator_info: у нас это PUBLIC_TO_EVERYONE, MUTUAL_FOLLOW_FRIENDS
+            // и SELF_ONLY. Выдумывать свой нельзя — init отвергнет.
+            privacy_level: o.prywatnosc || env('TIKTOK_PRYWATNOSC') || 'PUBLIC_TO_EVERYONE',
             disable_comment: false,
             disable_duet: false,
             disable_stitch: false,
