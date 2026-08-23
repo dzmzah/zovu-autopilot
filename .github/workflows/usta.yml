@@ -52,7 +52,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: silnik/models
-          key: usta-modele-v15-c
+          key: usta-modele-v15-d
 
       - name: Torch без видеокарты
         run: |
@@ -108,12 +108,14 @@ jobs:
               print("добрал", kat)
 
           nado = [
+              ("TMElyralab/MuseTalk", "musetalkV15/unet.pth", "models/musetalkV15"),
+              ("TMElyralab/MuseTalk", "musetalkV15/musetalk.json", "models/musetalkV15"),
               ("yzd-v/DWPose", "dw-ll_ucoco_384.pth", "models/dwpose"),
               ("ManyOtherFunctions/face-parse-bisent", "79999_iter.pth", "models/face-parse-bisent"),
               ("ManyOtherFunctions/face-parse-bisent", "resnet18-5c106cde.pth", "models/face-parse-bisent"),
           ]
           for repo, plik, kat in nado:
-              cel = os.path.join(kat, plik)
+              cel = os.path.join(kat, os.path.basename(plik))
               if os.path.exists(cel):
                   print("есть", cel); continue
               os.makedirs(kat, exist_ok=True)
