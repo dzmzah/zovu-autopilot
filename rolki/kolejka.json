@@ -414,5 +414,32 @@
     "forma": "rysowana",
     "temat": "Godzina zdjęć na cały miesiąc",
     "dlugosc": 16.82
+  },
+  {
+    "plik": "auto-2026-08-23-1.mp4",
+    "kiedy": "2026-08-25T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Rolka nie jest lepsza od posta. Robi coś innego.\n\nRolka przynosi nowych ludzi. Post rozmawia z tymi, których już masz. Kto robi tylko jedno z dwóch, stoi w miejscu.\n\nNie wiesz, co u ciebie kuleje? Napisz PLAN, a odeślemy prosty rozkład na miesiąc.\n\nzovu.pl\n\n#katowice #gliwice #rzemioslo #malybiznes #rolkidlafirm",
+    "opublikowano": null,
+    "zrodlo": "auto-rolka-czy-post.mp4",
+    "scenariusz": "rolka-czy-post",
+    "forma": "lista",
+    "temat": "kiedy rolka, a kiedy zwykły post",
+    "dlugosc": 19.15,
+    "planow": 7,
+    "tempo": [
+      3.8,
+      4.7,
+      5.9,
+      5.3,
+      4.8,
+      5.8,
+      5.1
+    ]
   }
 ]
