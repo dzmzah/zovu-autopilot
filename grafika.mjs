@@ -106,7 +106,7 @@ export function grafikaHtml(plan) {
     .join('\n');
 
   return `<!doctype html><html><head><meta charset="utf-8">
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Baloo+2:wght@800&family=Inter:wght@800;900&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { width:${W}px; height:${H}px; overflow:hidden; }
@@ -232,9 +232,14 @@ body { font-family:'Inter',sans-serif; background:transparent; }
    стоит ВЫШЕ прописной буквы, и при тесном боксе он срезается — «TREŚCI»
    превращается в «TRESCI». Видно это только в масштабе 1:1, в уменьшенной
    сетке кадров такого не разглядеть. Отсюда line-height и запас сверху. */
-.pasek-opis { position:relative; z-index:2; font-family:'Inter','Archivo Black',sans-serif;
-  font-weight:800; font-size:30px; line-height:1.3; letter-spacing:2.5px;
-  color:#1a1230; font-variant-numeric:tabular-nums; padding-bottom:2px; }
+/* Гарнитуру Захар выбрал из сетки шести (23.08): Baloo 2. Прежний Inter с
+   разрядкой 2,5 px он назвал «не аппетитным» — и был прав: широкая разрядка
+   рассыпает короткую строку на отдельные буквы, читается опись, а не слово.
+   У Baloo скруглённые концы и плотная посадка, строка держится одним куском.
+   Разрядку оставляем почти нулевой: она тут и была причиной сухости. */
+.pasek-opis { position:relative; z-index:2; font-family:'Baloo 2','Inter',sans-serif;
+  font-weight:800; font-size:30px; line-height:1.3; letter-spacing:0.4px;
+  color:#171229; font-variant-numeric:tabular-nums; padding-bottom:2px; }
 
 /* Затемнение под подписью. Оно рисовалось, когда фон был тёмным, и там
    честно отделяло текст от картинки. На светлом полотне тот же приём

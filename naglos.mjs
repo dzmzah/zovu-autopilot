@@ -10,7 +10,7 @@
 // тихая подмена на Piper уже один раз стоила нам часа правки не той причины.
 //
 //   node naglos.mjs --wideo=OSK100_wrzesien.mp4 --wyjscie=OSK100_glos.mp4
-import { mkdir, rm } from 'node:fs/promises';
+import { mkdir, rm, copyFile } from 'node:fs/promises';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -25,6 +25,11 @@ const arg = (n, d) => {
 
 const WIDEO = path.resolve(arg('wideo', path.join(DIR, 'proba-glosu', 'OSK100_wrzesien.mp4')));
 const WYJSCIE = path.resolve(arg('wyjscie', path.join(DIR, 'out', 'OSK100_z_glosem.mp4')));
+
+// Уровень подложки под голосом. Было 0.62 — Захар послушал и сказал, что
+// музыка громковата. Вынесено в ключ: правка громкости не должна требовать
+// нового синтеза, у ElevenLabs всего 10 тысяч символов в месяц.
+const MUZYKA = parseFloat(arg('muzyka', '0.42'));
 
 // Текст под хореографию ролика (rolka-autoszkola.mjs, объект T):
 //   0.10-1.92 крючок · 1.98-8.78 ось · 9.06-11.62 пакет · 11.98-15.0 финал
@@ -64,6 +69,9 @@ await mkdir(path.dirname(WYJSCIE), { recursive: true });
 const T = await trwanie(WIDEO);
 console.log(`[naglos] ролик: ${path.basename(WIDEO)} · ${T.toFixed(2)} с`);
 
+// Готовую дорожку кладём рядом с роликом и отдаём вместе с ним. Правка
+// громкости музыки после этого делается на машине за секунду и не тратит
+// ни одного символа месячной квоты.
 const glos = await zbudujGlos(FRAZY, { tmp, przedPierwsza: 0.25 });
 console.log(`[naglos] речь до ${glos.dlugosc.toFixed(2)} с из ${T.toFixed(2)}`);
 for (const f of glos.frazy) console.log(`   ${f.a.toFixed(2)}-${f.b.toFixed(2)}  ${f.tekst}`);
@@ -84,9 +92,9 @@ await ffmpeg([
     // −14.5 LUFS — уровень речи, который Захар слушал и утвердил.
     `[v0]loudnorm=I=-14.5:TP=-1.5:LRA=9,apad=whole_dur=${T.toFixed(3)}[voice];` +
     `[k0]apad=whole_dur=${T.toFixed(3)}[duck];` +
-    // 0.62 вместо исходной единицы: дорожка ролика собиралась под НЕМОЙ
-    // формат, где музыка держит весь ритм. Под голосом ей столько не нужно.
-    `[0:a]volume=0.62,apad=whole_dur=${T.toFixed(3)}[bed];` +
+    // Дорожка ролика собиралась под НЕМОЙ формат, где музыка держит весь
+    // ритм. Под голосом ей столько не нужно — отсюда MUZYKA заметно ниже 1.
+    `[0:a]volume=${MUZYKA},apad=whole_dur=${T.toFixed(3)}[bed];` +
     `[bed][duck]sidechaincompress=threshold=0.08:ratio=6:attack=12:` +
     `release=350:makeup=1:level_sc=1[bedDuck];` +
     `[voice][bedDuck]amix=inputs=2:normalize=0:duration=longest,` +
@@ -104,3 +112,7 @@ console.log(
   `[naglos] готово: ${WYJSCIE} · ${(+inf.duration).toFixed(2)} с · ` +
     `${(inf.size / 1048576).toFixed(2)} МБ`
 );
+
+// Дорожка голоса — отдельным файлом рядом с роликом.
+await copyFile(glos.plik, WYJSCIE.replace(/\.mp4$/, '-glos.wav'));
+console.log(`[naglos] голос отдельно: ${WYJSCIE.replace(/\.mp4$/, '-glos.wav')}`);
