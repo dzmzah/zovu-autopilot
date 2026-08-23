@@ -714,6 +714,57 @@ if (process.argv.includes('seria')) {
   process.exit(0);
 }
 
+// ── смешанная раскладка: каждой школе свой фон ───────────────────
+// Захар выбрал 4, 5 и 6 и решил не сводить их к одному. Это возможно ровно
+// потому, что школы не видят роликов друг друга — страницы у каждой свои
+// (их мы разделили, чтобы не показывать чужие цены).
+//
+// Раскладка не случайная. У EXPERT и OSKX курсивные строки сидят ниже, чем
+// у остальных (1428 и 1382 px), и городские силуэты подходят к ним ближе
+// всего — поэтому туда идёт самый спокойный низ кадра, фактура.
+//
+//   node tla-warianty.mjs mix
+const MIX = [
+  ['osk100',   6],
+  ['silesia',  6],
+  ['akademia', 4],
+  ['wojtek',   4],
+  ['expert',   5],
+  ['oskx',     5],
+];
+
+if (process.argv.includes('mix')) {
+  const wyj = path.join(WYJ, 'seria-mix');
+  await mkdir(wyj, { recursive: true });
+  const nazwy = {
+    silesia: '2-Silesia_3wrzesnia', akademia: '3-AkademiaJazdy_3400',
+    wojtek: '4-WOJTEK_toauto', expert: '5-EXPERT_yaris', oskx: '6-OSKX_piec_wariantow',
+  };
+  const src = await readFile(ZRODLO, 'utf8');
+  const src100 = await readFile(path.join(DIR, 'rolka-autoszkola.mjs'), 'utf8');
+
+  for (const [szkola, nr] of MIX) {
+    const w = WARIANTY.find((x) => x.nr === nr);
+    if (szkola === 'osk100') {
+      const tmp100 = path.join(DIR, 'tlo-mix-osk100.mjs');
+      await writeFile(tmp100, podmienOsk100(src100, w), 'utf8');
+      const cel = path.join(wyj, `1-OSK100_wrzesien.mp4`);
+      console.log(`[mix] OSK 100% + tlo ${nr} (${w.nazwa}) —> ${cel}`);
+      await exe(process.execPath, [tmp100, `--wyjscie=${cel}`], { cwd: DIR });
+      await rm(tmp100, { force: true });
+      continue;
+    }
+    const tmpMjs = path.join(DIR, `tlo-mix-${szkola}.mjs`);
+    await writeFile(tmpMjs, podmien(src, w), 'utf8');
+    const cel = path.join(wyj, `${nazwy[szkola]}.mp4`);
+    console.log(`[mix] ${szkola} + tlo ${nr} (${w.nazwa}) —> ${cel}`);
+    await exe(process.execPath, [tmpMjs, `--szkola=${szkola}`, `--wyjscie=${cel}`], { cwd: DIR });
+    await rm(tmpMjs, { force: true });
+  }
+  console.log(`[mix] gotowe: ${wyj}`);
+  process.exit(0);
+}
+
 // ── запуск ───────────────────────────────────────────────────────
 await mkdir(WYJ, { recursive: true });
 // Пересобрать только сводную сетку из уже снятых кадров.

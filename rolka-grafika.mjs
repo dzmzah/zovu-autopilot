@@ -323,48 +323,43 @@ console.log(`[grafika] фон: ${jestTlo ? path.basename(TLO) : 'нет, буд�
 // снова становится ровным. Полотно и так медленное, замедление на нём не
 // читается, зато движение возвращается — Захар первым делом сказал, что
 // «фон не работает, там чисто фотка».
+// Полотно дёргалось. Захар описал точно: «как будто лагающий, в 2 кадра
+// идёт» — и замер это подтвердил: 63 % кадров фона были ПОВТОРОМ
+// предыдущего. Причина простая: файл 25 к/с в ролике 50 к/с, каждый его
+// кадр показывается дважды. На спокойном полотне не видно, на быстром
+// читается как шаг.
+//
+// Первая моя правка — замедлить — делала ХУЖЕ: при замедлении в 8 раз
+// повторов становилось 95 %. Медленнее, но ещё ступенчатее.
+//
+// Лечит сглаживание МЕЖДУ кадрами: minterpolate в режиме blend достраивает
+// промежуточные кадры смешиванием. Повторов остаётся 27 % вместо 63 %, и
+// стоит это секунду на три секунды видео. Полотно у нас размытое, никакой
+// точности движения тут не нужно — нужна плавность.
+//
+// Замедление остаётся, но мягкое и только для быстрых файлов:
+// «topografia-jasna» дёргается в восемь раз сильнее прочих (16,8 против
+// 0,3-4,6), и выбор полотна идёт по кругу — значит без выравнивания
+// ощущение от ролика менялось бы случайно, от того, какой файл выпал.
 let tempoTla = 1;
 if (jestTlo) {
   try {
-    const { stdout } = await execFileAsync('ffprobe', [
-      '-v', 'error', '-select_streams', 'v', '-show_entries', 'stream=r_frame_rate',
-      '-of', 'csv=p=0', TLO,
-    ]);
-    const [licz, mian] = stdout.trim().split('/').map(Number);
-    const kls = mian ? licz / mian : licz;
-    if (kls > 0) tempoTla = +(kls / (FPS / 2)).toFixed(4);
-
-    // Второе замедление — по ЗАМЕРУ движения, а не по частоте кадров.
-    //
-    // Частота выравнивает ШАГ, но не скорость: «topografia-jasna» дёргается
-    // в восемь раз сильнее остальных полотен (15,8 против 0,3-4,6 по средней
-    // разнице соседних кадров), и именно на ней Захар сказал «фон очень
-    // быстро пошёл». А выбор полотна у нас по кругу — значит ощущение от
-    // ролика менялось случайно, от того, какой файл выпал.
-    //
-    // Целимся в 1,9 — это «topografia-3», полотно, на котором собран
-    // «Scenariusz 1» Захара и с которым претензий не было.
-    // Множитель целый: дробный сломал бы ровный шаг, ради которого считалась
-    // частота выше.
-    const CEL_RUCHU = 1.9;
-    try {
-      const { stdout: st } = await execFileAsync('ffmpeg', [
-        '-hide_banner', '-nostats', '-i', TLO, '-t', '6',
-        '-vf', 'scale=320:-2,tblend=all_mode=difference,signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-',
-        '-f', 'null', '-',
-      ], { maxBuffer: 32 * 1024 * 1024 });
-      const y = [...st.matchAll(/YAVG=([d.]+)/g)].map((m) => +m[1]);
-      if (y.length) {
-        const ruch = y.reduce((a, b) => a + b, 0) / y.length;
-        const mnoznik = Math.min(8, Math.max(1, Math.round(ruch / CEL_RUCHU)));
-        tempoTla = +(tempoTla * mnoznik).toFixed(4);
-        console.log(
-          `[grafika] движение полотна ${ruch.toFixed(2)} (цель ${CEL_RUCHU}) → замедляю ещё в ${mnoznik} раза`
-        );
-      }
-    } catch {}
-
-    console.log(`[grafika] полотно ${kls} к/с → итого замедление ${tempoTla}, шаг ровный`);
+    const { stdout: st } = await execFileAsync('ffmpeg', [
+      '-hide_banner', '-nostats', '-i', TLO, '-t', '6',
+      '-vf', 'scale=320:-2,tblend=all_mode=difference,signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-',
+      '-f', 'null', '-',
+    ], { maxBuffer: 32 * 1024 * 1024 });
+    const y = [...st.matchAll(/YAVG=([d.]+)/g)].map((m) => +m[1]);
+    if (y.length) {
+      const ruch = y.reduce((a, b) => a + b, 0) / y.length;
+      // Делитель подобран замером: при 16,8 он даёт тройку, а тройка со
+      // сглаживанием выводит движение на 2,2 — уровень «topografia-3», на
+      // которой собран «Scenariusz 1» Захара и к которой претензий не было.
+      tempoTla = Math.min(4, Math.max(1, Math.round(ruch / 5)));
+      console.log(
+        `[grafika] движение полотна ${ruch.toFixed(2)} → замедляю в ${tempoTla} раза + сглаживание`
+      );
+    }
   } catch {}
 }
 
@@ -376,7 +371,7 @@ await ffmpeg(
         '-framerate', String(FPS), '-i', path.join(katKlatek, 'f%05d.png'),
         '-filter_complex',
         // Полотно берём с запасом в 12%, чтобы дрейф не обнажал край кадра.
-        `[0:v]setpts=${tempoTla}*PTS,fps=${FPS},` +
+        `[0:v]setpts=${tempoTla}*PTS,minterpolate=fps=${FPS}:mi_mode=blend,` +
           `scale=${Math.round(W * 1.12)}:${Math.round(H * 1.12)}:force_original_aspect_ratio=increase,` +
           `crop=${W}:${H}:'(iw-ow)/2+sin(n/${FPS * 9})*${Math.round(W * 0.045)}':` +
           `'(ih-oh)/2+cos(n/${FPS * 13})*${Math.round(H * 0.02)}',` +
