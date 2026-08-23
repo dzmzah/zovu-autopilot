@@ -75,7 +75,13 @@ jobs:
           grep -v -E '^(tensorflow|tensorboard)' requirements.txt > req.txt
           pip install -q -r req.txt
           pip install -q mmcv==2.1.0             -f https://download.openmmlab.com/mmcv/dist/cpu/torch2.1.0/index.html
-          pip install -q mmdet==3.2.0 mmpose==1.2.0
+          pip install -q mmdet==3.2.0
+          # mmpose тянет chumpy — древний пакет, чей установочный скрипт зовёт
+          # внутренности pip и падает на любой современной версии. Нужен он
+          # только для моделей ТЕЛА, а нам нужно лицо. Ставим без зависимостей
+          # и доставляем то, что действительно используется.
+          pip install -q mmpose==1.2.0 --no-deps
+          pip install -q json_tricks munkres xtcocotools
           python -c "import mmcv, mmpose, torch; print('mmcv', mmcv.__version__, '| torch', torch.__version__)"
 
       - name: Веса

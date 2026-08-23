@@ -19,6 +19,7 @@ import { grafikaHtml, renderujKlatki, wczytajObiekty, W, H, FPS } from './grafik
 import { wybierzScenariusz } from './scenariusze-grafika.mjs';
 import { wybierzWejscie } from './dzwiek.mjs';
 import { podmienHasztagi } from './tagi.mjs';
+import { zbudujPodklad } from './wedacy.mjs';
 import { DEMA } from './scenariusze-demo.mjs';
 
 const execFileAsync = promisify(execFile);
@@ -310,9 +311,26 @@ const TLA = readdirSync(KAT_TLA).filter((f) => f.endsWith('.mp4')).sort();
 const idxTla = ((stan.tloGrafika ?? -1) + 1) % TLA.length;
 stan.tloGrafika = idxTla;
 
-const TLO = process.env.TLO_WIDEO || path.join(KAT_TLA, TLA[idxTla] || '');
+// Режим с ведущим: вместо полотна под сценой живой человек.
+//
+// Это тот же конвейер, только фоном идёт лицо. Отсюда три отличия, и все
+// три обязательны: подложку нельзя размывать и таскать дрейфом (человек —
+// не текстура, он предмет съёмки), её нельзя зацикливать бесконечно (лицо
+// повторится и это видно), и на каждом резе между клипами обязана стоять
+// врезка.
+const Z_WEDACYM = process.argv.includes('--wedacy');
+let cieciaWedacego = [];
+
+let TLO;
+if (Z_WEDACYM) {
+  const p = await zbudujPodklad(total, { klatki: FPS });
+  TLO = p.plik;
+  cieciaWedacego = p.ciecia;
+} else {
+  TLO = process.env.TLO_WIDEO || path.join(KAT_TLA, TLA[idxTla] || '');
+}
 const jestTlo = existsSync(TLO);
-console.log(`[grafika] фон: ${jestTlo ? path.basename(TLO) : 'нет, будет чёрный'}`);
+console.log(`[grafika] фон: ${jestTlo ? path.basename(TLO) : 'нет, будет чёрный'}${Z_WEDACYM ? ' (ведущий)' : ''}`);
 
 // Замедлять и достраивать кадры на лету больше не нужно: полотна приходят
 // готовыми. Три подхода к этому ушли в мусор — доля повторов, размер скачка,
@@ -328,11 +346,17 @@ await ffmpeg(
         '-framerate', String(FPS), '-i', path.join(katKlatek, 'f%05d.png'),
         '-filter_complex',
         // Полотно берём с запасом в 12%, чтобы дрейф не обнажал край кадра.
-        `[0:v]setpts=${tempoTla}*PTS,fps=${FPS},` +
-          `scale=${Math.round(W * 1.12)}:${Math.round(H * 1.12)}:force_original_aspect_ratio=increase,` +
-          `crop=${W}:${H}:'(iw-ow)/2+sin(n/${FPS * 9})*${Math.round(W * 0.045)}':` +
-          `'(ih-oh)/2+cos(n/${FPS * 13})*${Math.round(H * 0.02)}',` +
-          `gblur=sigma=${ROZMYCIE},eq=contrast=0.80:brightness=0.03:saturation=1.05[tlo];` +
+        (Z_WEDACYM
+          ? // Лицо не размываем и не возим по кадру: это предмет съёмки, а не
+            // текстура. Медленный наезд оставляем — статичный кадр мёртв.
+            `[0:v]fps=${FPS},scale=${W}:${H}:force_original_aspect_ratio=increase,` +
+            `crop=${W}:${H},zoompan=z='min(1.06,1+0.06*on/${Math.round(FPS * total)})':` +
+            `d=1:x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':s=${W}x${H}:fps=${FPS}[tlo];`
+          : `[0:v]setpts=${tempoTla}*PTS,fps=${FPS},` +
+            `scale=${Math.round(W * 1.12)}:${Math.round(H * 1.12)}:force_original_aspect_ratio=increase,` +
+            `crop=${W}:${H}:'(iw-ow)/2+sin(n/${FPS * 9})*${Math.round(W * 0.045)}':` +
+            `'(ih-oh)/2+cos(n/${FPS * 13})*${Math.round(H * 0.02)}',` +
+            `gblur=sigma=${ROZMYCIE},eq=contrast=0.80:brightness=0.03:saturation=1.05[tlo];`) +
           `[tlo][1:v]overlay=0:0:format=auto,format=yuv420p,setsar=1[v]`,
         '-map', '[v]', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18',
         '-t', String(total), wideo,
