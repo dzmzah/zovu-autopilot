@@ -52,7 +52,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: silnik/models
-          key: usta-modele-v15-b
+          key: usta-modele-v15-c
 
       - name: Torch без видеокарты
         run: |
@@ -96,6 +96,17 @@ jobs:
           python - <<'PY'
           from huggingface_hub import hf_hub_download
           import os, shutil
+          from huggingface_hub import snapshot_download
+          # Целыми папками: у них внутри и веса, и настройки, а без настроек
+          # библиотека падает жалобой на отсутствующий config.json.
+          for repo, kat in [("stabilityai/sd-vae-ft-mse", "models/sd-vae"),
+                            ("openai/whisper-tiny", "models/whisper")]:
+              if os.path.exists(os.path.join(kat, "config.json")):
+                  print("есть", kat); continue
+              snapshot_download(repo_id=repo, local_dir=kat,
+                                allow_patterns=["*.json", "*.bin", "*.txt", "*.safetensors"])
+              print("добрал", kat)
+
           nado = [
               ("yzd-v/DWPose", "dw-ll_ucoco_384.pth", "models/dwpose"),
               ("ManyOtherFunctions/face-parse-bisent", "79999_iter.pth", "models/face-parse-bisent"),
