@@ -52,7 +52,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: silnik/models
-          key: usta-modele-v15
+          key: usta-modele-v15-b
 
       - name: Torch без видеокарты
         run: |
@@ -90,6 +90,28 @@ jobs:
         run: |
           pip install -q -U "huggingface_hub[cli]" gdown
           bash download_weights.sh
+          # Их скрипт молча пропускает часть файлов, а кэш потом сохраняет
+          # неполный набор — и следующий прогон падает уже на счёте, далеко
+          # от причины. Добираем недостающее явно и проверяем список.
+          python - <<'PY'
+          from huggingface_hub import hf_hub_download
+          import os, shutil
+          nado = [
+              ("yzd-v/DWPose", "dw-ll_ucoco_384.pth", "models/dwpose"),
+              ("ManyOtherFunctions/face-parse-bisent", "79999_iter.pth", "models/face-parse-bisent"),
+              ("ManyOtherFunctions/face-parse-bisent", "resnet18-5c106cde.pth", "models/face-parse-bisent"),
+          ]
+          for repo, plik, kat in nado:
+              cel = os.path.join(kat, plik)
+              if os.path.exists(cel):
+                  print("есть", cel); continue
+              os.makedirs(kat, exist_ok=True)
+              p = hf_hub_download(repo_id=repo, filename=plik)
+              shutil.copy(p, cel)
+              print("добрал", cel)
+          PY
+          echo "--- что лежит в models:"
+          find models -name '*.pth' -o -name '*.bin' -o -name '*.json' | head -30
 
       # Скачивалка весов тянет свежий huggingface_hub, а transformers из
       # списка MuseTalk работает только со старым. Возвращаем на место ПОСЛЕ
