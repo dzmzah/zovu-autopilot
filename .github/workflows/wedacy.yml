@@ -133,7 +133,9 @@ jobs:
       - name: Сборка ролика
         env:
           PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
-        run: node rolka-grafika.mjs --scenariusz=${{ inputs.scenariusz }} --podklad=out/wedacy/podklad-usta.mp4
+        # Голос берём ГОТОВЫЙ: под него уже пересобраны губы. Новый дубль
+        # был бы чуть другим, и рот разошёлся бы со звуком.
+        run: node rolka-grafika.mjs --scenariusz=${{ inputs.scenariusz }} --podklad=out/wedacy/podklad-usta.mp4 --glos=out/wedacy/glos.json
 
       - uses: actions/upload-artifact@v4
         if: always()

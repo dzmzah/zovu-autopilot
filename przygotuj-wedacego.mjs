@@ -45,6 +45,14 @@ const podklad = await zbudujPodklad(total + 0.5, { klatki: FPS });
 
 const glosPlik = path.join(OUT, 'glos.wav');
 await writeFile(path.join(OUT, 'podklad-ciecia.json'), JSON.stringify(podklad.ciecia), 'utf8');
+// Голос сохраняем ЦЕЛИКОМ: фразы, слова, длительность. Иначе сборщик
+// синтезирует новый дубль — а он всегда чуть другой, и губы, собранные под
+// первый, разойдутся со звуком. Плюс второй дубль это второй расход лимита.
+await writeFile(
+  path.join(OUT, 'glos.json'),
+  JSON.stringify({ frazy: glos.frazy, slowa: glos.slowa, dlugosc: glos.dlugosc }, null, 2),
+  'utf8'
+);
 await writeFile(
   path.join(OUT, 'plan.json'),
   JSON.stringify(

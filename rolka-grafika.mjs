@@ -135,9 +135,22 @@ function udawanyGlos(frazy, przedPierwsza = 0.45) {
   return { plik: null, frazy: meta, slowa, dlugosc: +(czas + 0.35).toFixed(3) };
 }
 
-const glos = BEZ_GLOSU
-  ? udawanyGlos(FRAZY)
-  : await zbudujGlos(FRAZY, { tmp: path.join(OUT, 'grafika-glos'), przedPierwsza: 0.45 });
+// Готовый голос снаружи. Нужен там, где дубль уже использован раньше по
+// конвейеру — например под него пересобраны губы ведущего. Синтезировать
+// заново нельзя: новый дубль всегда чуть другой, и губы разойдутся.
+const GOTOWY_GLOS = (process.argv.find((a) => a.startsWith('--glos=')) || '').split('=')[1] || '';
+const glos = GOTOWY_GLOS
+  ? (() => {
+      const p = path.isAbsolute(GOTOWY_GLOS) ? GOTOWY_GLOS : path.join(DIR, GOTOWY_GLOS);
+      const g = JSON.parse(readFileSync(p, 'utf8'));
+      // Путь к дорожке кладём рядом: он нужен и для замера длины, и для
+      // сведения. В json его не пишем — при переносе между машинами он врёт.
+      g.plik = g.plik || path.join(path.dirname(p), 'glos.wav');
+      return g;
+    })()
+  : BEZ_GLOSU
+    ? udawanyGlos(FRAZY)
+    : await zbudujGlos(FRAZY, { tmp: path.join(OUT, 'grafika-glos'), przedPierwsza: 0.45 });
 console.log(
   BEZ_GLOSU
     ? `[grafika] ПРОБА без озвучки: ${glos.dlugosc.toFixed(2)} с по слогам, голос не тратим`
