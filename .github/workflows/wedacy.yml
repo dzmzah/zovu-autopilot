@@ -1,0 +1,144 @@
+# Рилс с ведущим целиком: голос, подложка, пересборка губ, сборка, проверка.
+#
+# Три шага вместо одного — потому что пересборка губ это python и полчаса
+# счёта на процессоре. Держать её внутри сборщика значит тянуть всё окружение
+# в каждый прогон.
+#
+# Время: 8 секунд лица считаются 37 минут. Ролик на 15-17 секунд — около
+# часа с четвертью. В потолок шести часов укладываемся с запасом.
+name: ZOVU wedacy
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenariusz:
+        description: 'Ключ сценария с ведущим'
+        type: string
+        default: 'nie-potrzebujesz'
+      do_kolejki:
+        description: 'Поставить в очередь на публикацию'
+        type: boolean
+        default: false
+
+jobs:
+  wedacy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Инструменты
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          npm ci --omit=dev || npm i --omit=dev
+          npx playwright install --with-deps chromium
+
+      - name: Голос и подложка
+        env:
+          ELEVENLABS_KEY: ${{ secrets.ELEVENLABS_KEY }}
+        run: node przygotuj-wedacego.mjs --scenariusz=${{ inputs.scenariusz }}
+
+      - name: Забрать MuseTalk
+        run: git clone --depth 1 https://github.com/TMElyralab/MuseTalk.git silnik
+
+      - name: Кэш колёс
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: usta-pip-${{ hashFiles('silnik/requirements.txt') }}
+
+      - name: Кэш весов
+        id: wagi
+        uses: actions/cache@v4
+        with:
+          path: silnik/models
+          key: usta-modele-v15-d
+
+      - name: Torch без видеокарты
+        run: |
+          python -m pip install -q -U pip
+          pip install -q torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 \
+            --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Зависимости
+        working-directory: silnik
+        env:
+          PIP_NO_BUILD_ISOLATION: '1'
+        run: |
+          pip install -q "setuptools<80" wheel
+          grep -v -E '^(tensorflow|tensorboard)' requirements.txt > req.txt
+          pip install -q -r req.txt
+          pip install -q mmcv==2.1.0 \
+            -f https://download.openmmlab.com/mmcv/dist/cpu/torch2.1.0/index.html
+          pip install -q mmdet==3.2.0
+          pip install -q mmpose==1.2.0 --no-deps
+          pip install -q json_tricks munkres xtcocotools
+
+      - name: Веса
+        if: steps.wagi.outputs.cache-hit != 'true'
+        working-directory: silnik
+        run: |
+          pip install -q -U "huggingface_hub[cli]" gdown
+          bash download_weights.sh || true
+          python - <<'PY'
+          from huggingface_hub import hf_hub_download, snapshot_download
+          import os, shutil
+          for repo, kat in [("stabilityai/sd-vae-ft-mse", "models/sd-vae"),
+                            ("openai/whisper-tiny", "models/whisper")]:
+              if os.path.exists(os.path.join(kat, "config.json")): continue
+              snapshot_download(repo_id=repo, local_dir=kat,
+                                allow_patterns=["*.json", "*.bin", "*.txt", "*.safetensors"])
+          for repo, plik, kat in [
+              ("TMElyralab/MuseTalk", "musetalkV15/unet.pth", "models/musetalkV15"),
+              ("TMElyralab/MuseTalk", "musetalkV15/musetalk.json", "models/musetalkV15"),
+              ("yzd-v/DWPose", "dw-ll_ucoco_384.pth", "models/dwpose"),
+              ("ManyOtherFunctions/face-parse-bisent", "79999_iter.pth", "models/face-parse-bisent"),
+              ("ManyOtherFunctions/face-parse-bisent", "resnet18-5c106cde.pth", "models/face-parse-bisent")]:
+              cel = os.path.join(kat, os.path.basename(plik))
+              if os.path.exists(cel): continue
+              os.makedirs(kat, exist_ok=True)
+              shutil.copy(hf_hub_download(repo_id=repo, filename=plik), cel)
+          PY
+
+      - name: Вернуть версию библиотеки
+        run: pip install -q "huggingface_hub==0.25.2"
+
+      - name: Пересборка губ
+        working-directory: silnik
+        run: |
+          mkdir -p dane
+          cp ../out/wedacy/podklad.mp4 dane/wideo.mp4
+          cp ../out/wedacy/glos.wav dane/glos.wav
+          cat > configs/inference/nasze.yaml <<'YAML'
+          task_0:
+            video_path: "dane/wideo.mp4"
+            audio_path: "dane/glos.wav"
+          YAML
+          start=$(date +%s)
+          python -m scripts.inference \
+            --inference_config configs/inference/nasze.yaml \
+            --result_dir wynik --unet_model_path models/musetalkV15/unet.pth \
+            --unet_config models/musetalkV15/musetalk.json --version v15 --ffmpeg_path /usr/bin
+          echo "губы: $(( $(date +%s) - start )) секунд"
+          find wynik -name '*.mp4' -exec cp {} ../out/wedacy/podklad-usta.mp4 \;
+          cp ../out/wedacy/podklad-ciecia.json ../out/wedacy/podklad-usta-ciecia.json
+
+      - name: Сборка ролика
+        env:
+          PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
+        run: node rolka-grafika.mjs --scenariusz=${{ inputs.scenariusz }} --podklad=out/wedacy/podklad-usta.mp4
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rolka-wedacy
+          path: |
+            out/auto-grafika-*.mp4
+            out/wedacy/podklad-usta.mp4
+          if-no-files-found: warn

@@ -8,7 +8,7 @@
 // 18.08 сценарий был вшит в этот файл, и второй ролик требовал его переписать.
 //
 import { mkdir, writeFile, readFile, rm, readdir, copyFile } from 'node:fs/promises';
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -20,6 +20,7 @@ import { wybierzScenariusz } from './scenariusze-grafika.mjs';
 import { wybierzWejscie } from './dzwiek.mjs';
 import { podmienHasztagi } from './tagi.mjs';
 import { zbudujPodklad } from './wedacy.mjs';
+import { SCENARIUSZE_WEDACY } from './scenariusze-wedacy.mjs';
 import { DEMA } from './scenariusze-demo.mjs';
 
 const execFileAsync = promisify(execFile);
@@ -44,9 +45,15 @@ try { stan = JSON.parse(await readFile(stanPlik, 'utf8')); } catch { stan = {}; 
 // призывом, попавший в наш перебор, вышел бы на аккаунте ZOVU как наш пост.
 // Поэтому сначала ищем среди демо и только по явному ключу.
 const demo = KLUCZ ? DEMA.find((d) => d.klucz === KLUCZ) : null;
+// Сценарии с ведущим лежат отдельным банком: у них другая раскладка кадра
+// (центр занят лицом) и другая длина. В общую ротацию рисованных они не
+// входят — их выбирают только явным ключом.
+const zWedacym = KLUCZ ? SCENARIUSZE_WEDACY.find((d) => d.klucz === KLUCZ) : null;
 const { scenariusz, idx: idxScen } = demo
   ? { scenariusz: demo, idx: null }
-  : wybierzScenariusz(KLUCZ, stan);
+  : zWedacym
+    ? { scenariusz: zWedacym, idx: null }
+    : wybierzScenariusz(KLUCZ, stan);
 if (idxScen !== null) stan.grafikaScen = idxScen;
 console.log(`[grafika] сценарий «${scenariusz.klucz}»: ${scenariusz.nazwa}`);
 
@@ -319,10 +326,17 @@ stan.tloGrafika = idxTla;
 // повторится и это видно), и на каждом резе между клипами обязана стоять
 // врезка.
 const Z_WEDACYM = process.argv.includes('--wedacy');
+// Готовая подложка снаружи. Пересборка губ идёт отдельным шагом (python на
+// сервере), и собирать её здесь нечем — сюда приходит уже готовый файл.
+const GOTOWY_PODKLAD = (process.argv.find((a) => a.startsWith('--podklad=')) || '').split('=')[1] || '';
 let cieciaWedacego = [];
 
 let TLO;
-if (Z_WEDACYM) {
+if (GOTOWY_PODKLAD) {
+  TLO = path.isAbsolute(GOTOWY_PODKLAD) ? GOTOWY_PODKLAD : path.join(DIR, GOTOWY_PODKLAD);
+  const meta = TLO.replace(/.mp4$/, '-ciecia.json');
+  if (existsSync(meta)) cieciaWedacego = JSON.parse(readFileSync(meta, 'utf8'));
+} else if (Z_WEDACYM) {
   const p = await zbudujPodklad(total, { klatki: FPS });
   TLO = p.plik;
   cieciaWedacego = p.ciecia;
@@ -346,7 +360,7 @@ await ffmpeg(
         '-framerate', String(FPS), '-i', path.join(katKlatek, 'f%05d.png'),
         '-filter_complex',
         // Полотно берём с запасом в 12%, чтобы дрейф не обнажал край кадра.
-        (Z_WEDACYM
+        ((Z_WEDACYM || GOTOWY_PODKLAD)
           ? // Лицо не размываем и не возим по кадру: это предмет съёмки, а не
             // текстура. Медленный наезд оставляем — статичный кадр мёртв.
             `[0:v]fps=${FPS},scale=${W}:${H}:force_original_aspect_ratio=increase,` +
