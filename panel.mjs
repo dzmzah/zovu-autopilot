@@ -71,14 +71,14 @@ const opublikowane = kolejka.filter((p) => p.opublikowano).slice(-12).reverse();
 
 // Сеть считается доставленной, если в результате есть её идентификатор.
 const SIECI = [
-  ['instagram', 'IG'],
-  ['facebook', 'FB'],
-  ['youtube', 'YT'],
-  ['tiktok', 'TT'],
+  ['instagram', 'ig', 'IG'],
+  ['facebook', 'fb', 'FB'],
+  ['youtube', 'yt', 'YT'],
+  ['tiktok', 'tt', 'TT'],
 ];
 for (const p of opublikowane.slice(0, 3)) {
-  for (const [klucz, nazwa] of SIECI) {
-    if ((p.sieci || []).includes(klucz.slice(0, 2)) && !p.wynik?.[klucz]) {
+  for (const [klucz, krotki, nazwa] of SIECI) {
+    if ((p.sieci || []).includes(krotki) && !p.wynik?.[klucz]) {
       alarmy.push(`${p.plik}: ${nazwa} не принял`);
     }
   }
@@ -96,7 +96,7 @@ const wyslania = wyniki.reduce((a, w) => a + (w.dane?.shares || 0), 0);
 const esc = (s) => String(s ?? '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
 
 const swiatlo = (ok, czeka) =>
-  ok ? '<i class="k z"></i>' : czeka ? '<i class="k c"></i>' : '<i class="k n"></i>';
+  ok ? '<i class="lampka ok"></i>' : czeka ? '<i class="lampka czeka"></i>' : '<i class="lampka zle"></i>';
 
 const html = `<!doctype html>
 <html lang="ru"><head><meta charset="utf-8">
@@ -117,8 +117,12 @@ h1{font-size:clamp(22px,5vw,32px);margin:0;letter-spacing:-.02em}
 .data{font:600 11px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--akcent)}
 h2{font-size:16px;margin:0 0 10px;letter-spacing:-.01em}
 .karta{background:var(--karta);border:1px solid var(--obwod);border-radius:14px;padding:16px 18px}
-.k{width:11px;height:11px;border-radius:50%;display:inline-block;flex:0 0 11px}
-.k.z{background:var(--ok)}.k.c{background:var(--czeka)}.k.n{background:var(--zle)}
+/* Имена длиннее одной буквы нарочно: короткий .c уже занят карточкой цифр,
+   и светофор наследовал её отступы — кружок раздувался в кляксу. */
+.lampka{width:11px;height:11px;border-radius:50%;display:inline-block;flex:0 0 11px}
+.lampka.ok{background:var(--ok)}
+.lampka.czeka{background:var(--czeka)}
+.lampka.zle{background:var(--zle)}
 .dzis{display:flex;flex-direction:column;gap:10px}
 .rz{display:flex;align-items:center;gap:11px;font-size:15px}
 .rz b{font-weight:600}
@@ -127,11 +131,11 @@ h2{font-size:16px;margin:0 0 10px;letter-spacing:-.01em}
  border:1px solid color-mix(in srgb,var(--zle) 40%,transparent)}
 .alarm h2{color:var(--zle)}
 .alarm ul{margin:0;padding-left:20px}.alarm li{margin-bottom:5px}
-.przewin{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:14px;min-width:440px}
-th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--linia);white-space:nowrap}
-th{font:600 10px/1 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--cichy)}
-td.t{white-space:normal;min-width:190px;color:var(--cichy);font-size:13px}
+.lista{display:flex;flex-direction:column}
+.poz{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;
+ padding:11px 2px;border-bottom:1px solid var(--linia)}
+.poz .kiedy{font:600 12px/1 'IBM Plex Mono',monospace;color:var(--cichy);flex:0 0 auto}
+.poz .co{flex:1 1 200px;font-size:14px}
 .sieci{display:flex;gap:5px}
 .s{font:600 10px/1 'IBM Plex Mono',monospace;padding:4px 6px;border-radius:5px;
  background:var(--linia);color:var(--cichy)}
@@ -168,38 +172,40 @@ ${alarmy.length ? `<section class="karta alarm">
 
 <section>
   <h2>Последние рилсы</h2>
-  <div class="przewin"><table>
-    <tr><th>когда</th><th>ролик</th><th>площадки</th></tr>
+  <div class="lista">
     ${opublikowane
       .map(
-        (p) => `<tr>
-      <td>${dzien(p.opublikowano).slice(5)} ${godzina(p.opublikowano)}</td>
-      <td class="t">${esc(p.scenariusz || p.plik)}</td>
-      <td><div class="sieci">${SIECI.map(([klucz, nazwa]) => {
-        const chciano = (p.sieci || []).includes(klucz.slice(0, 2));
+        (p) => `<div class="poz">
+      <span class="kiedy">${dzien(p.opublikowano).slice(5)} ${godzina(p.opublikowano)}</span>
+      <span class="co">${esc(p.scenariusz || p.plik)}</span>
+      <span class="sieci">${SIECI.map(([klucz, krotki, nazwa]) => {
+        const chciano = (p.sieci || []).includes(krotki);
         const jest = Boolean(p.wynik?.[klucz]);
         return `<span class="s ${jest ? 'jest' : chciano ? 'brak' : ''}">${nazwa}</span>`;
-      }).join('')}</div></td>
-    </tr>`
+      }).join('')}</span>
+    </div>`
       )
       .join('')}
-  </table></div>
+  </div>
 </section>
 
 <section>
   <h2>Ждут очереди</h2>
   ${
     czekaja.length
-      ? `<div class="przewin"><table>
-    <tr><th>когда</th><th>ролик</th><th>куда</th></tr>
+      ? `<div class="lista">
     ${czekaja
       .map(
-        (p) => `<tr><td>${dzien(p.kiedy).slice(5)} ${godzina(p.kiedy)}</td>
-      <td class="t">${esc(p.scenariusz || p.plik)}</td>
-      <td>${(p.sieci || []).join(' · ').toUpperCase()}</td></tr>`
+        (p) => `<div class="poz">
+      <span class="kiedy">${dzien(p.kiedy).slice(5)} ${godzina(p.kiedy)}</span>
+      <span class="co">${esc(p.scenariusz || p.plik)}</span>
+      <span class="sieci">${(p.sieci || [])
+        .map((x) => `<span class="s">${x.toUpperCase()}</span>`)
+        .join('')}</span>
+    </div>`
       )
       .join('')}
-  </table></div>`
+  </div>`
       : '<div class="karta">Пусто — завтра выкладывать нечего.</div>'
   }
 </section>
