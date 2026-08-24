@@ -69,13 +69,13 @@ export const NIE_POTRZEBUJESZ = {
       { a: 0, b: total, od: 1.0, do: 1.06 },
     ];
 
-    // Цвет по смыслу: жёлтым выгода, красным потеря.
-    const akcenty = [
-      { slowo: 'stracić', barwa: 'czerwony' },
-      { slowo: 'trzech', barwa: 'zolty' },
-      { slowo: 'sam', barwa: 'zolty' },
-      { slowo: 'Wyślij', barwa: 'zolty' },
-    ];
+    // Цвет по смыслу: жёлтым выгода, красным потеря. Формат тут не мой,
+    // а движка: два списка слов в нижнем регистре, а не список пар.
+    // Ошибся один раз — страница падала на подсветке и не рисовала ничего.
+    const akcenty = {
+      zolty: ['trzech', 'sam', 'wyślij'],
+      czerwony: ['stracić', 'nie'],
+    };
 
     return { scena, metki: [], wzor: [], liczniki, kamera, akcenty };
   },
