@@ -549,7 +549,7 @@ const KOMENTARZE = {
     { rola: 'tresc', tekst: 'Prawdziwych. Nie lajków.', pauza: 0.38 },
     { rola: 'zaplata', tekst: 'Ludzie pamiętają, kto odpisał.', pauza: 0.34 },
     { rola: 'zaplata', tekst: 'Kwadrans robi różnicę.', pauza: 0.38 },
-    { rola: 'cta', tekst: 'Sprawdź przez tydzień.', pauza: 0.20 },
+    { rola: 'cta', tekst: 'Wyślij to komuś, kto nie odpisuje klientom.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     const scena = [
