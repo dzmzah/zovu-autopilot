@@ -31,6 +31,10 @@ const GORA = arg('gora', '');
 const DOL = arg('dol', '');
 const WYJSCIE = arg('wyjscie', PLIK.replace(/\.mp4$/i, '-hak.mp4'));
 const TLO = arg('tlo', '#0f0b1e');
+// Наложением, а не приставкой. Приставка добавляет 1,2 секунды тишины перед
+// речью, а хук обязан начаться в первые 1,7 секунды — мы бы съели больше
+// половины этого окна заставкой. Наложение оставляет звук на месте.
+const NAKLADKA = process.argv.includes('--nakladka');
 const AKCENT = arg('akcent', '#ffd23f');
 
 const OUT = path.join(DIR, 'out', 'pierwsza-klatka');
@@ -41,7 +45,8 @@ await mkdir(OUT, { recursive: true });
 const html = `<!doctype html><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@800&display=swap" rel="stylesheet">
 <style>
-  html,body{margin:0;width:${W}px;height:${H}px;background:${TLO};overflow:hidden}
+  html,body{margin:0;width:${W}px;height:${H}px;background:${NAKLADKA ? "transparent" : TLO};overflow:hidden}
+  ${NAKLADKA ? ".zaslona{position:absolute;inset:0;background:rgba(9,6,20,.72)}" : ""}
   .srodek{position:absolute;inset:0;display:flex;flex-direction:column;
     align-items:center;justify-content:center;gap:34px;padding:0 90px;text-align:center}
   .gora{font-family:'Archivo Black',sans-serif;color:#fff;line-height:.98;
@@ -51,6 +56,7 @@ const html = `<!doctype html><meta charset="utf-8">
   .pasek{position:absolute;left:50%;transform:translateX(-50%);bottom:16%;
     width:190px;height:9px;border-radius:5px;background:${AKCENT}}
 </style>
+${NAKLADKA ? '<div class="zaslona"></div>' : ""}
 <div class="srodek">
   <div class="gora" id="g">${GORA.replace(/</g, '&lt;')}</div>
   <div class="dol" id="d">${DOL.replace(/</g, '&lt;')}</div>
@@ -71,8 +77,27 @@ const pg = await br.newPage({ viewport: { width: W, height: H } });
 await pg.setContent(html, { waitUntil: 'networkidle' });
 await pg.waitForTimeout(700);
 const karta = path.join(OUT, 'karta.png');
-await pg.screenshot({ path: karta });
+await pg.screenshot({ path: karta, omitBackground: NAKLADKA });
 await br.close();
+
+if (NAKLADKA) {
+  // Карточка лежит поверх первых секунд и уходит растворением: резкое
+  // исчезновение читается как сбой, плавное — как приём.
+  await execFileAsync('ffmpeg', [
+    '-y', '-hide_banner', '-loglevel', 'error',
+    '-i', PLIK, '-loop', '1', '-i', karta,
+    '-filter_complex',
+    `[1:v]format=rgba,fade=t=out:st=${(TRWA - 0.35).toFixed(2)}:d=0.35:alpha=1,` +
+      `scale=${W}:${H}[k];[0:v][k]overlay=0:0:enable='lt(t,${TRWA})':format=auto,format=yuv420p[v]`,
+    // Без ограничителя картинка с -loop 1 бесконечна, и склейка гонит файл
+    // до упора: первый прогон выдал 68 МБ и не остановился.
+    '-shortest',
+    '-map', '[v]', '-map', '0:a?', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18',
+    '-c:a', 'copy', WYJSCIE,
+  ]);
+  console.log(`[хук] наложение ${TRWA} с → ${WYJSCIE}`);
+  process.exit(0);
+}
 
 // Наезд делаем зумом на самой карточке: статичная заставка читается как
 // заглушка, а движение — как начало ролика.
