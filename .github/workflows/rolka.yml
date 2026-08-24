@@ -84,7 +84,10 @@ jobs:
             git fetch -q origin main
             git reset -q --hard origin/main
             node scal-kolejke.mjs /tmp/nasza-kolejka.json
-            git add rolki/kolejka.json
+            # Панель собирается ПОСЛЕ слияния очереди: до него в ней ещё нет
+            # отметки о том, что ролик вышел.
+            node panel.mjs || true
+            git add rolki/kolejka.json panel.html
             if git diff --cached --quiet; then echo "нечего вливать"; exit 0; fi
             git commit -q -m "rolka: stan kolejki [skip ci]"
             git push -q origin HEAD:main && exit 0

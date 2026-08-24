@@ -79,3 +79,20 @@ jobs:
           TOKEN_KEY: ${{ secrets.TOKEN_KEY }}
           ELEVENLABS_KEY: ${{ secrets.ELEVENLABS_KEY }}
         run: node doktor.mjs
+
+      # Панель обновляется даже когда сторож ничего не чинил: она показывает
+      # состояние ленты, а не результат сторожа. Раз в час — достаточно, чтобы
+      # Захар открыл её с телефона и увидел свежее.
+      - name: Odśwież panel
+        if: always()
+        run: |
+          node panel.mjs || exit 0
+          git config user.name "zovu-autopilot"
+          git config user.email "zovu.pl@gmail.com"
+          git add panel.html
+          git diff --staged --quiet && exit 0
+          git commit -q -m "panel [skip ci]"
+          for i in 1 2 3; do
+            git push -q origin HEAD:main && exit 0
+            git fetch -q origin main && git rebase -q origin/main || true
+          done

@@ -114,7 +114,8 @@ jobs:
         run: |
           git config user.name "zovu-autopilot"
           git config user.email "zovu.pl@gmail.com"
-          git add state.json pending.json posts token.enc index.html || true
+          node panel.mjs || true
+          git add state.json pending.json posts token.enc index.html panel.html || true
           git diff --staged --quiet && exit 0
           git commit -m "post + stan rotacji [skip ci]"
           for i in 1 2 3; do

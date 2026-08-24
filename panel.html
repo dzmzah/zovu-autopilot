@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZOVU — что вышло</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{--tlo:#f6f4fa;--karta:#fff;--obwod:#e4dff2;--linia:#efebf8;--tekst:#17122c;
+ --cichy:#645c85;--akcent:#5b32e0;--ok:#0f766e;--czeka:#b45309;--zle:#be123c}
+@media(prefers-color-scheme:dark){:root{--tlo:#0c0a15;--karta:#151228;--obwod:#2a2246;
+ --linia:#221b3b;--tekst:#efeaff;--cichy:#9c93bd;--akcent:#9b7bff;--ok:#2dd4bf;
+ --czeka:#fbbf24;--zle:#fb7185}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--tlo);color:var(--tekst);font:16px/1.55 Inter,system-ui,sans-serif;
+ padding:clamp(16px,4vw,40px) clamp(12px,4vw,28px)}
+.stos{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:30px}
+h1{font-size:clamp(22px,5vw,32px);margin:0;letter-spacing:-.02em}
+.data{font:600 11px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--akcent)}
+h2{font-size:16px;margin:0 0 10px;letter-spacing:-.01em}
+.karta{background:var(--karta);border:1px solid var(--obwod);border-radius:14px;padding:16px 18px}
+.k{width:11px;height:11px;border-radius:50%;display:inline-block;flex:0 0 11px}
+.k.z{background:var(--ok)}.k.c{background:var(--czeka)}.k.n{background:var(--zle)}
+.dzis{display:flex;flex-direction:column;gap:10px}
+.rz{display:flex;align-items:center;gap:11px;font-size:15px}
+.rz b{font-weight:600}
+.rz span{color:var(--cichy);font-size:13.5px;margin-left:auto;font-family:'IBM Plex Mono',monospace}
+.alarm{background:color-mix(in srgb,var(--zle) 12%,transparent);
+ border:1px solid color-mix(in srgb,var(--zle) 40%,transparent)}
+.alarm h2{color:var(--zle)}
+.alarm ul{margin:0;padding-left:20px}.alarm li{margin-bottom:5px}
+.przewin{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:440px}
+th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--linia);white-space:nowrap}
+th{font:600 10px/1 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--cichy)}
+td.t{white-space:normal;min-width:190px;color:var(--cichy);font-size:13px}
+.sieci{display:flex;gap:5px}
+.s{font:600 10px/1 'IBM Plex Mono',monospace;padding:4px 6px;border-radius:5px;
+ background:var(--linia);color:var(--cichy)}
+.s.jest{background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok)}
+.s.brak{background:color-mix(in srgb,var(--zle) 18%,transparent);color:var(--zle)}
+.cyfry{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.c{background:var(--karta);border:1px solid var(--obwod);border-radius:12px;padding:14px 16px}
+.c b{display:block;font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
+.c span{font-size:12.5px;color:var(--cichy)}
+footer{color:var(--cichy);font-size:12.5px;border-top:1px solid var(--linia);padding-top:14px;
+ font-family:'IBM Plex Mono',monospace}
+</style></head><body><div class="stos">
+
+<header>
+  <div class="data">2026-08-24 · 16:08 по Польше</div>
+  <h1>Что вышло</h1>
+</header>
+
+
+
+<section class="karta">
+  <h2>Сегодня</h2>
+  <div class="dzis">
+    <div class="rz"><i class="k z"></i><b>Пост утром</b><span>вышел</span></div>
+    <div class="rz"><i class="k c"></i><b>Пост вечером</b><span>по расписанию</span></div>
+    <div class="rz"><i class="k z"></i><b>Рилс</b><span>вышел</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>Последние рилсы</h2>
+  <div class="przewin"><table>
+    <tr><th>когда</th><th>ролик</th><th>площадки</th></tr>
+    <tr>
+      <td>08-24 13:22</td>
+      <td class="t">Godzina zdjęć na cały miesiąc</td>
+      <td><div class="sieci"><span class="s jest">IG</span><span class="s jest">FB</span><span class="s jest">YT</span><span class="s jest">TT</span></div></td>
+    </tr><tr>
+      <td>08-23 11:36</td>
+      <td class="t">dlaczego-nikt-nie-pisze</td>
+      <td><div class="sieci"><span class="s jest">IG</span><span class="s jest">FB</span><span class="s jest">YT</span><span class="s jest">TT</span></div></td>
+    </tr><tr>
+      <td>08-22 13:16</td>
+      <td class="t">pierwsze-trzy-sekundy</td>
+      <td><div class="sieci"><span class="s jest">IG</span><span class="s jest">FB</span><span class="s jest">YT</span><span class="s ">TT</span></div></td>
+    </tr><tr>
+      <td>08-21 11:47</td>
+      <td class="t">ile-kosztuje-strona</td>
+      <td><div class="sieci"><span class="s jest">IG</span><span class="s jest">FB</span><span class="s ">YT</span><span class="s ">TT</span></div></td>
+    </tr><tr>
+      <td>08-20 20:50</td>
+      <td class="t">trzy-bledy-w-postach</td>
+      <td><div class="sieci"><span class="s jest">IG</span><span class="s jest">FB</span><span class="s ">YT</span><span class="s ">TT</span></div></td>
+    </tr><tr>
+      <td>08-19 18:40</td>
+      <td class="t">nie-obiecujemy-zasiegow</td>
+      <td><div class="sieci"><span class="s jest">IG</span><span class="s jest">FB</span><span class="s ">YT</span><span class="s ">TT</span></div></td>
+    </tr><tr>
+      <td>08-19 13:21</td>
+      <td class="t">pytanie-z-dm</td>
+      <td><div class="sieci"><span class="s jest">IG</span><span class="s jest">FB</span><span class="s ">YT</span><span class="s ">TT</span></div></td>
+    </tr><tr>
+      <td>08-20 11:44</td>
+      <td class="t">opis-profilu-przed-po</td>
+      <td><div class="sieci"><span class="s jest">IG</span><span class="s jest">FB</span><span class="s ">YT</span><span class="s ">TT</span></div></td>
+    </tr><tr>
+      <td>08-19 11:42</td>
+      <td class="t">trzy-sekundy</td>
+      <td><div class="sieci"><span class="s jest">IG</span><span class="s jest">FB</span><span class="s ">YT</span><span class="s ">TT</span></div></td>
+    </tr><tr>
+      <td>08-18 18:37</td>
+      <td class="t">mit-codziennie</td>
+      <td><div class="sieci"><span class="s jest">IG</span><span class="s jest">FB</span><span class="s ">YT</span><span class="s ">TT</span></div></td>
+    </tr><tr>
+      <td>08-17 13:20</td>
+      <td class="t">dlaczego-nikt-nie-pisze</td>
+      <td><div class="sieci"><span class="s jest">IG</span><span class="s jest">FB</span><span class="s ">YT</span><span class="s ">TT</span></div></td>
+    </tr><tr>
+      <td>08-16 13:16</td>
+      <td class="t">kulisy-bez-kamery</td>
+      <td><div class="sieci"><span class="s jest">IG</span><span class="s jest">FB</span><span class="s ">YT</span><span class="s ">TT</span></div></td>
+    </tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>Ждут очереди</h2>
+  <div class="przewin"><table>
+    <tr><th>когда</th><th>ролик</th><th>куда</th></tr>
+    <tr><td>08-25 13:00</td>
+      <td class="t">rolka-czy-post</td>
+      <td>IG · FB · YT · TT</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>Цифры по 15 роликам</h2>
+  <div class="cyfry">
+    <div class="c"><b>17</b><span>средний охват</span></div>
+    <div class="c"><b>22%</b><span>досмотр</span></div>
+    <div class="c"><b>0</b><span>сохранений</span></div>
+    <div class="c"><b>0</b><span>пересылок</span></div>
+  </div>
+</section>
+
+<footer>
+  Обновляется сама при каждом прогоне: сборка, выкладка, сторож.<br>
+  Постов в папке: 27 · последний слот: 2026-08-24-am
+</footer>
+
+</div></body></html>
