@@ -44,6 +44,27 @@ try { stan = JSON.parse(await readFile(stanPlik, 'utf8')); } catch { stan = {}; 
 // Демо для клиентов лежат отдельно и в ротацию НЕ входят: чужой ролик с чужим
 // призывом, попавший в наш перебор, вышел бы на аккаунте ZOVU как наш пост.
 // Поэтому сначала ищем среди демо и только по явному ключу.
+// Какие мысли уже стоят в очереди. Читаем ДО сборки: узнавать об этом
+// после — значит узнавать, потратив голос и двадцать минут.
+async function zajeteScenariusze() {
+  try {
+    const k = JSON.parse(await readFile(path.join(DIR, 'rolki', 'kolejka.json'), 'utf8'));
+    // Ключ берём и из паспорта, и из имени исходника: очередь считает
+    // повтором именно ИМЯ ФАЙЛА (auto-grafika-<ключ>.mp4), а паспорт у
+    // старых записей может отсутствовать.
+    const klucze = [];
+    for (const p of k) {
+      if (p.opublikowano) continue;
+      if (p.scenariusz) klucze.push(p.scenariusz);
+      const m = /^auto-grafika-(.+?).mp4$/.exec(p.zrodlo || '');
+      if (m) klucze.push(m[1]);
+    }
+    return klucze;
+  } catch {
+    return [];
+  }
+}
+
 const demo = KLUCZ ? DEMA.find((d) => d.klucz === KLUCZ) : null;
 // Сценарии с ведущим лежат отдельным банком: у них другая раскладка кадра
 // (центр занят лицом) и другая длина. В общую ротацию рисованных они не
@@ -53,7 +74,7 @@ const { scenariusz, idx: idxScen } = demo
   ? { scenariusz: demo, idx: null }
   : zWedacym
     ? { scenariusz: zWedacym, idx: null }
-    : wybierzScenariusz(KLUCZ, stan);
+    : wybierzScenariusz(KLUCZ, stan, await zajeteScenariusze());
 if (idxScen !== null) stan.grafikaScen = idxScen;
 console.log(`[grafika] сценарий «${scenariusz.klucz}»: ${scenariusz.nazwa}`);
 

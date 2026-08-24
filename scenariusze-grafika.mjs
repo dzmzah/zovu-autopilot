@@ -695,7 +695,7 @@ export const SCENARIUSZE = [CZAS, ODPOWIEDZ, RYTM, SESJA, PROFIL, KOMENTARZE, LI
 
 // Выбор сценария: по ключу из аргумента или по кругу из состояния. Круг, а не
 // случайность: лента должна перебирать все, а не тыкать в один и тот же.
-export function wybierzScenariusz(klucz, stan = {}) {
+export function wybierzScenariusz(klucz, stan = {}, zajeteKlucze = []) {
   if (klucz) {
     const s = SCENARIUSZE.find((x) => x.klucz === klucz);
     if (!s) {
@@ -705,6 +705,19 @@ export function wybierzScenariusz(klucz, stan = {}) {
     }
     return { scenariusz: s, idx: SCENARIUSZE.indexOf(s) };
   }
-  const idx = ((stan.grafikaScen ?? -1) + 1) % SCENARIUSZE.length;
+  // Обходим сценарии, которые уже ждут выкладки. Иначе выходит так, как
+  // 24.08: сборка сделала «sesja», потратила 22 минуты и дубль голоса, а
+  // очередь его выбросила — та же мысль там уже стояла. Проверка была ПОСЛЕ
+  // сборки, то есть после всех затрат.
+  const zajete = new Set(zajeteKlucze || []);
+  let idx = (stan.grafikaScen ?? -1);
+  for (let krok = 0; krok < SCENARIUSZE.length; krok++) {
+    idx = (idx + 1) % SCENARIUSZE.length;
+    if (!zajete.has(SCENARIUSZE[idx].klucz)) return { scenariusz: SCENARIUSZE[idx], idx };
+  }
+  // Все заняты — берём следующий по кругу и говорим об этом вслух: значит
+  // очередь набита и сборка сегодня лишняя.
+  idx = ((stan.grafikaScen ?? -1) + 1) % SCENARIUSZE.length;
+  console.warn('[grafika] все сценарии уже ждут выкладки — ролик, скорее всего, не пригодится');
   return { scenariusz: SCENARIUSZE[idx], idx };
 }
