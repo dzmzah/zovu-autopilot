@@ -42,6 +42,7 @@ jobs:
       - name: Голос и подложка
         env:
           ELEVENLABS_KEY: ${{ secrets.ELEVENLABS_KEY }}
+          ELEVENLABS_VOICE: ${{ secrets.ELEVENLABS_VOICE }}
         run: node przygotuj-wedacego.mjs --scenariusz=${{ inputs.scenariusz }}
 
       - name: Забрать MuseTalk
