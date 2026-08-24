@@ -26,22 +26,25 @@ const arg = (k, d = null) => {
   return a ? a.split('=').slice(1).join('=') : d;
 };
 
-const W = 1080, H = 1920, FPS = 50, SEK = 10.0;
+const W = 1080, H = 1920, FPS = 50, SEK = 9.0;
 const WYJSCIE = arg('wyjscie', path.join(DIR, 'out', 'proba-interfejs.mp4'));
 
 // Хореография. Одни и те же числа управляют всеми сценами — при правке
 // достаточно сдвинуть одну, остальное подстроится.
 const T = {
-  start: 0.10,   // телефон въезжает
-  ekran1: 0.60,  // логин
-  tap1: 2.00,    // палец нажимает «Zaloguj»
-  ekran2: 2.40,  // список заказов
-  karty: 2.70,   // карточки прилетают одна за другой
-  licznik: 4.20, // счётчик суммы
-  tap2: 5.20,    // тап по карточке
-  ekran3: 5.60,  // деталь заказа
-  wykres: 6.00,  // график рисуется
-  koniec: 8.20,  // отъезд и подпись
+  start: 0.06,    // телефон въезжает
+  ekran1: 0.34,   // логин
+  wpis: 0.90,     // поле заполняется само — кадр перестаёт быть статyczny
+  tap1: 1.60,     // палец нажимает «Zaloguj»
+  ekran2: 1.96,   // список заказов
+  karty: 2.16,    // карточки прилетают одна за другой
+  odznaki: 3.10,  // статусы OPŁACONE/W REALIZACJI дожимают пружиной
+  licznik: 3.50,  // счётчик суммы
+  tap2: 4.60,     // тап по карточке
+  ekran3: 4.94,   // деталь заказа
+  wykres: 5.30,   // график рисуется
+  chipy: 6.30,    // подписи под графиком
+  koniec: 7.30,   // отъезд и подпись
 };
 
 const KOLOR = {
@@ -84,6 +87,7 @@ body{background:${KOLOR.tlo1};overflow:hidden;font-family:'Inter',sans-serif;
 .pod{margin-top:10px;font-size:26px;color:${KOLOR.szary};font-weight:500}
 
 /* экран 1: вход */
+#kursor{font-style:normal;color:#7c3aed;font-weight:700}
 .pole{margin-top:34px;height:96px;border-radius:20px;background:#f6f5fb;
   border:2px solid ${KOLOR.linia};display:flex;align-items:center;padding:0 28px;
   font-size:26px;color:${KOLOR.szary};font-weight:500}
@@ -119,7 +123,19 @@ body{background:${KOLOR.tlo1};overflow:hidden;font-family:'Inter',sans-serif;
 .chip{padding:14px 22px;border-radius:14px;background:#f4f1ff;
   font-size:22px;font-weight:700;color:${KOLOR.akcent}}
 
+/* Контактная тень. Без неё телефон висит в пустоте — эффектный влёт
+   этого не лечит, лечит именно тень, która chodzi razem z obiektem. */
+#cien{position:absolute;left:50%;top:1560px;margin-left:-300px;width:600px;height:70px;
+  border-radius:50%;filter:blur(30px);opacity:0;
+  background:radial-gradient(ellipse at center, rgba(0,0,0,.75), rgba(0,0,0,0) 70%)}
+.karta{position:relative}
+.karta::after{content:'';position:absolute;left:8%;right:8%;bottom:-14px;height:22px;
+  border-radius:50%;filter:blur(10px);
+  background:radial-gradient(ellipse at center, rgba(21,18,38,.30), rgba(21,18,38,0) 72%)}
+
 /* палец */
+#fala{position:absolute;width:96px;height:96px;border-radius:50%;opacity:0;z-index:19;
+  border:4px solid rgba(255,255,255,.85)}
 #palec{position:absolute;width:96px;height:96px;border-radius:50%;
   background:radial-gradient(circle at 35% 35%, rgba(255,255,255,.9), rgba(255,255,255,.25));
   border:3px solid rgba(255,255,255,.8);opacity:0;z-index:20;
@@ -132,6 +148,7 @@ body{background:${KOLOR.tlo1};overflow:hidden;font-family:'Inter',sans-serif;
 </style></head><body>
 <div id="tlo"></div><div id="lampa"></div><div id="siatka"></div>
 
+<div id="cien"></div>
 <div id="fon">
   <div id="wysepka"></div>
   <div id="szkielko">
@@ -139,7 +156,7 @@ body{background:${KOLOR.tlo1};overflow:hidden;font-family:'Inter',sans-serif;
     <div class="ekran" id="e1">
       <div class="tytul">Zaloguj się</div>
       <div class="pod">Panel zamówień</div>
-      <div class="pole">adres@firma.pl</div>
+      <div class="pole"><span id="wpisText"></span><i id="kursor">|</i></div>
       <div class="pole">••••••••••</div>
       <div class="przycisk" id="btn1">Zaloguj</div>
       <div class="drobne">Nie pamiętasz hasła?</div>
@@ -188,6 +205,7 @@ body{background:${KOLOR.tlo1};overflow:hidden;font-family:'Inter',sans-serif;
   </div>
 </div>
 
+<div id="fala"></div>
 <div id="palec"></div>
 
 <div id="stopka">
@@ -212,6 +230,11 @@ linia.style.strokeDasharray = dl;
 window.__fit = () => {};
 
 window.setT = (t) => {
+  // Сетка макета медленно уплывает — фон перестаёт быть картинкой.
+  $('siatka').style.transform =
+    'translate3d(' + (-(t * 6) % 60).toFixed(1) + 'px,' + (-(t * 9) % 60).toFixed(1) + 'px,0)';
+  $('lampa').style.transform =
+    'translate3d(' + (Math.sin(t * 0.42) * 26).toFixed(1) + 'px,' + (Math.sin(t * 0.33 + 1) * 18).toFixed(1) + 'px,0)';
   // ── телефон ──────────────────────────────────────────────────
   const pf = easeBack(clamp01((t - T.start) / 0.80));
   const fon = $('fon');
@@ -223,36 +246,77 @@ window.setT = (t) => {
     ' rotateY(' + (fala(t, 2.0, .7) * 1.6 - odjazd * 4).toFixed(2) + 'deg)' +
     ' scale(' + (1 - (1 - pf) * .08 - odjazd * .06).toFixed(3) + ')';
 
+  // Тень дышит в противофазе к телефону: когда он поднимается, тень
+  // светлеет и расширяется. Это то, что делает предмет предметом.
+  const oddech = fala(t, 0.4, .9);
+  const cien = $('cien');
+  cien.style.opacity = (easeOut(clamp01((t - T.start) / 0.55)) * (1 - odjazd) * (0.55 - oddech * 0.10)).toFixed(3);
+  cien.style.transform = 'scaleX(' + (1 + oddech * 0.05 - odjazd * 0.2).toFixed(3) + ')' +
+    ' scaleY(' + (1 - oddech * 0.10).toFixed(3) + ')';
+
   // ── экран 1: вход ────────────────────────────────────────────
-  const w1 = clamp01((t - T.ekran2) / 0.32);
+  const w1 = clamp01((t - T.ekran2) / 0.30);
   const e1 = $('e1');
-  e1.style.opacity = easeOut(clamp01((t - T.ekran1) / 0.35)) * (1 - w1);
-  e1.style.transform = 'translateX(' + (-w1 * 120).toFixed(1) + 'px)';
+  e1.style.opacity = easeOut(clamp01((t - T.ekran1) / 0.30)) * (1 - w1);
+  // Экран не сдвигается, а ОТВОРАЧИВАЕТСЯ — плоский сдвиг читается как слайд
+  // в презентации, поворот читается как интерфейс.
+  e1.style.transform = 'perspective(1400px) rotateY(' + (-w1 * 42).toFixed(1) + 'deg)' +
+    ' translateX(' + (-w1 * 90).toFixed(1) + 'px) scale(' + (1 - w1 * 0.10).toFixed(3) + ')';
+
+  // Поле логина набирается само — это дешёвый ruch, ale kadr przestaje stać.
+  const pwpis = clamp01((t - T.wpis) / 0.55);
+  const adres = 'adres@firma.pl';
+  $('wpisText').textContent = adres.slice(0, Math.round(pwpis * adres.length));
+  $('kursor').style.opacity = pwpis < 1 ? (Math.sin(t * 18) > 0 ? 1 : .15) : 0;
   const nacisk = clamp01((t - T.tap1) / 0.18) * (1 - clamp01((t - T.tap1 - 0.18) / 0.18));
   $('btn1').style.transform = 'scale(' + (1 - nacisk * 0.05).toFixed(3) + ')';
 
   // ── экран 2: список ──────────────────────────────────────────
-  const w2 = clamp01((t - T.ekran3) / 0.32);
+  const w2 = clamp01((t - T.ekran3) / 0.30);
   const e2 = $('e2');
-  e2.style.opacity = easeOut(clamp01((t - T.ekran2) / 0.35)) * (1 - w2);
-  e2.style.transform = 'translateX(' + ((1 - easeOut(clamp01((t - T.ekran2) / 0.42))) * 140 - w2 * 120).toFixed(1) + 'px)';
+  const we2 = easeOut(clamp01((t - T.ekran2) / 0.38));
+  e2.style.opacity = we2 * (1 - w2);
+  e2.style.transform = 'perspective(1400px) rotateY(' + ((1 - we2) * 40 - w2 * 42).toFixed(1) + 'deg)' +
+    ' translateX(' + ((1 - we2) * 100 - w2 * 90).toFixed(1) + 'px)' +
+    ' scale(' + (1 - (1 - we2) * 0.10 - w2 * 0.10).toFixed(3) + ')';
 
   karty.forEach((k, i) => {
-    const a = T.karty + i * 0.22;
-    const p = clamp01((t - a) / 0.42);
+    const a = T.karty + i * 0.18;
+    const p = clamp01((t - a) / 0.40);
     k.style.opacity = easeOut(Math.min(1, p * 1.8));
-    k.style.transform = 'translate3d(0,' + ((1 - easeBack(p)) * 34 + fala(t, i * .8, 1.1) * 1.8).toFixed(1) + 'px,0)' +
-      ' scale(' + (0.96 + easeOut(p) * 0.04).toFixed(3) + ')';
+    // ПЛАВАНИЕ ПОСЛЕ ПОСАДКИ: амплитуда 4 px вместо 1,8 и свой сдвиг фазы
+    // у каждой карты. Проверка простая — кадр живёт, когда всё уже прилетело.
+    const plyw = fala(t, i * 0.9, 1.05) * 4;
+    k.style.transform = 'perspective(1200px)' +
+      ' translate3d(0,' + ((1 - easeBack(p)) * 40 + plyw).toFixed(1) + 'px,0)' +
+      ' rotateX(' + ((1 - easeBack(p)) * -12 + fala(t, i * 0.9 + 1, 1.05) * 0.5).toFixed(2) + 'deg)' +
+      ' scale(' + (0.95 + easeOut(p) * 0.05).toFixed(3) + ')';
+    const st = k.querySelector('.stan');
+    const po = easeBack(clamp01((t - T.odznaki - i * 0.10) / 0.36));
+    st.style.opacity = clamp01((t - T.odznaki - i * 0.10) / 0.20);
+    st.style.transform = 'scale(' + (0.6 + po * 0.4).toFixed(3) + ')';
   });
 
-  const pl = clamp01((t - T.licznik) / 0.7);
+  const pl = clamp01((t - T.licznik) / 0.62);
   $('licznik').textContent = Math.round(easeOut(pl) * 4380).toLocaleString('pl-PL');
+  // Цифра доезжает и коротко подпрыгивает — иначе счётчик просто гаснет.
+  const skok = pl >= 1 ? Math.max(0, 1 - (t - T.licznik - 0.62) / 0.30) : 0;
+  $('licznik').parentElement.style.transform =
+    'scale(' + (1 + skok * 0.06).toFixed(3) + ')';
 
   // ── экран 3: деталь и график ─────────────────────────────────
   const e3 = $('e3');
-  e3.style.opacity = easeOut(clamp01((t - T.ekran3) / 0.35));
-  e3.style.transform = 'translateX(' + ((1 - easeOut(clamp01((t - T.ekran3) / 0.42))) * 140).toFixed(1) + 'px)';
-  const pw = easeOut(clamp01((t - T.wykres) / 1.1));
+  const we3 = easeOut(clamp01((t - T.ekran3) / 0.38));
+  e3.style.opacity = we3;
+  e3.style.transform = 'perspective(1400px) rotateY(' + ((1 - we3) * 40).toFixed(1) + 'deg)' +
+    ' translateX(' + ((1 - we3) * 100).toFixed(1) + 'px)' +
+    ' scale(' + (1 - (1 - we3) * 0.10).toFixed(3) + ')';
+  [].slice.call(document.querySelectorAll('#e3 .chip')).forEach((c, i) => {
+    const p = easeBack(clamp01((t - T.chipy - i * 0.12) / 0.40));
+    c.style.opacity = clamp01((t - T.chipy - i * 0.12) / 0.24);
+    c.style.transform = 'translate3d(0,' + ((1 - p) * 22 + fala(t, i * 1.3, 1.1) * 2).toFixed(1) + 'px,0)';
+  });
+  const pw = easeOut(clamp01((t - T.wykres) / 0.95));
   linia.style.strokeDashoffset = dl * (1 - pw);
   $('kropka').setAttribute('opacity', pw > .98 ? (0.5 + Math.abs(fala(t, 0, 2)) * 0.5).toFixed(2) : 0);
 
@@ -266,6 +330,21 @@ window.setT = (t) => {
   };
   tap(T.tap1, 540, 1210);
   tap(T.tap2, 540, 690);
+  // Волна расходится из точки нажатия — без неё тап выглядит как курсор,
+  // который просто оказался в нужном месте.
+  const falaEl = $('fala');
+  let fx = 0, fy = 0, fo = 0, fs = 1;
+  const wave = (a, x, y) => {
+    const p = clamp01((t - a) / 0.55);
+    if (p > 0 && p < 1) { fx = x; fy = y; fo = (1 - p) * 0.9; fs = 1 + p * 2.4; }
+  };
+  wave(T.tap1, 540, 1210);
+  wave(T.tap2, 540, 690);
+  falaEl.style.opacity = fo;
+  falaEl.style.left = (fx - 48) + 'px';
+  falaEl.style.top = (fy - 48) + 'px';
+  falaEl.style.transform = 'scale(' + fs.toFixed(3) + ')';
+
   palec.style.opacity = po;
   palec.style.left = (px - 48) + 'px';
   palec.style.top = (py - 48) + 'px';

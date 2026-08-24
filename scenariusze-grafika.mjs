@@ -26,14 +26,14 @@ const CZAS = {
     // Замер первого дубля: хук шёл 6,1 слог/с при планке 5,0 — тараторил.
     // Лечится не растяжкой, а точкой внутри фразы: на точке модель делает
     // настоящую паузу, темп падает сам, и ролик открывается одним словом.
-    { rola: 'hak', tekst: 'Instagram. Ile czasu ci zjada?', pauza: 0.34 },
+    { rola: 'hak', tekst: 'Instagram. Ile czasu zjada?', pauza: 0.34 },
     { rola: 'hak', tekst: 'Policzmy.', pauza: 0.42 },
-    { rola: 'tresc', tekst: 'Jeden post to dwadzieścia minut.', pauza: 0.30 },
+    { rola: 'tresc', tekst: 'Post to dwadzieścia minut.', pauza: 0.30 },
     { rola: 'tresc', tekst: 'Razy trzydzieści dni.', pauza: 0.34 },
-    { rola: 'tresc', tekst: 'Dziesięć godzin miesięcznie. Twoich.', pauza: 0.38 },
-    { rola: 'zaplata', tekst: 'Te dziesięć godzin możesz oddać.', pauza: 0.34 },
-    { rola: 'zaplata', tekst: 'Komuś, kto robi to codziennie.', pauza: 0.30 },
-    { rola: 'cta', tekst: 'Ile godzin wychodzi tobie? Napisz w komentarzu.', pauza: 0.20 },
+    { rola: 'tresc', tekst: 'Dziesięć godzin. Twoich.', pauza: 0.38 },
+    { rola: 'zaplata', tekst: 'Możesz je oddać.', pauza: 0.34 },
+    { rola: 'zaplata', tekst: 'Komuś, kto robi to co dzień.', pauza: 0.30 },
+    { rola: 'cta', tekst: 'Ile wychodzi tobie? Napisz.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     const scena = [
@@ -103,7 +103,7 @@ const CZAS = {
     ];
 
     const akcenty = {
-      zolty: ['policzmy', 'oddać', 'codziennie', 'czas', 'policzymy'],
+      zolty: ['policzmy', 'oddać', 'czas', 'dzień'],
       czerwony: ['zjada', 'dziesięć', 'godzin', 'twoich'],
     };
 
@@ -140,13 +140,13 @@ const ODPOWIEDZ = {
     // Поэтому здесь у КАЖДОЙ фразы есть внутренняя точка. Проверка — замер,
     // а не слух.
     { rola: 'hak', tekst: 'Klient pyta o cenę.', pauza: 0.40 },
-    { rola: 'hak', tekst: 'Napisał wieczorem. Ty odpowiadasz rano.', pauza: 0.38 },
-    { rola: 'tresc', tekst: 'On w tym czasie pyta trzy inne firmy.', pauza: 0.32 },
-    { rola: 'tresc', tekst: 'Żadna z nich nie czeka. Ani jedna.', pauza: 0.36 },
-    { rola: 'tresc', tekst: 'Wybiera pierwszą odpowiedź. Nie najlepszą.', pauza: 0.38 },
-    { rola: 'zaplata', tekst: 'Twoja oferta była lepsza. Naprawdę.', pauza: 0.32 },
-    { rola: 'zaplata', tekst: 'Tylko przyszła za późno. O jeden dzień.', pauza: 0.40 },
-    { rola: 'cta', tekst: 'Wyślij to wspólnikowi, jeśli odpisujecie na zmianę.', pauza: 0.20 },
+    { rola: 'hak', tekst: 'Pisze wieczorem. Odpisujesz rano.', pauza: 0.38 },
+    { rola: 'tresc', tekst: 'Pyta trzy inne firmy.', pauza: 0.32 },
+    { rola: 'tresc', tekst: 'Żadna nie czeka.', pauza: 0.36 },
+    { rola: 'tresc', tekst: 'Wybiera pierwszą odpowiedź.', pauza: 0.38 },
+    { rola: 'zaplata', tekst: 'Twoja była lepsza.', pauza: 0.32 },
+    { rola: 'zaplata', tekst: 'Tylko przyszła za późno.', pauza: 0.40 },
+    { rola: 'cta', tekst: 'Wyślij to wspólnikowi.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     const scena = [
@@ -226,8 +226,8 @@ const ODPOWIEDZ = {
     // Слова сверены с новым текстом дословно: подсветка ищет точную форму, и
     // «spóźniona» из первой версии просто никогда бы не сработала — молча.
     const akcenty = {
-      zolty: ['pierwszą', 'szybko', 'odpowiedzi', 'ustawimy'],
-      czerwony: ['jutro', 'późno', 'trzy', 'żadna', 'najlepszą'],
+      zolty: ['lepsza', 'wspólnikowi'],
+      czerwony: ['późno', 'trzy', 'żadna', 'pierwszą'],
     };
 
     return { scena, metki, wzor, liczniki, kamera, akcenty };
@@ -243,14 +243,14 @@ const RYTM = {
   klucz: 'rytm',
   nazwa: 'Rytm bije zryw',
   frazy: [
-    { rola: 'hak', tekst: 'Dziesięć postów w jeden dzień.', pauza: 0.36 },
+    { rola: 'hak', tekst: 'Dziesięć postów w dzień.', pauza: 0.36 },
     { rola: 'hak', tekst: 'Potem cisza na miesiąc.', pauza: 0.40 },
     { rola: 'tresc', tekst: 'Zrób inaczej. Dwa razy w tygodniu.', pauza: 0.32 },
     { rola: 'tresc', tekst: 'Razy cztery tygodnie.', pauza: 0.34 },
-    { rola: 'tresc', tekst: 'Osiem postów miesięcznie. Bez zrywu.', pauza: 0.38 },
-    { rola: 'zaplata', tekst: 'Ten sam wysiłek co wcześniej.', pauza: 0.32 },
+    { rola: 'tresc', tekst: 'Osiem postów. Bez zrywu.', pauza: 0.38 },
+    { rola: 'zaplata', tekst: 'Ten sam wysiłek.', pauza: 0.32 },
     { rola: 'zaplata', tekst: 'Ludzie zapamiętują rytm.', pauza: 0.40 },
-    { rola: 'cta', tekst: 'Zapisz sobie ten rachunek na poniedziałek.', pauza: 0.20 },
+    { rola: 'cta', tekst: 'Zapisz ten rachunek.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     const scena = [
@@ -323,7 +323,7 @@ const RYTM = {
     ];
 
     const akcenty = {
-      zolty: ['osiem', 'rytm', 'zapamiętują', 'ułożymy'],
+      zolty: ['osiem', 'rytm', 'zapamiętują'],
       czerwony: ['cisza', 'dziesięć', 'zrywu'],
     };
 
@@ -345,13 +345,13 @@ const SESJA = {
     // ElevenLabs гонит: замер давал 6,2 слог/с при планке 5,6, и растяжкой
     // это не лечится — от неё слышно ИИ. Лечится длиной и настоящей паузой.
     { rola: 'hak', tekst: 'Godzina zdjęć.', pauza: 0.40 },
-    { rola: 'hak', tekst: 'I masz spokój na miesiąc. To zwykły rachunek.', pauza: 0.38 },
+    { rola: 'hak', tekst: 'I spokój na miesiąc.', pauza: 0.38 },
     { rola: 'tresc', tekst: 'Jedna sesja to dwanaście kadrów.', pauza: 0.32 },
-    { rola: 'tresc', tekst: 'Wystawiasz trzy kadry na tydzień.', pauza: 0.34 },
-    { rola: 'tresc', tekst: 'Cztery tygodnie z jednej godziny.', pauza: 0.38 },
+    { rola: 'tresc', tekst: 'Trzy kadry na tydzień.', pauza: 0.34 },
+    { rola: 'tresc', tekst: 'Cztery tygodnie z godziny.', pauza: 0.38 },
     { rola: 'zaplata', tekst: 'Nic nie wymyślasz w niedzielę.', pauza: 0.34 },
-    { rola: 'zaplata', tekst: 'Zdjęcia czekają gotowe w folderze.', pauza: 0.38 },
-    { rola: 'cta', tekst: 'Napisz SESJA, a zaplanujemy zdjęcia.', pauza: 0.20 },
+    { rola: 'zaplata', tekst: 'Zdjęcia czekają w folderze.', pauza: 0.38 },
+    { rola: 'cta', tekst: 'Napisz SESJA.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     const scena = [
@@ -428,7 +428,7 @@ const SESJA = {
     // Каждое слово сверено с текстом дословно: подсветка ищет точную форму и
     // на непопавшемся слове молча не работает.
     const akcenty = {
-      zolty: ['spokój', 'cztery', 'gotowe', 'sesja', 'zaplanujemy'],
+      zolty: ['spokój', 'cztery', 'sesja'],
       czerwony: ['wymyślasz', 'niedzielę'],
     };
 
@@ -446,13 +446,13 @@ const PROFIL = {
   nazwa: 'Pierwsze sześć kadrów profilu',
   frazy: [
     { rola: 'hak', tekst: 'Ktoś wchodzi na twój profil.', pauza: 0.40 },
-    { rola: 'hak', tekst: 'Pierwszy raz. Widzi sześć kadrów i nic więcej.', pauza: 0.38 },
-    { rola: 'tresc', tekst: 'Trzy w rzędzie, dwa rzędy. Tyle widać.', pauza: 0.34 },
+    { rola: 'hak', tekst: 'Widzi sześć kadrów.', pauza: 0.38 },
+    { rola: 'tresc', tekst: 'Trzy w rzędzie, dwa rzędy.', pauza: 0.34 },
     { rola: 'tresc', tekst: 'Sześć zdjęć decyduje o tobie.', pauza: 0.34 },
-    { rola: 'tresc', tekst: 'Zobacz swoje. Co z nich rozumiesz?', pauza: 0.38 },
-    { rola: 'zaplata', tekst: 'Dalej nikt nie schodzi. Zamyka i wychodzi.', pauza: 0.36 },
-    { rola: 'zaplata', tekst: 'Sześć kadrów, jedna myśl. Tyle wystarczy.', pauza: 0.38 },
-    { rola: 'cta', tekst: 'Napisz PROFIL, a przejrzymy twoje kadry.', pauza: 0.20 },
+    { rola: 'tresc', tekst: 'Zobacz swoje. Co widać?', pauza: 0.38 },
+    { rola: 'zaplata', tekst: 'Dalej nikt nie schodzi.', pauza: 0.36 },
+    { rola: 'zaplata', tekst: 'Sześć kadrów, jedna myśl.', pauza: 0.38 },
+    { rola: 'cta', tekst: 'Napisz PROFIL.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     const scena = [
@@ -525,8 +525,8 @@ const PROFIL = {
     ];
 
     const akcenty = {
-      zolty: ['myśl', 'wystarczy', 'profil', 'przejrzymy'],
-      czerwony: ['sześć', 'zamyka', 'wychodzi', 'nich'],
+      zolty: ['myśl', 'profil'],
+      czerwony: ['sześć', 'schodzi'],
     };
 
     return { scena, metki, wzor, liczniki, kamera, akcenty };
@@ -543,13 +543,13 @@ const KOMENTARZE = {
   nazwa: 'Kwadrans dziennie w komentarzach',
   frazy: [
     { rola: 'hak', tekst: 'Kwadrans dziennie.', pauza: 0.40 },
-    { rola: 'hak', tekst: 'Tylko na komentarze. Zobacz, ile daje w tygodniu.', pauza: 0.38 },
-    { rola: 'tresc', tekst: 'Piętnaście minut razy siedem dni.', pauza: 0.34 },
-    { rola: 'tresc', tekst: 'To sto pięć minut rozmów z klientami.', pauza: 0.34 },
-    { rola: 'tresc', tekst: 'Prawdziwych rozmów. Nie samych lajków.', pauza: 0.38 },
-    { rola: 'zaplata', tekst: 'Ludzie pamiętają, kto im odpisał.', pauza: 0.34 },
-    { rola: 'zaplata', tekst: 'Kwadrans dziennie robi tę różnicę.', pauza: 0.38 },
-    { rola: 'cta', tekst: 'Kwadrans dziennie. Zapisz i sprawdź przez tydzień.', pauza: 0.20 },
+    { rola: 'hak', tekst: 'Tylko na komentarze.', pauza: 0.38 },
+    { rola: 'tresc', tekst: 'Piętnaście minut razy siedem.', pauza: 0.34 },
+    { rola: 'tresc', tekst: 'Sto pięć minut rozmów.', pauza: 0.34 },
+    { rola: 'tresc', tekst: 'Prawdziwych. Nie lajków.', pauza: 0.38 },
+    { rola: 'zaplata', tekst: 'Ludzie pamiętają, kto odpisał.', pauza: 0.34 },
+    { rola: 'zaplata', tekst: 'Kwadrans robi różnicę.', pauza: 0.38 },
+    { rola: 'cta', tekst: 'Sprawdź przez tydzień.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     const scena = [
@@ -615,7 +615,7 @@ const KOMENTARZE = {
     ];
 
     const akcenty = {
-      zolty: ['rozmów', 'pamiętają', 'odpisał', 'kwadrans', 'pokażemy'],
+      zolty: ['rozmów', 'pamiętają', 'odpisał', 'kwadrans'],
       czerwony: ['lajków'],
     };
 
@@ -643,13 +643,13 @@ const LISTA = {
     // Один хук, а не два: проба вышла 29 секунд при планке 20-24. Точка
     // внутри фразы держит темп не хуже разрыва на две реплики.
     { rola: 'hak', tekst: 'Sesja? Pół godziny czekania.', pauza: 0.42 },
-    { rola: 'tresc', tekst: 'Chyba że przygotujesz pięć rzeczy. Lista ujęć na kartce.', pauza: 0.30 },
-    { rola: 'tresc', tekst: 'Produkty odpakowane i czyste.', pauza: 0.30 },
+    { rola: 'tresc', tekst: 'Chyba że masz pięć rzeczy.', pauza: 0.30 },
+    { rola: 'tresc', tekst: 'Produkty odpakowane.', pauza: 0.30 },
     { rola: 'tresc', tekst: 'Jedno tło. Nie cztery.', pauza: 0.30 },
     { rola: 'tresc', tekst: 'Ubrania bez wielkich logo.', pauza: 0.30 },
     { rola: 'tresc', tekst: 'Decydent na miejscu.', pauza: 0.36 },
-    { rola: 'zaplata', tekst: 'Bez tego fotograf czeka, a płacisz ty.', pauza: 0.34 },
-    { rola: 'cta', tekst: 'Wyślij to komuś, kto właśnie umawia sesję.', pauza: 0.20 },
+    { rola: 'zaplata', tekst: 'Bez tego płacisz za czekanie.', pauza: 0.34 },
+    { rola: 'cta', tekst: 'Wyślij komuś, kto umawia sesję.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     // Предметов мало и они мелкие: главное здесь — список, и спорить с ним
@@ -683,7 +683,7 @@ const LISTA = {
     ];
 
     const akcenty = {
-      zolty: ['pięć', 'przygotujesz', 'zapisz', 'piątkę'],
+      zolty: ['pięć', 'wyślij'],
       czerwony: ['czekanie', 'czeka', 'płacisz'],
     };
 
