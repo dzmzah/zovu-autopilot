@@ -35,6 +35,11 @@ const TLO = arg('tlo', '#0f0b1e');
 // речью, а хук обязан начаться в первые 1,7 секунды — мы бы съели больше
 // половины этого окна заставкой. Наложение оставляет звук на месте.
 const NAKLADKA = process.argv.includes('--nakladka');
+// Момент, с которого лежит карточка. Ноль — хук в начале. Отрицательное
+// число — отсчёт от конца: так ставится кадр-итог, то, что зритель уносит.
+// Ноль сохранений за тринадцать роликов взялся именно отсюда: ролик
+// кончался нашей же рекламой, и уносить было нечего.
+const OD = Number(arg('od', '0'));
 const AKCENT = arg('akcent', '#ffd23f');
 
 const OUT = path.join(DIR, 'out', 'pierwsza-klatka');
@@ -81,6 +86,14 @@ await pg.screenshot({ path: karta, omitBackground: NAKLADKA });
 await br.close();
 
 if (NAKLADKA) {
+  let start = OD;
+  if (OD < 0) {
+    const { stdout } = await execFileAsync('ffprobe', [
+      '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', PLIK,
+    ]);
+    start = Math.max(0, parseFloat(stdout.trim()) + OD);
+  }
+
   // Карточка лежит поверх первых секунд и уходит растворением: резкое
   // исчезновение читается как сбой, плавное — как приём.
   await execFileAsync('ffmpeg', [
@@ -88,14 +101,15 @@ if (NAKLADKA) {
     '-i', PLIK, '-loop', '1', '-i', karta,
     '-filter_complex',
     `[1:v]format=rgba,fade=t=out:st=${(TRWA - 0.35).toFixed(2)}:d=0.35:alpha=1,` +
-      `scale=${W}:${H}[k];[0:v][k]overlay=0:0:enable='lt(t,${TRWA})':format=auto,format=yuv420p[v]`,
+      `scale=${W}:${H},setpts=PTS+${start.toFixed(2)}/TB[k];` +
+      `[0:v][k]overlay=0:0:enable='between(t,${start.toFixed(2)},${(start + TRWA).toFixed(2)})':format=auto,format=yuv420p[v]`,
     // Без ограничителя картинка с -loop 1 бесконечна, и склейка гонит файл
     // до упора: первый прогон выдал 68 МБ и не остановился.
     '-shortest',
     '-map', '[v]', '-map', '0:a?', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18',
     '-c:a', 'copy', WYJSCIE,
   ]);
-  console.log(`[хук] наложение ${TRWA} с → ${WYJSCIE}`);
+  console.log(`[хук] наложение ${TRWA} с c ${OD < 0 ? 'конца' : OD.toFixed(1) + ' с'} → ${WYJSCIE}`);
   process.exit(0);
 }
 
