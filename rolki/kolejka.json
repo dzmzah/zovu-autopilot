@@ -453,5 +453,30 @@
       5.8,
       5.1
     ]
+  },
+  {
+    "plik": "auto-2026-08-25-1.mp4",
+    "kiedy": "2026-08-27T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Tej rolki nikt nie nagrywał.\n\nNie było kamery, planu zdjęciowego ani człowieka przed obiektywem. Scenariusz, głos, materiał i montaż złożyły się rano, same.\n\nNie zastąpi to prawdziwych zdjęć twojego miejsca. Ale gdy termin był na wczoraj — robi robotę.\n\nNapisz TEMPO, a pokażemy, jak ustawić to u siebie.\n\nzovu.pl\n\n#katowice #chorzow #mojafirma #firmarodzinna #wideomarketing",
+    "opublikowano": null,
+    "zrodlo": "auto-kulisy-bez-kamery.mp4",
+    "scenariusz": "kulisy-bez-kamery",
+    "forma": "kulisy",
+    "temat": "jak powstaje ta rolka",
+    "dlugosc": 16.59,
+    "planow": 5,
+    "tempo": [
+      3.4,
+      4.9,
+      5,
+      4.3,
+      5.5
+    ]
   }
 ]
