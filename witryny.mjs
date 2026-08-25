@@ -47,15 +47,15 @@ const OUT = path.join(DIR, 'broll', 'witryny');
 const VW = W / 2, VH = H / 2;
 
 export const WITRYNY = [
-  { klucz: 'zovu', url: 'https://zovu.pl', nazwa: 'zovu.pl', czym: 'сайт студии' },
+  { klucz: 'zovu', url: 'https://zovu.pl', nazwa: 'zovu.pl', czym: 'strona studia' },
   // Портфолио открывается по-русски: язык запоминается в браузере, а у чистого
   // профиля Playwright его нет. Русский текст в польском ролике — брак, который
   // на контрольном листе видно сразу, а в сборке уже поздно.
-  { klucz: 'zah', url: 'https://zah.zovu.pl', nazwa: 'zah.zovu.pl', czym: 'портфолио', jezyk: 'PL' },
-  { klucz: '4k', url: 'https://zovupl.github.io/4K/', nazwa: '4K', czym: 'автосервис' },
-  { klucz: 'rezydencja', url: 'https://zovupl.github.io/rezydencja/', nazwa: 'Rezydencja', czym: 'вилла под ключ' },
-  { klucz: 'rolki', url: 'https://dzmzah.github.io/rolki/', nazwa: 'rolki', czym: 'оффер' },
-  { klucz: 'maya', url: 'https://dzmzah.github.io/maya-gold/', nazwa: 'MAYA GOLD', czym: 'витрина' },
+  { klucz: 'zah', url: 'https://zah.zovu.pl', nazwa: 'zah.zovu.pl', czym: 'portfolio', jezyk: 'PL' },
+  { klucz: '4k', url: 'https://zovupl.github.io/4K/', nazwa: '4K', czym: 'serwis samochodowy' },
+  { klucz: 'rezydencja', url: 'https://zovupl.github.io/rezydencja/', nazwa: 'Rezydencja', czym: 'willa na sprzedaż' },
+  { klucz: 'rolki', url: 'https://dzmzah.github.io/rolki/', nazwa: 'rolki', czym: 'oferta rolek' },
+  { klucz: 'maya', url: 'https://dzmzah.github.io/maya-gold/', nazwa: 'MAYA GOLD', czym: 'sklep jubilerski' },
 ];
 
 // Плавность решает всё: линейный проезд читается как машинная прокрутка,
@@ -100,7 +100,22 @@ const SPRZATANIE = `
 // Рамка — один PNG на весь кадр: фирменный фон и тень, а на месте экрана
 // дырка. Кладём его ПОВЕРХ видео, и скруглённые углы получаются сами формой
 // дырки — маску и alphamerge городить не нужно.
-async function zbudujRamke(br, plik) {
+// Подпись работы живёт НИЖЕ подписей ролика (те стоят около 1180-1300 px).
+// Без неё нижние 800 px кадра пустуют почти половину ролика — замер на пробе
+// 25.08 дал 44 % кадров без единой буквы внизу. И зритель не знает, чей
+// сайт он видит: экран без имени — это просто чей-то экран.
+const PODPIS_Y = 1452;
+
+async function zbudujRamke(br, plik, w = null) {
+  const podpis = w
+    ? `
+    <text x="${W / 2}" y="${PODPIS_Y}" text-anchor="middle"
+          font-family="Inter, Segoe UI, sans-serif" font-size="46" font-weight="700"
+          fill="#efeaff" letter-spacing="1">${w.nazwa}</text>
+    <text x="${W / 2}" y="${PODPIS_Y + 46}" text-anchor="middle"
+          font-family="Inter, Segoe UI, sans-serif" font-size="27" font-weight="500"
+          fill="#9b7bff" letter-spacing="4">${String(w.czym).toUpperCase()}</text>`
+    : '';
   const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
   <defs>
@@ -125,6 +140,7 @@ async function zbudujRamke(br, plik) {
     <rect x="${EKRAN.x - 3}" y="${EKRAN.y - 3}" width="${EKRAN.szer + 6}" height="${EKRAN.wys + 6}"
           rx="${EKRAN.promien + 3}" fill="none" stroke="#5b32e0" stroke-opacity="0.45" stroke-width="3"/>
   </g>
+  ${podpis}
 </svg>`;
   const pg = await br.newPage({ viewport: { width: W, height: H } });
   await pg.setContent(
@@ -188,7 +204,8 @@ async function snimi(br, w) {
   await pg.close();
 
   const plik = path.join(OUT, w.klucz + '.mp4');
-  const ramka = path.join(OUT, '.ramka.png');
+  const ramka = path.join(OUT, '.ramka-' + w.klucz + '.png');
+  await zbudujRamke(br, ramka, w);
   await exe('ffmpeg', [
     '-y', '-hide_banner', '-loglevel', 'error',
     '-framerate', String(FPS),
@@ -219,7 +236,6 @@ if (!lista.length) throw new Error('нечего снимать: проверь 
 
 await mkdir(OUT, { recursive: true });
 const br = await chromium.launch();
-await zbudujRamke(br, path.join(OUT, '.ramka.png'));
 const opis = [];
 for (const w of lista) {
   try {

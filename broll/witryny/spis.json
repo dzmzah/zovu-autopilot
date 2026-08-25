@@ -3,7 +3,7 @@
   "klucz": "zovu",
   "url": "https://zovu.pl",
   "nazwa": "zovu.pl",
-  "czym": "сайт студии",
+  "czym": "strona studia",
   "plik": "zovu.mp4",
   "sekundy": 6
  },
@@ -11,16 +11,24 @@
   "klucz": "zah",
   "url": "https://zah.zovu.pl",
   "nazwa": "zah.zovu.pl",
-  "czym": "портфолио",
+  "czym": "portfolio",
   "jezyk": "PL",
   "plik": "zah.mp4",
+  "sekundy": 6
+ },
+ {
+  "klucz": "4k",
+  "url": "https://zovupl.github.io/4K/",
+  "nazwa": "4K",
+  "czym": "serwis samochodowy",
+  "plik": "4k.mp4",
   "sekundy": 6
  },
  {
   "klucz": "rezydencja",
   "url": "https://zovupl.github.io/rezydencja/",
   "nazwa": "Rezydencja",
-  "czym": "вилла под ключ",
+  "czym": "willa na sprzedaż",
   "plik": "rezydencja.mp4",
   "sekundy": 6
  },
@@ -28,7 +36,7 @@
   "klucz": "rolki",
   "url": "https://dzmzah.github.io/rolki/",
   "nazwa": "rolki",
-  "czym": "оффер",
+  "czym": "oferta rolek",
   "plik": "rolki.mp4",
   "sekundy": 6
  },
@@ -36,7 +44,7 @@
   "klucz": "maya",
   "url": "https://dzmzah.github.io/maya-gold/",
   "nazwa": "MAYA GOLD",
-  "czym": "витрина",
+  "czym": "sklep jubilerski",
   "plik": "maya.mp4",
   "sekundy": 6
  }
