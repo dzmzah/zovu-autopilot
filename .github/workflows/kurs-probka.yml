@@ -1,0 +1,38 @@
+name: ZOVU próbka kursu audio
+
+# Próbka dla klienta Marcin Morzywolek (Useme, kurs audio PL/EN).
+#
+# Na serwerze, bo klucz ElevenLabs siedzi w sekretach GitHuba — lokalnie
+# go nie ma i skrypt świadomie się wywala zamiast po cichu podstawić Pipera.
+#
+# Sedno próbki: pauza po każdej frazie równa jej własnej długości. U poprzedniego
+# wykonawcy przerwy szły 0,6 / 1,2 / 3,1 / 3,8 s i przez to kursu nie dawało się
+# słuchać w aucie. Tu reguła jest jedna i policzona.
+on:
+  workflow_dispatch:
+
+jobs:
+  probka:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Synteza i montaż
+        env:
+          ELEVENLABS_KEY: ${{ secrets.ELEVENLABS_KEY }}
+        run: node kurs-probka.mjs
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: probka-kursu
+          path: out/kurs-probka/ZOVU-probka-kursu.mp3
+          if-no-files-found: error
