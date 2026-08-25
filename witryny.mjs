@@ -29,6 +29,15 @@ const arg = (k, d = null) => {
 };
 
 const W = 1080, H = 1920, FPS = 50;
+
+// Сайт НЕ на весь кадр. Причина не в красоте: подписи ролика встают около
+// 1180-1300 px, а сайт — это сплошной текст, и наша фраза ложилась прямо на
+// его заголовок. В пробе 25.08 «DZIAŁA DZIŚ.» село на «OSTATNIE PROJEKTY» —
+// то самое «текст поверх текста», за которое ролики уже прилетало.
+// Поэтому страница живёт экраном телефона в верхней части кадра, а низ
+// остаётся чистым полем для подписей и номерных плашек.
+const EKRAN = { szer: 592, wys: 1052, x: 244, y: 74, promien: 46 };
+const DOL_WOLNY = H - (EKRAN.y + EKRAN.wys); // 794 px чистого поля
 const SEK = Number(arg('sekundy', 7));
 const OUT = path.join(DIR, 'broll', 'witryny');
 
@@ -88,6 +97,44 @@ const SPRZATANIE = `
   });
 `;
 
+// Рамка — один PNG на весь кадр: фирменный фон и тень, а на месте экрана
+// дырка. Кладём его ПОВЕРХ видео, и скруглённые углы получаются сами формой
+// дырки — маску и alphamerge городить не нужно.
+async function zbudujRamke(br, plik) {
+  const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
+  <defs>
+    <linearGradient id="tlo" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#241a44"/>
+      <stop offset="0.55" stop-color="#150f2a"/>
+      <stop offset="1" stop-color="#0b0816"/>
+    </linearGradient>
+    <filter id="cien" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="30"/>
+    </filter>
+    <mask id="dziura">
+      <rect width="${W}" height="${H}" fill="#fff"/>
+      <rect x="${EKRAN.x}" y="${EKRAN.y}" width="${EKRAN.szer}" height="${EKRAN.wys}"
+            rx="${EKRAN.promien}" ry="${EKRAN.promien}" fill="#000"/>
+    </mask>
+  </defs>
+  <g mask="url(#dziura)">
+    <rect width="${W}" height="${H}" fill="url(#tlo)"/>
+    <rect x="${EKRAN.x - 10}" y="${EKRAN.y + 16}" width="${EKRAN.szer + 20}" height="${EKRAN.wys + 20}"
+          rx="${EKRAN.promien + 8}" fill="#000" opacity="0.55" filter="url(#cien)"/>
+    <rect x="${EKRAN.x - 3}" y="${EKRAN.y - 3}" width="${EKRAN.szer + 6}" height="${EKRAN.wys + 6}"
+          rx="${EKRAN.promien + 3}" fill="none" stroke="#5b32e0" stroke-opacity="0.45" stroke-width="3"/>
+  </g>
+</svg>`;
+  const pg = await br.newPage({ viewport: { width: W, height: H } });
+  await pg.setContent(
+    `<body style="margin:0;background:transparent">${svg}</body>`
+  );
+  await pg.waitForTimeout(300);
+  await pg.screenshot({ path: plik, omitBackground: true });
+  await pg.close();
+}
+
 async function snimi(br, w) {
   const kat = path.join(OUT, '.klatki-' + w.klucz);
   await rm(kat, { recursive: true, force: true });
@@ -141,12 +188,24 @@ async function snimi(br, w) {
   await pg.close();
 
   const plik = path.join(OUT, w.klucz + '.mp4');
+  const ramka = path.join(OUT, '.ramka.png');
   await exe('ffmpeg', [
     '-y', '-hide_banner', '-loglevel', 'error',
     '-framerate', String(FPS),
     '-i', path.join(kat, '%04d.png'),
-    '-vf', `scale=${W}:${H}:flags=lanczos,format=yuv420p`,
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', '18',
+    '-i', ramka,
+    '-filter_complex',
+    // Экран кладём на своё место, сверху — рамка с дыркой. Порядок важен:
+    // рамка непрозрачна везде, кроме экрана, поэтому она же рисует фон.
+    //
+    // Холст делаем через `pad`, а не отдельным источником `color`: источник
+    // заливки имеет собственную длину, и `shortest` обрезал по ней весь
+    // ролик — из шести секунд оставалась одна.
+    `[0:v]scale=${EKRAN.szer}:${EKRAN.wys}:flags=lanczos,` +
+      `pad=${W}:${H}:${EKRAN.x}:${EKRAN.y}:color=black[z];` +
+      `[z][1:v]overlay=0:0,format=yuv420p[out]`,
+    '-map', '[out]',
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', '19',
     '-movflags', '+faststart',
     plik,
   ]);
@@ -160,6 +219,7 @@ if (!lista.length) throw new Error('нечего снимать: проверь 
 
 await mkdir(OUT, { recursive: true });
 const br = await chromium.launch();
+await zbudujRamke(br, path.join(OUT, '.ramka.png'));
 const opis = [];
 for (const w of lista) {
   try {

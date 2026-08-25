@@ -1205,6 +1205,17 @@ async function zmierz(file, przedFiltr) {
   if (!m) return null;
   try {
     const j = JSON.parse(m[0]);
+    // На немой дорожке замер отдаёт `-inf`, и второй проход падает целиком:
+    // «Value -inf for parameter measured_I out of range». Ровно на этом
+    // ломалась проба `--bez-glosu` — то есть единственный способ посмотреть
+    // картинку, не потратив дубль ElevenLabs, не работал вообще.
+    // Числа без конечного значения означают тишину: нормализовать нечего,
+    // возвращаем null и уходим на однопроходный путь.
+    const liczby = [j.input_i, j.input_tp, j.input_lra, j.input_thresh].map(Number);
+    if (liczby.some((x) => !Number.isFinite(x))) {
+      console.warn('[звук] дорожка молчит — второй проход нормализации пропущен');
+      return null;
+    }
     return {
       I: j.input_i,
       TP: j.input_tp,

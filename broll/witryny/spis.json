@@ -1,0 +1,43 @@
+[
+ {
+  "klucz": "zovu",
+  "url": "https://zovu.pl",
+  "nazwa": "zovu.pl",
+  "czym": "сайт студии",
+  "plik": "zovu.mp4",
+  "sekundy": 6
+ },
+ {
+  "klucz": "zah",
+  "url": "https://zah.zovu.pl",
+  "nazwa": "zah.zovu.pl",
+  "czym": "портфолио",
+  "jezyk": "PL",
+  "plik": "zah.mp4",
+  "sekundy": 6
+ },
+ {
+  "klucz": "rezydencja",
+  "url": "https://zovupl.github.io/rezydencja/",
+  "nazwa": "Rezydencja",
+  "czym": "вилла под ключ",
+  "plik": "rezydencja.mp4",
+  "sekundy": 6
+ },
+ {
+  "klucz": "rolki",
+  "url": "https://dzmzah.github.io/rolki/",
+  "nazwa": "rolki",
+  "czym": "оффер",
+  "plik": "rolki.mp4",
+  "sekundy": 6
+ },
+ {
+  "klucz": "maya",
+  "url": "https://dzmzah.github.io/maya-gold/",
+  "nazwa": "MAYA GOLD",
+  "czym": "витрина",
+  "plik": "maya.mp4",
+  "sekundy": 6
+ }
+]
