@@ -70,6 +70,12 @@ if (!czekaja.length) alarmy.push('очередь рилсов пуста — з�
 const opublikowane = kolejka.filter((p) => p.opublikowano).slice(-12).reverse();
 
 // Сеть считается доставленной, если в результате есть её идентификатор.
+//
+// У ТикТока идентификатор появляется и тогда, когда ролик всего лишь доехал
+// до приложения черновиком: неаудированное приложение не имеет права
+// публиковать напрямую. Раньше панель считала это выкладкой и рисовала
+// зелёный значок — три ролика висели непоказанными, а мы думали, что вышли.
+const szkicTiktoka = (v) => /^v_inbox_file/.test(String(v ?? ''));
 const SIECI = [
   ['instagram', 'ig', 'IG'],
   ['facebook', 'fb', 'FB'],
@@ -82,6 +88,16 @@ for (const p of opublikowane.slice(0, 3)) {
       alarmy.push(`${p.plik}: ${nazwa} не принял`);
     }
   }
+}
+
+// Черновики ТикТока — не поломка, но и не выкладка: ролик доехал до
+// приложения и лежит там, пока человек не нажмёт «опубликовать». Пока
+// приложение не прошло аудит, другого пути нет, поэтому считаем их вслух.
+const szkiceTiktoka = kolejka.filter((p) => szkicTiktoka(p.wynik?.tiktok));
+if (szkiceTiktoka.length) {
+  const ile = szkiceTiktoka.length;
+  const slowo = ile === 1 ? 'ролик ждёт' : 'ролика ждут';
+  alarmy.push(`ТикТок: ${ile} ${slowo} нажатия в приложении — до аудита иначе никак`);
 }
 
 // ── цифры ────────────────────────────────────────────────────────
@@ -141,6 +157,8 @@ h2{font-size:16px;margin:0 0 10px;letter-spacing:-.01em}
  background:var(--linia);color:var(--cichy)}
 .s.jest{background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok)}
 .s.brak{background:color-mix(in srgb,var(--zle) 18%,transparent);color:var(--zle)}
+.s.szkic{background:color-mix(in srgb,var(--czeka) 22%,transparent);color:var(--czeka);
+  border:1px dashed color-mix(in srgb,var(--czeka) 55%,transparent);padding:3px 5px}
 .cyfry{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
 .c{background:var(--karta);border:1px solid var(--obwod);border-radius:12px;padding:14px 16px}
 .c b{display:block;font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
@@ -180,8 +198,12 @@ ${alarmy.length ? `<section class="karta alarm">
       <span class="co">${esc(p.scenariusz || p.plik)}</span>
       <span class="sieci">${SIECI.map(([klucz, krotki, nazwa]) => {
         const chciano = (p.sieci || []).includes(krotki);
-        const jest = Boolean(p.wynik?.[klucz]);
-        return `<span class="s ${jest ? 'jest' : chciano ? 'brak' : ''}">${nazwa}</span>`;
+        const wartosc = p.wynik?.[klucz];
+        const szkic = klucz === 'tiktok' && szkicTiktoka(wartosc);
+        const jest = Boolean(wartosc) && !szkic;
+        const stan = jest ? 'jest' : szkic ? 'szkic' : chciano ? 'brak' : '';
+        const tytul = szkic ? ' title="черновик в приложении, ждёт нажатия"' : '';
+        return `<span class="s ${stan}"${tytul}>${nazwa}</span>`;
       }).join('')}</span>
     </div>`
       )
