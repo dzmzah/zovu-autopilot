@@ -355,6 +355,40 @@ const SCENARIUSZE = [
       { rola: 'cta', tekst: 'Nie zgadzasz się? Napisz w komentarzu.', szukaj: 'two people talking office window', pauza: 0.20 },
     ],
   },
+  // Единственный сценарий, который держится не на словах, а на доказательстве:
+  // подложка — проезд по НАШИМ живым сайтам, снятый `witryny.mjs`. Сток тут
+  // запрещён по смыслу: показывать чужой ноутбук там, где обещаны наши работы,
+  // — это ровно та подмена, из-за которой ролики перестают верить.
+  //
+  // Призыв — переслать, а не написать. Пересылка в личку весит у Instagram
+  // больше всего, а у нас её за всё время ноль: ни один сценарий о ней не
+  // просил, кроме «komentarze».
+  {
+    nazwa: 'nasze-strony',
+    plyta: { linie: ['CZTERY STRONY', 'KTÓRE ZROBILIŚMY'], plaszka: 'NASZE PRACE' },
+    forma: 'lista',
+    temat: 'nasze prawdziwe realizacje',
+    opis: [
+      'Strona za 500 zł wygląda jak strona za 500 zł. I klient to widzi pierwszy.',
+      '',
+      'Cztery nasze realizacje, każda działa dziś w internecie — nie na makiecie w Figmie.',
+      '',
+      'Wyślij to komuś, kto właśnie wybiera wykonawcę strony.',
+      '',
+      'zovu.pl',
+      '',
+      '#stronainternetowa #webdesign #portfolio #katowice #zovu',
+    ].join(String.fromCharCode(10)),
+    czesci: [
+      { rola: 'hak', tekst: 'Strona za 500 złotych wygląda dokładnie tak.', witryna: 'rolki', pauza: 0.34 },
+      { rola: 'hak', tekst: 'Pokażę cztery nasze. Oceń sam.', witryna: 'zah', pauza: 0.44 },
+      { rola: 'punkt', numer: 1, tytul: 'serwis auto', tekst: 'Serwis samochodowy. Czarne ze złotem, zero szablonu.', witryna: '4k', pauza: 0.30 },
+      { rola: 'punkt', numer: 2, tytul: 'willa', tekst: 'Willa na sprzedaż. Zdjęcia na cały ekran.', witryna: 'rezydencja', pauza: 0.30 },
+      { rola: 'punkt', numer: 3, tytul: 'złoto', tekst: 'Sklep ze złotem. Wszystko widać w trzy sekundy.', witryna: 'maya', pauza: 0.30 },
+      { rola: 'zaplata', tekst: 'Każda z nich działa dziś. Nie na makiecie.', witryna: 'zovu', pauza: 0.32 },
+      { rola: 'cta', tekst: 'Wyślij to komuś, kto wybiera wykonawcę.', witryna: 'zah', pauza: 0.20 },
+    ],
+  },
 ];
 
 // ── отбраковка хромакея ───────────────────────────────────────────
@@ -395,6 +429,27 @@ async function czyChromakey(plik) {
 // `i` от этого не спасало: оно двигает позицию внутри выдачи, а выдача у
 // похожих запросов одна и та же.
 async function podklad(czesc, i, scenNazwa, uzyte = new Set()) {
+  // Свои витрины идут вперёд стока. Сток может собрать кто угодно за вечер,
+  // а снятый проездом живой сайт клиента подделать нельзя — это и есть
+  // единственное доказательство, которое у нас есть. Снимает `witryny.mjs`.
+  //
+  // Если кадра нет на диске (съёмку не гоняли), молча на сток НЕ падаем:
+  // подмена доказательства стоковым ноутбуком — ровно та подмена, из-за
+  // которой в ленту однажды ушёл чужой салон красоты под нашей подписью.
+  if (czesc.witryna) {
+    const swoja = path.join(DIR, 'broll', 'witryny', `${czesc.witryna}.mp4`);
+    try {
+      await readFile(swoja);
+      return swoja;
+    } catch {
+      console.warn(
+        `[rolka-auto] нет съёмки витрины «${czesc.witryna}» — ` +
+          `запусти: node witryny.mjs --tylko=${czesc.witryna}`
+      );
+      if (!czesc.szukaj) return null;
+    }
+  }
+
   const kandydaci = await searchStock(czesc.szukaj, { perPage: 10, minSeconds: 4 });
   if (!kandydaci.length) return null;
 
@@ -465,6 +520,18 @@ async function nastepnyScenariusz() {
   // ноль считался «не задано», и первый сценарий нельзя было пересобрать
   // явно вообще: приходилось выковыривать его из очереди, чтобы до него
   // добрался круг.
+  // Имя работает наравне с номером. Номера сдвигаются каждый раз, когда в
+  // банк добавляется сценарий, и «пересобери третий» назавтра означает уже
+  // другой ролик — на это легко наступить и трудно заметить.
+  if (JAWNY !== '' && !/^\d+$/.test(JAWNY)) {
+    const i = SCENARIUSZE.findIndex((s) => s.nazwa === JAWNY);
+    if (i < 0) {
+      throw new Error(
+        `нет сценария «${JAWNY}». Есть: ${SCENARIUSZE.map((s) => s.nazwa).join(', ')}`
+      );
+    }
+    return { scen: SCENARIUSZE[i], idx: i, wydanie: i };
+  }
   if (JAWNY !== '') return { scen: SCENARIUSZE[NR] || SCENARIUSZE[0], idx: NR, wydanie: NR };
   let stan = {};
   try { stan = JSON.parse(await readFile(STAN, 'utf8')); } catch { stan = {}; }
