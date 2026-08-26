@@ -39,7 +39,12 @@ const W = 1080, H = 1920, FPS = 50;
 const EKRAN = { szer: 592, wys: 1052, x: 244, y: 74, promien: 46 };
 const DOL_WOLNY = H - (EKRAN.y + EKRAN.wys); // 794 px чистого поля
 const SEK = Number(arg('sekundy', 7));
-const OUT = path.join(DIR, 'broll', 'witryny');
+// Свои витрины лежат в банке и едут в репозиторий — они нужны серверу.
+// Чужие сайты туда попадать не должны: репозиторий публичный, а это чужой
+// материал, снятый для одного письма. Им место в `out/`, который не в git.
+const OUT = arg('url')
+  ? path.join(DIR, 'out', 'witryny-klient')
+  : path.join(DIR, 'broll', 'witryny');
 
 // Кадр снимаем в половинном размере с удвоенной плотностью: браузер рисует
 // как на телефоне (шрифты, вёрстка, точки останова), а на выходе всё равно
@@ -73,14 +78,36 @@ function postep(u) {
 // съёмки, а не жмём «принять»: нажатие — это согласие от имени Захара.
 const SPRZATANIE = `
   const wzorce = /cookie|consent|rodo|zgod|privacy|gdpr/i;
+
+  // Известные сборщики согласия зовут свои контейнеры одинаково. Их убираем
+  // по имени и без оглядки на размер: у LaBoca диалог Cookiebot занимал весь
+  // экран, а прежняя проверка большие блоки пропускала — «чтобы не снести
+  // страницу целиком». В итоге снялся баннер вместо сайта.
+  [
+    '#CybotCookiebotDialog', '#CybotCookiebotDialogBodyUnderlay',
+    '#cookiescript_injected', '#onetrust-banner-sdk', '#onetrust-consent-sdk',
+    '#usercentrics-root', '#cmpbox', '#cmpbox2', '.cc-window', '.cookie-notice',
+    '.cookies-popup', '#cookie-bar', '#cookie-law-info-bar', '.fc-consent-root',
+  ].forEach((sel) => document.querySelectorAll(sel).forEach((el) => el.remove()));
+
+  // Всё остальное ловим по признаку: перекрывает страницу, лежит поверх всего
+  // и говорит про cookies. Размер тут больше не спасает — именно он и подвёл.
   document.querySelectorAll('div,section,aside,dialog').forEach((el) => {
     const s = getComputedStyle(el);
-    if (s.position !== 'fixed' && s.position !== 'sticky') return;
-    if (el.offsetHeight > innerHeight * 0.85) return;
+    const nadRestem = (parseInt(s.zIndex, 10) || 0) > 900;
+    if (s.position !== 'fixed' && s.position !== 'sticky' && !nadRestem) return;
     if (wzorce.test(el.className + ' ' + el.id + ' ' + (el.textContent || '').slice(0, 400))) {
       el.style.display = 'none';
     }
   });
+
+  // Пока баннер висел, страница обычно заблокирована от прокрутки. Снять
+  // баннер и не вернуть прокрутку — значит снять шесть секунд первого экрана.
+  for (const el of [document.documentElement, document.body]) {
+    el.style.overflow = 'auto';
+    el.style.position = 'static';
+    el.classList.remove('modal-open', 'no-scroll', 'noscroll', 'overflow-hidden');
+  }
   document.querySelectorAll('video').forEach((v) => { try { v.pause(); } catch {} });
 
   // Плавающие пузыри чата (WhatsApp, Messenger, «наверх») — чужие виджеты
@@ -107,14 +134,25 @@ const SPRZATANIE = `
 const PODPIS_Y = 1452;
 
 async function zbudujRamke(br, plik, w = null) {
+  // Имя приходит из командной строки, а там встречается и «&», и кавычки.
+  // Незакрытый амперсанд ломает SVG целиком, и рамка выходит пустой —
+  // видно это будет только на готовом ролике.
+  const esc = (s) =>
+    String(s ?? '').replace(/[<>&'"]/g, (c) =>
+      ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c])
+    );
   const podpis = w
     ? `
     <text x="${W / 2}" y="${PODPIS_Y}" text-anchor="middle"
           font-family="Inter, Segoe UI, sans-serif" font-size="46" font-weight="700"
-          fill="#efeaff" letter-spacing="1">${w.nazwa}</text>
-    <text x="${W / 2}" y="${PODPIS_Y + 46}" text-anchor="middle"
+          fill="#efeaff" letter-spacing="1">${esc(w.nazwa)}</text>
+    ${
+      w.czym
+        ? `<text x="${W / 2}" y="${PODPIS_Y + 46}" text-anchor="middle"
           font-family="Inter, Segoe UI, sans-serif" font-size="27" font-weight="500"
-          fill="#9b7bff" letter-spacing="4">${String(w.czym).toUpperCase()}</text>`
+          fill="#9b7bff" letter-spacing="4">${esc(String(w.czym).toUpperCase())}</text>`
+        : ''
+    }`
     : '';
   const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
@@ -230,9 +268,29 @@ async function snimi(br, w) {
   return { plik, droga, wysokosc };
 }
 
-const tylko = (arg('tylko', '') || '').split(',').filter(Boolean);
-const lista = tylko.length ? WITRYNY.filter((w) => tylko.includes(w.klucz)) : WITRYNY;
-if (!lista.length) throw new Error('нечего снимать: проверь --tylko');
+// Чужой сайт снимаем тем же инструментом. Это не побочная возможность, а
+// главный способ применения: холодное письмо со ссылкой на наше портфолио
+// клиника читает как рекламу, а свой собственный сайт в кадре — как разговор
+// про них. Именно персональное демо заставило LaBoca ответить.
+//
+//   node witryny.mjs --url=https://klient.pl --klucz=klient \
+//                    --nazwa="Klinika X" --czym="medycyna estetyczna"
+const URL_KLIENTA = arg('url', '');
+const lista = URL_KLIENTA
+  ? [
+      {
+        klucz: arg('klucz', 'klient'),
+        url: URL_KLIENTA,
+        nazwa: arg('nazwa', new URL(URL_KLIENTA).hostname.replace(/^www\./, '')),
+        czym: arg('czym', ''),
+        jezyk: arg('jezyk', '') || undefined,
+      },
+    ]
+  : (() => {
+      const tylko = (arg('tylko', '') || '').split(',').filter(Boolean);
+      return tylko.length ? WITRYNY.filter((w) => tylko.includes(w.klucz)) : WITRYNY;
+    })();
+if (!lista.length) throw new Error('нечего снимать: проверь --tylko или --url');
 
 await mkdir(OUT, { recursive: true });
 const br = await chromium.launch();
