@@ -245,24 +245,47 @@ for (const poz of kolejka) {
     }
   }
 
-  // TikTok. Пока приложение не прошло проверку, ролик уезжает ЧЕРНОВИКОМ
-  // в приложение на телефоне — публикуется одним нажатием. Права на прямую
-  // публикацию просим отдельно, код для неё уже лежит в tiktok.mjs.
+  // TikTok. Своим приложением мы публиковать не можем: оно не прошло аудит,
+  // и ролик уезжает ЧЕРНОВИКОМ в телефон — ждать нажатия. Три таких висели
+  // неделю, а панель показывала их как выложенные.
   //
-  // Без постоянного ключа молчим: пока Захар не нажал «разрешить», это не
-  // поломка, а незаконченная настройка, и кричать о ней в каждом прогоне
-  // незачем.
+  // Поэтому первым идёт Buffer: их приложение аудит прошло, публикует само,
+  // файл берёт по ссылке из этого же публичного репозитория. Своя отправка
+  // остаётся запасной — на случай, если Buffer откажет.
   if (sieci.includes('tt')) {
-    if (!process.env.TIKTOK_REFRESH_TOKEN) {
-      console.log('[rolka] TikTok пропущен: нет постоянного ключа (нужен разовый вход)');
-    } else {
+    const plik = path.join(DIR, 'rolki', poz.plik);
+    let wyszlo = false;
+
+    if (process.env.BUFFER_TOKEN) {
       try {
-        const plik = path.join(DIR, 'rolki', poz.plik);
+        const { kanaly, opublikuj, adresRolki } = await import('./bufor.mjs');
+        const tt = (await kanaly(process.env.BUFFER_TOKEN)).find((k) => k.service === 'tiktok');
+        if (!tt) throw new Error('в Buffer нет подключённого ТикТока');
+        const post = await opublikuj(process.env.BUFFER_TOKEN, {
+          kanal: tt.id,
+          tekst: poz.tekst,
+          url: adresRolki(poz.plik),
+          // Через минуту: файл только что лёг в репозиторий, пусть ссылка
+          // успеет ожить, прежде чем Buffer пойдёт её качать.
+          kiedy: new Date(Date.now() + 60_000).toISOString(),
+        });
+        wynik.tiktok = `bufor:${post.id}`;
+        wyszlo = true;
+        console.log(`[rolka] TikTok через Buffer: ${post.status} на ${post.dueAt}`);
+      } catch (e) {
+        console.error(`[rolka] Buffer не принял: ${e.message}`);
+      }
+    }
+
+    if (!wyszlo && process.env.TIKTOK_REFRESH_TOKEN) {
+      try {
         wynik.tiktok = await naTikTok(plik, { tekst: poz.tekst });
-        console.log(`[rolka] TikTok: ${wynik.tiktok}`);
+        console.log(`[rolka] TikTok черновиком: ${wynik.tiktok}`);
       } catch (e) {
         console.error(`[rolka] TikTok не вышел: ${e.message}`);
       }
+    } else if (!wyszlo) {
+      console.log('[rolka] TikTok пропущен: ни Buffer, ни своего ключа');
     }
   }
 
