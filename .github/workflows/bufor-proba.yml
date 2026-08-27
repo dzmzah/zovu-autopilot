@@ -1,0 +1,73 @@
+name: ZOVU próba Bufora
+
+# Проверка связки с Buffer. Ключ лежит только в секретах, поэтому пробовать
+# можно ТОЛЬКО отсюда: локально его нет и заводить не надо.
+#
+# Сначала прогон без публикации (`kanaly`) — он показывает, какие каналы
+# подключены и с каким id. Публикацию включаем отдельным вводом, осознанно:
+# пост уходит в живую ленту.
+on:
+  workflow_dispatch:
+    inputs:
+      co:
+        description: 'kanaly — только показать каналы; publikuj — реально поставить ролик'
+        type: choice
+        options: [kanaly, publikuj]
+        default: kanaly
+      plik:
+        description: 'Файл из rolki/ (для publikuj)'
+        type: string
+        default: ''
+      kiedy:
+        description: 'Время публикации ISO, пусто — ближайший слот Buffer'
+        type: string
+        default: ''
+
+jobs:
+  proba:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Каналы и (по запросу) публикация
+        env:
+          BUFFER_TOKEN: ${{ secrets.BUFFER_TOKEN }}
+          CO: ${{ inputs.co }}
+          PLIK: ${{ inputs.plik }}
+          KIEDY: ${{ inputs.kiedy }}
+        run: |
+          node --input-type=module -e '
+            import { kanaly, opublikuj, adresRolki } from "./bufor.mjs";
+            const token = process.env.BUFFER_TOKEN;
+            if (!token) throw new Error("нет секрета BUFFER_TOKEN");
+
+            const lista = await kanaly(token);
+            console.log("[bufor] каналов:", lista.length);
+            for (const k of lista) console.log("  ", k.service, "|", k.name, "|", k.id);
+
+            if (process.env.CO !== "publikuj") process.exit(0);
+
+            const tt = lista.find((k) => k.service === "tiktok");
+            if (!tt) throw new Error("ТикТок не подключён в Buffer");
+
+            const plik = process.env.PLIK;
+            if (!plik) throw new Error("не задан файл");
+            const url = adresRolki(plik);
+
+            // Проверяем ссылку своими руками: если файл недоступен, Buffer
+            // молча положит пост без видео, и мы узнаем об этом из ленты.
+            const r = await fetch(url, { method: "HEAD" });
+            if (!r.ok) throw new Error(`файл недоступен по ссылке (${r.status}): ${url}`);
+            console.log("[bufor] файл доступен,", r.headers.get("content-length"), "байт");
+
+            const post = await opublikuj(token, {
+              kanal: tt.id,
+              tekst: "Próba połączenia ZOVU autopilot z Buforem.",
+              url,
+              kiedy: process.env.KIEDY || undefined,
+            });
+            console.log("[bufor] поставлено:", JSON.stringify(post));
+          '
