@@ -54,7 +54,7 @@ export async function kanaly(token, organizationId) {
   const org = organizationId || (await organizacja(token)).id;
   const d = await zapytaj(
     token,
-    `query Kanaly($org: String!) {
+    `query Kanaly($org: OrganizationId!) {
        channels(input: { organizationId: $org }) { id name displayName service }
      }`,
     { org }
