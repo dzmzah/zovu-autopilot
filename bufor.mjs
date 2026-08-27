@@ -36,7 +36,11 @@ async function zapytaj(token, query, variables = {}) {
   }
   // GraphQL отвечает 200 даже на ошибку, поэтому смотрим на errors, а не на код.
   if (dane.errors?.length) {
-    throw new Error('Buffer: ' + dane.errors.map((e) => e.message).join('; ').slice(0, 400));
+    // Сообщения GraphQL длинные: они целиком печатают присланное значение,
+    // а имя виноватого поля стоит В КОНЦЕ. Обрезка по 400 символов съедала
+    // ровно его — из-за этого один прогон ушёл впустую.
+    const opis = dane.errors.map((e) => e.message).join('; ');
+    throw new Error('Buffer: ' + (opis.length > 1500 ? '…' + opis.slice(-1500) : opis));
   }
   return dane.data;
 }
