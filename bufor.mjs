@@ -41,6 +41,22 @@ async function zapytaj(token, query, variables = {}) {
   return dane.data;
 }
 
+/**
+ * Какие значения принимает перечисление в их схеме.
+ *
+ * Нужно затем, что документация показывает один пример и молчит про
+ * остальные значения. Два прогона ушли на угадывание «custom» и «schedule» —
+ * дешевле спросить у самого API.
+ */
+export async function zapytajSchemat(token, nazwaTypu) {
+  const d = await zapytaj(
+    token,
+    `query Schemat($t: String!) { __type(name: $t) { enumValues { name } } }`,
+    { t: nazwaTypu }
+  );
+  return (d?.__type?.enumValues ?? []).map((v) => v.name);
+}
+
 /** Организация аккаунта. Каналы висят на ней, поэтому сначала нужен её id. */
 export async function organizacja(token) {
   const d = await zapytaj(token, `query { account { organizations { id name } } }`);

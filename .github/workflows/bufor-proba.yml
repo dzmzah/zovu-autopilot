@@ -10,9 +10,9 @@ on:
   workflow_dispatch:
     inputs:
       co:
-        description: 'kanaly — только показать каналы; publikuj — реально поставить ролик'
+        description: 'kanaly — показать каналы; schemat — какие значения принимает API; publikuj — реально поставить ролик'
         type: choice
-        options: [kanaly, publikuj]
+        options: [kanaly, schemat, publikuj]
         default: kanaly
       plik:
         description: 'Файл из rolki/ (для publikuj)'
@@ -47,6 +47,17 @@ jobs:
             const lista = await kanaly(token);
             console.log("[bufor] каналов:", lista.length);
             for (const k of lista) console.log("  ", k.service, "|", k.name, "|", k.id);
+
+            // Значения перечислений спрашиваем у самого API, а не угадываем:
+            // на угадывании «custom/schedule» уже потеряны два прогона.
+            if (process.env.CO === "schemat") {
+              const { zapytajSchemat } = await import("./bufor.mjs");
+              for (const nazwa of ["SchedulingType", "ShareMode", "PostStatus"]) {
+                const w = await zapytajSchemat(token, nazwa);
+                console.log("[bufor]", nazwa, "=", w.join(", ") || "нет такого типа");
+              }
+              process.exit(0);
+            }
 
             if (process.env.CO !== "publikuj") process.exit(0);
 
