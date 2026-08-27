@@ -63,9 +63,20 @@ jobs:
             if (!r.ok) throw new Error(`файл недоступен по ссылке (${r.status}): ${url}`);
             console.log("[bufor] файл доступен,", r.headers.get("content-length"), "байт");
 
+            // Подпись берём настоящую, из очереди. Пост уходит в живую ленту,
+            // и «проба связи» в описании — это мусор на аккаунте, который мы
+            // же и растим. Если записи нет, лучше остановиться, чем выдумывать.
+            const kolejka = JSON.parse(
+              await (await import("node:fs/promises")).readFile("rolki/kolejka.json", "utf8")
+            );
+            const wpis = kolejka.find((p) => p.plik === plik);
+            const tekst = (wpis?.tekst || "").trim();
+            if (!tekst) throw new Error(`нет подписи для ${plik} в rolki/kolejka.json`);
+            console.log("[bufor] подпись:", tekst.split("\n")[0].slice(0, 80));
+
             const post = await opublikuj(token, {
               kanal: tt.id,
-              tekst: "Próba połączenia ZOVU autopilot z Buforem.",
+              tekst,
               url,
               kiedy: process.env.KIEDY || undefined,
             });
