@@ -533,5 +533,48 @@
       5.3,
       5.4
     ]
+  },
+  {
+    "plik": "auto-2026-08-27-1.mp4",
+    "kiedy": "2026-08-30T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Kwadrans dziennie. Tylko na komentarze.\n\nLudzie pamiętają, kto odpisał. Kwadrans robi różnicę.\n\nWyślij to komuś, kto nie odpisuje klientom.\n\nzovu.pl\n\n#katowice #slaskiefirmy #jednoosobowadzialalnosc #mojafirma #socialmediadlafirm\n",
+    "opublikowano": null,
+    "zrodlo": "auto-grafika-komentarze.mp4",
+    "scenariusz": "Kwadrans dziennie w komentarzach",
+    "forma": "rysowana",
+    "temat": "Kwadrans dziennie w komentarzach",
+    "dlugosc": 14.36
+  },
+  {
+    "plik": "auto-2026-08-27-2.mp4",
+    "kiedy": "2026-08-30T18:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Musisz postować codziennie — to najdroższy mit w tej branży.\n\nCodziennie znaczy w pośpiechu. W pośpiechu znaczy o niczym. Dwa przemyślane posty biją siedem byle jakich, bo algorytm liczy, ile osób zostało — a nie ile razy coś wrzuciłeś.\n\nNapisz RYTM, a ułożymy plan pod twoje realne tempo, nie pod cudzy kalendarz.\n\nzovu.pl\n\n#katowice #zabrze #malybiznes #lokalnybiznes #postydlafirm",
+    "opublikowano": null,
+    "zrodlo": "auto-mit-codziennie.mp4",
+    "scenariusz": "mit-codziennie",
+    "forma": "mit",
+    "temat": "czy trzeba publikować codziennie",
+    "dlugosc": 19.15,
+    "planow": 7,
+    "tempo": [
+      3.3,
+      3.2,
+      5.6,
+      5.8,
+      6.1,
+      5.6
+    ]
   }
 ]
