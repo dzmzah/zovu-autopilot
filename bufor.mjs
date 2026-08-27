@@ -107,7 +107,8 @@ export async function opublikuj(token, { kanal, tekst, url, kiedy, oblozka = 200
     // шлёт уведомление на телефон, то есть ровно то, от чего мы уходим:
     // черновик, который ждёт руки. Значения спрошены у их же схемы.
     schedulingType: 'automatic',
-    ...(kiedy ? { mode: 'customScheduled', scheduledAt: kiedy } : { mode: 'addToQueue' }),
+    // Время называется `dueAt`, а не `scheduledAt` — спрошено у их схемы.
+    ...(kiedy ? { mode: 'customScheduled', dueAt: kiedy } : { mode: 'addToQueue' }),
   };
   const d = await zapytaj(
     token,
