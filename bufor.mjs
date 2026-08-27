@@ -41,13 +41,25 @@ async function zapytaj(token, query, variables = {}) {
   return dane.data;
 }
 
+/** Организация аккаунта. Каналы висят на ней, поэтому сначала нужен её id. */
+export async function organizacja(token) {
+  const d = await zapytaj(token, `query { account { organizations { id name } } }`);
+  const o = d?.account?.organizations?.[0];
+  if (!o) throw new Error('Buffer не отдал организацию — проверь права ключа');
+  return o;
+}
+
 /** Список подключённых каналов: id нужен для публикации, service — чтобы не промахнуться. */
-export async function kanaly(token) {
+export async function kanaly(token, organizationId) {
+  const org = organizationId || (await organizacja(token)).id;
   const d = await zapytaj(
     token,
-    `query { account { currentOrganization { channels { id service serviceId name } } } }`
+    `query Kanaly($org: String!) {
+       channels(input: { organizationId: $org }) { id name displayName service }
+     }`,
+    { org }
   );
-  return d?.account?.currentOrganization?.channels ?? [];
+  return d?.channels ?? [];
 }
 
 /**
