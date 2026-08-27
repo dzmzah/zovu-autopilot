@@ -261,9 +261,18 @@ for (const poz of kolejka) {
         const { kanaly, opublikuj, adresRolki } = await import('./bufor.mjs');
         const tt = (await kanaly(process.env.BUFFER_TOKEN)).find((k) => k.service === 'tiktok');
         if (!tt) throw new Error('в Buffer нет подключённого ТикТока');
+        // Подпись под ТикТок своя. В Instagram описание читают под роликом,
+        // в ТикТоке видно две строки — остальное прячется, а простыня тегов
+        // выглядит спамом. Отдавать одинаковый текст обеим площадкам значит
+        // писать его для одной и надеяться на вторую.
+        const { podpisTikToka } = await import('./tagi.mjs');
         const post = await opublikuj(process.env.BUFFER_TOKEN, {
           kanal: tt.id,
-          tekst: poz.tekst,
+          tekst: podpisTikToka(poz.tekst, {
+            temat: poz.temat || '',
+            forma: poz.forma || '',
+            nr: Number(String(poz.plik).replace(/\D/g, '').slice(-3)) || 0,
+          }),
           url: adresRolki(poz.plik),
           // Через минуту: файл только что лёг в репозиторий, пусть ссылка
           // успеет ожить, прежде чем Buffer пойдёт её качать.

@@ -146,3 +146,36 @@ export function podmienHasztagi(opis, o = {}) {
   linie[i] = nowe;
   return linie.join('\n');
 }
+
+/**
+ * Подпись под ТикТок из инстаграмной.
+ *
+ * Это разные площадки, и одинаковая подпись работает только на одной из них.
+ * В Instagram описание читают под роликом, оно может быть в три абзаца.
+ * В ТикТоке видно две строки, остальное прячется за «ещё», а простыня
+ * хештегов внизу выглядит как спам и ничего не даёт: там ищут словами.
+ *
+ * Поэтому берём ровно два куска — крючок и призыв — и четыре тега вместо
+ * семи. Адрес сайта выкидываем: в ТикТоке ссылка в описании некликабельна,
+ * а место занимает.
+ */
+export function podpisTikToka(opis, o = {}) {
+  const akapity = String(opis)
+    .split(/\n\s*\n/)
+    .map((a) => a.trim())
+    .filter(Boolean)
+    .filter((a) => !/^#\S/.test(a))
+    .filter((a) => !/^https?:|^[a-z0-9-]+\.(pl|com)$/i.test(a));
+
+  const hak = akapity[0] || '';
+  // Призыв ищем по глаголу, а не по месту: он не всегда последний абзац.
+  const cta = akapity.slice(1).find((a) => /napisz|wyślij|zapisz|skomentuj|oceń/i.test(a)) || '';
+
+  const tagi = hasztagi({ ...o, marka: true })
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 4)
+    .join(' ');
+
+  return [hak, cta, tagi].filter(Boolean).join('\n\n');
+}
