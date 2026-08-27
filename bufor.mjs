@@ -55,10 +55,20 @@ async function zapytaj(token, query, variables = {}) {
 export async function zapytajSchemat(token, nazwaTypu) {
   const d = await zapytaj(
     token,
-    `query Schemat($t: String!) { __type(name: $t) { enumValues { name } } }`,
+    `query Schemat($t: String!) {
+       __type(name: $t) {
+         enumValues { name }
+         inputFields { name type { name kind ofType { name } } }
+       }
+     }`,
     { t: nazwaTypu }
   );
-  return (d?.__type?.enumValues ?? []).map((v) => v.name);
+  const t = d?.__type;
+  if (!t) return [];
+  if (t.enumValues?.length) return t.enumValues.map((v) => v.name);
+  return (t.inputFields ?? []).map(
+    (f) => `${f.name}: ${f.type?.name || f.type?.ofType?.name || f.type?.kind}`
+  );
 }
 
 /** Организация аккаунта. Каналы висят на ней, поэтому сначала нужен её id. */
