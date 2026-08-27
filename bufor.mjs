@@ -89,9 +89,11 @@ export async function opublikuj(token, { kanal, tekst, url, kiedy, oblozka = 200
     text: tekst,
     channelId: kanal,
     assets: [{ video: { url, metadata: { thumbnailOffset: oblozka } } }],
-    ...(kiedy
-      ? { schedulingType: 'custom', scheduledAt: kiedy, mode: 'schedule' }
-      : { schedulingType: 'automatic', mode: 'addToQueue' }),
+    // `automatic` — Buffer публикует сам. Второе значение, `notification`,
+    // шлёт уведомление на телефон, то есть ровно то, от чего мы уходим:
+    // черновик, который ждёт руки. Значения спрошены у их же схемы.
+    schedulingType: 'automatic',
+    ...(kiedy ? { mode: 'customScheduled', scheduledAt: kiedy } : { mode: 'addToQueue' }),
   };
   const d = await zapytaj(
     token,
