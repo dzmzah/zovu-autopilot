@@ -78,6 +78,7 @@ jobs:
           FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
           TOKEN_KEY: ${{ secrets.TOKEN_KEY }}
           ELEVENLABS_KEY: ${{ secrets.ELEVENLABS_KEY }}
+          BUFFER_TOKEN: ${{ secrets.BUFFER_TOKEN }}
         run: node doktor.mjs
 
       # Панель обновляется даже когда сторож ничего не чинил: она показывает

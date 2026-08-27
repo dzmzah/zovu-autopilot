@@ -71,6 +71,23 @@ export async function zapytajSchemat(token, nazwaTypu) {
   );
 }
 
+/**
+ * Судьба поставленного поста.
+ *
+ * Buffer отвечает «принято» сразу, а публикует позже — и если ТикТок откажет,
+ * пост навсегда останется в `scheduled` или уйдёт в `error`. Без этой проверки
+ * получится ровно та же тихая поломка, что была с черновиками: в очереди
+ * галочка стоит, а в ленте пусто.
+ */
+export async function losPosta(token, id) {
+  const d = await zapytaj(
+    token,
+    `query Post($id: PostId!) { post(input: { id: $id }) { id status dueAt } }`,
+    { id }
+  );
+  return d?.post ?? null;
+}
+
 /** Организация аккаунта. Каналы висят на ней, поэтому сначала нужен её id. */
 export async function organizacja(token) {
   const d = await zapytaj(token, `query { account { organizations { id name } } }`);

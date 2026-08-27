@@ -286,6 +286,43 @@ async function rolki() {
       : 'brak nieopublikowanych szkiców',
     'uwaga'
   );
+
+  // Buffer отвечает «принято» сразу, а публикует позже. Если ТикТок откажет,
+  // пост зависнет в `scheduled` или упадёт в `error` — и мы этого не увидим,
+  // потому что в очереди у нас уже стоит отметка об успехе. Это ровно та
+  // тихая поломка, из-за которой три ролика провисели неделю.
+  const token = await env('BUFFER_TOKEN');
+  const przezBufor = q
+    .filter((p) => String(p.wynik?.tiktok ?? '').startsWith('bufor:'))
+    .filter((p) => Date.now() - Date.parse(p.opublikowano || p.kiedy) < 7 * 24 * 3600_000);
+
+  if (!token || !przezBufor.length) {
+    zapisz('bufor', true, token ? 'nic świeżego do sprawdzenia' : 'brak BUFFER_TOKEN', 'uwaga');
+    return;
+  }
+
+  try {
+    const { losPosta } = await import('./bufor.mjs');
+    const zle = [];
+    for (const p of przezBufor) {
+      const id = String(p.wynik.tiktok).slice('bufor:'.length);
+      const post = await losPosta(token, id);
+      // `sent` — вышел. `sending` и `scheduled` до срока — нормально.
+      const spozniony = post && post.status === 'scheduled' && Date.parse(post.dueAt) < Date.now() - 3600_000;
+      if (!post || post.status === 'error' || spozniony) {
+        zle.push(`${p.plik}: ${post ? post.status : 'нет такого поста'}`);
+      }
+    }
+    zapisz(
+      'bufor',
+      zle.length === 0,
+      zle.length
+        ? `Bufor nie opublikował: ${zle.join('; ')}`
+        : `${przezBufor.length} postów przez Bufor — wszystkie w porządku`
+    );
+  } catch (e) {
+    zapisz('bufor', false, 'nie da się sprawdzić Bufora: ' + e.message.slice(0, 160), 'uwaga');
+  }
 }
 
 // ── 8. ElevenLabs: остались ли символы на озвучку ────────────────
