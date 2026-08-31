@@ -1218,6 +1218,7 @@ await writeFile(
 
 if (!BEZ_KONTROLI) {
   const kontrola = await sprawdzRolke(wynik.plik, {
+    bezGlosu: BEZ_GLOSU,
     oczekiwanePrzejscia: [
       ...tytuly.map((t) => t.start),
       ...wstawki.map((w) => w.start),

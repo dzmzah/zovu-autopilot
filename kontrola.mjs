@@ -176,7 +176,11 @@ export async function sprawdzRolke(plik, opcje = {}) {
   }
 
   const lufs = await glosnosc(plik);
-  if (lufs != null && (lufs < PROGI.lufsMin || lufs > PROGI.lufsMax)) {
+  // В пробе без голоса дорожка это одна музыка, и её уровень заведомо ниже
+  // рабочего: −29 LUFS вместо −14. Судить по нему бессмысленно, а красная
+  // проверка на пробе делает саму пробу бесполезной — 31.08 из-за неё упали
+  // оба прогона, где всё остальное было в порядке.
+  if (!opcje.bezGlosu && lufs != null && (lufs < PROGI.lufsMin || lufs > PROGI.lufsMax)) {
     uwagi.push(`громкость ${lufs.toFixed(1)} LUFS вне ${PROGI.lufsMin}…${PROGI.lufsMax}`);
   }
 

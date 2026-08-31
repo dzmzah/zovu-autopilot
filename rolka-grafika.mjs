@@ -699,7 +699,10 @@ const { stdout } = await execFileAsync('ffprobe', [
 const inf = JSON.parse(stdout).format;
 console.log(`[grafika] собрано: ${gotowy} · ${(+inf.duration).toFixed(2)} с · ${(inf.size / 1048576).toFixed(2)} МБ`);
 
-const kontrola = await sprawdzRolke(gotowy, { oczekiwanePrzejscia: zdarzenia.map((z) => z.t) });
+const kontrola = await sprawdzRolke(gotowy, {
+  oczekiwanePrzejscia: zdarzenia.map((z) => z.t),
+  bezGlosu: BEZ_GLOSU,
+});
 console.log('[grafika] проверка:', JSON.stringify(kontrola, null, 1));
 
 // ── описание и паспорт ────────────────────────────────────────────
