@@ -17,6 +17,16 @@ on:
         type: boolean
         required: false
         default: false
+      tekst:
+        description: 'Фраза для пробы (по умолчанию — про ритм постов)'
+        type: string
+        required: false
+        default: ''
+      podanie:
+        description: 'Подача словами: каким тоном читать'
+        type: string
+        required: false
+        default: ''
 
 jobs:
   probki:
@@ -38,6 +48,8 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ELEVENLABS_KEY: ${{ secrets.ELEVENLABS_KEY }}
           ELEVENLABS_VOICE: ${{ secrets.ELEVENLABS_VOICE }}
+          PROBA_TEKST: ${{ inputs.tekst }}
+          PROBA_PODANIE: ${{ inputs.podanie }}
         run: node proby-glosu.mjs ${{ inputs.tylko_gemini && '--gemini' || '' }}
 
       - uses: actions/upload-artifact@v4

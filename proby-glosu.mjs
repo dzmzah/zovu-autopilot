@@ -16,10 +16,16 @@ import path from 'node:path';
 const exec = promisify(execFile);
 const OUT = path.join(import.meta.dirname, 'out', 'proby-glosu');
 
-const TEKST = 'Dziesięć postów w jeden dzień. Potem cisza na miesiąc. Ludzie zapamiętują rytm.';
+// Фразу и подачу можно задать снаружи: голос выбирается под КОНКРЕТНЫЙ ролик,
+// а не вообще. Дикторский тон, годный для рилса студии, не годится для
+// исповеди героя — это и есть причина, по которой пробу гоняем заново.
+const TEKST =
+  process.env.PROBA_TEKST ||
+  'Dziesięć postów w jeden dzień. Potem cisza na miesiąc. Ludzie zapamiętują rytm.';
 // Подача словами — то, чего не умеют ни Piper, ни XTTS. Именно она отвечает
 // за «поставленность»: паузы, нажим на ключевых словах, отсутствие речитатива.
 const PODANIE =
+  process.env.PROBA_PODANIE ||
   'Przeczytaj jak doświadczony lektor radiowy: pewnie, ciepło, niespiesznie, ' +
   'z wyraźnymi pauzami między zdaniami i naciskiem na słowa kluczowe. Nie recytuj.';
 
@@ -37,7 +43,12 @@ async function pcmDoMp3(b64, plik, czestotliwosc = 24000) {
 async function gemini() {
   const klucz = process.env.GEMINI_API_KEY;
   if (!klucz) return console.log('[proby] нет GEMINI_API_KEY — пропускаю Gemini');
-  const GLOSY = ['Charon', 'Puck', 'Algieba', 'Fenrir', 'Orus', 'Iapetus'];
+  const GLOSY = [
+    'Charon', 'Puck', 'Algieba', 'Fenrir', 'Orus', 'Iapetus',
+    // Добавлены под ролики с историей от первого лица: там нужен не диктор,
+    // а человек, который рассказывает про себя. Тембры ниже и суше.
+    'Enceladus', 'Umbriel', 'Rasalgethi', 'Alnilam',
+  ];
   for (const glos of GLOSY) {
     const r = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${klucz}`,
