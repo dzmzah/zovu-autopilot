@@ -79,6 +79,35 @@ async function eleven() {
   if (!klucz) return console.log('[proby] нет ELEVENLABS_KEY — пропускаю ElevenLabs');
 
   const glosy = [];
+
+  // Явный список: `id:nazwa,id:nazwa`. Нужен, потому что библиотека отдаёт и
+  // те голоса, которые бесплатному тарифу НЕ разрешены — их пробы звучат, а
+  // синтез ролика потом падает на 400. Так мы слушаем только то, чем реально
+  // можем работать (список — `glosy-lista.mjs`, пометка FREE).
+  if (process.env.PROBA_GLOSY) {
+    for (const p of process.env.PROBA_GLOSY.split(',')) {
+      const [id, nazwa] = p.split(':');
+      if (id) glosy.push({ id: id.trim(), nazwa: (nazwa || id).trim().replace(/[^\w-]/g, '') });
+    }
+    for (const g of glosy) {
+      const r = await fetch(`${'https://api.elevenlabs.io/v1/text-to-speech'}/${g.id}?output_format=mp3_44100_128`, {
+        method: 'POST',
+        headers: { 'xi-api-key': klucz, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: TEKST,
+          model_id: 'eleven_multilingual_v2',
+          // Те же настройки, что пойдут в ролик: проба обязана звучать так же,
+          // иначе выбирают одно, а получают другое.
+          voice_settings: { stability: 0.5, similarity_boost: 0.85, style: 0.2, use_speaker_boost: true, speed: 0.9 },
+        }),
+      });
+      if (!r.ok) { console.log(`[proby] EL ${g.nazwa}: ${r.status} ${(await r.text()).slice(0, 120)}`); continue; }
+      await writeFile(path.join(OUT, `EL-${g.nazwa}.mp3`), Buffer.from(await r.arrayBuffer()));
+      console.log(`[proby] EL-${g.nazwa}.mp3`);
+    }
+    return;
+  }
+
   if (process.env.ELEVENLABS_VOICE) {
     glosy.push({ id: process.env.ELEVENLABS_VOICE, nazwa: 'NASZ-OBECNY' });
   }

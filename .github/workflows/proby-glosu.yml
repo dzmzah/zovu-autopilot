@@ -27,6 +27,11 @@ on:
         type: string
         required: false
         default: ''
+      glosy:
+        description: 'Явный список голосов ElevenLabs: id:nazwa,id:nazwa'
+        type: string
+        required: false
+        default: ''
 
 jobs:
   probki:
@@ -50,6 +55,7 @@ jobs:
           ELEVENLABS_VOICE: ${{ secrets.ELEVENLABS_VOICE }}
           PROBA_TEKST: ${{ inputs.tekst }}
           PROBA_PODANIE: ${{ inputs.podanie }}
+          PROBA_GLOSY: ${{ inputs.glosy }}
         run: node proby-glosu.mjs ${{ inputs.tylko_gemini && '--gemini' || '' }}
 
       - uses: actions/upload-artifact@v4
