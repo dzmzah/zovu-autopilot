@@ -1,0 +1,26 @@
+name: ZOVU lista głosów PL
+
+# Wypisuje polskie męskie głosy z biblioteki ElevenLabs razem z informacją,
+# czy darmowy plan może ich w ogóle użyć. Bez syntezy — znaki nie schodzą.
+#
+# Powód: wybrany na słuch Adrian okazał się zamknięty dla free (400
+# free_users_not_allowed), więc następny wybór robimy z listy dozwolonych.
+on:
+  workflow_dispatch:
+
+jobs:
+  lista:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Lista
+        env:
+          ELEVENLABS_KEY: ${{ secrets.ELEVENLABS_KEY }}
+        run: node glosy-lista.mjs
