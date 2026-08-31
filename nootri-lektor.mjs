@@ -6,7 +6,7 @@
 // Отдаём НАРУЖУ две вещи: дорожку одним куском и разметку (границы фраз и слов).
 // По разметке режется картинка и рисуются подписи — поэтому сам звук не трогаем.
 //
-//   node nootri-glos.mjs
+//   node nootri-lektor.mjs
 import { mkdir, writeFile, copyFile } from 'node:fs/promises';
 import path from 'node:path';
 import { zbudujGlos } from './glos.mjs';
