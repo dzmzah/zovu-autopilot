@@ -58,6 +58,10 @@ console.log(`[nootri] фраз: ${FRAZY.length}, символов: ${znakow} (л
 //
 // Идентификатор достаём из библиотеки по имени: захардкодить его вслепую нельзя,
 // а ключ живёт в секретах и локально его нет.
+// Читать чужой голос ПРЯМО по публичному идентификатору бесплатный тариф не даёт:
+// «You need to be on the creator tier or above to use this voice». Зато его можно
+// добавить к себе в библиотеку — тогда голос становится своим и синтез разрешён.
+// Это не обход ограничения, а штатный путь: ровно эту кнопку жмут в интерфейсе.
 async function idAdriana(klucz) {
   const r = await fetch(
     'https://api.elevenlabs.io/v1/shared-voices?page_size=30&language=pl&gender=male',
@@ -68,7 +72,34 @@ async function idAdriana(klucz) {
   const g = (j.voices || []).find((v) => /^adrian/i.test(v.name || ''));
   if (!g) throw new Error('[nootri] в библиотеке нет голоса Adrian — пробы надо гонять заново');
   console.log(`[nootri] голос: ${g.name} (${g.voice_id})`);
-  return g.voice_id;
+
+  // Уже добавленный не добавляем второй раз — иначе в библиотеке заведётся копия
+  // на каждый прогон, и через неделю там будет двадцать Адрианов.
+  const moje = await fetch('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': klucz } });
+  if (moje.ok) {
+    const lista = (await moje.json()).voices || [];
+    const swoj = lista.find((v) => /adrian/i.test(v.name || ''));
+    if (swoj) {
+      console.log(`[nootri] голос уже в библиотеке аккаунта: ${swoj.voice_id}`);
+      return swoj.voice_id;
+    }
+  }
+
+  const dodaj = await fetch(
+    `https://api.elevenlabs.io/v1/voices/add/${g.public_owner_id}/${g.voice_id}`,
+    {
+      method: 'POST',
+      headers: { 'xi-api-key': klucz, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ new_name: 'Adrian ZOVU' }),
+    }
+  );
+  if (!dodaj.ok) {
+    console.warn(`[nootri] в библиотеку не добавился (${dodaj.status}) — пробую публичный идентификатор`);
+    return g.voice_id;
+  }
+  const dodany = (await dodaj.json()).voice_id;
+  console.log(`[nootri] голос добавлен в аккаунт: ${dodany}`);
+  return dodany;
 }
 
 // Настройки под Adriana, а не общие. Он самый быстрый из десяти проб —
