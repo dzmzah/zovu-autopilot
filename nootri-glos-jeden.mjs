@@ -1,0 +1,143 @@
+// Один дубль голоса для клиентского ролика — режим Gemini-TTS в Cloud TTS.
+//
+// Почему не общий путь из glos.mjs. Там обычный Chirp3-HD, и Захар его
+// забраковал («полная хуйня») ровно в том виде, в каком я собрал: пофразно и
+// без подачи. Разница не в тембре — в двух вещах: ОДИН дубль вместо склейки
+// восьми и текст, написанный как речь, а не как подписи.
+//
+// Рецепт проверен соседней сессией на ролике, который Захар принял на слух
+// («реально круто, очень хорошие эмоции») — тем же голосом Puck.
+//
+// Грабли, оплаченные её пробами:
+//   • endpoint именно v1beta1, иначе `prompt` игнорируется;
+//   • имя голоса БЕЗ префикса — `pl-PL-Chirp3-HD-Puck` вместе с modelName даёт
+//     400 «Gemini models cannot be used with non-Gemini voices»;
+//   • speakingRate/pitch не передавать вообще: темп задаётся словами, ползунок
+//     поверх ломает подачу;
+//   • mp3 не брать — у Google это 24 кГц/32 кбит/с, звучит как телефон.
+//
+//   node nootri-glos-jeden.mjs --podanie=a|b
+import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { FRAZY } from './nootri-frazy.mjs';
+
+const exec = promisify(execFile);
+const DIR = import.meta.dirname;
+const WYJ = path.join(DIR, 'out', 'nootri');
+const arg = (n, d) => (process.argv.find((a) => a.startsWith(`--${n}=`)) || `=${d}`).split('=').pop();
+
+// Подача меняет ХАРАКТЕР, а не темп. Просьба «wolniej, wyraźne pauzy» растянула
+// у соседней сессии двухсекундную фразу до 7,7 — темп задаётся смыслом.
+const PODANIA = {
+  a: 'Mów cicho i szczerze, jakbyś opowiadał to jednej osobie późnym wieczorem. Bez patosu i bez aktorstwa, naturalne oddechy, miejscami zawahanie.',
+  b: 'Mów spokojnie, jak człowiek, który już to przepracował: bez żalu w głosie, prosto i rzeczowo, ale ciepło.',
+};
+const PODANIE = PODANIA[arg('podanie', 'a')] || PODANIA.a;
+const GLOS = arg('glos', 'Puck');
+
+async function token() {
+  const r = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: process.env.GCP_CLIENT_ID,
+      client_secret: process.env.GCP_CLIENT_SECRET,
+      refresh_token: process.env.GCP_REFRESH_TOKEN,
+      grant_type: 'refresh_token',
+    }),
+  });
+  if (!r.ok) throw new Error(`OAuth ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  return (await r.json()).access_token;
+}
+
+// Текст для уха: связки написаны руками в поле `mowa`. Механическая замена
+// точек на запятые даёт четырнадцать запятых подряд и звучит хуже оригинала.
+const mowa = FRAZY.map((f) => (f.mowa || f.tekst).trim()).join(' ');
+console.log(`[glos1] ${FRAZY.length} фраз, ${mowa.length} знаков, голос ${GLOS}`);
+
+const wav = path.join(WYJ, 'nootri-glos.wav');
+await mkdir(WYJ, { recursive: true });
+
+const t = await token();
+let audio = null;
+for (let i = 0; i < 6 && !audio; i++) {
+  const r = await fetch('https://texttospeech.googleapis.com/v1beta1/text:synthesize', {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${t}`,
+      'x-goog-user-project': process.env.GCP_PROJECT || 'zovu-autopilot',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      input: { text: mowa, prompt: PODANIE },
+      voice: { languageCode: 'pl-PL', name: GLOS, modelName: 'gemini-2.5-flash-tts' },
+      audioConfig: { audioEncoding: 'LINEAR16', sampleRateHertz: 48000 },
+    }),
+  });
+  if (r.status === 429) { console.warn('[glos1] 429 — жду 20 с'); await new Promise((x) => setTimeout(x, 20000)); continue; }
+  if (!r.ok) throw new Error(`Cloud TTS ${r.status}: ${(await r.text()).slice(0, 300)}`);
+  audio = (await r.json()).audioContent;
+}
+if (!audio) throw new Error('[glos1] не дождался ответа TTS');
+await writeFile(wav, Buffer.from(audio, 'base64'));
+
+// Границы фраз — по тишине в самом дубле. Внутрь дубля не лезем: любая резка
+// и склейка добавляет ту самую «слышно ИИ», из-за которой всё и затевалось.
+const { stderr } = await exec(
+  'ffmpeg', ['-v', 'info', '-i', wav, '-af', 'silencedetect=n=-40dB:d=0.18', '-f', 'null', '-'],
+  { maxBuffer: 32 * 1024 * 1024 }
+);
+const { stdout: dur } = await exec('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', wav]);
+const calosc = parseFloat(dur.trim());
+const starty = [...stderr.matchAll(/silence_start:\s*([0-9.]+)/g)].map((m) => +m[1]);
+const konce = [...stderr.matchAll(/silence_end:\s*([0-9.]+)/g)].map((m) => +m[1]);
+const ciszy = starty
+  .map((s, n) => ({ od: s, doo: konce[n] ?? calosc, dl: (konce[n] ?? calosc) - s }))
+  .filter((c) => c.doo < calosc - 0.05);
+
+const potrzeba = FRAZY.length - 1;
+if (ciszy.length < potrzeba) {
+  throw new Error(`[glos1] пауз ${ciszy.length}, а нужно ${potrzeba} — текст слитный, разрежьте фразы иначе`);
+}
+const ciecia = ciszy.slice().sort((a, b) => b.dl - a.dl).slice(0, potrzeba).sort((a, b) => a.od - b.od);
+
+const frazy = [];
+let od = (konce[0] ?? 0) < 0.4 ? konce[0] ?? 0 : 0;
+for (const [i, c] of ciecia.entries()) {
+  frazy.push({ tekst: FRAZY[i].tekst, a: +od.toFixed(3), b: +Math.max(od + 0.15, c.od - 0.02).toFixed(3), rola: FRAZY[i].rola });
+  od = c.doo + 0.02;
+}
+const ostatnia = ciszy.find((c) => c.od > od && c.doo >= calosc - 0.1);
+frazy.push({
+  tekst: FRAZY[FRAZY.length - 1].tekst,
+  a: +od.toFixed(3),
+  b: +(ostatnia ? ostatnia.od + 0.04 : calosc).toFixed(3),
+  rola: FRAZY[FRAZY.length - 1].rola,
+});
+
+// Слова подписи раскладываем внутри своей фразы по длине. На экране идёт
+// `tekst`, а звучит `mowa` — поэтому совпадения слово-в-слово нет и быть
+// не может, и ловить его расшифровкой бессмысленно.
+const slowa = frazy.flatMap((f) => {
+  const ws = f.tekst.split(/\s+/).filter(Boolean);
+  const suma = ws.reduce((s, w) => s + w.length, 0) || 1;
+  let t2 = f.a;
+  return ws.map((w) => {
+    const d = ((f.b - f.a) * w.length) / suma;
+    const s2 = { tekst: w, a: +t2.toFixed(3), b: +(t2 + d).toFixed(3) };
+    t2 += d;
+    return s2;
+  });
+});
+
+const sylaby = (s) => (String(s).toLowerCase().match(/[aeiouyąęó]/g) || []).length || 1;
+console.log('[glos1] темп по фразам: ' + frazy.map((f) => (sylaby(f.tekst) / (f.b - f.a)).toFixed(1)).join(' '));
+
+await writeFile(
+  path.join(WYJ, 'nootri-glos.json'),
+  JSON.stringify({ dlugosc: +(frazy[frazy.length - 1].b + 0.35).toFixed(3), frazy, slowa }, null, 2),
+  'utf8'
+);
+console.log(`[glos1] готово: ${calosc.toFixed(2)} с дубля, ${slowa.length} слов`);

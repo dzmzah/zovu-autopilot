@@ -1,0 +1,46 @@
+name: ZOVU lektor Nootri (jeden dubel)
+
+# Głos do rolki klienta jednym dublem, w trybie Gemini-TTS z podaniem słowami.
+#
+# Zwykły Chirp3-HD frazami Zahar odrzucił: każda kropka daje intonację
+# kończącą, a osiem oddzielnych dubli sklejonych brzmi jak maszyna. Tu cały
+# tekst idzie jednym żądaniem, a granice fraz znajdujemy po ciszy.
+on:
+  workflow_dispatch:
+    inputs:
+      glos:
+        description: 'Głos Gemini-TTS BEZ prefiksu, np. Puck albo Alnilam'
+        type: string
+        required: false
+        default: 'Puck'
+      podanie:
+        description: 'a = cicho i szczerze wieczorem, b = spokojnie, już przepracowane'
+        type: string
+        required: false
+        default: 'a'
+
+jobs:
+  lektor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Synteza
+        env:
+          GCP_CLIENT_ID: ${{ secrets.GCP_CLIENT_ID }}
+          GCP_CLIENT_SECRET: ${{ secrets.GCP_CLIENT_SECRET }}
+          GCP_REFRESH_TOKEN: ${{ secrets.GCP_REFRESH_TOKEN }}
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+        run: node nootri-glos-jeden.mjs --glos=${{ inputs.glos }} --podanie=${{ inputs.podanie }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nootri-glos-${{ inputs.glos }}-${{ inputs.podanie }}
+          path: |
+            out/nootri/nootri-glos.wav
+            out/nootri/nootri-glos.json
+          if-no-files-found: error
