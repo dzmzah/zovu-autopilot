@@ -352,13 +352,27 @@ async function glos() {
     // Строчка в логе тут не работает: логи никто не читает каждый день.
     const NA_ILE_ROLEK = 5;
     const rolek = Math.floor(zostalo / 250);
-    const ok = rolek > NA_ILE_ROLEK;
+    // Квота обнуляется САМА раз в месяц, и без даты сброса тревога врёт в обе
+    // стороны: «нужен новый ключ» накануне сброса — лишний час работы, а
+    // спокойное «хватает» за неделю до конца лимита — день без рилса.
+    // Поэтому считаем не остаток, а дотянем ли до сброса нашим темпом —
+    // один ролик в сутки.
+    const resetUnix = Number(j.next_character_count_reset_unix) || null;
+    const doResetu = resetUnix
+      ? Math.max(0, Math.ceil((resetUnix * 1000 - Date.now()) / 86400000))
+      : null;
+    const kiedy = resetUnix
+      ? new Date(resetUnix * 1000).toISOString().slice(0, 10)
+      : null;
+    const dojedziemy = doResetu !== null && rolek > doResetu;
+    const ok = rolek > NA_ILE_ROLEK || dojedziemy;
+    const ogon = kiedy ? `, limit odnawia się ${kiedy} (za ${doResetu} dni)` : '';
     zapisz(
       'ElevenLabs',
       ok,
       ok
-        ? `zostało ${zostalo} znaków (~${rolek} rolek)`
-        : `CZAS NA NOWY KLUCZ: zostało ${zostalo} znaków, starczy na ${rolek} rolek`
+        ? `zostało ${zostalo} znaków (~${rolek} rolek)${ogon}`
+        : `CZAS NA NOWY KLUCZ: zostało ${zostalo} znaków, starczy na ${rolek} rolek${ogon}`
     );
   } catch (e) {
     zapisz('ElevenLabs', false, 'sieć nie odpowiada: ' + e.message, 'uwaga');
