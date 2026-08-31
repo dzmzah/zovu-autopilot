@@ -283,65 +283,36 @@ async function jednymDublemGoogle(frazy, wyjscie, google) {
     .map((s2, n) => ({ od: s2, doo: konce[n] ?? calosc, dl: (konce[n] ?? calosc) - s2 }))
     .filter((c) => c.doo < calosc - 0.05);
 
-  const potrzeba = frazy.length - 1;
-
-  // Резать по САМЫМ ДЛИННЫМ паузам нельзя. В связной речи длинная пауза стоит
-  // там, где смысловая точка, а не там, где кончается наша фраза: первый же
-  // прогон дал первой фразе 0,1 секунды и темп 46 слогов в секунду, то есть
-  // подписи разъехались бы полностью.
+  // Почему НЕ по паузам. Разбор дубля 01.09 показал, что паузы в связной
+  // речи стоят не там, где кончаются наши фразы: после «Rolka za darmo?»
+  // модель делает полсекунды тишины ВНУТРИ первой фразы. Привязка к
+  // ближайшей паузе съезжала на неё, и вторая фраза получала 0,42 секунды
+  // при темпе 11,8 слога в секунду — то есть подписи разъезжались.
   //
-  // Поэтому считаем, ГДЕ пауза должна быть: доля слогов фразы от всех слогов
-  // — это её доля времени. Дальше к каждому ожидаемому месту подбираем
-  // ближайшую настоящую паузу, не давая границам идти назад.
+  // Поэтому границы считаем пропорционально слогам ПРОИЗНЕСЁННОГО текста.
+  // Темп тогда ровный по построению, разметка предсказуема, а расхождение с
+  // настоящей речью — доли секунды. Точную привязку даст только выравнивание
+  // по словам (whisper), но его на сервере пока нет.
   const syl = frazy.map((f) => sylaby(f.mowa || f.tekst));
   const suma = syl.reduce((a, b) => a + b, 0) || 1;
-  const oczekiwane = [];
-  let narastajaco = 0;
-  for (let n = 0; n < frazy.length - 1; n++) {
-    narastajaco += syl[n];
-    oczekiwane.push((narastajaco / suma) * calosc);
-  }
 
-  // Связная речь тем и хороша, что пауз в ней мало: на месте наших границ
-  // стоит запятая, а не точка. Поэтому если рядом с расчётным местом паузы
-  // нет — берём само расчётное место. Разметка тогда приблизительная, но
-  // подписи держатся ритма, а голос остаётся тем самым, живым.
-  //
-  // Падать на пофразную озвучку здесь нельзя: она и есть та «аишность»,
-  // из-за которой всё переделывалось.
-  const BLISKO = 0.6; // секунд — насколько пауза считается «той самой»
-  const ciecia = [];
-  let wolneOd = 0;
-  let zSlogow = 0;
-  for (const cel of oczekiwane) {
-    const kandydaci = ciszy.filter((c) => c.od > wolneOd);
-    const naj = kandydaci.length
-      ? kandydaci.reduce((a, b) =>
-          Math.abs((a.od + a.doo) / 2 - cel) <= Math.abs((b.od + b.doo) / 2 - cel) ? a : b
-        )
-      : null;
-    if (naj && Math.abs((naj.od + naj.doo) / 2 - cel) <= BLISKO) {
-      ciecia.push(naj);
-      wolneOd = naj.doo;
-    } else {
-      zSlogow++;
-      const od2 = Math.max(wolneOd + 0.1, cel - 0.02);
-      ciecia.push({ od: od2, doo: od2 + 0.02, dl: 0.02 });
-      wolneOd = od2 + 0.02;
-    }
-  }
-  if (zSlogow) {
-    console.log(`[glos] границ по слогам: ${zSlogow} из ${oczekiwane.length} — пауз в речи меньше, чем фраз`);
-  }
+  // Начало и конец речи всё-таки берём замером: хвост тишины в дубле бывает
+  // в секунду, и без обрезки последняя фраза считалась бы вдвое длиннее.
+  const poczatek = ciszy.length && ciszy[0].od < 0.05 ? ciszy[0].doo : 0;
+  const ostatnia = ciszy.length ? ciszy[ciszy.length - 1] : null;
+  const koniecMowy = ostatnia && ostatnia.doo >= calosc - 0.08 ? ostatnia.od : calosc;
+  const mowaTrwa = Math.max(0.5, koniecMowy - poczatek);
 
   const granice = [];
-  let od = Math.max(0, (konce[0] ?? 0) < 0.4 ? konce[0] : 0);
-  for (const c of ciecia) {
-    granice.push([od, Math.max(od + 0.15, c.od - 0.02)]);
-    od = c.doo + 0.02;
+  let narastajaco = 0;
+  let od = poczatek;
+  for (let n = 0; n < frazy.length; n++) {
+    narastajaco += syl[n];
+    const doo =
+      n === frazy.length - 1 ? koniecMowy : poczatek + (narastajaco / suma) * mowaTrwa;
+    granice.push([od, Math.max(od + 0.15, doo)]);
+    od = doo;
   }
-  const ostatniaCisza = ciszy.find((c) => c.od > od && c.doo >= calosc - 0.1);
-  granice.push([od, ostatniaCisza ? ostatniaCisza.od + 0.04 : calosc]);
 
   // Последняя проверка перед выдачей: если хоть одна фраза получила
   // невозможный темп, разметка неверна — молча выкладывать такое нельзя.
