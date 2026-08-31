@@ -35,15 +35,15 @@ const glos = JSON.parse(await readFile(`${GLOS}.json`, 'utf8'));
 // на последней фразе, и зал входит ПОД слова «piętnaście kilo». Резать по
 // середине фразы здесь правильно: смена смысла происходит именно там.
 const SCENY = [
-  { plik: 'Man_talking_on_phone_in_202608312111.mp4',        frazy: [0, 1],     od: 0 },
-  { plik: 'Man_holding_phone_indoors_202608312111.mp4',      frazy: [2],        od: 1.2 },
-  { plik: 'Man_sitting_at_kitchen_table_202608312111.mp4',   frazy: [3, 4, 5],  od: 0, max: 8.0 },
-  { plik: 'Trainer_talking_to_man_in_202608312111.mp4',      frazy: [6, 7],     od: 0 },
-  { plik: 'Torso_model_showing_hormone_acti…_202608312111.mp4', frazy: [8],     od: 1.0 },
-  { plik: 'nootri-produkt.mp4', katalog: KLIPY_VEO,             frazy: [9, 10],    od: 0 },
-  { plik: 'nootri-lustro.mp4', katalog: KLIPY_VEO,              frazy: [11, 12],   od: 0.6 },
-  { plik: 'nootri-drzwi2.mp4', katalog: KLIPY_VEO,              frazy: [13, 14],   od: 0.6 },
-  { plik: 'Man_picking_up_coffee_mug_202608312111.mp4',      frazy: [15, 16, 17], od: 0 },
+  { plik: 'Man_talking_on_phone_in_202608312111.mp4',        frazy: [0, 1],   od: 0 },
+  { plik: 'Man_holding_phone_indoors_202608312111.mp4',      frazy: [2],      od: 1.2 },
+  { plik: 'Man_sitting_at_kitchen_table_202608312111.mp4',   frazy: [3, 4],   od: 0 },
+  { plik: 'Trainer_talking_to_man_in_202608312111.mp4',      frazy: [5],      od: 0 },
+  { plik: 'Torso_model_showing_hormone_acti…_202608312111.mp4', frazy: [6],   od: 1.0 },
+  { plik: 'nootri-produkt.mp4', katalog: KLIPY_VEO,             frazy: [7, 8],   od: 0 },
+  { plik: 'nootri-lustro.mp4', katalog: KLIPY_VEO,              frazy: [9],      od: 0.6 },
+  { plik: 'nootri-drzwi2.mp4', katalog: KLIPY_VEO,              frazy: [10, 11], od: 0.6 },
+  { plik: 'Man_picking_up_coffee_mug_202608312111.mp4',      frazy: [12],     od: 0 },
 ];
 
 // Длина куска — от начала его первой фразы до начала первой фразы следующего
@@ -69,8 +69,7 @@ console.log(`[nootri] картинка ${suma.toFixed(2)} с, речь ${glos.dl
 // Титры недель: тот случай, когда цифра на экране работает лучше подписи —
 // зритель видит шкалу прогресса, а не слушает её.
 const tytuly = [
-  { start: +(glos.frazy[11].a - 0.1).toFixed(2), dlugosc: 1.6, numer: '2', tekst: 'TYDZIEŃ' },
-  { start: +(glos.frazy[12].a - 0.1).toFixed(2), dlugosc: 1.6, numer: '6', tekst: 'TYDZIEŃ' },
+  { start: +(glos.frazy[9].a - 0.1).toFixed(2), dlugosc: 1.6, numer: '6', tekst: 'TYDZIEŃ' },
 ];
 
 const plan = {

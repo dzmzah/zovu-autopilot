@@ -14,6 +14,11 @@ import { zbudujGlos } from './glos.mjs';
 const DIR = import.meta.dirname;
 const WYJ = path.join(DIR, 'out', 'nootri');
 
+// ТРИНАДЦАТЬ фраз, а не восемнадцать. Голос Google Puck читает медленнее
+// ElevenLabs: те же восемнадцать давали 73 секунды речи, а девять клипов по
+// восемь секунд покрывают максимум 72 — картинка начинала зацикливаться, и
+// замеры ловили рывки силой 106. Сокращаем текст, а не растягиваем кадры.
+//
 // Восемь сцен по 8 секунд. Голос НЕ читает подписи вслух — он ведёт историю,
 // а реплики второго героя остаются текстом на экране.
 //
@@ -21,30 +26,25 @@ const WYJ = path.join(DIR, 'out', 'nootri');
 // тремя дублями подряд). Поэтому короткие предложения, а не длинные периоды.
 const FRAZY = [
   // 1 · крючок
-  { tekst: 'Zadzwoniłem do żony. O dwudziestej trzeciej.', rola: 'hak', pauza: 0.35 },
-  { tekst: 'Telefon odebrał. Dwudziestosiedmiolatek.', rola: 'hak', pauza: 0.55 },
+  { tekst: 'Zadzwoniłem do żony. O dwudziestej trzeciej.', rola: 'hak', pauza: 0.3 },
+  { tekst: 'Telefon odebrał. Dwudziestosiedmiolatek.', rola: 'hak', pauza: 0.45 },
   // 2 · унижение
-  { tekst: 'Zapytał, czy to ja jestem tym dziadkiem.', rola: 'tresc', pauza: 0.5 },
+  { tekst: 'Zapytał, czy to ja jestem tym dziadkiem.', rola: 'tresc', pauza: 0.4 },
   // 3 · дно
-  { tekst: 'Nie krzyczałem. Usiadłem w kuchni.', rola: 'tresc', pauza: 0.4 },
-  { tekst: 'Dwadzieścia lat byłem facetem. Na którym wszyscy się opierali.', rola: 'tresc', pauza: 0.4 },
-  { tekst: 'A dziś. Piętnaście kilo więcej niż w dniu ślubu.', rola: 'tresc', pauza: 0.55 },
+  { tekst: 'Nie krzyczałem. Usiadłem w kuchni.', rola: 'tresc', pauza: 0.35 },
+  { tekst: 'A dziś. Piętnaście kilo więcej niż w dniu ślubu.', rola: 'tresc', pauza: 0.45 },
   // 4 · объяснение
-  { tekst: 'Trener powiedział jedno zdanie.', rola: 'tresc', pauza: 0.35 },
-  { tekst: 'Po czterdziestce kortyzol idzie w górę. Testosteron w dół.', rola: 'tresc', pauza: 0.4 },
-  { tekst: 'To nie jest brak silnej woli. To hormony.', rola: 'tresc', pauza: 0.55 },
+  { tekst: 'Po czterdziestce kortyzol idzie w górę. Testosteron w dół.', rola: 'tresc', pauza: 0.35 },
+  { tekst: 'To nie brak silnej woli. To hormony.', rola: 'tresc', pauza: 0.45 },
   // 5 · продукт
-  { tekst: 'Jedna filiżanka kawy grzybowej. Zamiast zwykłej.', rola: 'tresc', pauza: 0.35 },
-  { tekst: 'Ashwagandha łagodzi kortyzol. Lion’s mane rozgania mgłę.', rola: 'tresc', pauza: 0.55 },
+  { tekst: 'Jedna filiżanka kawy grzybowej. Zamiast zwykłej.', rola: 'tresc', pauza: 0.3 },
+  { tekst: 'Ashwagandha na kortyzol. Lion’s mane na mgłę.', rola: 'tresc', pauza: 0.45 },
   // 6 · прогресс
-  { tekst: 'Drugi tydzień. Ciężar w ciele znika.', rola: 'tresc', pauza: 0.35 },
-  { tekst: 'Szósty tydzień. Koszula sprzed pięciu lat.', rola: 'tresc', pauza: 0.55 },
+  { tekst: 'Szósty tydzień. Koszula sprzed pięciu lat.', rola: 'tresc', pauza: 0.45 },
   // 7 · возврат
-  { tekst: 'Wróciła. Po swoje pudła.', rola: 'tresc', pauza: 0.35 },
-  { tekst: 'Zapytała. Co ja ze sobą zrobiłem.', rola: 'tresc', pauza: 0.55 },
+  { tekst: 'Wróciła. Po swoje pudła.', rola: 'tresc', pauza: 0.3 },
+  { tekst: 'Zapytała. Co ja ze sobą zrobiłem.', rola: 'tresc', pauza: 0.45 },
   // 8 · призыв
-  { tekst: 'Odeszła nie dlatego. Że się zestarzałem.', rola: 'cta', pauza: 0.35 },
-  { tekst: 'Odeszła, bo przez dwadzieścia lat stres mnie wykańczał.', rola: 'cta', pauza: 0.4 },
   { tekst: 'Jeden kubek każdego ranka.', rola: 'cta' },
 ];
 
