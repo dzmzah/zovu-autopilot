@@ -272,7 +272,7 @@ async function jednymDublemGoogle(frazy, wyjscie, google) {
 
   const { stderr } = await execFileAsync(
     'ffmpeg',
-    ['-v', 'info', '-i', wyjscie, '-af', 'silencedetect=n=-40dB:d=0.18', '-f', 'null', '-'],
+    ['-v', 'info', '-i', wyjscie, '-af', 'silencedetect=n=-35dB:d=0.07', '-f', 'null', '-'],
     { maxBuffer: 32 * 1024 * 1024 }
   );
   const starty = [...stderr.matchAll(/silence_start:\s*([0-9.]+)/g)].map((m) => +m[1]);
@@ -284,12 +284,6 @@ async function jednymDublemGoogle(frazy, wyjscie, google) {
     .filter((c) => c.doo < calosc - 0.05);
 
   const potrzeba = frazy.length - 1;
-  if (ciszy.length < potrzeba) {
-    console.warn(
-      `[glos] пауз в дубле ${ciszy.length}, а фраз ${frazy.length} — режу пофразно`
-    );
-    return null;
-  }
 
   // Резать по САМЫМ ДЛИННЫМ паузам нельзя. В связной речи длинная пауза стоит
   // там, где смысловая точка, а не там, где кончается наша фраза: первый же
@@ -308,19 +302,36 @@ async function jednymDublemGoogle(frazy, wyjscie, google) {
     oczekiwane.push((narastajaco / suma) * calosc);
   }
 
+  // Связная речь тем и хороша, что пауз в ней мало: на месте наших границ
+  // стоит запятая, а не точка. Поэтому если рядом с расчётным местом паузы
+  // нет — берём само расчётное место. Разметка тогда приблизительная, но
+  // подписи держатся ритма, а голос остаётся тем самым, живым.
+  //
+  // Падать на пофразную озвучку здесь нельзя: она и есть та «аишность»,
+  // из-за которой всё переделывалось.
+  const BLISKO = 0.6; // секунд — насколько пауза считается «той самой»
   const ciecia = [];
   let wolneOd = 0;
+  let zSlogow = 0;
   for (const cel of oczekiwane) {
-    const kandydaci = ciszy.filter((c) => c.od > wolneOd && !ciecia.includes(c));
-    if (!kandydaci.length) {
-      console.warn('[glos] паузы кончились раньше фраз — режу пофразно');
-      return null;
+    const kandydaci = ciszy.filter((c) => c.od > wolneOd);
+    const naj = kandydaci.length
+      ? kandydaci.reduce((a, b) =>
+          Math.abs((a.od + a.doo) / 2 - cel) <= Math.abs((b.od + b.doo) / 2 - cel) ? a : b
+        )
+      : null;
+    if (naj && Math.abs((naj.od + naj.doo) / 2 - cel) <= BLISKO) {
+      ciecia.push(naj);
+      wolneOd = naj.doo;
+    } else {
+      zSlogow++;
+      const od2 = Math.max(wolneOd + 0.1, cel - 0.02);
+      ciecia.push({ od: od2, doo: od2 + 0.02, dl: 0.02 });
+      wolneOd = od2 + 0.02;
     }
-    const naj = kandydaci.reduce((a, b) =>
-      Math.abs((a.od + a.doo) / 2 - cel) <= Math.abs((b.od + b.doo) / 2 - cel) ? a : b
-    );
-    ciecia.push(naj);
-    wolneOd = naj.doo;
+  }
+  if (zSlogow) {
+    console.log(`[glos] границ по слогам: ${zSlogow} из ${oczekiwane.length} — пауз в речи меньше, чем фраз`);
   }
 
   const granice = [];
@@ -335,7 +346,7 @@ async function jednymDublemGoogle(frazy, wyjscie, google) {
   // Последняя проверка перед выдачей: если хоть одна фраза получила
   // невозможный темп, разметка неверна — молча выкладывать такое нельзя.
   const tempa = granice.map(([a, b], n) => sylaby(frazy[n].tekst) / Math.max(0.2, b - a));
-  const zle = tempa.filter((t) => t < 1.6 || t > 8.5).length;
+  const zle = tempa.filter((t) => t < 1.2 || t > 9.5).length;
   if (zle) {
     console.warn(
       `[glos] границы дубля не сошлись (${zle} фраз с невозможным темпом) — режу пофразно`
