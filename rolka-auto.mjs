@@ -29,6 +29,11 @@ import { sprawdzRolke } from './kontrola.mjs';
 import { podmienHasztagi } from './tagi.mjs';
 import { rozlozNaklejki } from './naklejki.mjs';
 import { zeSpizarni, SPIZARNIA } from './spizarnia.mjs';
+import {
+  historiaScenariuszy,
+  wybierzNajdawniejszy,
+  opiszWybor,
+} from './historia-scenariuszy.mjs';
 
 const DIR = import.meta.dirname;
 const OUT = path.join(DIR, 'out');
@@ -537,12 +542,24 @@ async function nastepnyScenariusz() {
   try { stan = JSON.parse(await readFile(STAN, 'utf8')); } catch { stan = {}; }
   const zajete = await czekajaceScenariusze();
 
-  let idx = ((stan.scenariusz ?? -1) + 1) % SCENARIUSZE.length;
-  // Круг проходим целиком: если заняты все, берём как есть — пусть лучше
-  // повтор, чем пустой день.
-  for (let i = 0; i < SCENARIUSZE.length && zajete.has(SCENARIUSZE[idx].nazwa); i++) {
-    console.log(`[rolka-auto] «${SCENARIUSZE[idx].nazwa}» уже ждёт выкладки — беру следующий`);
-    idx = (idx + 1) % SCENARIUSZE.length;
+  // Берём не следующий по кругу, а тот, что не выходил дольше всех. Круг
+  // замыкался молча: банк из двенадцати мыслей при выкладке каждый день
+  // возвращался к началу за полторы недели, и лента повторяла текст слово
+  // в слово — новым дублем голоса, то есть незаметно для нас и заметно для
+  // зрителя. Разбор — в historia-scenariuszy.mjs.
+  const historia = await historiaScenariuszy(DIR);
+  const wybor = wybierzNajdawniejszy(
+    SCENARIUSZE.map((s, i) => ({ id: s.nazwa, idx: i })),
+    historia,
+    zajete
+  );
+  const idx = wybor.idx;
+  console.log(`[rolka-auto] ${opiszWybor(wybor)}; не выходило больше месяца: ${wybor.swiezych}`);
+  if (wybor.powtorka) {
+    console.log(
+      '::warning::Банк сценариев кончился — лента идёт по второму кругу. ' +
+        'Нужны новые сценарии, иначе зритель видит один и тот же ролик.'
+    );
   }
   stan.scenariusz = idx;
   // Сквозной номер выпуска. Номер сценария для хэштегов не годится: он ходит

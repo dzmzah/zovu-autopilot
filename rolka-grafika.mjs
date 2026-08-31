@@ -17,6 +17,7 @@ import { zbudujGlos } from './glos.mjs';
 import { sprawdzRolke } from './kontrola.mjs';
 import { grafikaHtml, renderujKlatki, wczytajObiekty, W, H, FPS } from './grafika.mjs';
 import { wybierzScenariusz } from './scenariusze-grafika.mjs';
+import { historiaScenariuszy } from './historia-scenariuszy.mjs';
 import { wybierzWejscie } from './dzwiek.mjs';
 import { podmienHasztagi } from './tagi.mjs';
 import { zbudujPodklad } from './wedacy.mjs';
@@ -74,7 +75,7 @@ const { scenariusz, idx: idxScen } = demo
   ? { scenariusz: demo, idx: null }
   : zWedacym
     ? { scenariusz: zWedacym, idx: null }
-    : wybierzScenariusz(KLUCZ, stan, await zajeteScenariusze());
+    : wybierzScenariusz(KLUCZ, stan, await zajeteScenariusze(), await historiaScenariuszy(DIR));
 if (idxScen !== null) stan.grafikaScen = idxScen;
 console.log(`[grafika] сценарий «${scenariusz.klucz}»: ${scenariusz.nazwa}`);
 

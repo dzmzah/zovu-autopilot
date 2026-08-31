@@ -1,3 +1,5 @@
+import { wybierzNajdawniejszy, opiszWybor } from './historia-scenariuszy.mjs';
+
 // Банк сценариев рисованных рилсов.
 //
 // До 18.08 сценарий был один и вшит прямо в rolka-grafika.mjs: чтобы снять
@@ -695,7 +697,7 @@ export const SCENARIUSZE = [CZAS, ODPOWIEDZ, RYTM, SESJA, PROFIL, KOMENTARZE, LI
 
 // Выбор сценария: по ключу из аргумента или по кругу из состояния. Круг, а не
 // случайность: лента должна перебирать все, а не тыкать в один и тот же.
-export function wybierzScenariusz(klucz, stan = {}, zajeteKlucze = []) {
+export function wybierzScenariusz(klucz, stan = {}, zajeteKlucze = [], historia = null) {
   if (klucz) {
     const s = SCENARIUSZE.find((x) => x.klucz === klucz);
     if (!s) {
@@ -710,13 +712,31 @@ export function wybierzScenariusz(klucz, stan = {}, zajeteKlucze = []) {
   // очередь его выбросила — та же мысль там уже стояла. Проверка была ПОСЛЕ
   // сборки, то есть после всех затрат.
   const zajete = new Set(zajeteKlucze || []);
-  let idx = (stan.grafikaScen ?? -1);
+  // Круг заменён давностью: банк из семи мыслей при выкладке через день
+  // возвращался к началу за две недели, и лента повторяла ролик дословно.
+  // История общая со стоковыми — лента у зрителя одна.
+  if (historia) {
+    const pozycje = SCENARIUSZE.map((x, i) => ({ id: 'grafika-' + x.klucz, idx: i }));
+    const zajeteId = new Set(
+      [...zajete].map((k) => (String(k).startsWith('grafika-') ? k : 'grafika-' + k))
+    );
+    const wybor = wybierzNajdawniejszy(pozycje, historia, zajeteId);
+    console.log(
+      `[grafika] ${opiszWybor(wybor)}; не выходило больше месяца: ${wybor.swiezych}`
+    );
+    if (wybor.powtorka) {
+      console.log(
+        '::warning::Банк рисованных сценариев кончился — лента идёт по второму кругу.'
+      );
+    }
+    return { scenariusz: SCENARIUSZE[wybor.idx], idx: wybor.idx };
+  }
+  // Без истории (ручной прогон) остаётся прежний круг.
+  let idx = stan.grafikaScen ?? -1;
   for (let krok = 0; krok < SCENARIUSZE.length; krok++) {
     idx = (idx + 1) % SCENARIUSZE.length;
     if (!zajete.has(SCENARIUSZE[idx].klucz)) return { scenariusz: SCENARIUSZE[idx], idx };
   }
-  // Все заняты — берём следующий по кругу и говорим об этом вслух: значит
-  // очередь набита и сборка сегодня лишняя.
   idx = ((stan.grafikaScen ?? -1) + 1) % SCENARIUSZE.length;
   console.warn('[grafika] все сценарии уже ждут выкладки — ролик, скорее всего, не пригодится');
   return { scenariusz: SCENARIUSZE[idx], idx };
