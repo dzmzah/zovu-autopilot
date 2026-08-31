@@ -165,26 +165,30 @@ async function powiedzEleven(tekst, wyjscie, { klucz, glos, ustawienia = {} }) {
 // Таймингов символов Gemini не отдаёт, и это не беда: фразы синтезируем по
 // отдельности, тогда границы известны точно и общий дубль резать не надо.
 const GEMINI_MODEL = 'gemini-2.5-flash-preview-tts';
+// Подача у Gemini — это ОДНА строка перед текстом, кончающаяся двоеточием,
+// как в их же примерах («Say cheerfully: …»). Длинную инструкцию абзацем
+// модель принимает за текст: проба 31.08 дала дубли на 655 секунд вместо
+// пятнадцати — она читала саму инструкцию и уходила в петлю.
 export const GEMINI_PODANIE =
-  'Przeczytaj jak doświadczony polski lektor reklamowy: pewnie, ciepło, ' +
-  'niespiesznie, z wyraźnymi pauzami między zdaniami i naciskiem na liczby. ' +
-  'Nie recytuj, mów do jednej osoby. Przeczytaj wyłącznie podany tekst.';
+  'Przeczytaj spokojnie i ciepło, jak polski lektor reklamowy, z pauzami między zdaniami:';
 
 async function powiedzGemini(tekst, wyjscie, { klucz, glos, podanie }) {
   const body = {
-    contents: [{ parts: [{ text: (podanie || GEMINI_PODANIE) + String.fromCharCode(10, 10) + tekst }] }],
+    contents: [{ parts: [{ text: (podanie || GEMINI_PODANIE) + ' ' + tekst }] }],
     generationConfig: {
       responseModalities: ['AUDIO'],
       speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: glos } } },
     },
   };
 
-  // Квота бесплатного Gemini считается запросами в минуту, а фраз в ролике
-  // восемь. Отказ по перегрузу — обычное дело и лечится ожиданием, поэтому
-  // три попытки с паузой; на любой другой ответ падаем сразу, чтобы поломка
-  // не превратилась в тихую подмену голоса.
+  // Квота бесплатного Gemini считается запросами в МИНУТУ, а фраз в ролике
+  // восемь. На пробе десяти голосов 31.08 три из них поймали 429 подряд —
+  // значит пауза в восемь секунд коротка, а ролику нужен весь список фраз,
+  // а не «сколько успелось». Поэтому пять попыток по двадцать секунд: минуту
+  // подождать дешевле, чем потерять день ленты. На любой другой ответ падаем
+  // сразу, чтобы поломка не превратилась в тихую подмену голоса.
   let ostatni = '';
-  for (let proba = 0; proba < 3; proba++) {
+  for (let proba = 0; proba < 5; proba++) {
     const r = await fetch(
       'https://generativelanguage.googleapis.com/v1beta/models/' +
         GEMINI_MODEL + ':generateContent?key=' + klucz,
@@ -205,7 +209,7 @@ async function powiedzGemini(tekst, wyjscie, { klucz, glos, podanie }) {
     ostatni = r.status + ': ' + (await r.text()).slice(0, 160);
     if (r.status !== 429 && r.status !== 503) break;
     console.warn('[glos] Gemini занят (' + r.status + ') — жду и пробую снова');
-    await new Promise((res) => setTimeout(res, 8000));
+    await new Promise((res) => setTimeout(res, 20000));
   }
   throw new Error('Gemini TTS ' + ostatni);
 }
