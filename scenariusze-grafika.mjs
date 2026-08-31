@@ -702,15 +702,19 @@ const LISTA = {
 const KOSZT = {
   klucz: 'koszt',
   nazwa: 'Ile kosztuje rolka, jeśli robisz ją sam',
+  // `tekst` — то, что видно на экране: рублено, по два-три слова, как в
+  // эталонах. `mowa` — то, что слышно: та же мысль связной речью. Разделение
+  // не украшательство: на рубленых точках Google даёт завершающую интонацию,
+  // и с десятой секунды ролик звучит роботом — Захар это поймал на слух.
   frazy: [
-    { rola: 'hak', tekst: 'Rolka za darmo? Policz.', pauza: 0.36 },
-    { rola: 'hak', tekst: 'Twój czas. To też koszt.', pauza: 0.42 },
-    { rola: 'tresc', tekst: 'Pomysł. Nagranie. Montaż.', pauza: 0.32 },
-    { rola: 'tresc', tekst: 'Trzy godziny. Na jedną rolkę.', pauza: 0.32 },
-    { rola: 'tresc', tekst: 'Dwanaście rolek. Co miesiąc.', pauza: 0.34 },
-    { rola: 'zaplata', tekst: 'Trzydzieści sześć godzin. Twoich.', pauza: 0.36 },
-    { rola: 'zaplata', tekst: 'Cały tydzień. Twojej pracy.', pauza: 0.32 },
-    { rola: 'cta', tekst: 'Ile wychodzi tobie? Napisz.', pauza: 0.20 },
+    { rola: 'hak', tekst: 'Rolka za darmo? Policz.', mowa: 'Rolka za darmo? Policz —', pauza: 0.36 },
+    { rola: 'hak', tekst: 'Twój czas. To też koszt.', mowa: 'twój czas to też koszt.', pauza: 0.42 },
+    { rola: 'tresc', tekst: 'Pomysł. Nagranie. Montaż.', mowa: 'Pomysł, nagranie, montaż,', pauza: 0.32 },
+    { rola: 'tresc', tekst: 'Trzy godziny. Na jedną rolkę.', mowa: 'to jakieś trzy godziny na jedną rolkę.', pauza: 0.32 },
+    { rola: 'tresc', tekst: 'Dwanaście rolek. Co miesiąc.', mowa: 'Razy dwanaście w miesiącu', pauza: 0.34 },
+    { rola: 'zaplata', tekst: 'Trzydzieści sześć godzin. Twoich.', mowa: 'robi się trzydzieści sześć godzin,', pauza: 0.36 },
+    { rola: 'zaplata', tekst: 'Cały tydzień. Twojej pracy.', mowa: 'czyli cały tydzień twojej pracy.', pauza: 0.32 },
+    { rola: 'cta', tekst: 'Ile wychodzi tobie? Napisz.', mowa: 'Ile wychodzi tobie? Napisz.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     const scena = [

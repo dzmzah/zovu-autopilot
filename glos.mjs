@@ -222,6 +222,91 @@ async function powiedzGoogle(tekst, wyjscie, { id, sekret, odswiez, projekt, glo
   await writeFile(wyjscie, Buffer.from(j.audioContent, 'base64'));
 }
 
+// ── один дубль вместо восьми ──────────────────────────────────────
+// Захар про пофразную озвучку: «после десятой секунды прям очень аишно».
+// Причина не в тембре. С десятой секунды у нас начинается середина, а она
+// написана рублеными точками — «Pomysł. Nagranie. Montaż.» Точки мы ставили
+// под ElevenLabs, чтобы он не тараторил; Google на каждой точке даёт
+// ЗАВЕРШАЮЩУЮ интонацию, и восемь отдельных дублей встык звучат как робот.
+//
+// Лечение проверено на слух: тот же смысл, написанный как живая речь, и весь
+// ролик ОДНИМ дублем со сквозной линией. Реакция была «реально круто, очень
+// хорошие эмоции» — на том же голосе, который до этого забраковали.
+//
+// Границы фраз тогда не даны заранее, их находим по паузам — тем же способом,
+// что и у ElevenLabs без разметки. Не нашлись — честно возвращаем null, и
+// наверху остаётся пофразный путь.
+
+// Текст для голоса ≠ текст для подписи. Подписи на экране остаются рублеными,
+// диктору отдаём связную речь: точка в КОНЦЕ фразы становится запятой, если
+// это не последняя фраза и не вопрос.
+export function zywaMowa(frazy, doWymowy) {
+  // Механическая замена точек на запятые даёт другую крайность: четырнадцать
+  // запятых подряд, речь без структуры. Живой текст, который Захар принял на
+  // слух, писался руками — со связками «to jakieś», «razy… robi się», «czyli».
+  // Никакая регулярка их не придумает, поэтому у фразы есть поле `mowa`:
+  // что на экране и что в ухе — разные тексты, и это норма.
+  //
+  // Без `mowa` остаётся мягкий запасной путь: точку в КОНЦЕ фразы меняем на
+  // запятую, чтобы дубль не распадался на отдельные завершённые предложения.
+  // Точки внутри фразы не трогаем — они держат ритм.
+  return frazy
+    .map((f, n) => {
+      if (f.mowa) return String(f.mowa).trim();
+      const t = doWymowy(f).trim();
+      if (n === frazy.length - 1) return t;
+      if (/[?!…]$/.test(t)) return t;
+      return t.replace(/\.$/, ',');
+    })
+    .join(' ');
+}
+
+const GOOGLE_PODANIE =
+  'Mów jak człowiek, który tłumaczy to koledze przy stole: swobodnie, ze zmiennym ' +
+  'rytmem i naturalnymi oddechami. Nie recytuj listy — prowadź jedną myśl do końca. ' +
+  'Na ostatnim zdaniu nie trać energii, uśmiechnij się głosem.';
+
+async function jednymDublemGoogle(frazy, wyjscie, google) {
+  const tekst = zywaMowa(frazy, doWymowy);
+  await powiedzGoogle(tekst, wyjscie, { ...google, podanie: GOOGLE_PODANIE });
+
+  const { stderr } = await execFileAsync(
+    'ffmpeg',
+    ['-v', 'info', '-i', wyjscie, '-af', 'silencedetect=n=-40dB:d=0.18', '-f', 'null', '-'],
+    { maxBuffer: 32 * 1024 * 1024 }
+  );
+  const starty = [...stderr.matchAll(/silence_start:\s*([0-9.]+)/g)].map((m) => +m[1]);
+  const konce = [...stderr.matchAll(/silence_end:\s*([0-9.]+)/g)].map((m) => +m[1]);
+  const calosc = await trwanie(wyjscie);
+
+  const ciszy = starty
+    .map((s2, n) => ({ od: s2, doo: konce[n] ?? calosc, dl: (konce[n] ?? calosc) - s2 }))
+    .filter((c) => c.doo < calosc - 0.05);
+
+  const potrzeba = frazy.length - 1;
+  if (ciszy.length < potrzeba) {
+    console.warn(
+      `[glos] пауз в дубле ${ciszy.length}, а фраз ${frazy.length} — режу пофразно`
+    );
+    return null;
+  }
+  const ciecia = ciszy
+    .slice()
+    .sort((a, b) => b.dl - a.dl)
+    .slice(0, potrzeba)
+    .sort((a, b) => a.od - b.od);
+
+  const granice = [];
+  let od = Math.max(0, (konce[0] ?? 0) < 0.4 ? konce[0] : 0);
+  for (const c of ciecia) {
+    granice.push([od, Math.max(od + 0.15, c.od - 0.02)]);
+    od = c.doo + 0.02;
+  }
+  const ostatniaCisza = ciszy.find((c) => c.od > od && c.doo >= calosc - 0.1);
+  granice.push([od, ostatniaCisza ? ostatniaCisza.od + 0.04 : calosc]);
+  return granice;
+}
+
 // ── Gemini TTS ────────────────────────────────────────────────────
 // Зачем он здесь. 31.08 бесплатный аккаунт ElevenLabs отказался отдавать
 // библиотечный голос через API («Free users cannot use library voices»), и
@@ -652,6 +737,28 @@ export async function zbudujGlos(
   // Границы из таймингов режутся точно; подрезать их ещё раз по тишине нельзя —
   // тихое начало фразы съестся, и вернутся те самые огрызки.
   let graniceDokladne = false;
+  // Google пишем одним дублем: живая пунктуация и сквозная линия — то, ради
+  // чего всё и затевалось. Кэш общий с остальными, ключ учитывает голос.
+  if (google) {
+    const odcisk = createHash('sha1')
+      .update(JSON.stringify(['google-dubel-v1', frazy.map((f) => doWymowy(f)), google.glos]))
+      .digest('hex')
+      .slice(0, 16);
+    dubel = path.join(KESZ, `dubel-${odcisk}.wav`);
+    const granicePlik = path.join(KESZ, `dubel-${odcisk}.json`);
+    if (existsSync(dubel) && existsSync(granicePlik)) {
+      granice = JSON.parse(await readFile(granicePlik, 'utf8'));
+      graniceDokladne = false;
+      console.log('[glos] дубль из кэша');
+    } else {
+      granice = await jednymDublemGoogle(frazy, dubel, google);
+      if (granice) {
+        await writeFile(granicePlik, JSON.stringify(granice), 'utf8');
+        console.log(`[glos] один дубль на ${frazy.length} фраз, границы по паузам`);
+      }
+    }
+  }
+
   if (eleven) {
     const odciskCaly = createHash('sha1')
       .update(
