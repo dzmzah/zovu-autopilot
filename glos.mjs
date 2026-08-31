@@ -209,7 +209,11 @@ async function powiedzGoogle(tekst, wyjscie, { id, sekret, odswiez, projekt, glo
       // Скорость ниже единицы — то же лекарство от скороговорки, что и у
       // ElevenLabs: 0.95 звучит спокойно, а выравнивание темпа ниже
       // подчищает остаток по замеру слогов.
-      audioConfig: { audioEncoding: 'MP3', speakingRate: tempo ?? 0.95 },
+      // Формат — НЕ mp3. Захар послушал пробы и сказал «как будто снято на
+      // мега хуёвый микрофон», и он был прав: mp3 у Google отдаётся 24 кГц
+      // и 32 кбит/с, то есть телефонным качеством. Это не голос плохой, это
+      // формат. LINEAR16 приходит без сжатия, дальше всё равно наша сборка.
+      audioConfig: { audioEncoding: 'LINEAR16', sampleRateHertz: 48000, speakingRate: tempo ?? 0.95 },
     }),
   });
   if (!r.ok) throw new Error(`Google TTS ${r.status}: ${(await r.text()).slice(0, 200)}`);
@@ -853,7 +857,7 @@ export async function zbudujGlos(
     const f = frazy[i];
     // У ElevenLabs забираем mp3 — ffmpeg дальше всё равно приводит к общему
     // виду, а лишнее перекодирование в wav ничего не улучшает.
-    const surowy = path.join(kat, `f${i}-raw.${eleven || google ? 'mp3' : 'wav'}`);
+    const surowy = path.join(kat, `f${i}-raw.${eleven ? 'mp3' : 'wav'}`);
     const gotowy = path.join(kat, `f${i}.wav`);
 
     // Кэш озвучки. У ElevenLabs бесплатный тариф — 10 тысяч символов в месяц,
