@@ -32,6 +32,14 @@ on:
         description: 'Плита хука с нулевого кадра и кадр-сводка перед аутро (проба)'
         type: boolean
         default: false
+      glos:
+        # Кем озвучивать. Пусто — как в секретах (ElevenLabs). «gemini» —
+        # тридцать голосов Google по нашему же ключу и без лимита в десять
+        # тысяч знаков. Ключ явный, потому что смена диктора это решение
+        # человека: тихая подмена голоса уже стоила нам испорченного ролика.
+        description: 'Диктор: пусто | gemini | azure | piper'
+        type: string
+        default: ''
       bez_glosu:
         # Проверка сборки, которая не стоит денег. Голос — единственный
         # платный ресурс конвейера: на бесплатном тарифе его хватает на
@@ -112,6 +120,9 @@ jobs:
           SCENARIUSZ: ${{ inputs.scenariusz }}
           PLYTY: ${{ inputs.plyty }}
           BEZ_GLOSU: ${{ inputs.bez_glosu }}
+          GLOS_DOSTAWCA: ${{ inputs.glos || vars.GLOS_DOSTAWCA }}
+          GEMINI_VOICE: ${{ vars.GEMINI_VOICE }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           set -e
           # Расписание больше не знает, каким сборщиком собирать. Оно зовёт

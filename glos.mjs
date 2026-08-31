@@ -151,6 +151,65 @@ async function powiedzEleven(tekst, wyjscie, { klucz, glos, ustawienia = {} }) {
   await writeFile(wyjscie, Buffer.from(await r.arrayBuffer()));
 }
 
+// ── Gemini TTS ────────────────────────────────────────────────────
+// Зачем он здесь. 31.08 бесплатный аккаунт ElevenLabs отказался отдавать
+// библиотечный голос через API («Free users cannot use library voices»), и
+// то же ограничение накрыло создание своего голоса по описанию. На бесплатном
+// тарифе остаются только штатные английские голоса — по-польски они звучат
+// с акцентом, то есть лента заговорила бы чужим голосом.
+//
+// У Gemini голосов тридцать, польский родной, ключ у нас уже есть. Главное
+// отличие от ElevenLabs: подача задаётся СЛОВАМИ в самом запросе, а не
+// ползунками — поэтому инструкция диктору живёт здесь, у поставщика.
+//
+// Таймингов символов Gemini не отдаёт, и это не беда: фразы синтезируем по
+// отдельности, тогда границы известны точно и общий дубль резать не надо.
+const GEMINI_MODEL = 'gemini-2.5-flash-preview-tts';
+export const GEMINI_PODANIE =
+  'Przeczytaj jak doświadczony polski lektor reklamowy: pewnie, ciepło, ' +
+  'niespiesznie, z wyraźnymi pauzami między zdaniami i naciskiem na liczby. ' +
+  'Nie recytuj, mów do jednej osoby. Przeczytaj wyłącznie podany tekst.';
+
+async function powiedzGemini(tekst, wyjscie, { klucz, glos, podanie }) {
+  const body = {
+    contents: [{ parts: [{ text: (podanie || GEMINI_PODANIE) + String.fromCharCode(10, 10) + tekst }] }],
+    generationConfig: {
+      responseModalities: ['AUDIO'],
+      speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: glos } } },
+    },
+  };
+
+  // Квота бесплатного Gemini считается запросами в минуту, а фраз в ролике
+  // восемь. Отказ по перегрузу — обычное дело и лечится ожиданием, поэтому
+  // три попытки с паузой; на любой другой ответ падаем сразу, чтобы поломка
+  // не превратилась в тихую подмену голоса.
+  let ostatni = '';
+  for (let proba = 0; proba < 3; proba++) {
+    const r = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/' +
+        GEMINI_MODEL + ':generateContent?key=' + klucz,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+    );
+    if (r.ok) {
+      const j = await r.json();
+      const b64 = j.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+      if (!b64) throw new Error('Gemini вернул ответ без звука');
+      // Отдаётся сырой PCM: 16 бит, моно, 24 кГц. Заголовка wav в нём нет,
+      // поэтому формат ffmpeg надо назвать руками — иначе он видит мусор.
+      const surowy = wyjscie + '.pcm';
+      await writeFile(surowy, Buffer.from(b64, 'base64'));
+      await ffmpeg(['-f', 's16le', '-ar', '24000', '-ac', '1', '-i', surowy,
+        '-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2', wyjscie]);
+      return;
+    }
+    ostatni = r.status + ': ' + (await r.text()).slice(0, 160);
+    if (r.status !== 429 && r.status !== 503) break;
+    console.warn('[glos] Gemini занят (' + r.status + ') — жду и пробую снова');
+    await new Promise((res) => setTimeout(res, 8000));
+  }
+  throw new Error('Gemini TTS ' + ostatni);
+}
+
 // ── дубль С ТАЙМИНГАМИ КАЖДОГО СИМВОЛА ────────────────────────────
 // Резать общий дубль по самым длинным паузам — лотерея. При stability 0.4
 // модель каждый раз играет иначе: где-то вздохнёт внутри фразы длиннее, чем
@@ -428,23 +487,43 @@ export async function zbudujGlos(
 
   // Порядок предпочтения: ElevenLabs (утверждён на слух) → Azure → Piper.
   // Падение вниз по цепочке нужно, чтобы отсутствие ключа не роняло сборку.
+  // Поставщика можно назвать снаружи — ключом `dostawca` или переменной
+  // GLOS_DOSTAWCA в окружении. Второе нужно, чтобы переключить ленту целиком
+  // одной настройкой, не трогая семнадцать сценариев. Молчаливой подмены это
+  // не создаёт: выбор виден в логе первой же строкой и сделан человеком.
+  const wybor = dostawca || (await zEnv('GLOS_DOSTAWCA')) || '';
   const kluczEL = await zEnv('ELEVENLABS_KEY');
   const glosEL = glosId || (await zEnv('ELEVENLABS_VOICE')) || null;
   const kluczAz = await zEnv('AZURE_SPEECH_KEY');
   const region = (await zEnv('AZURE_SPEECH_REGION')) || 'northeurope';
+  const kluczGem = await zEnv('GEMINI_API_KEY');
 
+  const gemini =
+    wybor === 'gemini' && kluczGem
+      ? { klucz: kluczGem, glos: glosId || (await zEnv('GEMINI_VOICE')) || 'Charon' }
+      : null;
   const eleven =
-    (dostawca === 'eleven' || !dostawca) && kluczEL && glosEL
+    !gemini && (wybor === 'eleven' || !wybor) && kluczEL && glosEL
       ? { klucz: kluczEL, glos: glosEL, ustawienia }
       : null;
   const azure =
-    !eleven && (dostawca === 'azure' || !dostawca) && kluczAz
+    !gemini && !eleven && (wybor === 'azure' || !wybor) && kluczAz
       ? { klucz: kluczAz, region, glos: (await zEnv('AZURE_VOICE')) || AZURE_GLOS }
       : null;
 
+  if (wybor === 'gemini' && !gemini) {
+    throw new Error('[glos] выбран Gemini, но нет GEMINI_API_KEY');
+  }
+
   console.log(
     `[glos] поставщик: ${
-      eleven ? 'ElevenLabs ' + eleven.glos : azure ? 'Azure ' + azure.glos : 'Piper (локально)'
+      gemini
+        ? 'Gemini ' + gemini.glos
+        : eleven
+          ? 'ElevenLabs ' + eleven.glos
+          : azure
+            ? 'Azure ' + azure.glos
+            : 'Piper (локально)'
     }`
   );
 
@@ -458,7 +537,7 @@ export async function zbudujGlos(
   // Тихая подмена хуже падения: она не видна ни в логе сборки, ни в замерах,
   // ни на картинке. Поэтому ронять. Кому нужен запасной путь — просит его
   // вслух через dostawca, и тогда молчаливой подмены всё равно нет.
-  if (!eleven && !dostawca) {
+  if (!eleven && !gemini && !wybor) {
     throw new Error(
       '[glos] нет ключа ElevenLabs (ELEVENLABS_KEY / ELEVENLABS_VOICE) — ' +
         'сборка озвучила бы ролик ДРУГИМ голосом (' +
@@ -690,7 +769,13 @@ export async function zbudujGlos(
     // покупая ту же самую фразу, — прямой способ остаться без озвучки к
     // середине месяца. Ключ кэша учитывает и текст, и настройки голоса.
     const odcisk = createHash('sha1')
-      .update(JSON.stringify([doWymowy(f), eleven?.glos || azure?.glos || model, f.glos || {}]))
+      .update(
+        JSON.stringify([
+          doWymowy(f),
+          eleven?.glos || gemini?.glos || azure?.glos || model,
+          f.glos || {},
+        ])
+      )
       .digest('hex')
       .slice(0, 16);
     const wKeszu = path.join(KESZ, `${odcisk}.wav`);
@@ -727,6 +812,8 @@ export async function zbudujGlos(
         // Настройки можно задать на КАЖДУЮ фразу: хук энергичнее, призыв
         // теплее. Цельный прогон так не умеет, а у нас фразы отдельные.
         await powiedzEleven(doWymowy(f), surowy, { ...eleven, ustawienia: f.glos || {} });
+      } else if (gemini) {
+        await powiedzGemini(doWymowy(f), surowy, { ...gemini, podanie: f.podanie });
       } else if (azure) await powiedzAzure(doWymowy(f), surowy, azure);
       else await powiedz(doWymowy(f), surowy, model);
       nowych++;
