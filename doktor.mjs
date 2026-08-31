@@ -450,12 +450,57 @@ async function powtorkiWLencie() {
   }
 }
 
+// ── 11. Не выпала ли площадка ────────────────────────────────────
+// YouTube умер 29.08 и молчал два дня: токен обновления был отозван, потому
+// что экран согласия в Google Cloud остался в режиме «Testing» — там ключ
+// живёт ровно семь дней. Ролики при этом выходили, значит и сторож молчал:
+// он смотрел «вышел ли пост», а не «на всех ли площадках».
+//
+// Смотрим три последние выложенные ролики. Один промах бывает от сети,
+// три подряд означают отвалившуюся площадку. Сравниваем не с фантазией, а
+// с тем, что сама запись обещала в `sieci`.
+async function kanalyRolek() {
+  const NAZWY = { ig: 'instagram', fb: 'facebook', yt: 'youtube', tt: 'tiktok' };
+  try {
+    const kolejka = JSON.parse(
+      await readFile(path.join(import.meta.dirname, 'rolki', 'kolejka.json'), 'utf8')
+    );
+    const wyszlo = kolejka
+      .filter((p) => p.opublikowano && p.wynik)
+      .sort((a, b) => Date.parse(a.opublikowano) - Date.parse(b.opublikowano))
+      .slice(-3);
+    if (wyszlo.length < 3) {
+      zapisz('kanały rolek', true, 'za mało wyłożonych rolek, żeby porównywać');
+      return;
+    }
+    const brakuje = [];
+    for (const [skrot, klucz] of Object.entries(NAZWY)) {
+      const oczekiwane = wyszlo.filter((p) => (p.sieci || []).includes(skrot));
+      if (oczekiwane.length < 3) continue;
+      const puste = oczekiwane.filter((p) => !p.wynik[klucz]);
+      if (puste.length === oczekiwane.length) brakuje.push(klucz);
+    }
+    if (brakuje.length) {
+      zapisz(
+        'kanały rolek',
+        false,
+        'KANAŁ WYPADŁ: ' + brakuje.join(', ') + ' — trzy ostatnie rolki tam nie wyszły'
+      );
+      return;
+    }
+    zapisz('kanały rolek', true, 'ostatnie trzy rolki wyszły wszędzie, gdzie miały');
+  } catch (e) {
+    zapisz('kanały rolek', false, 'nie udało się sprawdzić: ' + e.message, 'uwaga');
+  }
+}
+
 // ── поехали ──────────────────────────────────────────────────────
 const ostatni = await ostatniPost();
 await Promise.all([tokenInstagrama(), tokenFacebooka(), mozgTekstowy(), zdjecia(), glos(), zapas()]);
 await kolejka(ostatni?.stan);
 await rolki();
 await powtorkiWLencie();
+await kanalyRolek();
 
 const bledy = wyniki.filter((w) => !w.ok && w.waga === 'blad');
 const uwagi = wyniki.filter((w) => !w.ok && w.waga === 'uwaga');
