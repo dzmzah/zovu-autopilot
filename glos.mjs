@@ -151,6 +151,73 @@ async function powiedzEleven(tekst, wyjscie, { klucz, glos, ustawienia = {} }) {
   await writeFile(wyjscie, Buffer.from(await r.arrayBuffer()));
 }
 
+// ── Google Cloud TTS ──────────────────────────────────────────────
+// Наш основной диктор с 31.08.2026, и вот почему именно он.
+//
+// У бесплатного ElevenLabs нет коммерческой лицензии — там требуется
+// пометка сервиса, а озвучивать ролики клиентам таким голосом нельзя
+// вообще. Плюс их бесплатный тариф с августа не отдаёт библиотечные
+// голоса через API. У Gemini лицензия есть, но суточная квота меньше
+// десятка запросов — на ролик из восьми фраз впритык, на клиентский из
+// восемнадцати не хватает.
+//
+// У Cloud TTS бесплатный лимит ПОСТОЯННЫЙ и на два порядка больше нашего
+// расхода (миллион знаков в месяц против наших десяти тысяч), голоса
+// польские родные, а коммерческое использование внутри лимита разрешено.
+//
+// Ключом служит не API-key, а обновляемый токен OAuth: ключ пришлось бы
+// заводить через консоль, а она в браузере ведёт себя непредсказуемо, да
+// и утёкший ключ включает чужие сервисы. Токен же ограничен нашим
+// проектом и отзывается одним нажатием.
+const GOOGLE_TTS = "https://texttospeech.googleapis.com/v1/text:synthesize";
+export const GOOGLE_GLOS = 'pl-PL-Chirp3-HD-Charon';
+
+// Токен живёт час; на ролик уходит минута, поэтому берём один на прогон.
+let googleToken = null;
+async function tokenGoogle({ id, sekret, odswiez }) {
+  if (googleToken && googleToken.do > Date.now() + 60000) return googleToken.t;
+  const r = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: id,
+      client_secret: sekret,
+      refresh_token: odswiez,
+      grant_type: 'refresh_token',
+    }),
+  });
+  const j = await r.json();
+  if (!j.access_token) {
+    throw new Error('Google: токен не обновился: ' + JSON.stringify(j).slice(0, 200));
+  }
+  googleToken = { t: j.access_token, do: Date.now() + (j.expires_in || 3600) * 1000 };
+  return googleToken.t;
+}
+
+async function powiedzGoogle(tekst, wyjscie, { id, sekret, odswiez, projekt, glos, tempo }) {
+  const token = await tokenGoogle({ id, sekret, odswiez });
+  const r = await fetch(GOOGLE_TTS, {
+    method: 'POST',
+    headers: {
+      authorization: 'Bearer ' + token,
+      'x-goog-user-project': projekt,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      input: { text: tekst },
+      voice: { languageCode: 'pl-PL', name: glos },
+      // Скорость ниже единицы — то же лекарство от скороговорки, что и у
+      // ElevenLabs: 0.95 звучит спокойно, а выравнивание темпа ниже
+      // подчищает остаток по замеру слогов.
+      audioConfig: { audioEncoding: 'MP3', speakingRate: tempo ?? 0.95 },
+    }),
+  });
+  if (!r.ok) throw new Error(`Google TTS ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  const j = await r.json();
+  if (!j.audioContent) throw new Error('Google TTS: ответ без звука');
+  await writeFile(wyjscie, Buffer.from(j.audioContent, 'base64'));
+}
+
 // ── Gemini TTS ────────────────────────────────────────────────────
 // Зачем он здесь. 31.08 бесплатный аккаунт ElevenLabs отказался отдавать
 // библиотечный голос через API («Free users cannot use library voices»), и
@@ -501,17 +568,36 @@ export async function zbudujGlos(
   const kluczAz = await zEnv('AZURE_SPEECH_KEY');
   const region = (await zEnv('AZURE_SPEECH_REGION')) || 'northeurope';
   const kluczGem = await zEnv('GEMINI_API_KEY');
+  const gcpId = await zEnv('GCP_CLIENT_ID');
+  const gcpSekret = await zEnv('GCP_CLIENT_SECRET');
+  const gcpOdswiez = await zEnv('GCP_REFRESH_TOKEN');
+  const gcpProjekt = (await zEnv('GCP_PROJECT')) || 'zovu-autopilot';
+
+  const google =
+    wybor === 'google' && gcpId && gcpSekret && gcpOdswiez
+      ? {
+          id: gcpId,
+          sekret: gcpSekret,
+          odswiez: gcpOdswiez,
+          projekt: gcpProjekt,
+          glos: glosId || (await zEnv('GOOGLE_VOICE')) || GOOGLE_GLOS,
+        }
+      : null;
+
+  if (wybor === 'google' && !google) {
+    throw new Error('[glos] выбран Google, но нет GCP_CLIENT_ID / GCP_CLIENT_SECRET / GCP_REFRESH_TOKEN');
+  }
 
   const gemini =
-    wybor === 'gemini' && kluczGem
+    !google && wybor === 'gemini' && kluczGem
       ? { klucz: kluczGem, glos: glosId || (await zEnv('GEMINI_VOICE')) || 'Charon' }
       : null;
   const eleven =
-    !gemini && (wybor === 'eleven' || !wybor) && kluczEL && glosEL
+    !google && !gemini && (wybor === 'eleven' || !wybor) && kluczEL && glosEL
       ? { klucz: kluczEL, glos: glosEL, ustawienia }
       : null;
   const azure =
-    !gemini && !eleven && (wybor === 'azure' || !wybor) && kluczAz
+    !google && !gemini && !eleven && (wybor === 'azure' || !wybor) && kluczAz
       ? { klucz: kluczAz, region, glos: (await zEnv('AZURE_VOICE')) || AZURE_GLOS }
       : null;
 
@@ -521,7 +607,9 @@ export async function zbudujGlos(
 
   console.log(
     `[glos] поставщик: ${
-      gemini
+      google
+        ? 'Google ' + google.glos
+        : gemini
         ? 'Gemini ' + gemini.glos
         : eleven
           ? 'ElevenLabs ' + eleven.glos
@@ -541,7 +629,7 @@ export async function zbudujGlos(
   // Тихая подмена хуже падения: она не видна ни в логе сборки, ни в замерах,
   // ни на картинке. Поэтому ронять. Кому нужен запасной путь — просит его
   // вслух через dostawca, и тогда молчаливой подмены всё равно нет.
-  if (!eleven && !gemini && !wybor) {
+  if (!eleven && !gemini && !google && !wybor) {
     throw new Error(
       '[glos] нет ключа ElevenLabs (ELEVENLABS_KEY / ELEVENLABS_VOICE) — ' +
         'сборка озвучила бы ролик ДРУГИМ голосом (' +
@@ -765,7 +853,7 @@ export async function zbudujGlos(
     const f = frazy[i];
     // У ElevenLabs забираем mp3 — ffmpeg дальше всё равно приводит к общему
     // виду, а лишнее перекодирование в wav ничего не улучшает.
-    const surowy = path.join(kat, `f${i}-raw.${eleven ? 'mp3' : 'wav'}`);
+    const surowy = path.join(kat, `f${i}-raw.${eleven || google ? 'mp3' : 'wav'}`);
     const gotowy = path.join(kat, `f${i}.wav`);
 
     // Кэш озвучки. У ElevenLabs бесплатный тариф — 10 тысяч символов в месяц,
@@ -776,7 +864,7 @@ export async function zbudujGlos(
       .update(
         JSON.stringify([
           doWymowy(f),
-          eleven?.glos || gemini?.glos || azure?.glos || model,
+          eleven?.glos || google?.glos || gemini?.glos || azure?.glos || model,
           f.glos || {},
         ])
       )
@@ -816,6 +904,8 @@ export async function zbudujGlos(
         // Настройки можно задать на КАЖДУЮ фразу: хук энергичнее, призыв
         // теплее. Цельный прогон так не умеет, а у нас фразы отдельные.
         await powiedzEleven(doWymowy(f), surowy, { ...eleven, ustawienia: f.glos || {} });
+      } else if (google) {
+        await powiedzGoogle(doWymowy(f), surowy, { ...google, tempo: f.tempo });
       } else if (gemini) {
         await powiedzGemini(doWymowy(f), surowy, { ...gemini, podanie: f.podanie });
       } else if (azure) await powiedzAzure(doWymowy(f), surowy, azure);

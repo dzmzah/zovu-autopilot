@@ -123,6 +123,11 @@ jobs:
           GLOS_DOSTAWCA: ${{ inputs.glos || vars.GLOS_DOSTAWCA }}
           GEMINI_VOICE: ${{ vars.GEMINI_VOICE }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GCP_CLIENT_ID: ${{ secrets.GCP_CLIENT_ID }}
+          GCP_CLIENT_SECRET: ${{ secrets.GCP_CLIENT_SECRET }}
+          GCP_REFRESH_TOKEN: ${{ secrets.GCP_REFRESH_TOKEN }}
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+          GOOGLE_VOICE: ${{ vars.GOOGLE_VOICE }}
         run: |
           set -e
           # Расписание больше не знает, каким сборщиком собирать. Оно зовёт
