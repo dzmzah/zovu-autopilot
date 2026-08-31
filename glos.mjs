@@ -415,20 +415,27 @@ async function wyrownajTempo(plik, tekst, kat, i) {
  * Озвучивает список фраз и отдаёт готовую дорожку с таймингами.
  * @param {Array<{tekst:string, pauza?:number}>} frazy — pauza в секундах ПОСЛЕ фразы
  */
-export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza = 0.25, dostawca } = {}) {
+// `glosId` и `ustawienia` — настройка ПОД ОДИН ролик, а не для всех сразу.
+// Голос студии (Jan Gajos) и голос героя чужой рекламы — это разные роли, и
+// одни настройки на обоих означали бы, что каждый новый заказ переписывает
+// звук всей ленты. Не переданы — работает как раньше, из секретов и EL_USTAWIENIA.
+export async function zbudujGlos(
+  frazy,
+  { model = MODEL_PL, tmp, przedPierwsza = 0.25, dostawca, glosId, ustawienia = {} } = {}
+) {
   const kat = tmp || path.join(DIR, 'out', 'glos-tmp');
   await mkdir(kat, { recursive: true });
 
   // Порядок предпочтения: ElevenLabs (утверждён на слух) → Azure → Piper.
   // Падение вниз по цепочке нужно, чтобы отсутствие ключа не роняло сборку.
   const kluczEL = await zEnv('ELEVENLABS_KEY');
-  const glosEL = (await zEnv('ELEVENLABS_VOICE')) || null;
+  const glosEL = glosId || (await zEnv('ELEVENLABS_VOICE')) || null;
   const kluczAz = await zEnv('AZURE_SPEECH_KEY');
   const region = (await zEnv('AZURE_SPEECH_REGION')) || 'northeurope';
 
   const eleven =
     (dostawca === 'eleven' || !dostawca) && kluczEL && glosEL
-      ? { klucz: kluczEL, glos: glosEL }
+      ? { klucz: kluczEL, glos: glosEL, ustawienia }
       : null;
   const azure =
     !eleven && (dostawca === 'azure' || !dostawca) && kluczAz
@@ -472,7 +479,14 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
   let graniceDokladne = false;
   if (eleven) {
     const odciskCaly = createHash('sha1')
-      .update(JSON.stringify(['znaczniki-v1', frazy.map((f) => doWymowy(f)), eleven.glos, EL_USTAWIENIA]))
+      .update(
+        JSON.stringify([
+          'znaczniki-v1',
+          frazy.map((f) => doWymowy(f)),
+          eleven.glos,
+          { ...EL_USTAWIENIA, ...eleven.ustawienia },
+        ])
+      )
       .digest('hex')
       .slice(0, 16);
     dubel = path.join(KESZ, `dubel-${odciskCaly}.mp3`);
@@ -528,7 +542,10 @@ export async function zbudujGlos(frazy, { model = MODEL_PL, tmp, przedPierwsza =
         const g = await dubelZeZnacznikami(
           teksty,
           plikProby,
-          speed ? { ...eleven, ustawienia: { speed } } : eleven
+          // Настройки ролика сохраняем: перебор темпа добавляет `speed`, а не
+          // заменяет собой всё остальное. Иначе второй дубль ехал бы уже другим
+          // голосом по характеру, и сравнивать их было бы нечестно.
+          speed ? { ...eleven, ustawienia: { ...eleven.ustawienia, speed } } : eleven
         );
         if (!g) break;
 
