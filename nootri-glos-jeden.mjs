@@ -97,6 +97,84 @@ const ciszy = starty
   .map((s, n) => ({ od: s, doo: konce[n] ?? calosc, dl: (konce[n] ?? calosc) - s }))
   .filter((c) => c.doo < calosc - 0.05);
 
+// ── где кончается каждая фраза ────────────────────────────────────
+// Сначала пробуем ТОЧНЫЙ путь: расшифровка дубля с таймингами каждого слова.
+// Паузы ненадёжны — модель читает каждый раз чуть иначе, и в одном дубле их
+// вышло девять на тринадцать фраз. Слова же произнесены ровно наши, их порядок
+// известен заранее, поэтому границы считаются, а не угадываются.
+//
+// Расшифровка бесплатная: Groq, whisper-large-v3-turbo, 8 часов аудио в сутки.
+const bezOgonkow = (w) =>
+  String(w).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+
+async function slowaZGroq() {
+  const klucz = process.env.GROQ_KEY;
+  if (!klucz) return null;
+  const mp3 = path.join(WYJ, 'do-rozpoznania.mp3');
+  await exec('ffmpeg', ['-y', '-v', 'error', '-i', wav, '-ar', '16000', '-ac', '1', '-b:a', '64k', mp3]);
+  const dane = new FormData();
+  dane.append('file', new Blob([await (await import('node:fs/promises')).readFile(mp3)]), 'glos.mp3');
+  dane.append('model', 'whisper-large-v3-turbo');
+  dane.append('language', 'pl');
+  dane.append('response_format', 'verbose_json');
+  dane.append('timestamp_granularities[]', 'word');
+  const r = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + klucz },
+    body: dane,
+  });
+  if (!r.ok) {
+    console.warn('[glos1] Groq ' + r.status + ' — падаю на разрез по тишине');
+    return null;
+  }
+  const j = await r.json();
+  const ws = (j.words || []).filter((w) => bezOgonkow(w.word));
+  console.log('[glos1] расшифровка: ' + ws.length + ' слов');
+  return ws.length ? ws : null;
+}
+
+const rozpoznane = await slowaZGroq();
+if (rozpoznane) {
+  // Раздаём распознанные слова по фразам ПО ПОРЯДКУ: сколько слов в `mowa`,
+  // столько и берём. Слово могло склеиться или разбиться, поэтому последнюю
+  // фразу добираем остатком, а не жёстким счётом.
+  const granice = [];
+  let i = 0;
+  for (const [n, f] of FRAZY.entries()) {
+    const ile = (f.mowa || f.tekst).split(/s+/).filter(Boolean).length;
+    const od2 = rozpoznane[Math.min(i, rozpoznane.length - 1)];
+    const ostatni = n === FRAZY.length - 1 ? rozpoznane.length - 1 : Math.min(i + ile - 1, rozpoznane.length - 1);
+    const doo2 = rozpoznane[ostatni];
+    granice.push({
+      tekst: f.tekst,
+      rola: f.rola,
+      a: +Number(od2.start).toFixed(3),
+      b: +Math.max(Number(od2.start) + 0.2, Number(doo2.end)).toFixed(3),
+    });
+    i = ostatni + 1;
+  }
+  const slowaP = granice.flatMap((f) => {
+    const ws = f.tekst.split(/s+/).filter(Boolean);
+    const suma2 = ws.reduce((a2, w) => a2 + w.length, 0) || 1;
+    let t3 = f.a;
+    return ws.map((w) => {
+      const d = ((f.b - f.a) * w.length) / suma2;
+      const s3 = { tekst: w, a: +t3.toFixed(3), b: +(t3 + d).toFixed(3) };
+      t3 += d;
+      return s3;
+    });
+  });
+  const syl = (s4) => (String(s4).toLowerCase().match(/[aeiouyąęó]/g) || []).length || 1;
+  console.log('[glos1] темп по фразам: ' + granice.map((f) => (syl(f.tekst) / Math.max(0.2, f.b - f.a)).toFixed(1)).join(' '));
+  await writeFile(
+    path.join(WYJ, 'nootri-glos.json'),
+    JSON.stringify({ dlugosc: +(granice[granice.length - 1].b + 0.35).toFixed(3), frazy: granice, slowa: slowaP }, null, 2),
+    'utf8'
+  );
+  console.log('[glos1] готово по расшифровке: ' + calosc.toFixed(2) + ' с дубля, ' + slowaP.length + ' слов');
+  process.exit(0);
+}
+
 const potrzeba = FRAZY.length - 1;
 if (ciszy.length < potrzeba) {
   throw new Error(`[glos1] пауз ${ciszy.length}, а нужно ${potrzeba} — текст слитный, разрежьте фразы иначе`);
