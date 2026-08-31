@@ -64,9 +64,9 @@ export async function zrobKlip({ prompt, plik, obraz = null }) {
       aspectRatio: FORMAT,
       resolution: ROZDZIELCZOSC,
       durationSeconds: SEKUNDY,
-      // Звук Veo нам не нужен: голос свой, музыка своя. Отключаем — это ещё и
-      // дешевле, и не приносит в кадр чужую «атмосферу», которую потом гасить.
-      generateAudio: false,
+      // `generateAudio` тут НЕ передаём: Lite его не принимает и отвечает
+      // 400 INVALID_ARGUMENT. Звук Veo нам всё равно не нужен — голос свой,
+      // музыка своя, — и он отбрасывается при сборке одной строкой ffmpeg.
     },
   };
 
