@@ -704,12 +704,12 @@ const KOSZT = {
   nazwa: 'Ile kosztuje rolka, jeśli robisz ją sam',
   frazy: [
     { rola: 'hak', tekst: 'Rolka za darmo? Policz.', pauza: 0.36 },
-    { rola: 'hak', tekst: 'Twój czas to też koszt.', pauza: 0.42 },
+    { rola: 'hak', tekst: 'Twój czas. To też koszt.', pauza: 0.42 },
     { rola: 'tresc', tekst: 'Pomysł. Nagranie. Montaż.', pauza: 0.32 },
-    { rola: 'tresc', tekst: 'Trzy godziny na jedną.', pauza: 0.32 },
-    { rola: 'tresc', tekst: 'Razy dwanaście w miesiącu.', pauza: 0.34 },
+    { rola: 'tresc', tekst: 'Trzy godziny. Na jedną rolkę.', pauza: 0.32 },
+    { rola: 'tresc', tekst: 'Dwanaście rolek. Co miesiąc.', pauza: 0.34 },
     { rola: 'zaplata', tekst: 'Trzydzieści sześć godzin. Twoich.', pauza: 0.36 },
-    { rola: 'zaplata', tekst: 'To cały tydzień pracy.', pauza: 0.32 },
+    { rola: 'zaplata', tekst: 'Cały tydzień. Twojej pracy.', pauza: 0.32 },
     { rola: 'cta', tekst: 'Ile wychodzi tobie? Napisz.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
@@ -780,13 +780,13 @@ const NOC = {
   klucz: 'noc',
   nazwa: 'Firma śpi, strona nie',
   frazy: [
-    { rola: 'hak', tekst: 'Zamykasz o osiemnastej.', pauza: 0.36 },
-    { rola: 'hak', tekst: 'Klient szuka o dwudziestej drugiej.', pauza: 0.44 },
-    { rola: 'tresc', tekst: 'Telefonu nikt nie odbierze.', pauza: 0.32 },
-    { rola: 'tresc', tekst: 'Strona odbiera zawsze.', pauza: 0.34 },
-    { rola: 'tresc', tekst: 'Szesnaście godzin na dobę.', pauza: 0.34 },
-    { rola: 'zaplata', tekst: 'Tyle trwa twoja nieobecność.', pauza: 0.36 },
-    { rola: 'cta', tekst: 'Sprawdź, co widzi klient wieczorem.', pauza: 0.20 },
+    { rola: 'hak', tekst: 'Zamykasz o osiemnastej. Idziesz do domu.', pauza: 0.36 },
+    { rola: 'hak', tekst: 'Klient szuka. O dwudziestej drugiej.', pauza: 0.44 },
+    { rola: 'tresc', tekst: 'Dzwoni. Nikt nie odbiera.', pauza: 0.32 },
+    { rola: 'tresc', tekst: 'Strona odpowiada. Zawsze.', pauza: 0.34 },
+    { rola: 'tresc', tekst: 'Szesnaście godzin. Na dobę.', pauza: 0.34 },
+    { rola: 'zaplata', tekst: 'Tyle cię nie ma. Codziennie.', pauza: 0.36 },
+    { rola: 'cta', tekst: 'Sprawdź sam. Co widzi klient wieczorem.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     const scena = [
@@ -854,11 +854,11 @@ const PYTANIA = {
   frazy: [
     { rola: 'hak', tekst: 'Trzy pytania. Codziennie te same.', pauza: 0.36 },
     { rola: 'hak', tekst: 'Ile kosztuje. Jak długo. Kiedy.', pauza: 0.44 },
-    { rola: 'tresc', tekst: 'Pięć minut na jedną odpowiedź.', pauza: 0.32 },
-    { rola: 'tresc', tekst: 'Dwadzieścia wiadomości w tygodniu.', pauza: 0.34 },
+    { rola: 'tresc', tekst: 'Pięć minut. Na jedną odpowiedź.', pauza: 0.32 },
+    { rola: 'tresc', tekst: 'Dwadzieścia wiadomości. W tygodniu.', pauza: 0.34 },
     { rola: 'tresc', tekst: 'Sto minut. Co tydzień.', pauza: 0.36 },
     { rola: 'zaplata', tekst: 'Odpowiedz raz. Na stronie.', pauza: 0.34 },
-    { rola: 'cta', tekst: 'Wypisz swoje trzy pytania.', pauza: 0.20 },
+    { rola: 'cta', tekst: 'Wypisz je. I odpowiedz raz.', pauza: 0.20 },
   ],
   buduj({ t, total }) {
     const scena = [
