@@ -696,6 +696,34 @@ async function czyChromakey(plik) {
   }
 }
 
+// Досъёмка витрины по требованию.
+//
+// Сами проезды по сайтам (.mp4) в репозитории не лежат — только кадры-обложки:
+// видео весит десятки мегабайт и в git ему не место. Из-за этого сценарий
+// «nasze-strony» на сервере не собирался НИ РАЗУ: ротация до него дошла
+// только 31.08, и сборка легла на первом же куске с сообщением «запусти
+// witryny.mjs» — которое некому прочитать в три часа ночи.
+//
+// Поэтому сборщик снимает недостающее сам. Браузер на сервере уже стоит:
+// им же снимаются рисованные ролики. Пробуем каждый ключ один раз за прогон:
+// если съёмка не удалась, второй заход её не спасёт, а время слота съест.
+const dosnieteWitryny = new Set();
+async function dosnimijWitryne(klucz) {
+  if (dosnieteWitryny.has(klucz)) return false;
+  dosnieteWitryny.add(klucz);
+  console.log(`[rolka-auto] витрины «${klucz}» нет на диске — снимаю сам`);
+  try {
+    await execFileAsync(process.execPath, [path.join(DIR, 'witryny.mjs'), `--tylko=${klucz}`], {
+      cwd: DIR,
+      maxBuffer: 64 * 1024 * 1024,
+    });
+    return true;
+  } catch (e) {
+    console.warn(`[rolka-auto] съёмка витрины «${klucz}» не удалась: ${e.message}`);
+    return false;
+  }
+}
+
 // `uzyte` — id клипов, уже занятых В ЭТОМ ролике. Без этого списка два
 // куска с похожими запросами («calculator money desk» и «calculator money
 // budget desk») брали ОДИН файл, и он стоял в ролике дважды. Смещение по
@@ -715,6 +743,15 @@ async function podklad(czesc, i, scenNazwa, uzyte = new Set()) {
       await readFile(swoja);
       return swoja;
     } catch {
+      if (await dosnimijWitryne(czesc.witryna)) {
+        try {
+          await readFile(swoja);
+          return swoja;
+        } catch {
+          // Съёмка отработала, а файла нет — значит упала внутри. Идём дальше
+          // по общим правилам: сток вместо доказательства не подставляем.
+        }
+      }
       console.warn(
         `[rolka-auto] нет съёмки витрины «${czesc.witryna}» — ` +
           `запусти: node witryny.mjs --tylko=${czesc.witryna}`
