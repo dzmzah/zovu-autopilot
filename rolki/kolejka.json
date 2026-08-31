@@ -663,5 +663,31 @@
     "forma": "rysowana",
     "temat": "Ile czasu zjada Instagram",
     "dlugosc": 13.62
+  },
+  {
+    "plik": "auto-2026-08-31-1.mp4",
+    "kiedy": "2026-09-02T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Najczęstsze pytanie w naszym DM: „ile postów muszę mieć, żeby ruszyło?\".\n\nTo zła liczba. Dobre pytanie brzmi: ile osób wie, co konkretnie u ciebie kupić. Bez tego każdy kolejny post to tylko ruch.\n\nNapisz PYTANIE, a odpiszemy konkretnie na twój przypadek.\n\nzovu.pl\n\n#katowice #dabrowagornicza #malafirma #mikrofirma #tresciwsocialmediach",
+    "opublikowano": null,
+    "zrodlo": "auto-pytanie-z-dm.mp4",
+    "scenariusz": "pytanie-z-dm",
+    "forma": "pytanie",
+    "temat": "ile postów trzeba, żeby ruszyło",
+    "dlugosc": 18.64,
+    "planow": 6,
+    "tempo": [
+      4.2,
+      5.9,
+      5.6,
+      5,
+      4,
+      5.6
+    ]
   }
 ]
