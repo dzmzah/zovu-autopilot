@@ -131,7 +131,7 @@ async function limit(klucz) {
   return zostalo;
 }
 
-const zostalo = (process.env.GLOS_DOSTAWCA || '').trim() === 'gemini'
+const zostalo = (process.env.GLOS_DOSTAWCA || 'google').trim() !== 'eleven'
   ? null
   : await limit(process.env.ELEVENLABS_KEY);
 // Дубль стоит примерно как весь текст. Меньше — синтез не начнётся, и падать
@@ -148,11 +148,20 @@ await mkdir(WYJ, { recursive: true });
 // и добавление их в свой аккаунт этого не меняет — проверено на десяти голосах.
 // Остаётся либо платный тариф, либо Gemini: там польский родной, а подача
 // задаётся словами.
-const GEMINI = (process.env.GLOS_DOSTAWCA || '').trim() === 'gemini';
+const DOSTAWCA = (process.env.GLOS_DOSTAWCA || 'google').trim();
+const GEMINI = DOSTAWCA === 'gemini';
+const GOOGLE = DOSTAWCA === 'google';
 
 const glos = await zbudujGlos(FRAZY, {
   tmp: path.join(WYJ, 'tmp'),
-  ...(GEMINI ? { dostawca: 'gemini' } : { glosId: await idAdriana(process.env.ELEVENLABS_KEY), ustawienia: USTAWIENIA }),
+  // Google Cloud TTS — бесплатный миллион знаков в месяц и коммерческая лицензия,
+  // то есть единственный бесплатный путь, которым МОЖНО отдавать работу клиенту.
+  // Голос выбрал Захар на слух: Puck, «самый живой» из восемнадцати польских.
+  ...(GOOGLE
+    ? { dostawca: 'google', glosId: process.env.GOOGLE_VOICE || 'pl-PL-Chirp3-HD-Puck' }
+    : GEMINI
+      ? { dostawca: 'gemini' }
+      : { glosId: await idAdriana(process.env.ELEVENLABS_KEY), ustawienia: USTAWIENIA }),
 });
 
 await copyFile(glos.plik, path.join(WYJ, 'nootri-glos.wav'));

@@ -20,6 +20,10 @@ import { sprawdzRolke } from './kontrola.mjs';
 const DIR = import.meta.dirname;
 const OUT = path.join(DIR, 'out');
 const KLIPY = path.join('C:', 'Users', 'zahar', 'Desktop', 'zovu desktop', 'zovu flow');
+// Три кадра пересняты через Vertex со СТАРТОВЫМ КАДРОМ героя и настоящей
+// упаковкой: во Flow лицо в сценах «после» уплывало в другого человека, а
+// пакет генератор рисовал свой. Эти лежат отдельно, рядом со скриптом.
+const KLIPY_VEO = path.join(DIR, 'out', 'veo');
 const GLOS = path.join(OUT, 'nootri', 'nootri-glos');
 const BEZ_KONTROLI = process.argv.includes('--bez-kontroli');
 
@@ -36,9 +40,9 @@ const SCENY = [
   { plik: 'Man_sitting_at_kitchen_table_202608312111.mp4',   frazy: [3, 4, 5],  od: 0, max: 8.0 },
   { plik: 'Trainer_talking_to_man_in_202608312111.mp4',      frazy: [6, 7],     od: 0 },
   { plik: 'Torso_model_showing_hormone_acti…_202608312111.mp4', frazy: [8],     od: 1.0 },
-  { plik: 'Coffee_pouch_and_mug_on_202608312111.mp4',        frazy: [9, 10],    od: 0 },
-  { plik: 'Man_buttoning_shirt_in_mirror_202608312111.mp4',  frazy: [11, 12],   od: 0.6 },
-  { plik: 'Man_and_woman_at_doorway_202608312111.mp4',       frazy: [13, 14],   od: 1.0 },
+  { plik: 'nootri-produkt.mp4', katalog: KLIPY_VEO,             frazy: [9, 10],    od: 0 },
+  { plik: 'nootri-lustro.mp4', katalog: KLIPY_VEO,              frazy: [11, 12],   od: 0.6 },
+  { plik: 'nootri-drzwi2.mp4', katalog: KLIPY_VEO,              frazy: [13, 14],   od: 0.6 },
   { plik: 'Man_picking_up_coffee_mug_202608312111.mp4',      frazy: [15, 16, 17], od: 0 },
 ];
 
@@ -47,7 +51,7 @@ const SCENY = [
 const klipy = [];
 let poczatek = 0;
 for (const [i, s] of SCENY.entries()) {
-  const plik = path.join(KLIPY, s.plik);
+  const plik = path.join(s.katalog || KLIPY, s.plik);
   if (!existsSync(plik)) throw new Error(`[nootri] нет клипа: ${plik}`);
 
   const nast = SCENY[i + 1];

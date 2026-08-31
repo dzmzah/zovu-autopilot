@@ -21,8 +21,29 @@ import path from 'node:path';
 
 const DIR = import.meta.dirname;
 const API = 'https://generativelanguage.googleapis.com/v1beta';
+
+// ── две двери к одной модели ──────────────────────────────────────
+// Gemini API (ключ) и Vertex AI (проект + токен) отдают ОДНУ И ТУ ЖЕ Veo, но
+// платят из разных карманов. Триальные 300 $ на Gemini API НЕ распространяются —
+// это написано прямо в окне привязки: «excludes Gemini API», и Google предлагает
+// вместо них докупить отдельный кошелёк. На Vertex те же кредиты работают.
+//
+// Поэтому по умолчанию идём через Vertex: счёт уходит в кредиты, карта не
+// трогается. Токен берём у gcloud — своего ключа нигде не храним.
+const PRZEZ_VERTEX = !process.argv.includes('--gemini-api');
+const PROJEKT = process.env.GCP_PROJECT || 'zovu-autopilot';
+const REGION = process.env.GCP_REGION || 'us-central1';
 const KLUCZ = process.env.GEMINI_API_KEY;
-if (!KLUCZ) throw new Error('[veo] нет GEMINI_API_KEY — ключ живёт в секретах GitHub');
+if (!PRZEZ_VERTEX && !KLUCZ) throw new Error('[veo] нет GEMINI_API_KEY — ключ живёт в секретах GitHub');
+
+async function tokenVertex() {
+  const { execFile } = await import('node:child_process');
+  const { promisify } = await import('node:util');
+  const exec = promisify(execFile);
+  if (process.env.GCP_TOKEN) return process.env.GCP_TOKEN.trim();
+  const { stdout } = await exec('gcloud', ['auth', 'print-access-token'], { shell: true });
+  return stdout.trim();
+}
 
 const arg = (n, d) => {
   const m = process.argv.find((a) => a.startsWith(`--${n}=`));
@@ -32,7 +53,11 @@ const POTWIERDZAM = process.argv.includes('--potwierdzam');
 
 // Lite дешевле и для нашей задачи достаточен: рисованная сцена без сложной
 // камеры. Fast и полный Veo оставляем на случай, когда решает движение.
-const MODEL = arg('model', 'veo-3.1-lite-generate-preview');
+// У Vertex и Gemini API РАЗНЫЕ имена одной модели: там `-001`, тут `-preview`.
+// На это ушло три холостых запроса: 404 «Publisher model not found» выглядит как
+// отсутствие доступа, а на деле это опечатка в имени. Список доступных моделей
+// смотреть так: GET /v1beta1/publishers/google/models?pageSize=200.
+const MODEL = arg('model', PRZEZ_VERTEX ? 'veo-3.1-lite-generate-001' : 'veo-3.1-lite-generate-preview');
 const SEKUNDY = +arg('sekundy', '8');
 const FORMAT = arg('format', '9:16');
 const ROZDZIELCZOSC = arg('rozdzielczosc', '720p');
@@ -42,9 +67,9 @@ const ROZDZIELCZOSC = arg('rozdzielczosc', '720p');
 // которой мы уже рисовали во Flow, — то есть вид не изменится, изменится
 // только то, что файл приходит сам.
 const CENA = {
-  'veo-3.1-generate-preview': 0.4,
-  'veo-3.1-fast-generate-preview': 0.1,
-  'veo-3.1-lite-generate-preview': 0.05,
+  'veo-3.1-generate-preview': 0.4, 'veo-3.1-generate-001': 0.4,
+  'veo-3.1-fast-generate-preview': 0.1, 'veo-3.1-fast-generate-001': 0.1,
+  'veo-3.1-lite-generate-preview': 0.05, 'veo-3.1-lite-generate-001': 0.05,
 };
 
 async function api(sciezka, opcje = {}) {
@@ -56,18 +81,72 @@ async function api(sciezka, opcje = {}) {
   return r;
 }
 
+const parametry = () => ({
+  aspectRatio: FORMAT,
+  resolution: ROZDZIELCZOSC,
+  durationSeconds: SEKUNDY,
+  // `generateAudio` тут НЕ передаём: Lite его не принимает и отвечает
+  // 400 INVALID_ARGUMENT. Звук Veo нам всё равно не нужен — голос свой,
+  // музыка своя, — и он отбрасывается при сборке одной строкой ffmpeg.
+});
+
+// ── через Vertex AI (кредиты) ─────────────────────────────────────
+// Отличий от Gemini API три: адрес с регионом, заголовок Bearer вместо ключа
+// и опрос задания отдельным вызовом `fetchPredictOperation`, а не GET по имени.
+// Видео возвращается base64 прямо в ответе, скачивать отдельно не нужно.
+async function przezVertex({ prompt, plik, obraz }) {
+  const token = await tokenVertex();
+  const baza = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJEKT}/locations/${REGION}/publishers/google/models/${MODEL}`;
+  // Квота считается на проект, и при входе обычным пользователем его надо назвать
+// явно — иначе 403 «requires a quota project».
+  const naglowki = {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+    'x-goog-user-project': PROJEKT,
+  };
+
+  const start = await fetch(`${baza}:predictLongRunning`, {
+    method: 'POST',
+    headers: naglowki,
+    body: JSON.stringify({
+      instances: [obraz ? { prompt, image: { bytesBase64Encoded: obraz, mimeType: 'image/jpeg' } } : { prompt }],
+      parameters: parametry(),
+    }),
+  });
+  if (!start.ok) throw new Error(`Vertex ${start.status}: ${(await start.text()).slice(0, 300)}`);
+  const { name } = await start.json();
+  console.log(`[veo] задание ${String(name).split('/').pop()}`);
+
+  for (let i = 0; i < 60; i++) {
+    await new Promise((r) => setTimeout(r, 10_000));
+    const r = await fetch(`${baza}:fetchPredictOperation`, {
+      method: 'POST',
+      headers: naglowki,
+      body: JSON.stringify({ operationName: name }),
+    });
+    if (!r.ok) throw new Error(`Vertex ${r.status}: ${(await r.text()).slice(0, 300)}`);
+    const stan = await r.json();
+    if (!stan.done) continue;
+    if (stan.error) throw new Error(`[veo] ${JSON.stringify(stan.error).slice(0, 300)}`);
+
+    const wideo = stan.response?.videos?.[0] || stan.response?.generatedSamples?.[0]?.video;
+    const b64 = wideo?.bytesBase64Encoded;
+    if (!b64) throw new Error(`[veo] ответ без файла: ${JSON.stringify(stan.response).slice(0, 300)}`);
+    await mkdir(path.dirname(plik), { recursive: true });
+    await writeFile(plik, Buffer.from(b64, 'base64'));
+    console.log(`[veo] готово: ${plik}`);
+    return plik;
+  }
+  throw new Error('[veo] задание не закончилось за 10 минут');
+}
+
 // Одна генерация: запрос → ожидание → файл на диске.
 export async function zrobKlip({ prompt, plik, obraz = null }) {
+  if (PRZEZ_VERTEX) return przezVertex({ prompt, plik, obraz });
+
   const body = {
     instances: [obraz ? { prompt, image: { bytesBase64Encoded: obraz, mimeType: 'image/jpeg' } } : { prompt }],
-    parameters: {
-      aspectRatio: FORMAT,
-      resolution: ROZDZIELCZOSC,
-      durationSeconds: SEKUNDY,
-      // `generateAudio` тут НЕ передаём: Lite его не принимает и отвечает
-      // 400 INVALID_ARGUMENT. Звук Veo нам всё равно не нужен — голос свой,
-      // музыка своя, — и он отбрасывается при сборке одной строкой ffmpeg.
-    },
+    parameters: parametry(),
   };
 
   const start = await api(`/models/${MODEL}:predictLongRunning`, {

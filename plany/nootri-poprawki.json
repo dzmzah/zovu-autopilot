@@ -1,7 +1,17 @@
 [
   {
-    "prompt": "Clean Pixar Disney style 3D animation, cinematic vertical shot. The SAME man from the reference image - same face, same short dark hair greying at the temples, same light stubble - but now visibly fitter and standing straight. He is in a bright bathroom in soft morning light, buttoning a well fitted dark navy shirt in front of the mirror, calm proud expression, slow gentle camera push in.",
+    "prompt": "Clean Pixar Disney style 3D animation, cinematic vertical shot. The SAME man as in the reference image - same face, same short dark hair greying at the temples, same light stubble, same tired kind eyes - but now visibly fitter and standing straight. Bright bathroom in soft morning light, he buttons a well fitted dark navy shirt in front of the mirror, calm proud expression, slow gentle camera push in.",
     "obraz": "kadry/nootri-bohater.jpg",
     "plik": "out/veo/nootri-lustro.mp4"
+  },
+  {
+    "prompt": "Clean Pixar Disney style 3D animation, cinematic vertical shot. The SAME man as in the reference image - same face, same short dark hair greying at the temples, same light stubble - now fitter, calm and composed, wearing a dark navy shirt, standing in the doorway of his apartment in warm evening light. A blonde woman around forty five stands outside the door looking surprised. Quiet tension, slow subtle camera move.",
+    "obraz": "kadry/nootri-bohater.jpg",
+    "plik": "out/veo/nootri-drzwi.mp4"
+  },
+  {
+    "prompt": "Clean Pixar Disney style 3D animation, cinematic vertical shot. The pink and orange coffee pouch from the reference image stands EXACTLY as shown, with its label unchanged, on a sunlit marble kitchen counter next to a steaming glass mug of black coffee. Warm morning light through the window, clean minimal composition, gentle steam, slow camera push in, product hero shot.",
+    "obraz": "kadry/nootri-opakowanie.jpg",
+    "plik": "out/veo/nootri-produkt.mp4"
   }
 ]

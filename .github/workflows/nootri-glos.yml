@@ -16,6 +16,11 @@ on:
         type: string
         required: false
         default: ''
+      glos_google:
+        description: 'Голос Google, напр. pl-PL-Chirp3-HD-Puck'
+        type: string
+        required: false
+        default: 'pl-PL-Chirp3-HD-Puck'
       glos_gemini:
         description: 'Głos Gemini, np. Charon / Algieba / Fenrir / Puck'
         type: string
@@ -42,7 +47,12 @@ jobs:
           ELEVENLABS_KEY: ${{ secrets.ELEVENLABS_KEY }}
           ELEVENLABS_VOICE: ${{ secrets.ELEVENLABS_VOICE }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GLOS_DOSTAWCA: ${{ inputs.dostawca }}
+          GCP_CLIENT_ID: ${{ secrets.GCP_CLIENT_ID }}
+          GCP_CLIENT_SECRET: ${{ secrets.GCP_CLIENT_SECRET }}
+          GCP_REFRESH_TOKEN: ${{ secrets.GCP_REFRESH_TOKEN }}
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+          GOOGLE_VOICE: ${{ inputs.glos_google || vars.GOOGLE_VOICE }}
+          GLOS_DOSTAWCA: ${{ inputs.dostawca || 'google' }}
           GEMINI_VOICE: ${{ inputs.glos_gemini }}
         run: node nootri-lektor.mjs
 
