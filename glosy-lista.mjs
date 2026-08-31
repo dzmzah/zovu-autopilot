@@ -35,3 +35,18 @@ for (const w of wiersze) {
     `${w.free ? 'FREE' : 'PLAT'}  ${String(w.nazwa).padEnd(34)} ${w.id}  ${w.wiek.padEnd(12)} ${w.zastosowanie.padEnd(18)} ${w.opis}`
   );
 }
+
+// Что аккаунт может использовать УЖЕ СЕЙЧАС. Бесплатный тариф не пускает
+// библиотечные голоса через API вообще («Free users cannot use library voices
+// via the API»), но добавленные в свои голоса работают — именно так это было
+// на старом аккаунте. Поэтому список «моих» важнее списка библиотеки.
+const moje = await fetch('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': klucz } });
+if (moje.ok) {
+  const lista = (await moje.json()).voices || [];
+  console.log(`[glosy] в аккаунте своих голосов: ${lista.length}`);
+  for (const v of lista) {
+    console.log(`  ${String(v.name).padEnd(30)} ${v.voice_id}  ${v.category || ''} ${(v.labels?.language || '')}`);
+  }
+} else {
+  console.log(`[glosy] свои голоса недоступны: ${moje.status}`);
+}
