@@ -141,7 +141,7 @@ if (rozpoznane) {
   const granice = [];
   let i = 0;
   for (const [n, f] of FRAZY.entries()) {
-    const ile = (f.mowa || f.tekst).split(/s+/).filter(Boolean).length;
+    const ile = (f.mowa || f.tekst).split(/\s+/).filter(Boolean).length;
     const od2 = rozpoznane[Math.min(i, rozpoznane.length - 1)];
     const ostatni = n === FRAZY.length - 1 ? rozpoznane.length - 1 : Math.min(i + ile - 1, rozpoznane.length - 1);
     const doo2 = rozpoznane[ostatni];
@@ -154,7 +154,7 @@ if (rozpoznane) {
     i = ostatni + 1;
   }
   const slowaP = granice.flatMap((f) => {
-    const ws = f.tekst.split(/s+/).filter(Boolean);
+    const ws = f.tekst.split(/\s+/).filter(Boolean);
     const suma2 = ws.reduce((a2, w) => a2 + w.length, 0) || 1;
     let t3 = f.a;
     return ws.map((w) => {
