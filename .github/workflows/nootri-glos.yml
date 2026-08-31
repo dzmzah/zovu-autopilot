@@ -1,0 +1,41 @@
+name: ZOVU lektor do rolki Nootri
+
+# Głos do próbnej rolki dla klienta nootripolska (Useme).
+#
+# Na serwerze, bo klucz ElevenLabs siedzi w sekretach GitHuba. Lokalnie skrypt
+# świadomie się wywala zamiast po cichu podstawić Pipera — to już raz kosztowało
+# nas godzinę naprawiania nie tej przyczyny.
+#
+# Wynikiem są DWA pliki: ścieżka w jednym kawałku i rozpiska (granice fraz i słów).
+# Po rozpisce tnie się obraz i rysuje napisy, więc dźwięku nie ruszamy.
+on:
+  workflow_dispatch:
+
+jobs:
+  lektor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Synteza
+        env:
+          ELEVENLABS_KEY: ${{ secrets.ELEVENLABS_KEY }}
+          ELEVENLABS_VOICE: ${{ secrets.ELEVENLABS_VOICE }}
+        run: node nootri-glos.mjs
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nootri-glos
+          path: |
+            out/nootri/nootri-glos.wav
+            out/nootri/nootri-glos.json
+          if-no-files-found: error
