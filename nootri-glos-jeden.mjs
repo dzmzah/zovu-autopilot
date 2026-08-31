@@ -101,7 +101,38 @@ const potrzeba = FRAZY.length - 1;
 if (ciszy.length < potrzeba) {
   throw new Error(`[glos1] пауз ${ciszy.length}, а нужно ${potrzeba} — текст слитный, разрежьте фразы иначе`);
 }
-const ciecia = ciszy.slice().sort((a, b) => b.dl - a.dl).slice(0, potrzeba).sort((a, b) => a.od - b.od);
+
+// Границы ищем НЕ по «самым длинным паузам». Так вышло 100 слогов в секунду
+// на первой фразе: две длинные паузы оказались рядом, и между ними уместился
+// огрызок в 0,15 с. В связной речи длина паузы не говорит о её месте.
+//
+// Правильно — знать, ГДЕ граница должна быть: доля слогов от начала даёт
+// ожидаемое время, а дальше берём ближайшую свободную паузу. Слоги считаем по
+// тому тексту, который РЕАЛЬНО звучал (`mowa`), а не по подписям.
+const sylabyRaw = (s2) => (String(s2).toLowerCase().match(/[aeiouyąęó]/g) || []).length || 1;
+const wagi = FRAZY.map((f) => sylabyRaw(f.mowa || f.tekst));
+const suma = wagi.reduce((a, b) => a + b, 0);
+const mowaOd = (konce[0] ?? 0) < 0.4 ? konce[0] ?? 0 : 0;
+const mowaDo = ciszy.length && ciszy[ciszy.length - 1].doo >= calosc - 0.1 ? ciszy[ciszy.length - 1].od : calosc;
+let nar = 0;
+const oczekiwane = wagi.slice(0, -1).map((w) => {
+  nar += w;
+  return mowaOd + ((mowaDo - mowaOd) * nar) / suma;
+});
+
+const wolne = ciszy.slice().sort((a, b) => a.od - b.od);
+const ciecia = [];
+for (const cel of oczekiwane) {
+  let naj = -1;
+  let dyst = Infinity;
+  for (let i = 0; i < wolne.length; i++) {
+    if (ciecia.length && wolne[i].od <= ciecia[ciecia.length - 1].od) continue;
+    const d = Math.abs(wolne[i].od - cel);
+    if (d < dyst) { dyst = d; naj = i; }
+  }
+  if (naj < 0) throw new Error('[glos1] пауз не хватило по порядку — текст слишком слитный');
+  ciecia.push(wolne[naj]);
+}
 
 const frazy = [];
 let od = (konce[0] ?? 0) < 0.4 ? konce[0] ?? 0 : 0;
