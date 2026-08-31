@@ -1,0 +1,63 @@
+name: ZOVU wideo Veo (API)
+
+# Klipy z Veo przez API zamiast ręcznej roboty w Google Flow.
+#
+# We Flow są dwa sufity i żaden nie dotyczy jakości: 50 bonusów dziennie
+# (czyli pięć klipów) i brak pobierania — piaskownica rozszerzenia blokuje
+# każde pobranie ze strony, więc pliki wyciągał Zahar ręcznie. Tutaj plik
+# przychodzi artefaktem.
+#
+# UWAGA: to płatne wywołanie, liczone z kredytów Google Cloud. Skrypt bez
+# `potwierdzam` tylko wylicza koszt i kończy.
+on:
+  workflow_dispatch:
+    inputs:
+      plan:
+        description: 'Plik planu w repo, np. plany/nootri-poprawki.json'
+        type: string
+        required: false
+        default: ''
+      prompt:
+        description: 'Albo pojedynczy prompt (gdy nie ma planu)'
+        type: string
+        required: false
+        default: ''
+      model:
+        description: 'veo-3.1-fast-generate-preview (taniej) lub veo-3.1-generate-preview'
+        type: string
+        required: false
+        default: 'veo-3.1-fast-generate-preview'
+      potwierdzam:
+        description: 'TAK = generuj i płać. Puste = tylko kosztorys'
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  wideo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generacja
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          node wideo-veo.mjs \
+            ${{ inputs.plan && format('--plan={0}', inputs.plan) || '' }} \
+            ${{ inputs.prompt && format('--prompt="{0}"', inputs.prompt) || '' }} \
+            --model=${{ inputs.model }} \
+            ${{ inputs.potwierdzam && '--potwierdzam' || '' }}
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.potwierdzam }}
+        with:
+          name: veo-klipy
+          path: out/veo/*.mp4
+          if-no-files-found: error
