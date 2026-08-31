@@ -398,11 +398,64 @@ async function zapas() {
   }
 }
 
+// ── 10. Не пошла ли лента по второму кругу ───────────────────────
+// Самая дорогая поломка августа была не в коде: банк сценариев кончился, и
+// лента девять раз повторила текст слово в слово. Ротация чинилась, но
+// проверка нужна отдельная и на РЕЗУЛЬТАТ — банк можно исчерпать снова,
+// просто дописав меньше, чем выкладываем. Смотрим не на размер банка, а на
+// саму ленту: вышла ли одна и та же мысль дважды за месяц.
+async function powtorkiWLencie() {
+  try {
+    const { idZrodla, MIN_DNI } = await import('./historia-scenariuszy.mjs');
+    const kolejka = JSON.parse(
+      await readFile(path.join(import.meta.dirname, 'rolki', 'kolejka.json'), 'utf8')
+    );
+    const wyszlo = kolejka
+      .filter((p) => p.opublikowano && idZrodla(p.zrodlo))
+      .map((p) => ({ id: idZrodla(p.zrodlo), kiedy: Date.parse(p.opublikowano) }))
+      .filter((p) => Number.isFinite(p.kiedy))
+      .sort((a, b) => a.kiedy - b.kiedy);
+
+    // Смотрим только свежий хвост: повторы августа уже разобраны, кричать о
+    // них каждый день — значит приучить себя не читать эту строку.
+    const OKNO_DNI = 14;
+    // Повторы до 31.08 — уже разобранная история: ротация тогда не помнила
+    // выложенного и честно ходила по кругу. Считать их каждый день заново
+    // значит приучить себя пролистывать эту строку, а она нужна для
+    // СЛЕДУЮЩЕГО раза, когда банк кончится.
+    const OD_NAPRAWY = Date.parse('2026-09-01T00:00:00Z');
+    const granica = Math.max(Date.now() - OKNO_DNI * 86400000, OD_NAPRAWY);
+    const powtorki = [];
+    for (let n = 1; n < wyszlo.length; n++) {
+      if (wyszlo[n].kiedy < granica) continue;
+      const wczesniej = wyszlo
+        .slice(0, n)
+        .filter((p) => p.id === wyszlo[n].id)
+        .pop();
+      if (!wczesniej) continue;
+      const dni = (wyszlo[n].kiedy - wczesniej.kiedy) / 86400000;
+      if (dni < MIN_DNI) powtorki.push(`${wyszlo[n].id} (co ${dni.toFixed(0)} dni)`);
+    }
+    if (powtorki.length) {
+      zapisz(
+        'bank scenariuszy',
+        false,
+        'lenta powtarza się: ' + powtorki.join(', ') + ' — trzeba dopisać scenariusze'
+      );
+      return;
+    }
+    zapisz('bank scenariuszy', true, `bez powtórek w ostatnich ${OKNO_DNI} dniach`);
+  } catch (e) {
+    zapisz('bank scenariuszy', false, 'nie udało się sprawdzić: ' + e.message, 'uwaga');
+  }
+}
+
 // ── поехали ──────────────────────────────────────────────────────
 const ostatni = await ostatniPost();
 await Promise.all([tokenInstagrama(), tokenFacebooka(), mozgTekstowy(), zdjecia(), glos(), zapas()]);
 await kolejka(ostatni?.stan);
 await rolki();
+await powtorkiWLencie();
 
 const bledy = wyniki.filter((w) => !w.ok && w.waga === 'blad');
 const uwagi = wyniki.filter((w) => !w.ok && w.waga === 'uwaga');

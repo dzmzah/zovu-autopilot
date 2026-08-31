@@ -30,11 +30,12 @@ try {
   stan = {};
 }
 
-const { typ, idx, wybrany } = nastepnyTyp(stan, JAWNY);
+const { typ, idx, slot, wybrany } = nastepnyTyp(stan, JAWNY);
 
 // Индекс двигаем ДО сборки. Если тип упадёт, завтра пойдёт следующий, а не
 // тот же самый: пустой день в ленте дороже, чем нарушенная очерёдность.
 if (!JAWNY) {
+  stan.slotRolki = slot;
   stan.typRolki = idx;
   await mkdir(path.dirname(STAN), { recursive: true });
   await writeFile(STAN, JSON.stringify(stan, null, 2) + String.fromCharCode(10), 'utf8');
