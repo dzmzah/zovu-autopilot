@@ -290,11 +290,38 @@ async function jednymDublemGoogle(frazy, wyjscie, google) {
     );
     return null;
   }
-  const ciecia = ciszy
-    .slice()
-    .sort((a, b) => b.dl - a.dl)
-    .slice(0, potrzeba)
-    .sort((a, b) => a.od - b.od);
+
+  // Резать по САМЫМ ДЛИННЫМ паузам нельзя. В связной речи длинная пауза стоит
+  // там, где смысловая точка, а не там, где кончается наша фраза: первый же
+  // прогон дал первой фразе 0,1 секунды и темп 46 слогов в секунду, то есть
+  // подписи разъехались бы полностью.
+  //
+  // Поэтому считаем, ГДЕ пауза должна быть: доля слогов фразы от всех слогов
+  // — это её доля времени. Дальше к каждому ожидаемому месту подбираем
+  // ближайшую настоящую паузу, не давая границам идти назад.
+  const syl = frazy.map((f) => sylaby(f.mowa || f.tekst));
+  const suma = syl.reduce((a, b) => a + b, 0) || 1;
+  const oczekiwane = [];
+  let narastajaco = 0;
+  for (let n = 0; n < frazy.length - 1; n++) {
+    narastajaco += syl[n];
+    oczekiwane.push((narastajaco / suma) * calosc);
+  }
+
+  const ciecia = [];
+  let wolneOd = 0;
+  for (const cel of oczekiwane) {
+    const kandydaci = ciszy.filter((c) => c.od > wolneOd && !ciecia.includes(c));
+    if (!kandydaci.length) {
+      console.warn('[glos] паузы кончились раньше фраз — режу пофразно');
+      return null;
+    }
+    const naj = kandydaci.reduce((a, b) =>
+      Math.abs((a.od + a.doo) / 2 - cel) <= Math.abs((b.od + b.doo) / 2 - cel) ? a : b
+    );
+    ciecia.push(naj);
+    wolneOd = naj.doo;
+  }
 
   const granice = [];
   let od = Math.max(0, (konce[0] ?? 0) < 0.4 ? konce[0] : 0);
@@ -304,6 +331,17 @@ async function jednymDublemGoogle(frazy, wyjscie, google) {
   }
   const ostatniaCisza = ciszy.find((c) => c.od > od && c.doo >= calosc - 0.1);
   granice.push([od, ostatniaCisza ? ostatniaCisza.od + 0.04 : calosc]);
+
+  // Последняя проверка перед выдачей: если хоть одна фраза получила
+  // невозможный темп, разметка неверна — молча выкладывать такое нельзя.
+  const tempa = granice.map(([a, b], n) => sylaby(frazy[n].tekst) / Math.max(0.2, b - a));
+  const zle = tempa.filter((t) => t < 1.6 || t > 8.5).length;
+  if (zle) {
+    console.warn(
+      `[glos] границы дубля не сошлись (${zle} фраз с невозможным темпом) — режу пофразно`
+    );
+    return null;
+  }
   return granice;
 }
 
