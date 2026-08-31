@@ -131,7 +131,9 @@ async function limit(klucz) {
   return zostalo;
 }
 
-const zostalo = await limit(process.env.ELEVENLABS_KEY);
+const zostalo = (process.env.GLOS_DOSTAWCA || '').trim() === 'gemini'
+  ? null
+  : await limit(process.env.ELEVENLABS_KEY);
 // Дубль стоит примерно как весь текст. Меньше — синтез не начнётся, и падать
 // на середине незачем: понятное сообщение полезнее стектрейса.
 if (zostalo !== null && zostalo < znakow) {
@@ -141,10 +143,16 @@ if (zostalo !== null && zostalo < znakow) {
 
 await mkdir(WYJ, { recursive: true });
 
+// Поставщика выбираем снаружи. На бесплатном ElevenLabs библиотечные голоса
+// через API закрыты вообще («Free users cannot use library voices via the API»),
+// и добавление их в свой аккаунт этого не меняет — проверено на десяти голосах.
+// Остаётся либо платный тариф, либо Gemini: там польский родной, а подача
+// задаётся словами.
+const GEMINI = (process.env.GLOS_DOSTAWCA || '').trim() === 'gemini';
+
 const glos = await zbudujGlos(FRAZY, {
   tmp: path.join(WYJ, 'tmp'),
-  glosId: await idAdriana(process.env.ELEVENLABS_KEY),
-  ustawienia: USTAWIENIA,
+  ...(GEMINI ? { dostawca: 'gemini' } : { glosId: await idAdriana(process.env.ELEVENLABS_KEY), ustawienia: USTAWIENIA }),
 });
 
 await copyFile(glos.plik, path.join(WYJ, 'nootri-glos.wav'));
