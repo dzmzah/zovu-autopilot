@@ -345,7 +345,10 @@ async function jednymDublemGoogle(frazy, wyjscie, google) {
 
   // Последняя проверка перед выдачей: если хоть одна фраза получила
   // невозможный темп, разметка неверна — молча выкладывать такое нельзя.
-  const tempa = granice.map(([a, b], n) => sylaby(frazy[n].tekst) / Math.max(0.2, b - a));
+  // Темп считаем по тому, что ПРОИЗНЕСЕНО (mowa), а не по тому, что на
+  // экране: тексты разной длины, и сравнение с подписью давало ложную
+  // тревогу — разметка отбраковывалась там, где всё было в порядке.
+  const tempa = granice.map(([a, b], n) => sylaby(frazy[n].mowa || frazy[n].tekst) / Math.max(0.2, b - a));
   const zle = tempa.filter((t) => t < 1.2 || t > 9.5).length;
   if (zle) {
     console.warn(
