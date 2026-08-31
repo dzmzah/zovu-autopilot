@@ -539,14 +539,25 @@ export async function zbudujGlos(
       let najlepszy = null;
       for (const speed of [null, 0.94]) {
         const plikProby = speed ? `${dubel}-${speed}.mp3` : dubel;
-        const g = await dubelZeZnacznikami(
-          teksty,
-          plikProby,
-          // Настройки ролика сохраняем: перебор темпа добавляет `speed`, а не
-          // заменяет собой всё остальное. Иначе второй дубль ехал бы уже другим
-          // голосом по характеру, и сравнивать их было бы нечестно.
-          speed ? { ...eleven, ustawienia: { ...eleven.ustawienia, speed } } : eleven
-        );
+        // Перебор темпа — УЛУЧШЕНИЕ, а не условие. Если второй дубль не купился
+        // (кончилась квота, отвалилась сеть), нельзя терять первый: он уже
+        // оплачен и лежит на диске. Ровно так мы потеряли готовый дубль Adriana —
+        // упало на 401 quota_exceeded, хотя годный вариант был в руках.
+        let g;
+        try {
+          g = await dubelZeZnacznikami(
+            teksty,
+            plikProby,
+            // Настройки ролика сохраняем: перебор темпа добавляет `speed`, а не
+            // заменяет собой всё остальное. Иначе второй дубль ехал бы уже другим
+            // голосом по характеру, и сравнивать их было бы нечестно.
+            speed ? { ...eleven, ustawienia: { ...eleven.ustawienia, speed } } : eleven
+          );
+        } catch (e) {
+          if (!najlepszy) throw e;
+          console.warn(`[glos] дубль на темпе ${speed} не вышел (${e.message.slice(0, 80)}) — беру предыдущий`);
+          break;
+        }
         if (!g) break;
 
         const ile = liczSzybkie(g);

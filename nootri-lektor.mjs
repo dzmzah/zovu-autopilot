@@ -83,6 +83,31 @@ const USTAWIENIA = {
   speed: 0.9,
 };
 
+// Квоту спрашиваем ДО синтеза. Прошлый прогон купил хороший дубль, полез за
+// вторым «на всякий случай» и упал на 401 — а в логе это выглядело как поломка
+// кода. Пусть лучше скрипт сразу скажет, сколько символов осталось и когда сброс.
+async function limit(klucz) {
+  const r = await fetch('https://api.elevenlabs.io/v1/user/subscription', {
+    headers: { 'xi-api-key': klucz },
+  });
+  if (!r.ok) return null;
+  const j = await r.json();
+  const zostalo = (j.character_limit ?? 0) - (j.character_count ?? 0);
+  const reset = j.next_character_count_reset_unix
+    ? new Date(j.next_character_count_reset_unix * 1000).toISOString().slice(0, 16).replace('T', ' ')
+    : 'nieznany';
+  console.log(`[nootri] квота ElevenLabs: осталось ${zostalo} из ${j.character_limit}, сброс ${reset} UTC`);
+  return zostalo;
+}
+
+const zostalo = await limit(process.env.ELEVENLABS_KEY);
+// Дубль стоит примерно как весь текст. Меньше — синтез не начнётся, и падать
+// на середине незачем: понятное сообщение полезнее стектрейса.
+if (zostalo !== null && zostalo < znakow) {
+  console.error(`[nootri] символов не хватает: нужно ${znakow}, осталось ${zostalo}. Ждём сброса квоты.`);
+  process.exit(2);
+}
+
 await mkdir(WYJ, { recursive: true });
 
 const glos = await zbudujGlos(FRAZY, {
