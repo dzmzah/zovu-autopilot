@@ -693,7 +693,230 @@ const LISTA = {
   },
 };
 
-export const SCENARIUSZE = [CZAS, ODPOWIEDZ, RYTM, SESJA, PROFIL, KOMENTARZE, LISTA];
+
+// ── 8. Сколько стоит ролик, если делать его самому ───────────────
+// Тот же приём вычисления, что и в «czas», но считаем не жизнь в ленте, а
+// СВОЮ работу. Арифметика честная и вся из посылки, которую зритель сам
+// признаёт: три часа на ролик — это его собственный опыт, а не наша
+// статистика. Ни одной цифры про рынок мы тут не утверждаем.
+const KOSZT = {
+  klucz: 'koszt',
+  nazwa: 'Ile kosztuje rolka, jeśli robisz ją sam',
+  frazy: [
+    { rola: 'hak', tekst: 'Rolka za darmo? Policz.', pauza: 0.36 },
+    { rola: 'hak', tekst: 'Twój czas to też koszt.', pauza: 0.42 },
+    { rola: 'tresc', tekst: 'Pomysł. Nagranie. Montaż.', pauza: 0.32 },
+    { rola: 'tresc', tekst: 'Trzy godziny na jedną.', pauza: 0.32 },
+    { rola: 'tresc', tekst: 'Razy dwanaście w miesiącu.', pauza: 0.34 },
+    { rola: 'zaplata', tekst: 'Trzydzieści sześć godzin. Twoich.', pauza: 0.36 },
+    { rola: 'zaplata', tekst: 'To cały tydzień pracy.', pauza: 0.32 },
+    { rola: 'cta', tekst: 'Ile wychodzi tobie? Napisz.', pauza: 0.20 },
+  ],
+  buduj({ t, total }) {
+    const scena = [
+      { obiekt: 'mobile_phone_3d', x: 540, y: 560, skala: 760, obrot: -6, skad: 'gora',
+        start: t(0, 0.05), koniec: t(1, 0.10), dokad: 'lewo' },
+      // Три слагаемых работы приходят по очереди и уходят вместе: пока они
+      // на экране, зритель складывает их сам, и цифра в конце не сюрприз,
+      // а подтверждение.
+      { obiekt: 'light_bulb_3d', x: 250, y: 470, skala: 640, obrot: -9, skad: 'lewo',
+        start: t(2, 0.02), koniec: t(4, 0.50), dokad: 'lewo' },
+      { obiekt: 'eyes_3d', x: 560, y: 400, skala: 560, obrot: 4, skad: 'gora',
+        start: t(2, 0.28), koniec: t(4, 0.50), dokad: 'gora' },
+      { obiekt: 'laptop_3d', x: 840, y: 540, skala: 660, obrot: 8, skad: 'prawo',
+        start: t(2, 0.52), koniec: t(4, 0.50), dokad: 'prawo' },
+      { obiekt: 'alarm_clock_3d', x: 300, y: 520, skala: 700, obrot: -8, skad: 'dol',
+        start: t(3, 0.05), koniec: t(4, 0.50), dokad: 'dol' },
+      { obiekt: 'calendar_3d', x: 800, y: 600, skala: 640, obrot: 7, skad: 'prawo',
+        start: t(4, 0.02), koniec: t(5, 0.15), dokad: 'prawo' },
+      // Расплата — один предмет во весь экран, как в «czas».
+      { obiekt: 'hourglass_done_3d', x: 540, y: 540, skala: 820, obrot: -4, skad: 'gora',
+        start: t(5, 0.10), koniec: t(6, 0.20), dokad: 'gora' },
+      { obiekt: 'money_bag_3d', x: 540, y: 470, skala: 560, obrot: 0, skad: 'dol',
+        start: t(6, 0.05) },
+    ];
+
+    const metki = [
+      { x: 540, y: 1010, szer: 400, wys: 540, od: 36, do: 0, jednostka: 'H',
+        odProc: 100, doProc: 0, opis: 'TWÓJ TYDZIEŃ', a: t(6, 0.15), b: total, czas: 1.1 },
+    ];
+
+    const wzor = [
+      { tekst: '3 GODZINY × 12 ROLEK', y: 940, maly: true, a: t(3, 0.35), b: t(5, 0.10) },
+      { tekst: '= 36 GODZIN', y: 1080, kolor: 'czerwony', a: t(5, 0.20), b: t(6, 0.10) },
+    ];
+
+    const liczniki = [
+      { od: 0, do: 36, jednostka: 'H', y: 1120, a: t(0, 0.30), b: t(1, 0.55),
+        czas: 0.85, zPodpisem: true },
+      { od: 0, do: 36, jednostka: 'H', y: 1120, a: t(4, 0.05), b: t(5, 0.10), czas: 1.25 },
+    ];
+
+    const kamera = [
+      { t: 0, zoom: 1.00, x: 0, y: 0 },
+      { t: t(1), zoom: 1.06, x: -16, y: 12 },
+      { t: t(2), zoom: 1.02, x: 18, y: -10 },
+      { t: t(4, 0.20), zoom: 1.10, x: 0, y: 22 },
+      { t: t(5, 0.60), zoom: 1.04, x: 0, y: 0 },
+      { t: t(6, 0.20), zoom: 1.08, x: 12, y: -14 },
+      { t: t(7), zoom: 1.02, x: 0, y: 0 },
+      { t: total, zoom: 1.10, x: 0, y: 8 },
+    ];
+
+    const akcenty = {
+      zolty: ['policz', 'twój', 'napisz', 'tydzień'],
+      czerwony: ['koszt', 'trzydzieści', 'sześć', 'godzin'],
+    };
+
+    return { scena, metki, wzor, liczniki, kamera, akcenty };
+  },
+};
+
+// ── 9. Фирма закрыта, сайт работает ──────────────────────────────
+// Единственный сценарий банка, где считается не потеря времени, а окно, в
+// котором клиента некому поймать. Цифра выводится из часов работы самого
+// зрителя: двадцать четыре минус восемь. Спорить с ней нельзя — она его.
+const NOC = {
+  klucz: 'noc',
+  nazwa: 'Firma śpi, strona nie',
+  frazy: [
+    { rola: 'hak', tekst: 'Zamykasz o osiemnastej.', pauza: 0.36 },
+    { rola: 'hak', tekst: 'Klient szuka o dwudziestej drugiej.', pauza: 0.44 },
+    { rola: 'tresc', tekst: 'Telefonu nikt nie odbierze.', pauza: 0.32 },
+    { rola: 'tresc', tekst: 'Strona odbiera zawsze.', pauza: 0.34 },
+    { rola: 'tresc', tekst: 'Szesnaście godzin na dobę.', pauza: 0.34 },
+    { rola: 'zaplata', tekst: 'Tyle trwa twoja nieobecność.', pauza: 0.36 },
+    { rola: 'cta', tekst: 'Sprawdź, co widzi klient wieczorem.', pauza: 0.20 },
+  ],
+  buduj({ t, total }) {
+    const scena = [
+      { obiekt: 'alarm_clock_3d', x: 540, y: 540, skala: 780, obrot: -7, skad: 'gora',
+        start: t(0, 0.05), koniec: t(1, 0.15), dokad: 'lewo' },
+      { obiekt: 'mobile_phone_3d', x: 330, y: 520, skala: 700, obrot: -10, skad: 'lewo',
+        start: t(1, 0.10), koniec: t(3, 0.10), dokad: 'lewo' },
+      // Крест и галочка — единственная пара в банке, где смысл читается без
+      // слов: телефон молчит, сайт отвечает. Ставим их рядом с предметами,
+      // а не вместо них.
+      { obiekt: 'cross_mark_3d', x: 700, y: 380, skala: 420, obrot: 6, skad: 'prawo',
+        start: t(2, 0.10), koniec: t(3, 0.10), dokad: 'prawo' },
+      { obiekt: 'laptop_3d', x: 560, y: 560, skala: 760, obrot: 5, skad: 'dol',
+        start: t(3, 0.02), koniec: t(4, 0.60), dokad: 'gora' },
+      { obiekt: 'check_mark_button_3d', x: 830, y: 380, skala: 420, obrot: -6, skad: 'prawo',
+        start: t(3, 0.25), koniec: t(4, 0.60), dokad: 'prawo' },
+      { obiekt: 'hourglass_not_done_3d', x: 540, y: 520, skala: 800, obrot: -4, skad: 'gora',
+        start: t(4, 0.20), koniec: t(5, 0.35), dokad: 'gora' },
+      { obiekt: 'envelope_3d', x: 540, y: 450, skala: 520, obrot: 0, skad: 'dol',
+        start: t(6, 0.02) },
+    ];
+
+    const metki = [
+      { x: 540, y: 1010, szer: 400, wys: 540, od: 16, do: 0, jednostka: 'H',
+        odProc: 100, doProc: 0, opis: 'BEZ CIEBIE', a: t(5, 0.10), b: total, czas: 1.1 },
+    ];
+
+    const wzor = [
+      { tekst: '24 H − 8 H OTWARTE', y: 940, maly: true, a: t(2, 0.30), b: t(4, 0.60) },
+      { tekst: '= 16 H CISZY', y: 1080, kolor: 'czerwony', a: t(4, 0.70), b: t(5, 0.30) },
+    ];
+
+    const liczniki = [
+      { od: 0, do: 16, jednostka: 'H', y: 1120, a: t(0, 0.30), b: t(1, 0.60),
+        czas: 0.85, zPodpisem: true },
+      { od: 0, do: 16, jednostka: 'H', y: 1120, a: t(4, 0.05), b: t(4, 0.95), czas: 1.15 },
+    ];
+
+    const kamera = [
+      { t: 0, zoom: 1.00, x: 0, y: 0 },
+      { t: t(1), zoom: 1.05, x: -18, y: 10 },
+      { t: t(2), zoom: 1.02, x: 16, y: -12 },
+      { t: t(4, 0.25), zoom: 1.12, x: 0, y: 20 },
+      { t: t(5, 0.20), zoom: 1.04, x: 0, y: 0 },
+      { t: t(6), zoom: 1.06, x: 10, y: -12 },
+      { t: total, zoom: 1.10, x: 0, y: 8 },
+    ];
+
+    const akcenty = {
+      zolty: ['strona', 'zawsze', 'sprawdź', 'wieczorem'],
+      czerwony: ['nikt', 'szesnaście', 'nieobecność', 'ciszy'],
+    };
+
+    return { scena, metki, wzor, liczniki, kamera, akcenty };
+  },
+};
+
+// ── 10. Одни и те же три вопроса ─────────────────────────────────
+// Считаем то, что зритель делает руками каждый день и не считает никогда:
+// ответы на повторяющиеся вопросы. Посылка снова его собственная — пять
+// минут на ответ и двадцать сообщений в неделю; мы только складываем.
+const PYTANIA = {
+  klucz: 'pytania',
+  nazwa: 'Te same trzy pytania codziennie',
+  frazy: [
+    { rola: 'hak', tekst: 'Trzy pytania. Codziennie te same.', pauza: 0.36 },
+    { rola: 'hak', tekst: 'Ile kosztuje. Jak długo. Kiedy.', pauza: 0.44 },
+    { rola: 'tresc', tekst: 'Pięć minut na jedną odpowiedź.', pauza: 0.32 },
+    { rola: 'tresc', tekst: 'Dwadzieścia wiadomości w tygodniu.', pauza: 0.34 },
+    { rola: 'tresc', tekst: 'Sto minut. Co tydzień.', pauza: 0.36 },
+    { rola: 'zaplata', tekst: 'Odpowiedz raz. Na stronie.', pauza: 0.34 },
+    { rola: 'cta', tekst: 'Wypisz swoje trzy pytania.', pauza: 0.20 },
+  ],
+  buduj({ t, total }) {
+    const scena = [
+      { obiekt: 'thinking_face_3d', x: 540, y: 540, skala: 780, obrot: -6, skad: 'gora',
+        start: t(0, 0.05), koniec: t(1, 0.15), dokad: 'lewo' },
+      { obiekt: 'envelope_3d', x: 300, y: 500, skala: 640, obrot: -9, skad: 'lewo',
+        start: t(1, 0.10), koniec: t(3, 0.60), dokad: 'lewo' },
+      { obiekt: 'stopwatch_3d', x: 800, y: 560, skala: 680, obrot: 8, skad: 'prawo',
+        start: t(2, 0.05), koniec: t(3, 0.60), dokad: 'prawo' },
+      { obiekt: 'mobile_phone_3d', x: 540, y: 560, skala: 760, obrot: 4, skad: 'dol',
+        start: t(3, 0.05), koniec: t(4, 0.70), dokad: 'dol' },
+      { obiekt: 'hourglass_done_3d', x: 540, y: 520, skala: 800, obrot: -5, skad: 'gora',
+        start: t(4, 0.20), koniec: t(5, 0.20), dokad: 'gora' },
+      { obiekt: 'laptop_3d', x: 540, y: 520, skala: 760, obrot: 4, skad: 'dol',
+        start: t(5, 0.05), koniec: t(6, 0.10), dokad: 'gora' },
+      { obiekt: 'check_mark_button_3d', x: 540, y: 440, skala: 500, obrot: 0, skad: 'dol',
+        start: t(6, 0.02) },
+    ];
+
+    const metki = [
+      { x: 540, y: 1010, szer: 400, wys: 540, od: 100, do: 0, jednostka: 'MIN',
+        odProc: 100, doProc: 0, opis: 'CO TYDZIEŃ', a: t(5, 0.10), b: total, czas: 1.1 },
+    ];
+
+    const wzor = [
+      { tekst: '5 MIN × 20 PYTAŃ', y: 940, maly: true, a: t(2, 0.30), b: t(4, 0.70) },
+      { tekst: '= 100 MINUT', y: 1080, kolor: 'czerwony', a: t(4, 0.80), b: t(5, 0.15) },
+    ];
+
+    const liczniki = [
+      { od: 0, do: 100, jednostka: 'MIN', y: 1120, a: t(0, 0.30), b: t(1, 0.60),
+        czas: 0.85, zPodpisem: true },
+      { od: 0, do: 100, jednostka: 'MIN', y: 1120, a: t(3, 0.10), b: t(4, 0.70), czas: 1.2 },
+    ];
+
+    const kamera = [
+      { t: 0, zoom: 1.00, x: 0, y: 0 },
+      { t: t(1), zoom: 1.05, x: -16, y: 10 },
+      { t: t(2), zoom: 1.03, x: 18, y: -12 },
+      { t: t(4, 0.25), zoom: 1.12, x: 0, y: 22 },
+      { t: t(5, 0.10), zoom: 1.04, x: 0, y: 0 },
+      { t: t(6), zoom: 1.07, x: 12, y: -12 },
+      { t: total, zoom: 1.10, x: 0, y: 8 },
+    ];
+
+    const akcenty = {
+      zolty: ['raz', 'stronie', 'wypisz', 'odpowiedz'],
+      czerwony: ['sto', 'minut', 'tydzień', 'codziennie'],
+    };
+
+    return { scena, metki, wzor, liczniki, kamera, akcenty };
+  },
+};
+
+export const SCENARIUSZE = [
+  CZAS, ODPOWIEDZ, RYTM, SESJA, PROFIL, KOMENTARZE, LISTA,
+  KOSZT, NOC, PYTANIA,
+];
 
 // Выбор сценария: по ключу из аргумента или по кругу из состояния. Круг, а не
 // случайность: лента должна перебирать все, а не тыкать в один и тот же.
