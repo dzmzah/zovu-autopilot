@@ -194,32 +194,60 @@ async function tokenGoogle({ id, sekret, odswiez }) {
   return googleToken.t;
 }
 
-async function powiedzGoogle(tekst, wyjscie, { id, sekret, odswiez, projekt, glos, tempo }) {
+async function powiedzGoogle(tekst, wyjscie, { id, sekret, odswiez, projekt, glos, tempo, podanie }) {
   const token = await tokenGoogle({ id, sekret, odswiez });
-  const r = await fetch(GOOGLE_TTS, {
-    method: 'POST',
-    headers: {
-      authorization: 'Bearer ' + token,
-      'x-goog-user-project': projekt,
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      input: { text: tekst },
-      voice: { languageCode: 'pl-PL', name: glos },
-      // Скорость ниже единицы — то же лекарство от скороговорки, что и у
-      // ElevenLabs: 0.95 звучит спокойно, а выравнивание темпа ниже
-      // подчищает остаток по замеру слогов.
-      // Формат — НЕ mp3. Захар послушал пробы и сказал «как будто снято на
-      // мега хуёвый микрофон», и он был прав: mp3 у Google отдаётся 24 кГц
-      // и 32 кбит/с, то есть телефонным качеством. Это не голос плохой, это
-      // формат. LINEAR16 приходит без сжатия, дальше всё равно наша сборка.
-      audioConfig: { audioEncoding: 'LINEAR16', sampleRateHertz: 48000, speakingRate: tempo ?? 0.95 },
-    }),
-  });
-  if (!r.ok) throw new Error(`Google TTS ${r.status}: ${(await r.text()).slice(0, 200)}`);
-  const j = await r.json();
-  if (!j.audioContent) throw new Error('Google TTS: ответ без звука');
-  await writeFile(wyjscie, Buffer.from(j.audioContent, 'base64'));
+
+  // Два разных движка под одним ключом:
+  //
+  //   · Chirp 3 HD (v1) — бесплатный, ровный, но читает без игры;
+  //   · Gemini-TTS (v1beta1) — подача задаётся СЛОВАМИ, и именно её Захар
+  //     выбрал на слух («реально круто, очень хорошие эмоции»).
+  //
+  // Имя голоса у второго идёт БЕЗ языкового префикса: с 'pl-PL-Chirp3-HD-Puck'
+  // приходит 400 «Gemini models cannot be used with non-Gemini voices».
+  const zPodaniem = Boolean(podanie);
+  const url = zPodaniem
+    ? 'https://texttospeech.googleapis.com/v1beta1/text:synthesize'
+    : GOOGLE_TTS;
+  const nazwaGlosu = zPodaniem ? String(glos).replace(/^pl-PL-Chirp3-HD-/, '') : glos;
+  const body = {
+    input: zPodaniem ? { text: tekst, prompt: podanie } : { text: tekst },
+    voice: zPodaniem
+      ? { languageCode: 'pl-PL', name: nazwaGlosu, modelName: 'gemini-2.5-flash-tts' }
+      : { languageCode: 'pl-PL', name: nazwaGlosu },
+    // Формат — не mp3: их mp3 это 24 кГц и 32 кбит/с, слышно как телефон.
+    // speakingRate только у Chirp: у Gemini темп задаётся словами, а ползунок
+    // поверх ломает подачу.
+    audioConfig: zPodaniem
+      ? { audioEncoding: 'LINEAR16', sampleRateHertz: 48000 }
+      : { audioEncoding: 'LINEAR16', sampleRateHertz: 48000, speakingRate: tempo ?? 0.95 },
+  };
+
+  // У Gemini-TTS есть потолок запросов в минуту — ловил отказ на шестой
+  // фразе подряд. Ждём и пробуем снова: минута ожидания дешевле дня ленты.
+  let ostatni = '';
+  for (let proba = 0; proba < 5; proba++) {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: {
+        authorization: 'Bearer ' + token,
+        'x-goog-user-project': projekt,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    if (r.ok) {
+      const j = await r.json();
+      if (!j.audioContent) throw new Error('Google TTS: ответ без звука');
+      await writeFile(wyjscie, Buffer.from(j.audioContent, 'base64'));
+      return;
+    }
+    ostatni = `${r.status}: ${(await r.text()).slice(0, 200)}`;
+    if (r.status !== 429 && r.status !== 503) break;
+    console.warn(`[glos] Google занят (${r.status}) — жду и пробую снова`);
+    await new Promise((res) => setTimeout(res, 20000));
+  }
+  throw new Error(`Google TTS ${ostatni}`);
 }
 
 // ── один дубль вместо восьми ──────────────────────────────────────
