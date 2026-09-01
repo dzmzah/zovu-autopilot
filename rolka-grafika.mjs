@@ -511,8 +511,8 @@ const PLIKI = { swist, swistW: swistWyzej, swistN: swistNizej, swistDol, puk, st
 // папка пуста — остаётся синтез, и сборка не падает.
 const KAT_DZWIEKOW = path.join(DIR, 'dzwieki');
 const ZYWE = {
-  swist: ['przylot-1.mp3', 'przylot-3.mp3'],
-  swistW: ['przylot-3.mp3'],
+  swist: ['przylot-1.mp3'],
+  swistW: ['przylot-1.mp3'],
   swistN: ['przylot-1.mp3'],
   swistDol: ['odlot-2.mp3'],
   stuk: ['klik-1.mp3', 'klik-2.mp3'],
@@ -547,10 +547,13 @@ const surowe = [
   // движение крупного
   ...scena.filter(duze).map((o) => ({ t: +o.start, typ: swistPoKolei(), waga: 3 })),
   // посадка: у крупного удар, у мелкого щелчок. Раньше этот кадр был немым.
+  // Посадка: ТИХИЙ щелчок и ничего больше. Удар на каждом предмете звучал
+  // как хлопок по всему ролику — Захар поймал его сразу. Вес приберегаем для
+  // единственного места, где он по смыслу нужен: главная цифра.
   ...scena.map((o) => ({
     t: +(o.start + WLOT).toFixed(2),
-    typ: duze(o) ? 'bum' : 'stuk',
-    waga: duze(o) ? 5 : 2,
+    typ: 'stuk',
+    waga: duze(o) ? 3 : 2,
   })),
   // уход за край — тише всего, это не событие, а его завершение
   ...scena.filter((o) => o.koniec).map((o) => ({ t: +o.koniec, typ: 'swistDol', waga: 1 })),
