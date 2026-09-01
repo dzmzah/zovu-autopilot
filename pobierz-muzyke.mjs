@@ -11,11 +11,11 @@ import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-const OUT = path.join(import.meta.dirname, 'muzyka');
+const OUT = path.join(import.meta.dirname, process.argv.find(a=>a.startsWith('--kat='))?.split('=')[1] || 'muzyka');
 // Прошлый набор был corporate/upbeat/inspiring/technology — четыре имени одного
 // жанра. Ротация честно перебирала пять файлов, а на слух это был один трек.
-const ZAPYTANIA = ['lofi', 'hip hop', 'cinematic', 'ambient', 'funk', 'phonk', 'acoustic guitar', 'drum and bass'];
-const ILE = 10;
+const ZAPYTANIA = ['sad piano', 'emotional cinematic', 'melancholic ambient', 'hopeful piano', 'inspiring cinematic'];
+const ILE = 8;
 
 await mkdir(OUT, { recursive: true });
 const browser = await chromium.launch();

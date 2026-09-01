@@ -26,6 +26,11 @@ const KLIPY = path.join('C:', 'Users', 'zahar', 'Desktop', 'zovu desktop', 'zovu
 const KLIPY_VEO = path.join(DIR, 'out', 'veo');
 const GLOS = path.join(OUT, 'nootri', 'nootri-glos');
 const BEZ_KONTROLI = process.argv.includes('--bez-kontroli');
+// Версия БЕЗ диктора. Причина не техническая: синтез на длинной исповеди
+// слышен как машина при любой подаче и любом голосе — проверено десятью
+// голосами, тремя подачами и дугой эмоций. Весь текст и так стоит на экране,
+// поэтому ролик без голоса ничего не теряет по смыслу, а по звуку выигрывает.
+const BEZ_GLOSU = process.argv.includes('--bez-glosu');
 
 const glos = JSON.parse(await readFile(`${GLOS}.json`, 'utf8'));
 
@@ -37,10 +42,10 @@ const glos = JSON.parse(await readFile(`${GLOS}.json`, 'utf8'));
 const SCENY = [
   { plik: 'Man_talking_on_phone_in_202608312111.mp4',        frazy: [0, 1],   od: 0 },
   { plik: 'Man_holding_phone_indoors_202608312111.mp4',      frazy: [2],      od: 1.2 },
-  { plik: 'Man_sitting_at_kitchen_table_202608312111.mp4',   frazy: [3, 4],   od: 0 },
+  { plik: 'Man_sitting_at_kitchen_table_202608312111.mp4',   frazy: [3, 4],   od: 0, max: 8.0 },
   { plik: 'Trainer_talking_to_man_in_202608312111.mp4',      frazy: [5],      od: 0 },
   { plik: 'Torso_model_showing_hormone_acti…_202608312111.mp4', frazy: [6],   od: 1.0 },
-  { plik: 'nootri-produkt.mp4', katalog: KLIPY_VEO,             frazy: [7, 8],   od: 0 },
+  { plik: 'nootri-produkt.mp4', katalog: KLIPY_VEO,             frazy: [7, 8],   od: 0, max: 8.0 },
   { plik: 'nootri-lustro.mp4', katalog: KLIPY_VEO,              frazy: [9],      od: 0.6 },
   { plik: 'nootri-drzwi2.mp4', katalog: KLIPY_VEO,              frazy: [10, 11], od: 0.6 },
   { plik: 'Man_picking_up_coffee_mug_202608312111.mp4',      frazy: [12],     od: 0 },
@@ -73,12 +78,13 @@ const tytuly = [
 ];
 
 const plan = {
+  bezGlosu: BEZ_GLOSU,
   nazwa: 'nootri-test',
-  muzyka: path.join(DIR, 'music', 'pixabay-audio_8e10e01af1.mp3'),
+  muzyka: path.join(DIR, 'music', 'pixabay-audio_5d25481bef.mp3'),
   muzykaOd: 0,
-  podkladGlosnosc: 0.11,
-  podkladOgon: 0.17,
-  powietrzeTlo: 0.02,
+  podkladGlosnosc: BEZ_GLOSU ? 0.62 : 0.18,
+  podkladOgon: BEZ_GLOSU ? 0.7 : 0.17,
+  powietrzeTlo: 0.03,
   stukiGlosnosc: 0.5,
   najazd: 1.1,
   // Между разными сценами рез — норма: это не два дубля одного лица.
@@ -89,7 +95,9 @@ const plan = {
   akcentPas: '#e4572e',
   dryf: true,
   karaoke: true,
-  glos: { plik: `${GLOS}.wav`, slowa: glos.slowa },
+  // Тайминги подписей остаются от дубля: они выверены по речи, а значит
+  // ритм чтения на экране остаётся человеческим, даже когда голоса нет.
+  glos: { plik: BEZ_GLOSU ? path.join(OUT, 'nootri-cisza.wav') : `${GLOS}.wav`, slowa: glos.slowa },
   klipy,
   tytuly,
   stemple: [],
@@ -109,6 +117,14 @@ const plan = {
 };
 
 await mkdir(OUT, { recursive: true });
+if (BEZ_GLOSU) {
+  const { execFile } = await import('node:child_process');
+  const { promisify } = await import('node:util');
+  await promisify(execFile)('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error',
+    '-f', 'lavfi', '-i', `anullsrc=r=48000:cl=stereo:d=${(glos.dlugosc + 0.5).toFixed(2)}`,
+    '-c:a', 'pcm_s16le', path.join(OUT, 'nootri-cisza.wav')]);
+  console.log('[nootri] версия БЕЗ диктора: музыка громче, подписи держат ритм');
+}
 await writeFile(path.join(OUT, `${plan.nazwa}-plan.json`), JSON.stringify(plan, null, 2), 'utf8');
 
 const wynik = await zbuduj(plan);
