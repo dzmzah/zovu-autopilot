@@ -1,0 +1,34 @@
+name: ZOVU próbki głosów Gemini-TTS
+
+# Krótki fragment naszego tekstu wszystkimi wskazanymi głosami — wybór robi się
+# uchem, na tym samym materiale i z tą samą instrukcją podania.
+on:
+  workflow_dispatch:
+    inputs:
+      glosy:
+        description: 'Lista głosów po przecinku'
+        type: string
+        required: false
+        default: 'Enceladus,Iapetus,Umbriel,Rasalgethi,Schedar,Gacrux,Achird,Sadaltager'
+
+jobs:
+  proby:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Synteza
+        env:
+          GCP_CLIENT_ID: ${{ secrets.GCP_CLIENT_ID }}
+          GCP_CLIENT_SECRET: ${{ secrets.GCP_CLIENT_SECRET }}
+          GCP_REFRESH_TOKEN: ${{ secrets.GCP_REFRESH_TOKEN }}
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+        run: node glosy-gemini-proby.mjs --glosy=${{ inputs.glosy }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: proby-gemini
+          path: out/proby-gemini/*.wav
+          if-no-files-found: error
