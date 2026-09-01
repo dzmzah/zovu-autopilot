@@ -16,6 +16,12 @@ on:
     # 12:00 UTC = 14:00 в Польше. Утренний слот к этому времени давно прошёл,
     # так что нормальный день сторож видит зелёным.
     - cron: '0 12 * * *'
+    # Ещё два обхода: 09:00 UTC ловит сорванный утренний слот через два часа,
+    # а не через пять, 18:00 — сорванный вечерний. 01.09 планировщик GitHub не
+    # запустил автопилот НИ РАЗУ за день, все три попытки слота прошли мимо,
+    # и пост вышел только потому, что я запустил его руками.
+    - cron: '0 9 * * *'
+    - cron: '0 18 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -67,6 +73,40 @@ jobs:
 
           # Сборка записала очередь в main — забираем её, иначе проверка ниже
           # смотрит на старый снимок и снова кричит впустую.
+          git pull --rebase -q origin main || git fetch origin main
+
+      # Пропущенный пост — та же дыра, что и пропущенный рилс, только заметить
+      # её труднее: сторож смотрит на возраст последнего поста, а 19 часов
+      # тишины ещё укладываются в норму. Поэтому проверяем не возраст, а факт:
+      # закрыт ли СЕГОДНЯШНИЙ слот. Не закрыт и время прошло — запускаем сами.
+      - name: Sam załataj brakujący post
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          GODZ=$(date -u +%H)
+          DZIS=$(date -u +%F)
+          POSTED=$(node -e "try{console.log(JSON.parse(require('fs').readFileSync('state.json','utf8')).posted||'')}catch(e){console.log('')}")
+          echo "слот в состоянии: $POSTED, сейчас $DZIS $GODZ UTC"
+
+          BRAK=""
+          if [ "$GODZ" -ge 8 ] && [ "$POSTED" != "$DZIS-noon" ] && [ "$POSTED" != "$DZIS-pm" ]; then
+            BRAK="утренний"
+          fi
+          if [ "$GODZ" -ge 17 ] && [ "$POSTED" != "$DZIS-pm" ]; then
+            BRAK="вечерний"
+          fi
+
+          if [ -z "$BRAK" ]; then
+            echo "слот на месте — вмешиваться не надо"
+            exit 0
+          fi
+
+          echo "::warning::Пропущен $BRAK слот поста — запускаю автопилот сам"
+          gh workflow run autopilot.yml --repo "$GITHUB_REPOSITORY"
+          sleep 25
+          ID=$(gh run list --workflow=autopilot.yml --repo "$GITHUB_REPOSITORY" \
+                 --limit 1 --json databaseId --jq '.[0].databaseId')
+          gh run watch "$ID" --repo "$GITHUB_REPOSITORY" --interval 20 || true
           git pull --rebase -q origin main || git fetch origin main
 
       - name: Sprawdź, czy autopilot żyje
