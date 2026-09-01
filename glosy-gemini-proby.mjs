@@ -18,9 +18,17 @@ const WYJ = path.join(import.meta.dirname, 'out', 'proby-gemini');
 // Первые четыре фразы: хук и завязка. Ровно то, по чему зритель решает,
 // слушать дальше или смахнуть.
 const TEKST = FRAZY.slice(0, 4).map((f) => (f.mowa || f.tekst).trim()).join(' ');
-const PODANIE =
-  'Mów cicho i szczerze, jakbyś opowiadał to jednej osobie późnym wieczorem. ' +
-  'Bez patosu i bez aktorstwa, naturalne oddechy, miejscami zawahanie.';
+// Подача задаёт ХАРАКТЕР. Первая версия просила «тихо, поздним вечером» —
+// и получила ровно это: спокойно и медленно, то есть мимо короткого видео,
+// где решают первые секунды. Просить «быстрее» напрямую нельзя (у соседней
+// сессии двухсекундная фраза так растянулась до 7,7), поэтому просим ДРАЙВ,
+// а темп подтягивается сам.
+const PODANIA = {
+  a: 'Mów cicho i szczerze, jakbyś opowiadał to jednej osobie późnym wieczorem. Bez patosu i bez aktorstwa, naturalne oddechy, miejscami zawahanie.',
+  c: 'Opowiadaj z energią, jak ktoś, kto ma mocną historię i chce, żeby go dosłuchano do końca: żywe tempo, wyraźne akcenty, żadnego rozwlekania.',
+  d: 'Mów jak człowiek, którego to wciąż wkurza: szybko, ostro, z naciskiem na konkrety i liczby, bez użalania się nad sobą.',
+};
+const PODANIE = PODANIA[arg('podanie', 'c')] || PODANIA.c;
 
 const GLOSY = arg('glosy', 'Enceladus,Iapetus,Umbriel,Rasalgethi,Schedar,Gacrux,Achird,Sadaltager')
   .split(',')

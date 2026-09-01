@@ -5,6 +5,11 @@ name: ZOVU próbki głosów Gemini-TTS
 on:
   workflow_dispatch:
     inputs:
+      podanie:
+        description: 'a = cicho i wolno, c = z energią, d = ostro i szybko'
+        type: string
+        required: false
+        default: 'c'
       glosy:
         description: 'Lista głosów po przecinku'
         type: string
@@ -26,9 +31,9 @@ jobs:
           GCP_CLIENT_SECRET: ${{ secrets.GCP_CLIENT_SECRET }}
           GCP_REFRESH_TOKEN: ${{ secrets.GCP_REFRESH_TOKEN }}
           GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
-        run: node glosy-gemini-proby.mjs --glosy=${{ inputs.glosy }}
+        run: node glosy-gemini-proby.mjs --glosy=${{ inputs.glosy }} --podanie=${{ inputs.podanie }}
       - uses: actions/upload-artifact@v4
         with:
-          name: proby-gemini
+          name: proby-gemini-${{ inputs.podanie }}
           path: out/proby-gemini/*.wav
           if-no-files-found: error
