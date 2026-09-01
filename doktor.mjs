@@ -272,20 +272,10 @@ async function rolki() {
       : `DZIURA W LENCIE: najbliższa rolka dopiero za ${doNajblizszej.toFixed(1)} h — jutro nie ma czego opublikować`
   );
 
-  // ТикТок отдаёт идентификатор и тогда, когда ролик всего лишь доехал до
-  // приложения черновиком: без аудита приложения публиковать напрямую нельзя.
-  // Панель считала это выкладкой, поэтому три ролика провисели неопубликованными
-  // и никто не заметил — та же тихая деградация, что стоила нам девяти дней
-  // с Meta. Пусть будет видно числом.
-  const szkice = q.filter((p) => /^v_inbox_file/.test(String(p.wynik?.tiktok ?? '')));
-  zapisz(
-    'tiktok-szkice',
-    szkice.length === 0,
-    szkice.length
-      ? `${szkice.length} rolek czeka w aplikacji TikTok na ręczne opublikowanie`
-      : 'brak nieopublikowanych szkiców',
-    'uwaga'
-  );
+  // Черновики ТикТока из отчёта убраны 01.09 по прямой просьбе Захара:
+  // «про эти 4 черновика забудь и не говори мне про это». Ролики туда всё
+  // равно уходят через Buffer, а строчка, на которую не собираются
+  // реагировать, только притупляет внимание к остальным.
 
   // Buffer отвечает «принято» сразу, а публикует позже. Если ТикТок откажет,
   // пост зависнет в `scheduled` или упадёт в `error` — и мы этого не увидим,

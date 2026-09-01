@@ -109,6 +109,33 @@ jobs:
           gh run watch "$ID" --repo "$GITHUB_REPOSITORY" --interval 20 || true
           git pull --rebase -q origin main || git fetch origin main
 
+      # Планировщик GitHub 01.09 не запустил НИЧЕГО: ни автопилот, ни
+      # ежечасного выкладчика рилсов. Рилс на 13:00 провисел в очереди, пока
+      # его не выложили руками. Значит своё расписание — не гарантия, и
+      # сторож обязан уметь выложить просроченное сам.
+      - name: Sam wyłóż zaległą rolkę
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ZALEGLA=$(node -e "
+            try {
+              const k = JSON.parse(require('fs').readFileSync('rolki/kolejka.json','utf8'));
+              const spozniona = k.find((p) => !p.opublikowano && Date.parse(p.kiedy) < Date.now());
+              console.log(spozniona ? spozniona.plik : '');
+            } catch (e) { console.log(''); }
+          ")
+          if [ -z "$ZALEGLA" ]; then
+            echo "просроченных рилсов нет"
+            exit 0
+          fi
+          echo "::warning::Рилс $ZALEGLA просрочен — выкладываю сам"
+          gh workflow run rolka.yml --repo "$GITHUB_REPOSITORY"
+          sleep 25
+          ID=$(gh run list --workflow=rolka.yml --repo "$GITHUB_REPOSITORY" \
+                 --limit 1 --json databaseId --jq '.[0].databaseId')
+          gh run watch "$ID" --repo "$GITHUB_REPOSITORY" --interval 20 || true
+          git pull --rebase -q origin main || git fetch origin main
+
       - name: Sprawdź, czy autopilot żyje
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
