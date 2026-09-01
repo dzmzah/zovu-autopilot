@@ -47,7 +47,10 @@ function zapisz(nazwa, ok, opis, waga = 'blad') {
 
 // ── 1. Когда последний раз реально вышел пост ────────────────────
 // state.posted пишется ТОЛЬКО после удачной публикации, поэтому это
-// единственный источник правды. Формат слота: YYYY-MM-DD-am|pm.
+// единственный источник правды. Слотов ТРИ (slotId в run-once.mjs): am — утренний
+// пост, noon — рилс, pm — вечерний. Сторож знал только am|pm и на обеденном слоте
+// краснел при здоровом автопилоте. Тревога без причины учит не смотреть в тревоги —
+// ровно та тихая деградация, ради которой сторож и написан.
 async function ostatniPost() {
   let s = {};
   try {
@@ -57,14 +60,15 @@ async function ostatniPost() {
     return null;
   }
   const slot = String(s.posted || '');
-  const m = /^(\d{4}-\d{2}-\d{2})-(am|pm)$/.exec(slot);
+  const m = /^(\d{4}-\d{2}-\d{2})-(am|noon|pm)$/.exec(slot);
   if (!m) {
     zapisz('ostatni post', false, `state.posted wygląda dziwnie: "${slot}"`);
     return null;
   }
   // Слот отмечается по факту публикации; час берём по границе слота — так
   // оценка возраста получается консервативной, тревога не срабатывает раньше.
-  const kiedy = Date.parse(`${m[1]}T${m[2] === 'am' ? '07' : '16'}:00:00Z`);
+  const GODZINA_SLOTU = { am: '07', noon: '11', pm: '16' };
+  const kiedy = Date.parse(`${m[1]}T${GODZINA_SLOTU[m[2]]}:00:00Z`);
   const godzin = (Date.now() - kiedy) / 3600_000;
   const ok = godzin <= LIMIT_GODZIN;
   zapisz(
@@ -160,6 +164,13 @@ async function mozgTekstowy() {
     const j = await r.json();
     if (r.status === 429) {
       zapisz('Gemini', false, 'WYCZERPANY LIMIT dziennego darmowego tiera — autopilot nie ma z czego pisać tekstu');
+      return;
+    }
+    if (r.status === 503) {
+      // Przeciążenie po stronie Google, nie nasza awaria: model wraca sam po kilku
+      // minutach, a dzień bez modelu domyka rezerwa. Czerwony run z tego powodu to
+      // fałszywy alarm — zostaje w logu jako uwaga.
+      zapisz('Gemini', false, 'przeciążenie po stronie Google (503) — model wróci sam, dzień domyka rezerwa', 'uwaga');
       return;
     }
     if (!r.ok) {
