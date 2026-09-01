@@ -505,6 +505,34 @@ await ffmpeg([
 
 const PLIKI = { swist, swistW: swistWyzej, swistN: swistNizej, swistDol, puk, stuk, bum, rozped };
 
+// Живые семплы из личного пака Захара. Синтезированный шум честно делает своё
+// дело, но записанный звук всегда богаче: у него есть тело, хвост и характер,
+// которых у lavfi нет. Поэтому если файл лежит в dzwieki/ — играем его, если
+// папка пуста — остаётся синтез, и сборка не падает.
+const KAT_DZWIEKOW = path.join(DIR, 'dzwieki');
+const ZYWE = {
+  swist: ['przylot-1.mp3', 'przylot-2.mp3', 'przylot-3.mp3'],
+  swistW: ['przylot-3.mp3', 'przylot-1.mp3'],
+  swistN: ['przylot-2.mp3', 'przylot-3.mp3'],
+  swistDol: ['odlot-1.mp3', 'odlot-2.mp3'],
+  stuk: ['klik-1.mp3', 'klik-2.mp3'],
+  puk: ['klik-2.mp3', 'klik-1.mp3'],
+  bum: ['uderzenie-1.mp3', 'uderzenie-2.mp3'],
+  rozped: ['rozped-1.mp3'],
+  kasa: ['kasa-1.mp3'],
+};
+const licznikiZywych = {};
+function dzwiekDla(typ) {
+  const lista = (ZYWE[typ] || []).map((n) => path.join(KAT_DZWIEKOW, n)).filter((p) => existsSync(p));
+  if (lista.length) {
+    // По кругу, а не всегда первый: два одинаковых семпла подряд слышны как
+    // копипаста — то же правило, что и с разбросом высоты у синтеза.
+    const n = (licznikiZywych[typ] = (licznikiZywych[typ] ?? -1) + 1);
+    return lista[n % lista.length];
+  }
+  return PLIKI[typ] || puk;
+}
+
 // Крупный предмет въезжает со свистом, мелкий — со щелчком. Раньше свистело
 // всё подряд, и к пятой секунде свист переставал что-либо значить.
 const KROK_SWISTU = ['swist', 'swistW', 'swistN'];
@@ -526,6 +554,7 @@ const zdarzenia = [
   ...metki.flatMap((m) => [
     { t: +Math.max(0, m.a - 0.7).toFixed(2), typ: 'rozped' },
     { t: +(m.a + (m.czas ?? 1.1)).toFixed(2), typ: 'bum' },
+    { t: +(m.a + (m.czas ?? 1.1) + 0.06).toFixed(2), typ: 'kasa' },
   ]),
 ].sort((a, b) => a.t - b.t);
 console.log(`[grafika] звуковых событий: ${zdarzenia.length} (${(zdarzenia.length / total).toFixed(1)} на секунду)`);
@@ -533,7 +562,7 @@ console.log(`[grafika] звуковых событий: ${zdarzenia.length} (${(
 const wejscia = [];
 const czesci = [];
 zdarzenia.forEach((z, i) => {
-  wejscia.push('-i', PLIKI[z.typ] || puk);
+  wejscia.push('-i', dzwiekDla(z.typ));
   const ms = Math.max(0, Math.round(z.t * 1000));
   czesci.push(`[${i}:a]adelay=${ms}|${ms}[s${i}]`);
 });
