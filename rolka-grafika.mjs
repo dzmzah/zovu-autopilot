@@ -511,10 +511,10 @@ const PLIKI = { swist, swistW: swistWyzej, swistN: swistNizej, swistDol, puk, st
 // папка пуста — остаётся синтез, и сборка не падает.
 const KAT_DZWIEKOW = path.join(DIR, 'dzwieki');
 const ZYWE = {
-  swist: ['przylot-1.mp3', 'przylot-2.mp3', 'przylot-3.mp3'],
-  swistW: ['przylot-3.mp3', 'przylot-1.mp3'],
-  swistN: ['przylot-2.mp3', 'przylot-3.mp3'],
-  swistDol: ['odlot-1.mp3', 'odlot-2.mp3'],
+  swist: ['przylot-1.mp3', 'przylot-3.mp3'],
+  swistW: ['przylot-3.mp3'],
+  swistN: ['przylot-1.mp3'],
+  swistDol: ['odlot-2.mp3'],
   stuk: ['klik-1.mp3', 'klik-2.mp3'],
   puk: ['klik-2.mp3', 'klik-1.mp3'],
   bum: ['uderzenie-1.mp3', 'uderzenie-2.mp3'],
@@ -603,7 +603,7 @@ await ffmpeg([
   ...wejscia,
   '-filter_complex',
   czesci.join(';') + ';' + zdarzenia.map((_, i) => `[s${i}]`).join('') +
-    `amix=inputs=${zdarzenia.length}:normalize=0,apad=whole_dur=${total}[a]`,
+    `amix=inputs=${zdarzenia.length}:normalize=0,volume=0.5,apad=whole_dur=${total}[a]`,
   '-map', '[a]', '-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2', stuki,
 ]);
 
