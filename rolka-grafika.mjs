@@ -533,31 +533,63 @@ function dzwiekDla(typ) {
   return PLIKI[typ] || puk;
 }
 
-// Крупный предмет въезжает со свистом, мелкий — со щелчком. Раньше свистело
-// всё подряд, и к пятой секунде свист переставал что-либо значить.
+// Расстановка. Три слоя, как в моушн-дизайне: ДВИЖЕНИЕ (свист ведёт предмет),
+// АКЦЕНТ (удар или щелчок ровно на кадре посадки) и СМЫСЛ (разгон с ударом
+// на главной цифре). Мелкое движение не свистит вовсе — ему хватает щелчка.
+const WLOT = 0.4; // столько летит предмет; посадка = start + WLOT
 const KROK_SWISTU = ['swist', 'swistW', 'swistN'];
 let nrSwistu = 0;
 const swistPoKolei = () => KROK_SWISTU[nrSwistu++ % KROK_SWISTU.length];
 
-const zdarzenia = [
+const duze = (o) => (o.skala ?? 600) >= 640 || Boolean(o.film);
+
+const surowe = [
+  // движение крупного
+  ...scena.filter(duze).map((o) => ({ t: +o.start, typ: swistPoKolei(), waga: 3 })),
+  // посадка: у крупного удар, у мелкого щелчок. Раньше этот кадр был немым.
   ...scena.map((o) => ({
-    t: +o.start,
-    typ: (o.skala ?? 600) >= 640 || o.film ? swistPoKolei() : 'stuk',
+    t: +(o.start + WLOT).toFixed(2),
+    typ: duze(o) ? 'bum' : 'stuk',
+    waga: duze(o) ? 5 : 2,
   })),
-  ...scena.filter((o) => o.koniec).map((o) => ({ t: +o.koniec, typ: 'swistDol' })),
-  ...wzor.map((w) => ({ t: +w.a, typ: 'puk' })),
-  ...liczniki.flatMap((l) => [
-    { t: +l.a, typ: 'stuk' },
-    { t: +(l.kres ?? l.a + (l.czas ?? 1.1)).toFixed(2), typ: 'puk' },
-  ]),
-  // Ценник — главный кадр ролика: разгон копит ожидание, удар разряжает.
-  ...metki.flatMap((m) => [
-    { t: +Math.max(0, m.a - 0.7).toFixed(2), typ: 'rozped' },
-    { t: +(m.a + (m.czas ?? 1.1)).toFixed(2), typ: 'bum' },
-    { t: +(m.a + (m.czas ?? 1.1) + 0.06).toFixed(2), typ: 'kasa' },
-  ]),
+  // уход за край — тише всего, это не событие, а его завершение
+  ...scena.filter((o) => o.koniec).map((o) => ({ t: +o.koniec, typ: 'swistDol', waga: 1 })),
+  // из строк формулы озвучиваем ТОЛЬКО ответ: подряд они звучат как печать
+  ...wzor.slice(-1).map((w) => ({ t: +w.a, typ: 'puk', waga: 3 })),
+  // счётчик: звучит остановка, а не запуск — смотрят именно на неё
+  ...liczniki.map((l) => ({
+    t: +(l.kres ?? l.a + (l.czas ?? 1.1)).toFixed(2),
+    typ: 'puk',
+    waga: 3,
+  })),
+  // ценник: разгон копит, удар разряжает, касса подписывает смысл
+  ...metki.flatMap((m) => {
+    const posadka = +(m.a + (m.czas ?? 1.1)).toFixed(2);
+    return [
+      { t: +Math.max(0, m.a - 0.7).toFixed(2), typ: 'rozped', waga: 4 },
+      { t: posadka, typ: 'bum', waga: 6 },
+      { t: +(posadka + 0.06).toFixed(2), typ: 'kasa', waga: 5 },
+    ];
+  }),
 ].sort((a, b) => a.t - b.t);
-console.log(`[grafika] звуковых событий: ${zdarzenia.length} (${(zdarzenia.length / total).toFixed(1)} на секунду)`);
+
+// Слипшиеся события: два звука ближе 0,18 с сливаются в кашу. Оставляем тот,
+// что важнее по смыслу, а не тот, что раньше пришёл. Исключение — пара
+// «удар + касса»: она задумана как один слоёный звук.
+const zdarzenia = [];
+for (const z of surowe) {
+  const ost = zdarzenia[zdarzenia.length - 1];
+  const paraMetki = ost && ost.typ === 'bum' && z.typ === 'kasa';
+  if (ost && !paraMetki && z.t - ost.t < 0.18) {
+    if (z.waga > ost.waga) zdarzenia[zdarzenia.length - 1] = z;
+    continue;
+  }
+  zdarzenia.push(z);
+}
+console.log(
+  `[grafika] звуковых событий: ${zdarzenia.length} из ${surowe.length} ` +
+    `(${(zdarzenia.length / total).toFixed(2)} на секунду, слипшихся убрано ${surowe.length - zdarzenia.length})`
+);
 
 const wejscia = [];
 const czesci = [];
