@@ -1,0 +1,41 @@
+name: ZOVU lektor Nootri (tagi w tekście)
+
+# Głos, który ZMIENIA się w trakcie: zgaszony na początku, twardy w środku,
+# pewny na końcu. Jedna instrukcja na cały dubel daje monotonię — a monotonia
+# na pięćdziesięciu sekundach to nuda, i to jest realny powód, dla którego
+# rolka „przestaje być ciekawa".
+on:
+  workflow_dispatch:
+    inputs:
+      glos:
+        description: 'Głos Gemini-TTS bez prefiksu'
+        type: string
+        required: false
+        default: 'Iapetus'
+
+jobs:
+  lektor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Synteza
+        env:
+          GCP_CLIENT_ID: ${{ secrets.GCP_CLIENT_ID }}
+          GCP_CLIENT_SECRET: ${{ secrets.GCP_CLIENT_SECRET }}
+          GCP_REFRESH_TOKEN: ${{ secrets.GCP_REFRESH_TOKEN }}
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+          GROQ_KEY: ${{ secrets.GROQ_KEY }}
+        run: node nootri-glos-tagi.mjs --glos=${{ inputs.glos }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tagi-${{ inputs.glos }}
+          path: |
+            out/nootri/nootri-glos.wav
+            out/nootri/nootri-glos.json
+          if-no-files-found: error
