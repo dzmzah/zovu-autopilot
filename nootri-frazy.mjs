@@ -25,3 +25,26 @@ export const FRAZY = [
   { tekst: 'Zapytała, co ja ze sobą zrobiłem.', mowa: 'i zapytała, co ja ze sobą zrobiłem.', rola: 'tresc', pauza: 0.45 },
   { tekst: 'Jeden kubek każdego ranka.', mowa: 'Jeden kubek każdego ranka.', rola: 'cta' },
 ];
+
+// Вариант Б: те же подписи, но речь написана как ЖИВАЯ — с запинкой, с
+// «no i», с оборванным словом, с неровной длиной фраз. Проверяем гипотезу:
+// синтез слышится машиной не из-за голоса, а из-за текста, написанного
+// рекламными рублеными предложениями. Подписи на экране НЕ меняются.
+export const FRAZY_B = FRAZY.map((f, i) => ({
+  ...f,
+  mowa: [
+    'No i zadzwoniłem do żony, o dwudziestej trzeciej,',
+    'a telefon odebrał jakiś... dwudziestosiedmiolatek.',
+    'Zapytał, czy to ja jestem tym dziadkiem, o którym mówiła.',
+    'Nie krzyczałem. Nawet nie. Po prostu usiadłem w kuchni,',
+    'bo dziś mam piętnaście kilo więcej niż w dniu ślubu.',
+    'Trener mi potem wytłumaczył: po czterdziestce kortyzol idzie w górę, a testosteron leci w dół.',
+    'Czyli to nie jest żaden brak silnej woli. To hormony.',
+    'Od tamtej pory, zamiast zwykłej kawy, piję jedną filiżankę kawy grzybowej:',
+    'ashwagandha na kortyzol, lion’s mane na tę mgłę w głowie.',
+    'W szóstym tygodniu założyłem koszulę sprzed pięciu lat. Weszła.',
+    'Wróciła po swoje pudła.',
+    'I zapytała, co ja ze sobą zrobiłem.',
+    'Jeden kubek. Każdego ranka.',
+  ][i],
+}));

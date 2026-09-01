@@ -21,7 +21,14 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { FRAZY } from './nootri-frazy.mjs';
+import { FRAZY as FRAZY_A, FRAZY_B } from './nootri-frazy.mjs';
+
+// Два варианта ТЕКСТА при том же голосе. Гипотеза, которую проверяем: дубль
+// слышится машиной не из-за тембра, а из-за того, что текст написан рублеными
+// рекламными предложениями. Вариант Б написан как живая речь.
+const FRAZY = ((process.argv.find((a) => a.startsWith('--tekst=')) || '').split('=')[1] || 'A') === 'B'
+  ? FRAZY_B
+  : FRAZY_A;
 
 const exec = promisify(execFile);
 const DIR = import.meta.dirname;
