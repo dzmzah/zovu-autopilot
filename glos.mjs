@@ -292,11 +292,45 @@ export function zywaMowa(frazy, doWymowy) {
 const GOOGLE_PODANIE =
   'Mów jak człowiek, który tłumaczy to koledze przy stole: swobodnie, ze zmiennym ' +
   'rytmem i naturalnymi oddechami. Nie recytuj listy — prowadź jedną myśl do końca. ' +
-  'Na ostatnim zdaniu nie trać energii, uśmiechnij się głosem.';
+  'Na ostatnim zdaniu nie trać energii, uśmiechnij się głosem. ' +
+  // Без этой строчки подача даёт 1,5 слога в секунду и ролик на 36 секунд
+  // вместо двадцати: модель понимает «swobodnie» как «медленно».
+  'Mów w tempie zwykłej rozmowy, żywo, bez zwalniania i bez długich przerw.';
+
+// Насколько быстро говорит живой диктор в коротком видео. Ниже — тянет,
+// выше — тараторит. Порог взят с наших же замеров: принятые ролики шли
+// 3,5-4,5 слога в секунду.
+const TEMPO_DUBLA_MIN = 2.9;
 
 async function jednymDublemGoogle(frazy, wyjscie, google) {
   const tekst = zywaMowa(frazy, doWymowy);
-  await powiedzGoogle(tekst, wyjscie, { ...google, podanie: GOOGLE_PODANIE });
+
+  // Темп проверяем ЗАМЕРОМ, а не на веру: подача с эмоцией легко уводит дубль
+  // в полтора слога в секунду, и ролик распухает вдвое. Просим быстрее ровно
+  // столько раз, сколько нужно, и берём лучший из полученных.
+  const sylRazem = frazy.reduce((a, f) => a + sylaby(f.mowa || f.tekst), 0);
+  const NACISK = [
+    '',
+    ' Mów wyraźnie szybciej niż zwykle, jak w krótkim wideo — bez pauz między zdaniami.',
+    ' Mów bardzo szybko i energicznie, jednym ciągiem, bez żadnych przerw.',
+  ];
+  let najlepszy = null;
+  for (let proba = 0; proba < NACISK.length; proba++) {
+    await powiedzGoogle(tekst, wyjscie, {
+      ...google,
+      podanie: GOOGLE_PODANIE + NACISK[proba],
+    });
+    const dl = await trwanie(wyjscie);
+    const tempo = sylRazem / Math.max(1, dl);
+    console.log(`[glos] дубль ${proba + 1}: ${dl.toFixed(1)} с, ${tempo.toFixed(2)} слог/с`);
+    if (!najlepszy || tempo > najlepszy.tempo) {
+      najlepszy = { tempo, dl };
+      await copyFile(wyjscie, wyjscie + '.naj');
+    }
+    if (tempo >= TEMPO_DUBLA_MIN) break;
+    console.warn('[glos] дубль тянет — прошу быстрее');
+  }
+  if (najlepszy) await copyFile(wyjscie + '.naj', wyjscie);
 
   const { stderr } = await execFileAsync(
     'ffmpeg',
