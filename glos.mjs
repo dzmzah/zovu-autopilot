@@ -771,10 +771,16 @@ export async function zbudujGlos(
     const granicePlik = path.join(KESZ, `dubel-${odcisk}.json`);
     if (existsSync(dubel) && existsSync(granicePlik)) {
       granice = JSON.parse(await readFile(granicePlik, 'utf8'));
-      graniceDokladne = false;
+      graniceDokladne = true;
       console.log('[glos] дубль из кэша');
     } else {
       granice = await jednymDublemGoogle(frazy, dubel, google);
+      // Дорожку НЕ режем. Это та же причина, что и у ElevenLabs с точными
+      // таймингами: каждый разрез и переклейка слышны. Захар про первую
+      // сборку сказал «голос лагает в моментах» — это и были наши стыки,
+      // сделанные ПОСЕРЕДИНЕ слов, потому что границы приблизительные.
+      // Под приблизительные границы режется КАРТИНКА, звук идёт целиком.
+      if (granice) graniceDokladne = true;
       if (granice) {
         await writeFile(granicePlik, JSON.stringify(granice), 'utf8');
         console.log(`[glos] один дубль на ${frazy.length} фраз, границы по паузам`);

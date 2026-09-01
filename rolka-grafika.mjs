@@ -420,14 +420,58 @@ await ffmpeg(
 // ── звук движения ─────────────────────────────────────────────────
 // У Захара звуковое событие раз в секунду и чаще — на каждое движение, а не
 // только на влёт. Поэтому озвучиваем и приходы, и уходы, и строки формулы.
+// Захар про готовый ролик: «звуковых эффектов вообще нет, один вуш на всё».
+// И правда: семплов было два — свист на влёт и щелчок на уход, оба всегда
+// одинаковые. Двадцать одинаковых свистов подряд ухо перестаёт слышать уже
+// на пятой секунде.
+//
+// Теперь пять голосов: свист вверх (приход), свист вниз (уход), щелчок,
+// удар с низом (расплата и ценник) и разгон перед ней. Плюс разброс高
+// высоты по номеру события — два соседних свиста больше не близнецы.
 const swist = path.join(OUT, 'g-swist.wav');
+const swistDol = path.join(OUT, 'g-swist-dol.wav');
 const puk = path.join(OUT, 'g-puk.wav');
+const bum = path.join(OUT, 'g-bum.wav');
+const rozped = path.join(OUT, 'g-rozped.wav');
+
+// Приход: шум с подъёмом полосы — «влетело».
+// Свист двумя слоями: шум-воздух даёт скорость, синус 78 Гц — вес. Один
+// воздух звучит как «пшш» из телефона, один низ — как удар без движения.
 await ffmpeg([
   '-f', 'lavfi', '-i', 'anoisesrc=d=0.26:c=white:a=0.7:r=48000',
-  '-af', 'highpass=f=380,lowpass=f=4600,afade=t=in:st=0:d=0.05,afade=t=out:st=0.06:d=0.19,' +
-    'volume=0.5,aformat=channel_layouts=stereo',
-  '-ac', '2', '-ar', '48000', swist,
+  '-f', 'lavfi', '-i', 'sine=f=78:d=0.26:r=48000',
+  '-filter_complex',
+  '[0:a]highpass=f=1800,lowpass=f=6200,afade=t=in:st=0:d=0.06,afade=t=out:st=0.07:d=0.18,' +
+    'volume=0.46[powietrze];' +
+    '[1:a]afade=t=in:st=0:d=0.05,afade=t=out:st=0.08:d=0.17,volume=0.30[nisko];' +
+    '[powietrze][nisko]amix=inputs=2:normalize=0,volume=0.9,aformat=channel_layouts=stereo[a]',
+  '-map', '[a]', '-ac', '2', '-ar', '48000', swist,
 ]);
+
+// Разброс высоты: два соседних свиста не должны быть близнецами.
+const swistWyzej = path.join(OUT, 'g-swist-w.wav');
+const swistNizej = path.join(OUT, 'g-swist-n.wav');
+await ffmpeg(['-i', swist, '-af', 'asetrate=48000*1.10,aresample=48000,volume=0.95', swistWyzej]);
+await ffmpeg(['-i', swist, '-af', 'asetrate=48000*0.92,aresample=48000,volume=1.0', swistNizej]);
+
+// Тихий щелчок для мелких движений: сильный звук на каждое движение — та
+// самая ошибка, после которой ухо перестаёт замечать звук вообще.
+const stuk = path.join(OUT, 'g-stuk.wav');
+await ffmpeg([
+  '-f', 'lavfi', '-i', 'anoisesrc=d=0.05:c=white:a=0.5:r=48000',
+  '-af', 'highpass=f=1500,lowpass=f=7000,afade=t=out:st=0.003:d=0.045,volume=0.22,' +
+    'aformat=channel_layouts=stereo',
+  '-ac', '2', '-ar', '48000', stuk,
+]);
+
+// Уход: тот же шум, но темнее и короче — «ушло за край».
+await ffmpeg([
+  '-f', 'lavfi', '-i', 'anoisesrc=d=0.20:c=white:a=0.6:r=48000',
+  '-af', 'highpass=f=200,lowpass=f=2200,afade=t=in:st=0:d=0.03,afade=t=out:st=0.04:d=0.16,' +
+    'volume=0.42,aformat=channel_layouts=stereo',
+  '-ac', '2', '-ar', '48000', swistDol,
+]);
+
 await ffmpeg([
   '-f', 'lavfi', '-i', 'anoisesrc=d=0.07:c=white:a=0.8:r=48000',
   '-f', 'lavfi', '-i', 'sine=f=180:d=0.07:r=48000',
@@ -438,16 +482,50 @@ await ffmpeg([
   '-map', '[a]', '-ac', '2', '-ar', '48000', puk,
 ]);
 
+// Удар: низкая синусоида с быстрым спадом плюс щелчок сверху. Это то, чего
+// в ролике не хватало совсем — веса в момент, когда встаёт главная цифра.
+await ffmpeg([
+  '-f', 'lavfi', '-i', 'sine=f=62:d=0.45:r=48000',
+  '-f', 'lavfi', '-i', 'anoisesrc=d=0.06:c=white:a=0.5:r=48000',
+  '-filter_complex',
+  '[0:a]afade=t=out:st=0.03:d=0.42,volume=0.9[b];' +
+    '[1:a]highpass=f=1200,afade=t=out:st=0:d=0.06,volume=0.3[k];' +
+    '[b][k]amix=inputs=2:normalize=0,volume=0.55,aformat=channel_layouts=stereo[a]',
+  '-map', '[a]', '-ac', '2', '-ar', '48000', bum,
+]);
+
+// Разгон: шум с растущей полосой, 0,7 с перед ударом. Он и создаёт то самое
+// ожидание, ради которого досматривают до цифры.
+await ffmpeg([
+  '-f', 'lavfi', '-i', 'anoisesrc=d=0.70:c=white:a=0.5:r=48000',
+  '-af', 'highpass=f=300,lowpass=f=5200,afade=t=in:st=0:d=0.60,volume=0.34,' +
+    'aformat=channel_layouts=stereo',
+  '-ac', '2', '-ar', '48000', rozped,
+]);
+
+const PLIKI = { swist, swistW: swistWyzej, swistN: swistNizej, swistDol, puk, stuk, bum, rozped };
+
+// Крупный предмет въезжает со свистом, мелкий — со щелчком. Раньше свистело
+// всё подряд, и к пятой секунде свист переставал что-либо значить.
+const KROK_SWISTU = ['swist', 'swistW', 'swistN'];
+let nrSwistu = 0;
+const swistPoKolei = () => KROK_SWISTU[nrSwistu++ % KROK_SWISTU.length];
+
 const zdarzenia = [
-  ...scena.map((o) => ({ t: +o.start, typ: 'swist' })),
-  ...scena.filter((o) => o.koniec).map((o) => ({ t: +o.koniec, typ: 'puk' })),
+  ...scena.map((o) => ({
+    t: +o.start,
+    typ: (o.skala ?? 600) >= 640 || o.film ? swistPoKolei() : 'stuk',
+  })),
+  ...scena.filter((o) => o.koniec).map((o) => ({ t: +o.koniec, typ: 'swistDol' })),
   ...wzor.map((w) => ({ t: +w.a, typ: 'puk' })),
-  // Счётчик озвучиваем дважды: щелчок на старте и второй в тот миг, когда
-  // цифра встала. Остановка без звука проходит незамеченной — а она и есть
-  // то, ради чего на счётчик смотрят.
   ...liczniki.flatMap((l) => [
-    { t: +l.a, typ: 'swist' },
+    { t: +l.a, typ: 'stuk' },
     { t: +(l.kres ?? l.a + (l.czas ?? 1.1)).toFixed(2), typ: 'puk' },
+  ]),
+  // Ценник — главный кадр ролика: разгон копит ожидание, удар разряжает.
+  ...metki.flatMap((m) => [
+    { t: +Math.max(0, m.a - 0.7).toFixed(2), typ: 'rozped' },
+    { t: +(m.a + (m.czas ?? 1.1)).toFixed(2), typ: 'bum' },
   ]),
 ].sort((a, b) => a.t - b.t);
 console.log(`[grafika] звуковых событий: ${zdarzenia.length} (${(zdarzenia.length / total).toFixed(1)} на секунду)`);
@@ -455,7 +533,7 @@ console.log(`[grafika] звуковых событий: ${zdarzenia.length} (${(
 const wejscia = [];
 const czesci = [];
 zdarzenia.forEach((z, i) => {
-  wejscia.push('-i', z.typ === 'swist' ? swist : puk);
+  wejscia.push('-i', PLIKI[z.typ] || puk);
   const ms = Math.max(0, Math.round(z.t * 1000));
   czesci.push(`[${i}:a]adelay=${ms}|${ms}[s${i}]`);
 });
