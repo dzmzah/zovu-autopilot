@@ -39,6 +39,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # Нужно, чтобы этот воркфлоу мог сам разбудить автопилот (шаг ниже).
+      actions: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -97,3 +99,38 @@ jobs:
           done
           echo "::error::Не записал состояние очереди — проверь ленту на повтор"
           exit 1
+
+      # ── будильник для суточных воркфлоу ──────────────────────────────
+      # 02.09 планировщик GitHub не запустил НИ ОДНОЙ из четырёх утренних
+      # попыток автопилота и ни одного обхода сторожа. Пост за день не вышел
+      # вообще, и узнали мы об этом только потому, что человек спросил
+      # «как оно там работает». Часовой крон ЭТОГО воркфлоу при этом
+      # отработал нормально: он самый частый, и его GitHub роняет реже.
+      #
+      # Поэтому надёжный будит ненадёжных. Проверяем не «запускался ли
+      # автопилот», а вышел ли ПОСТ: отметка слота в state.json это факт,
+      # а зелёный ран только намерение. Второй раз пост не выйдет —
+      # автопилот сам молча выходит, если отметка за сегодня уже стоит.
+      - name: Obudź autopilota, jeśli post nie wyszedł
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TRZEBA=$(node -e '
+            const teraz = new Date().toLocaleString("sv-SE", { timeZone: "Europe/Warsaw" });
+            const dzis = teraz.slice(0, 10);
+            const godzina = +teraz.slice(11, 13) * 100 + +teraz.slice(14, 16);
+            let stan = "";
+            try { stan = require("./state.json").posted || ""; } catch {}
+            let slot = "";
+            if (godzina >= 1010 && godzina < 1900) slot = "poranny";
+            else if (godzina >= 1900) slot = "wieczorny";
+            if (!slot) { console.log(""); process.exit(0); }
+            const jest = slot === "poranny"
+              ? stan.startsWith(dzis)
+              : stan.startsWith(dzis) && stan.endsWith("-pm");
+            console.log(jest ? "" : slot);
+          ')
+          if [ -z "$TRZEBA" ]; then echo "пост на месте или будить ещё рано"; exit 0; fi
+          echo "::warning::Пост за слот $TRZEBA не вышел — бужу автопилот сам"
+          gh workflow run autopilot.yml --repo "$GITHUB_REPOSITORY"
