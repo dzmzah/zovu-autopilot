@@ -164,3 +164,35 @@ jobs:
             git push -q origin HEAD:main && exit 0
             git fetch -q origin main && git rebase -q origin/main || true
           done
+
+      # ── третий будильник ────────────────────────────────────────────
+      # 02.09 показал, что «надёжного» расписания у GitHub нет: утром молчал
+      # автопилот, днём молчала выкладка рилсов. Пара «каждый будит другого»
+      # спасает, только если сработал хоть один из двоих. Сторож ходит трижды
+      # в сутки по своему расписанию — это третий независимый шанс, и он
+      # должен не только жаловаться, но и чинить.
+      - name: Obudź to, co nie wystartowało
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BUDZ=$(node -e '
+            const fs = require("fs");
+            const teraz = new Date().toLocaleString("sv-SE", { timeZone: "Europe/Warsaw" });
+            const dzis = teraz.slice(0, 10);
+            const godzina = +teraz.slice(11, 13) * 100 + +teraz.slice(14, 16);
+            const co = [];
+            let stan = "";
+            try { stan = JSON.parse(fs.readFileSync("./state.json", "utf8")).posted || ""; } catch {}
+            if (godzina >= 1010 && !stan.startsWith(dzis)) co.push("autopilot.yml");
+            let kolejka = [];
+            try { kolejka = JSON.parse(fs.readFileSync("./rolki/kolejka.json", "utf8")); } catch {}
+            const prog = Date.now() - 20 * 60000;
+            if (kolejka.some((p) => !p.opublikowano && Date.parse(p.kiedy) < prog)) co.push("rolka.yml");
+            console.log(co.join(" "));
+          ')
+          if [ -z "$BUDZ" ]; then echo "будить некого — пост и рилсы на месте"; exit 0; fi
+          for W in $BUDZ; do
+            echo "::warning::$W не отработал сам — бужу"
+            gh workflow run "$W" --repo "$GITHUB_REPOSITORY" || true
+          done
