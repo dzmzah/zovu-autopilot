@@ -58,13 +58,72 @@ export async function historiaScenariuszy(dir = import.meta.dirname) {
   return mapa;
 }
 
+
+// Средний охват по ФОРМЕ ролика — из тех же замеров, что собирает wyniki.mjs.
+//
+// Зачем это здесь. Ротация берёт самый давний сценарий, а при равном возрасте
+// решает порядок в банке. Пока банк пополняется, «ни разу не выходил» — это
+// сразу полтора десятка сценариев с одинаковым возрастом Infinity, и тогда
+// весь выбор делает случайность: кто раньше дописан в массив. Замер 26 роликов
+// показал разброс в десять раз (kulisy 75 против rysowana 7,7), то есть
+// порядок в массиве решает больше, чем сам монтаж.
+//
+// Форме верим только с двух замеров. По одному ролику средним называть нечего:
+// один удачный день выглядит как открытие и уводит ленту на месяц.
+export async function sredniZasiegPoFormie(dir = import.meta.dirname) {
+  const wagi = new Map();
+  try {
+    const wyniki = JSON.parse(
+      await readFile(path.join(dir, 'rolki', 'wyniki.json'), 'utf8')
+    );
+    const poFormie = new Map();
+    for (const w of wyniki) {
+      const forma = w.forma;
+      const zasieg = w.dane?.reach;
+      if (!forma || typeof zasieg !== 'number') continue;
+      if (!poFormie.has(forma)) poFormie.set(forma, []);
+      poFormie.get(forma).push(zasieg);
+    }
+    for (const [forma, xs] of poFormie) {
+      if (xs.length < 2) continue;
+      wagi.set(forma, xs.reduce((a, b) => a + b, 0) / xs.length);
+    }
+  } catch {
+    // Нет замеров — ротация работает как раньше, по порядку банка.
+  }
+  return wagi;
+}
+
+
+// Форма последнего ролика в ленте (запланированного или вышедшего).
+// Нужна ровно для одного: не пускать одну и ту же форму два дня подряд.
+// Без этого предпочтение по цифрам выстраивает пять одинаковых роликов
+// в ряд — охват у каждого может и вырастет, а лента станет одним шаблоном
+// с подменёнными словами, то есть ровно тем, от чего мы уходили.
+export async function ostatniaForma(dir = import.meta.dirname) {
+  try {
+    const kolejka = JSON.parse(
+      await readFile(path.join(dir, 'rolki', 'kolejka.json'), 'utf8')
+    );
+    const zForma = kolejka.filter((p) => p.forma && (p.opublikowano || p.kiedy));
+    if (!zForma.length) return null;
+    zForma.sort(
+      (a, b) =>
+        Date.parse(b.opublikowano || b.kiedy) - Date.parse(a.opublikowano || a.kiedy)
+    );
+    return zForma[0].forma;
+  } catch {
+    return null;
+  }
+}
+
 // Выбор: самый давний из свободных.
 //
 // `pozycje` — [{ id, idx }] в порядке банка. `zajete` — то, что уже ждёт
 // выкладки (его пропускаем целиком: собирать второй ролик на ту же мысль
 // бессмысленно). Если свободных нет вообще — берём из всех, потому что
 // пустой день хуже повтора.
-export function wybierzNajdawniejszy(pozycje, historia, zajete = new Set()) {
+export function wybierzNajdawniejszy(pozycje, historia, zajete = new Set(), wagi = null, unikajFormy = null) {
   const wolne = pozycje.filter((p) => !zajete.has(p.id));
   const pula = wolne.length ? wolne : pozycje;
   const teraz = Date.now();
@@ -74,7 +133,15 @@ export function wybierzNajdawniejszy(pozycje, historia, zajete = new Set()) {
   });
   // При равном возрасте — порядок банка: он задуман как последовательность
   // мыслей, и ломать его случайностью незачем.
-  zWiekiem.sort((a, b) => b.dni - a.dni || a.idx - b.idx);
+  // При равном возрасте сначала смотрим на форму: если про неё есть цифры,
+  // вперёд идёт та, которая у зрителя работает. И только потом порядок банка.
+  const waga = (p) => (wagi && p.forma && wagi.has(p.forma) ? wagi.get(p.forma) : -1);
+  // Штраф за повтор формы подряд идёт ПЕРЕД цифрами: лучшая форма всё равно
+  // выиграет послезавтра, а лента не превратится в один шаблон.
+  const kara = (p) => (unikajFormy && p.forma === unikajFormy ? 1 : 0);
+  zWiekiem.sort(
+    (a, b) => b.dni - a.dni || kara(a) - kara(b) || waga(b) - waga(a) || a.idx - b.idx
+  );
   const wybor = zWiekiem[0];
   return {
     ...wybor,

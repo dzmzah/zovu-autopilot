@@ -33,6 +33,8 @@ import {
   historiaScenariuszy,
   wybierzNajdawniejszy,
   opiszWybor,
+  sredniZasiegPoFormie,
+  ostatniaForma,
 } from './historia-scenariuszy.mjs';
 
 const DIR = import.meta.dirname;
@@ -958,10 +960,18 @@ async function nastepnyScenariusz() {
   // в слово — новым дублем голоса, то есть незаметно для нас и заметно для
   // зрителя. Разбор — в historia-scenariuszy.mjs.
   const historia = await historiaScenariuszy(DIR);
+  // Веса по форме. Когда в банке полтора десятка сценариев с одинаковым
+  // «ни разу не выходил», выбор между ними делал порядок в массиве — то есть
+  // случайность, хотя замер 26 роликов показал разброс охвата в десять раз.
+  // Теперь при равном возрасте вперёд идёт форма с лучшими цифрами.
+  const wagiForm = await sredniZasiegPoFormie(DIR);
+  const poprzedniaForma = await ostatniaForma(DIR);
   const wybor = wybierzNajdawniejszy(
-    SCENARIUSZE.map((s, i) => ({ id: s.nazwa, idx: i })),
+    SCENARIUSZE.map((s, i) => ({ id: s.nazwa, idx: i, forma: s.forma })),
     historia,
-    zajete
+    zajete,
+    wagiForm,
+    poprzedniaForma
   );
   const idx = wybor.idx;
   console.log(`[rolka-auto] ${opiszWybor(wybor)}; не выходило больше месяца: ${wybor.swiezych}`);
