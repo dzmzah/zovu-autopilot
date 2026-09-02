@@ -47,6 +47,8 @@ concurrency:
 
 permissions:
   contents: write
+  # чтобы этот воркфлоу мог сам разбудить выкладку рилсов (шаг ниже)
+  actions: write
 
 jobs:
   post:
@@ -135,3 +137,32 @@ jobs:
           done
           echo "::error::Nie zapisałem stanu rotacji. Slot nie jest odhaczony — kolejny przebieg może opublikować drugi post tego samego dnia."
           exit 1
+
+      # ── ответный будильник ──────────────────────────────────────────
+      # Утром 02.09 не запускался автопилот, и его будил часовой воркфлоу
+      # рилсов. Днём вышло наоборот: рилсы не запускались с 11:28, а автопилот
+      # отработал трижды. То есть «надёжного» воркфлоу у GitHub нет вообще,
+      # роняется любой — значит будить должны друг друга оба.
+      #
+      # Смотрим не на расписание, а на факт: есть ли в очереди ролик, чьё
+      # время вышло больше двадцати минут назад. Если есть — дергаем выкладку.
+      # Повторной публикации быть не может: отметка о выкладке лежит в самой
+      # очереди, и второй прогон тот же ролик пропускает.
+      - name: Obudź wykładanie rolek, jeśli któraś się spóźnia
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SPOZNIONA=$(node -e '
+            const fs = require("fs");
+            let kolejka = [];
+            try { kolejka = JSON.parse(fs.readFileSync("./rolki/kolejka.json", "utf8")); } catch {}
+            const prog = Date.now() - 20 * 60000;
+            const spozniona = kolejka.find(
+              (p) => !p.opublikowano && Date.parse(p.kiedy) < prog
+            );
+            console.log(spozniona ? spozniona.plik : "");
+          ')
+          if [ -z "$SPOZNIONA" ]; then echo "спозднившихся рилсов нет"; exit 0; fi
+          echo "::warning::Рилс $SPOZNIONA просрочен — бужу выкладку сам"
+          gh workflow run rolka.yml --repo "$GITHUB_REPOSITORY"
