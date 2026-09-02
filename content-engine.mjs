@@ -416,10 +416,20 @@ async function askGroq(system, user) {
     body: JSON.stringify({
       model,
       temperature: 0.7,
-      response_format: { type: 'json_object' },
+      // Строгий режим json_object у Groq отдал 400 «Failed to validate JSON»:
+      // модель добавляет к ответу рассуждение, и валидатор провайдера рубит
+      // весь ответ целиком. Наш parseJson и так вытаскивает объект из текста,
+      // поэтому чужой валидатор здесь только мешает: он превращает поправимую
+      // болтливость модели в полный отказ.
       messages: [
         { role: 'system', content: system },
-        { role: 'user', content: user },
+        {
+          role: 'user',
+          content:
+            user +
+            String.fromCharCode(10, 10) +
+            'Odpowiedz wyłącznie obiektem JSON, bez komentarzy i bez bloku kodu.',
+        },
       ],
     }),
   });
