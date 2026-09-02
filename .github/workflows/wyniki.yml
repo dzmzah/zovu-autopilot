@@ -49,7 +49,7 @@ jobs:
           git diff --cached --quiet && echo "цифры не изменились" && exit 0
           git commit -m "wyniki: liczby po rolkach [skip ci]"
           for i in 1 2 3; do
-            git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0
+            git -c rebase.autoStash=true pull --rebase -q origin main && git push -q origin HEAD:main && exit 0
             sleep 5
           done
           echo "::error::Не записал цифры"

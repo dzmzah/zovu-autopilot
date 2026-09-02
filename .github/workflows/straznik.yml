@@ -73,7 +73,7 @@ jobs:
 
           # Сборка записала очередь в main — забираем её, иначе проверка ниже
           # смотрит на старый снимок и снова кричит впустую.
-          git pull --rebase -q origin main || git fetch origin main
+          git -c rebase.autoStash=true pull --rebase -q origin main || git fetch origin main
 
       # Пропущенный пост — та же дыра, что и пропущенный рилс, только заметить
       # её труднее: сторож смотрит на возраст последнего поста, а 19 часов
@@ -107,7 +107,7 @@ jobs:
           ID=$(gh run list --workflow=autopilot.yml --repo "$GITHUB_REPOSITORY" \
                  --limit 1 --json databaseId --jq '.[0].databaseId')
           gh run watch "$ID" --repo "$GITHUB_REPOSITORY" --interval 20 || true
-          git pull --rebase -q origin main || git fetch origin main
+          git -c rebase.autoStash=true pull --rebase -q origin main || git fetch origin main
 
       # Планировщик GitHub 01.09 не запустил НИЧЕГО: ни автопилот, ни
       # ежечасного выкладчика рилсов. Рилс на 13:00 провисел в очереди, пока
@@ -134,7 +134,7 @@ jobs:
           ID=$(gh run list --workflow=rolka.yml --repo "$GITHUB_REPOSITORY" \
                  --limit 1 --json databaseId --jq '.[0].databaseId')
           gh run watch "$ID" --repo "$GITHUB_REPOSITORY" --interval 20 || true
-          git pull --rebase -q origin main || git fetch origin main
+          git -c rebase.autoStash=true pull --rebase -q origin main || git fetch origin main
 
       - name: Sprawdź, czy autopilot żyje
         env:
