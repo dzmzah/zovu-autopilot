@@ -722,5 +722,32 @@
       "facebook": "1382427796693365",
       "tiktok": "bufor:6a96b65ce7c5c4f00fd8b0c0"
     }
+  },
+  {
+    "plik": "auto-2026-09-02-1.mp4",
+    "kiedy": "2026-09-03T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Strona za 500 zł wygląda jak strona za 500 zł. I klient to widzi pierwszy.\n\nCztery nasze realizacje, każda działa dziś w internecie — nie na makiecie w Figmie.\n\nWyślij to komuś, kto właśnie wybiera wykonawcę strony.\n\nzovu.pl\n\n#katowice #bytom #lokalnybiznes #jdg #instagramdlafirm",
+    "opublikowano": null,
+    "zrodlo": "auto-nasze-strony.mp4",
+    "scenariusz": "nasze-strony",
+    "forma": "lista",
+    "temat": "nasze prawdziwe realizacje",
+    "dlugosc": 26.25,
+    "planow": 7,
+    "tempo": [
+      3.4,
+      3.4,
+      3.4,
+      3.4,
+      3.4,
+      3.4,
+      3.4
+    ]
   }
 ]
