@@ -354,10 +354,31 @@ WAŻNE: jeśli punkt nie dotyczy konkretnej branży, weź tag neutralny —
 Nagranie z barberem pod punktem o częstotliwości publikacji wygląda przypadkowo.`}`;
 }
 
+// Обрыв сети — это тоже «модель не ответила».
+//
+// 02.09 все четыре попытки упали с «fetch failed»: до Gemini просто не
+// дошёл запрос. Метки не было ни у квоты, ни у сервера — ошибка приходит
+// БЕЗ HTTP-ответа, а обе метки ставятся по его статусу. Резерв не включился,
+// автопилот упал с подписью «tekst nie przeszedł kontroli», хотя текста не
+// было вовсе, и день остался без поста. Ровно та же подмена причины, из-за
+// которой 17.08 пропал вечерний пост, только другой дорогой.
+const SIEC_RE = /fetch failed|ECONNRESET|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|socket hang up|terminated|network/i;
+async function askModel(system, user) {
+  try {
+    return await askModelSiec(system, user);
+  } catch (e) {
+    if (!e.kwota && !e.serwer && SIEC_RE.test(String(e.message))) {
+      e.serwer = true;
+      e.message = `sieć: ${e.message}`;
+    }
+    throw e;
+  }
+}
+
 // ── вызов модели ──────────────────────────────────────────────────
 // Порядок: Claude (если есть ключ) → Gemini Flash (бесплатный тир) → локальная Ollama.
 // В GitHub Actions Ollama нет, поэтому там работает Gemini.
-async function askModel(system, user) {
+async function askModelSiec(system, user) {
   // Проверочный выключатель модели. Запасной путь включается раз в несколько
   // недель — в тот самый день, когда всё остальное сломалось, — и проверить
   // его иначе нечем: подсунуть настоящий 429 нельзя, а битый ключ даёт 400.
@@ -366,6 +387,12 @@ async function askModel(system, user) {
     // "503" — второй режим проверки: сервер модели лежит. Он идёт другой
     // дорогой (все четыре попытки, потом резерв), и без отдельного
     // выключателя эту дорогу нечем пройти.
+    // «siec» — третий режим: до модели вообще не дошёл запрос. Он идёт ещё
+    // одной дорогой: ошибка без HTTP-ответа, то есть без статуса, по которому
+    // ставятся метки квоты и сервера. Именно на ней 02.09 пропал пост.
+    if (process.env.ZOVU_UDAWAJ_BRAK_MODELU === 'siec') {
+      throw new TypeError('fetch failed');
+    }
     if (process.env.ZOVU_UDAWAJ_BRAK_MODELU === '503') {
       const err = new Error('Gemini 503: udawany padnięty serwer do testu rezerwy');
       err.serwer = true;
