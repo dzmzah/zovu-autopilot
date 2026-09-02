@@ -662,6 +662,111 @@ const SCENARIUSZE = [
       { rola: 'cta', tekst: 'Napisz w komentarzu. Na czym stoi twoja strona.', szukaj: 'hands typing comment phone office', pauza: 0.20 },
     ],
   },
+  // ── Дописано 02.09.2026 по замерам 26 роликов ──────────────────────
+  // Форма `kulisy` дала средний охват 75 при 7,7 у рисованных и 12,4
+  // у списков — разрыв в шесть-десять раз на двух роликах подряд. При этом
+  // сохранений за весь месяц ноль: ни один ролик не содержал того, к чему
+  // возвращаются. Отсюда четыре новых сценария: три изнанки работы и один
+  // с настройками, которые зритель захочет сохранить.
+  {
+    nazwa: 'ile-kosztuje-ta-rolka',
+    plyta: { linie: ['TA ROLKA', 'ZERO ZŁOTYCH'], plaszka: 'ZERO' },
+    forma: 'kulisy',
+    temat: 'ile kosztuje zrobienie jednej rolki',
+    opis: [
+      'Ta rolka nie kosztowała ani złotówki.',
+      '',
+      'Materiał, głos, montaż i publikacja — wszystko poszło z darmowych narzędzi, na cudzym serwerze, o szóstej rano. Płacisz nie za render. Płacisz za to, że ktoś wcześniej wymyślił, co ma być na ekranie i w jakiej kolejności.',
+      '',
+      'Dlatego drogie agencje nie są drogie przez sprzęt.',
+      '',
+      'Napisz KOSZT, a rozpiszemy, ile realnie kosztuje miesiąc treści u ciebie.',
+      '',
+      'zovu.pl',
+    ].join(String.fromCharCode(10)),
+    czesci: [
+      { rola: 'hak', tekst: 'Ta rolka kosztowała zero złotych.', szukaj: 'empty wallet coins table', pauza: 0.36 },
+      { rola: 'hak', tekst: 'Materiał, głos, montaż. Wszystko.', szukaj: 'laptop screen editing timeline', pauza: 0.44 },
+      { rola: 'tresc', tekst: 'Renderuje serwer. Za darmo, w nocy.', szukaj: 'server room lights night', pauza: 0.30 },
+      { rola: 'tresc', tekst: 'Kosztowało co innego. Dwadzieścia minut myślenia.', szukaj: 'person thinking notebook desk', pauza: 0.32 },
+      { rola: 'zaplata', tekst: 'Drogie jest to, co przed nagraniem. Nie po.', szukaj: 'storyboard sketch planning paper', pauza: 0.30 },
+    ],
+  },
+  {
+    nazwa: 'co-sie-psuje',
+    plyta: { linie: ['LEKTOR', 'PRZECZYTAŁ TO ŹLE'], plaszka: 'BŁĄD' },
+    forma: 'kulisy',
+    temat: 'co się psuje, kiedy rolkę składa automat',
+    opis: [
+      'Automat przeczytał słowo NIC jako skrót. Litera po literze.',
+      '',
+      'Takich rzeczy w miesiąc uzbierało się kilka: muzyka urywała się dokładnie tam, gdzie kończył się głos, a napisy wchodziły po jednym słowie, więc na całym ekranie stało samotne NA.',
+      '',
+      'Żadnego z tych błędów nie widać w logach. Widać dopiero, jak się obejrzy i posłucha.',
+      '',
+      'Dlatego automat składa, a człowiek zawsze odsłuchuje przed publikacją.',
+      '',
+      'zovu.pl',
+    ].join(String.fromCharCode(10)),
+    czesci: [
+      { rola: 'hak', tekst: 'Lektor przeczytał słowo NIC jako skrót.', szukaj: 'microphone studio recording closeup', pauza: 0.38 },
+      { rola: 'hak', tekst: 'Litera po literze. En, i, ce.', szukaj: 'sound wave screen audio editing', pauza: 0.44 },
+      { rola: 'tresc', tekst: 'Muzyka urywała się razem z głosem.', szukaj: 'audio mixer faders studio', pauza: 0.30 },
+      { rola: 'tresc', tekst: 'Napisy wchodziły po jednym słowie.', szukaj: 'video editing captions screen', pauza: 0.30 },
+      { rola: 'zaplata', tekst: 'W logach tego nie widać. Trzeba obejrzeć.', szukaj: 'person watching phone screen close', pauza: 0.32 },
+    ],
+  },
+  {
+    nazwa: 'ustawienia-telefonu',
+    plyta: { linie: ['TRZY USTAWIENIA', 'ZANIM NAGRASZ'], plaszka: '3' },
+    forma: 'kulisy',
+    temat: 'jak ustawić telefon, żeby nagranie nie wyglądało amatorsko',
+    opis: [
+      'Trzy ustawienia w telefonie. Zajmują minutę, a robią więcej niż montaż.',
+      '',
+      'Po pierwsze: 25 klatek, nie 30. Świetlówki i lampy w Polsce migają w rytmie 50 Hz i przy 30 klatkach na materiale pojawiają się pasy.',
+      '',
+      'Po drugie: zablokuj ekspozycję na twarzy, nie na tle. Inaczej przy każdym ruchu obraz sam sobie zmienia jasność.',
+      '',
+      'Po trzecie: nie przybliżaj zoomem. Podejdź. Zoom w telefonie to wycinanie pikseli, nie obiektyw.',
+      '',
+      'Zapisz to sobie przed następnym nagraniem.',
+      '',
+      'zovu.pl',
+    ].join(String.fromCharCode(10)),
+    czesci: [
+      { rola: 'hak', tekst: 'Trzy ustawienia w telefonie.', szukaj: 'person filming with smartphone tripod', pauza: 0.36 },
+      { rola: 'hak', tekst: 'Zajmują minutę. Robią więcej niż montaż.', szukaj: 'smartphone camera settings screen', pauza: 0.44 },
+      { rola: 'punkt', numer: 1, tytul: 'klatki', tekst: '25 klatek, nie 30. Lampy migają.', szukaj: 'fluorescent lights ceiling office', pauza: 0.30 },
+      { rola: 'punkt', numer: 2, tytul: 'ekspozycja', tekst: 'Zablokuj jasność na twarzy, nie na tle.', szukaj: 'portrait face lighting indoor', pauza: 0.30 },
+      { rola: 'punkt', numer: 3, tytul: 'zoom', tekst: 'Nie przybliżaj. Podejdź bliżej.', szukaj: 'person walking closer with camera', pauza: 0.28 },
+      { rola: 'cta', tekst: 'Zapisz to. Przyda się przy następnym nagraniu.', szukaj: 'hand saving post on phone', pauza: 0.20 },
+    ],
+  },
+  {
+    nazwa: 'lezala-cztery-dni',
+    plyta: { linie: ['GOTOWA', 'OD CZTERECH DNI'], plaszka: '4 DNI' },
+    forma: 'kulisy',
+    temat: 'dlaczego treść robi się z wyprzedzeniem',
+    opis: [
+      'Ta rolka leżała gotowa cztery dni.',
+      '',
+      'Nie dlatego, że nie było czasu jej wrzucić. Dlatego, że treść robiona na dziś jest treścią robioną w pośpiechu — a widz to czuje szybciej niż my.',
+      '',
+      'Zapas kilku dni robi jedną rzecz: zepsuty plik albo padający serwer nie zostawia profilu pustego. Regularność to nie charakter. To zapas.',
+      '',
+      'Napisz PLAN, a pokażemy, jak zrobić taki zapas u siebie.',
+      '',
+      'zovu.pl',
+    ].join(String.fromCharCode(10)),
+    czesci: [
+      { rola: 'hak', tekst: 'Ta rolka leżała gotowa cztery dni.', szukaj: 'calendar planning desk week', pauza: 0.38 },
+      { rola: 'hak', tekst: 'Czekała na swój dzień.', szukaj: 'hourglass time waiting table', pauza: 0.44 },
+      { rola: 'tresc', tekst: 'Treść na dziś to treść w pośpiechu.', szukaj: 'stressed person laptop deadline', pauza: 0.30 },
+      { rola: 'tresc', tekst: 'Zapas ratuje, gdy coś padnie.', szukaj: 'backup storage drives shelf', pauza: 0.30 },
+      { rola: 'zaplata', tekst: 'Regularność to nie charakter. To zapas.', szukaj: 'organized workspace calm morning', pauza: 0.32 },
+    ],
+  },
 ];
 
 // ── отбраковка хромакея ───────────────────────────────────────────
