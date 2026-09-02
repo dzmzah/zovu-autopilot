@@ -373,10 +373,43 @@ const SIEC_RE = /fetch failed|ECONNRESET|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|EAI_AG
 //
 // Порядок именно такой: Gemini первый, потому что на нём написаны и вылизаны
 // все промпты. Groq подхватывает, только когда первый молчит.
+
+// Имя модели у Groq спрашиваем у самого Groq, а не помним наизусть.
+//
+// Первая версия жёстко звала llama-3.3-70b-versatile и получала 404: модели
+// с таким именем на нашем ключе нет. Провайдеры переименовывают и снимают
+// модели без предупреждения, и запасной путь, который ломается от чужого
+// решения, запасным не является. Тот же приём, что со схемой Buffer:
+// спросить API, а не угадывать.
+let _modelGroq = null;
+async function modelGroq(klucz) {
+  if (_modelGroq) return _modelGroq;
+  const r = await fetch('https://api.groq.com/openai/v1/models', {
+    headers: { authorization: `Bearer ${klucz}` },
+  });
+  if (!r.ok) throw new Error('Groq: nie mogę pobrać listy modeli (' + r.status + ')');
+  const j = await r.json();
+  const wszystkie = (j?.data || [])
+    .map((m) => m.id)
+    .filter((id) => id && !/whisper|tts|guard|embed|vision|prompt/i.test(id));
+  if (!wszystkie.length) throw new Error('Groq: brak modeli tekstowych na tym kluczu');
+  // Порядок предпочтения — от более сильных к более быстрым. Если ни одно
+  // не совпало, берём первое текстовое: работающая слабая модель лучше,
+  // чем консервы.
+  const chetnie = [/llama-3\.3-70b/i, /gpt-oss/i, /llama-4/i, /qwen/i, /llama-3\.1-8b/i];
+  for (const wzor of chetnie) {
+    const trafiony = wszystkie.find((id) => wzor.test(id));
+    if (trafiony) { _modelGroq = trafiony; break; }
+  }
+  if (!_modelGroq) _modelGroq = wszystkie[0];
+  console.log('[engine] Groq: biorę model ' + _modelGroq + ' (dostępnych ' + wszystkie.length + ')');
+  return _modelGroq;
+}
+
 async function askGroq(system, user) {
   const klucz = await env('GROQ_KEY');
   if (!klucz) throw new Error('GROQ_KEY nie ustawiony');
-  const model = 'llama-3.3-70b-versatile';
+  const model = await modelGroq(klucz);
   const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${klucz}` },
