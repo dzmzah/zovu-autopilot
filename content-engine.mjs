@@ -461,18 +461,12 @@ async function askModel(system, user) {
       e.serwer = true;
       e.message = `sieć: ${e.message}`;
     }
-    // Модель молчит по любой причине — пробуем второго бесплатного провайдера,
-    // прежде чем уходить на консервы. Если и он молчит, ошибку отдаём ПЕРВУЮ:
-    // причина дня — это то, что легло основное, а не то, что не спас запасной.
-    if (e.kwota || e.serwer) {
-      try {
-        const zapas = await askGroq(system, user);
-        console.warn('[engine] Gemini nie odpowiada (' + e.message.slice(0, 80) + ') — tekst pisze Groq');
-        return zapas;
-      } catch (g) {
-        console.warn('[engine] Groq też nie odpowiada: ' + g.message.slice(0, 120));
-      }
-    }
+    // Groq здесь НЕ зовём. Он стоял перед резервом, и первый же живой
+    // прогон показал цену такого порядка: qwen написал «przepisyje»
+    // вместо «przepisuje». Контроль текста орфографию не ловит, а для
+    // студии, которая продаёт тексты, опечатка по-польски дороже, чем
+    // повтор темы. Порядок теперь: Gemini → написанный руками запас →
+    // Groq, и последний включается, только когда запас кончился.
     throw e;
   }
 }
@@ -1039,6 +1033,26 @@ export async function makePost({ topic, format, kind, uklad, trends = false, gen
       out = zapas.tekst;
       zRezerwyNr = zapas.nr;
       console.warn(`[engine] REZERWA #${zapas.nr}: model padł, publikuję gotowy tekst z zapasu`);
+    }
+  }
+
+  // Последний рубеж: запас кончился или весь не прошёл контроль. Тогда
+  // текст от второго провайдера лучше пустого дня — но именно в этом
+  // порядке, потому что его польский слабее написанного руками.
+  if (!out && brakModelu) {
+    try {
+      const res = await askGroq(system, user);
+      const kandydat = clean(parseJson(res.raw), chosenLayout);
+      const problemy = validate(kandydat, !multiSlide, false, chosenLayout);
+      if (!problemy.length) {
+        out = kandydat;
+        provider = res.provider;
+        console.warn('[engine] zapas wyczerpany — tekst pisze ' + res.provider);
+      } else {
+        console.warn('[engine] tekst z Groq nie przeszedł kontroli: ' + problemy.join('; '));
+      }
+    } catch (g) {
+      console.warn('[engine] Groq też nie odpowiada: ' + String(g.message).slice(0, 120));
     }
   }
 
