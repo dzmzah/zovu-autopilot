@@ -396,13 +396,17 @@ async function modelGroq(klucz) {
   // Порядок предпочтения — от более сильных к более быстрым. Если ни одно
   // не совпало, берём первое текстовое: работающая слабая модель лучше,
   // чем консервы.
-  const chetnie = [/llama-3\.3-70b/i, /gpt-oss/i, /llama-4/i, /qwen/i, /llama-3\.1-8b/i];
+  // Рассуждающие модели (gpt-oss) уходят в КОНЕЦ списка. Они кладут ответ
+  // в отдельное поле рассуждения, а content отдают пустым — для нас это
+  // «пустой ответ» и уход на консервы. Обычная instruct-модель пишет прямо
+  // в content, что нам и нужно.
+  const chetnie = [/llama-3\.3-70b/i, /llama-3\.1-8b/i, /llama-4/i, /qwen/i, /gemma/i, /gpt-oss/i];
   for (const wzor of chetnie) {
     const trafiony = wszystkie.find((id) => wzor.test(id));
     if (trafiony) { _modelGroq = trafiony; break; }
   }
   if (!_modelGroq) _modelGroq = wszystkie[0];
-  console.log('[engine] Groq: biorę model ' + _modelGroq + ' (dostępnych ' + wszystkie.length + ')');
+  console.log('[engine] Groq: biorę model ' + _modelGroq + ' z listy: ' + wszystkie.join(', '));
   return _modelGroq;
 }
 
@@ -440,8 +444,12 @@ async function askGroq(system, user) {
     err.serwer = r.status >= 500;
     throw err;
   }
-  const raw = j?.choices?.[0]?.message?.content || '';
-  if (!raw) throw new Error('Groq: pusta odpowiedź');
+  const wiad = j?.choices?.[0]?.message || {};
+  // У рассуждающих моделей содержательный ответ уезжает в reasoning, а content
+  // приходит пустым. Наш parseJson всё равно вытаскивает объект из любого
+  // текста, поэтому берём то, что есть, а не отказываемся из-за поля.
+  const raw = wiad.content || wiad.reasoning || wiad.reasoning_content || '';
+  if (!raw) throw new Error('Groq: pusta odpowiedź (' + Object.keys(wiad).join(',') + ')');
   return { raw, provider: 'groq/' + model };
 }
 
