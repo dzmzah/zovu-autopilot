@@ -75,6 +75,8 @@ jobs:
       - name: Zrób i opublikuj post
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # запасной провайдер текста: подхватывает, когда у Gemini кончилась квота
+          GROQ_KEY: ${{ secrets.GROQ_KEY }}
           ZOVU_UDAWAJ_BRAK_MODELU: ${{ inputs.udawaj }}
           # живые фото под посты; без него движок молча откатится на 3D-рендер
           PEXELS_KEY: ${{ secrets.PEXELS_KEY }}

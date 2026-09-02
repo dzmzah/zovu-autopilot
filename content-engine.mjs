@@ -363,6 +363,45 @@ Nagranie z barberem pod punktem o częstotliwości publikacji wygląda przypadko
 // было вовсе, и день остался без поста. Ровно та же подмена причины, из-за
 // которой 17.08 пропал вечерний пост, только другой дорогой.
 const SIEC_RE = /fetch failed|ECONNRESET|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|socket hang up|terminated|network/i;
+
+// Второй бесплатный провайдер — запасной аэродром между моделью и заготовками.
+//
+// 02.09 Gemini выбрал суточную квоту, и день пришлось закрывать текстом из
+// rezerwa.json. Заготовка лучше пустой ленты, но хуже свежего текста, а
+// ключ Groq у нас уже лежит в секретах ради распознавания речи. Пятьдесят
+// строк кода превращают «день на консервах» в «день на живом тексте».
+//
+// Порядок именно такой: Gemini первый, потому что на нём написаны и вылизаны
+// все промпты. Groq подхватывает, только когда первый молчит.
+async function askGroq(system, user) {
+  const klucz = await env('GROQ_KEY');
+  if (!klucz) throw new Error('GROQ_KEY nie ustawiony');
+  const model = 'llama-3.3-70b-versatile';
+  const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${klucz}` },
+    body: JSON.stringify({
+      model,
+      temperature: 0.7,
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: user },
+      ],
+    }),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const err = new Error('Groq ' + r.status + ': ' + JSON.stringify(j).slice(0, 200));
+    err.kwota = r.status === 429;
+    err.serwer = r.status >= 500;
+    throw err;
+  }
+  const raw = j?.choices?.[0]?.message?.content || '';
+  if (!raw) throw new Error('Groq: pusta odpowiedź');
+  return { raw, provider: 'groq/' + model };
+}
+
 async function askModel(system, user) {
   try {
     return await askModelSiec(system, user);
@@ -370,6 +409,18 @@ async function askModel(system, user) {
     if (!e.kwota && !e.serwer && SIEC_RE.test(String(e.message))) {
       e.serwer = true;
       e.message = `sieć: ${e.message}`;
+    }
+    // Модель молчит по любой причине — пробуем второго бесплатного провайдера,
+    // прежде чем уходить на консервы. Если и он молчит, ошибку отдаём ПЕРВУЮ:
+    // причина дня — это то, что легло основное, а не то, что не спас запасной.
+    if (e.kwota || e.serwer) {
+      try {
+        const zapas = await askGroq(system, user);
+        console.warn('[engine] Gemini nie odpowiada (' + e.message.slice(0, 80) + ') — tekst pisze Groq');
+        return zapas;
+      } catch (g) {
+        console.warn('[engine] Groq też nie odpowiada: ' + g.message.slice(0, 120));
+      }
     }
     throw e;
   }
