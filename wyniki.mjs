@@ -215,10 +215,17 @@ if (RAPORT) {
   }
   const formy = Object.entries(poFormie)
     .map(([f, xs]) => {
-      const d = xs.map((x) => x.dosmotr).filter((x) => x != null);
+      // Досмотр выше 100% — это не ошибка замера, а петля: рилс крутится по
+      // кругу, и Instagram складывает повторы в среднее время просмотра. Один
+      // такой ролик (1042% на длине 21,7 с) поднимал среднее формы «lista» до
+      // 134% и делал сравнение форм бессмысленным. В среднее такие не идут,
+      // но и выбрасывать их нельзя: пересматривают — значит зацепило, и это
+      // считается отдельно.
+      const d = xs.map((x) => x.dosmotr).filter((x) => x != null && x <= 100);
+      const petle = xs.filter((x) => x.dosmotr != null && x.dosmotr > 100).length;
       const r = xs.map((x) => x.dane?.reach).filter(Boolean);
       const sr = (a) => (a.length ? Math.round((a.reduce((x, y) => x + y, 0) / a.length) * 10) / 10 : null);
-      return { forma: f, ile: xs.length, dosmotr: sr(d), zasieg: sr(r) };
+      return { forma: f, ile: xs.length, dosmotr: sr(d), zasieg: sr(r), petle };
     })
     .sort((a, b) => (b.dosmotr ?? -1) - (a.dosmotr ?? -1));
 
@@ -228,6 +235,7 @@ if (RAPORT) {
       console.log(
         `  ${String(f.forma).padEnd(14)} досмотр ${String(f.dosmotr ?? '—').padStart(6)}%` +
           `  охват ${String(f.zasieg ?? '—').padStart(7)}  (роликов: ${f.ile})` +
+          (f.petle ? `  петель: ${f.petle}` : '') +
           (f.ile < 3 ? '  ← мало данных' : '')
       );
     }
