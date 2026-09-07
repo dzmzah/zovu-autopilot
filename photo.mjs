@@ -197,10 +197,10 @@ let budzetOcen = Number(process.env.ZOVU_LIMIT_OCEN || 12);
 
 async function ocenKadr(buf, query) {
   const key = process.env.GEMINI_API_KEY;
-  if (!key) return { logo: false, kadr: true };
+  if (!key) return { logo: false, kadr: true, temat: 2, stop: false };
   if (budzetOcen <= 0) {
     console.warn('[photo] limit sprawdzania kadrów wyczerpany — biorę kadr bez kontroli logo');
-    return { logo: false, kadr: true, temat: true };
+    return { logo: false, kadr: true, temat: 2, stop: false };
   }
   budzetOcen--;
 
@@ -211,12 +211,18 @@ async function ocenKadr(buf, query) {
   // уверен — считай, что логотип есть».
   const pytanie =
     'Oceniasz kadr do posta agencji marketingowej. Odpowiedz TYLKO obiektem JSON:\n' +
-    '{"logo": true/false, "kadr": true/false, "temat": true/false}\n' +
-    `temat = czy kadr w ogóle pasuje do tematu „${String(query || '').slice(0, 60)}". ` +
-    'NIE wymagamy dosłownej zgodności — wystarczy scena z tej samej dziedziny. ' +
-    'Odpowiedz false TYLKO wtedy, gdy kadr jest z zupełnie innej bajki albo ' +
-    'pokazuje puste, opuszczone, zrujnowane miejsce bez ludzi i bez pracy. ' +
-    'W razie wątpliwości odpowiedz true.\n' +
+    '{"logo": true/false, "kadr": true/false, "temat": 0/1/2, "stop": true/false}\n' +
+    `temat = jak blisko kadr jest tematu „${String(query || '').slice(0, 60)}":\n` +
+    '  2 = scena z tej samej dziedziny (nie musi być dosłowna zgodność),\n' +
+    '  1 = neutralna scena pracy, biura, miasta albo warsztatu — nie ten temat,\n' +
+    '      ale kadr pasowałby pod dowolny post o prowadzeniu firmy,\n' +
+    '  0 = zupełnie inna bajka: zwierzęta, przyroda, sport, wakacje, wnętrza\n' +
+    '      prywatne, puste i opuszczone miejsca bez ludzi i bez pracy.\n' +
+    'W razie wątpliwości między 2 a 1 odpowiedz 2, między 1 a 0 odpowiedz 0.\n' +
+    'stop = czy w kadrze jest coś, czego marka nie postawi za tekstem NIGDY:\n' +
+    '  zwierzę, dziecko, klatka lub kraty, szpital, lekarstwa, cmentarz, broń,\n' +
+    '  symbole religijne, polityka, alkohol, wypadek, przemoc, człowiek w złym\n' +
+    '  stanie albo smutna, przygnębiająca scena. Jeśli tak — true.\n' +
     'logo = czy w kadrze widać JAKIKOLWIEK cudzy znak firmowy. Szukaj wszędzie:\n' +
     '  • emblematy i logotypy aut (na masce, kierownicy, feldze, na ścianie warsztatu)\n' +
     '  • plakaty, szyldy, banery, naklejki, tablice reklamowe\n' +
@@ -250,15 +256,20 @@ async function ocenKadr(buf, query) {
         }),
       }
     );
-    if (!r.ok) return { logo: false, kadr: true };
+    if (!r.ok) return { logo: false, kadr: true, temat: 2, stop: false };
     const j = await r.json();
     const tekst = j.candidates?.[0]?.content?.parts?.[0]?.text || '';
     const o = JSON.parse(tekst);
-    return { logo: o.logo === true, kadr: o.kadr !== false, temat: o.temat !== false };
+    // Старый ответ был булевым. Если модель по привычке пришлёт true/false,
+    // читаем его как 2/0 — иначе Number(true) даст 1 и кадр «не из той оперы»
+    // молча получит статус запасного.
+    const temat =
+      typeof o.temat === 'boolean' ? (o.temat ? 2 : 0) : Math.max(0, Math.min(2, Number(o.temat) || 0));
+    return { logo: o.logo === true, kadr: o.kadr !== false, temat, stop: o.stop === true };
   } catch {
     // модель не ответила или прислала не JSON — пропускаем кадр дальше:
     // контроль страхует публикацию, а не решает за неё
-    return { logo: false, kadr: true };
+    return { logo: false, kadr: true, temat: 2, stop: false };
   } finally {
     clearTimeout(timer);
   }
@@ -303,6 +314,9 @@ export async function findPhoto(query, { name, nth = 0 } = {}) {
   // кадр должен читаться как местный малый бизнес, а не как безликий сток из
   // калифорнийского опенспейса: другие вывески, интерьеры, улицы, одежда.
   // Отбор идёт по МЕСТУ И ОБСТАНОВКЕ. Людей по внешности не фильтруем.
+  // Запрос печатаем: когда 07.09 под текстом про ИИ встала собака, в логе
+  // были только имена фотографов — понять, ЧТО мы искали, стало нельзя.
+  console.log(`[photo] szukam w Pexels: "${query}"`);
   const url =
     `${API}?query=${encodeURIComponent(query)}` +
     '&orientation=portrait&size=medium&per_page=20&locale=pl-PL';
@@ -366,6 +380,14 @@ export async function findPhoto(query, { name, nth = 0 } = {}) {
         console.log(`[photo] pomijam: kadr nieczytelny, np. tułów bez głowy (${wybrany.photographer})`);
         continue;
       }
+      // Сюжет, который бренд не поставит за текст ни при каких раскладах.
+      // Такой кадр не идёт даже в запас: 07.09 под постом про приложения ИИ
+      // вышла СОБАКА ЗА РЕШЁТКОЙ — запасным кадром, потому что запас брался
+      // без разбора. Одна такая публикация стоит дороже, чем день без фото.
+      if (ocena.stop) {
+        console.log(`[photo] odrzucam na amen: scena nie dla marki (${wybrany.photographer})`);
+        continue;
+      }
       // Кадр «про отрасль», но не про сцену. Стоку всё равно: по запросу
       // «мастерская» он отдаёт и заброшенную промзону — тема угадана, а
       // происходящего в кадре нет. В посте это читается как случайная картинка.
@@ -373,9 +395,16 @@ export async function findPhoto(query, { name, nth = 0 } = {}) {
       // Такой кадр держим в запасе, а не выбрасываем: чужого логотипа в нём
       // нет, значит он хуже подходящего, но лучше генерённой заглушки —
       // а именно на неё движок откатывается, когда не подошёл никто.
-      if (!ocena.temat) {
-        console.log(`[photo] pomijam: kadr nie pasuje do tematu (${wybrany.photographer})`);
-        if (!zapasowy) zapasowy = { buf: gotowy, autor: wybrany.photographer, zrodlo: wybrany.url };
+      // В ЗАПАС идёт только близкое (1). Совсем чужое (0) выбрасываем: между
+      // «случайной картинкой» и «картинкой из другой вселенной» разница не в
+      // степени, а в том, читается ли пост как наш.
+      if (ocena.temat < 2) {
+        if (ocena.temat === 1) {
+          console.log(`[photo] do zapasu: scena obok tematu (${wybrany.photographer})`);
+          if (!zapasowy) zapasowy = { buf: gotowy, autor: wybrany.photographer, zrodlo: wybrany.url };
+        } else {
+          console.log(`[photo] pomijam: kadr z innej bajki (${wybrany.photographer})`);
+        }
         continue;
       }
 
@@ -405,6 +434,7 @@ export async function findPhoto(query, { name, nth = 0 } = {}) {
       /* не вышло — уходим в откат на генерацию */
     }
   }
+  console.log(`[photo] bez zdjęcia: żaden kadr nie nadał się do "${query}" — wracam do tła generowanego`);
   return null;
 }
 
