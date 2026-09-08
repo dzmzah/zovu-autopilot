@@ -870,7 +870,7 @@
       "tt"
     ],
     "tekst": "Strona czy Instagram? To źle postawione pytanie.\n\nOdpowiedź zależy wyłącznie od tego, gdzie klient cię szuka. Rozbieramy to w 20 sekund.\n\nNapisz w komentarzu, gdzie klienci znajdują ciebie — odpiszemy, od czego zacząć.\n\nzovu.pl\n\n#katowice #biznesslask #jdg #rzemioslo #stronainternetowa",
-    "opublikowano": null,
+    "opublikowano": "2026-09-08T12:02:33.730Z",
     "zrodlo": "auto-strona-czy-instagram.mp4",
     "scenariusz": "strona-czy-instagram",
     "forma": "pytanie",
@@ -885,7 +885,13 @@
       3.5,
       3.5,
       3.5
-    ]
+    ],
+    "wynik": {
+      "instagram": "17884760349683674",
+      "youtube": "c9AL2QbG4JI",
+      "facebook": "28219323684383186",
+      "tiktok": "bufor:6a9ff9590c3decccd6f1c803"
+    }
   },
   {
     "plik": "auto-2026-09-06-1.mp4",
