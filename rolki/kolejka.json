@@ -937,5 +937,31 @@
       3.9,
       3.9
     ]
+  },
+  {
+    "plik": "auto-2026-09-08-1.mp4",
+    "kiedy": "2026-09-10T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Trzy ustawienia w telefonie. Zajmują minutę, a robią więcej niż montaż.\n\nPo pierwsze: 25 klatek, nie 30. Świetlówki i lampy w Polsce migają w rytmie 50 Hz i przy 30 klatkach na materiale pojawiają się pasy.\n\nPo drugie: zablokuj ekspozycję na twarzy, nie na tle. Inaczej przy każdym ruchu obraz sam sobie zmienia jasność.\n\nPo trzecie: nie przybliżaj zoomem. Podejdź. Zoom w telefonie to wycinanie pikseli, nie obiektyw.\n\nZapisz to sobie przed następnym nagraniem.\n\nzovu.pl\n\n#katowice #slaskiefirmy #rzemioslo #malybiznes #instagramdlafirm\n",
+    "opublikowano": null,
+    "zrodlo": "auto-ustawienia-telefonu.mp4",
+    "scenariusz": "ustawienia-telefonu",
+    "forma": "kulisy",
+    "temat": "jak ustawić telefon, żeby nagranie nie wyglądało amatorsko",
+    "dlugosc": 23.21,
+    "planow": 6,
+    "tempo": [
+      3.4,
+      3.4,
+      3.4,
+      3.4,
+      3.4,
+      3.4
+    ]
   }
 ]
