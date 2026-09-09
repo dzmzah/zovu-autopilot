@@ -969,5 +969,32 @@
       3.4,
       3.4
     ]
+  },
+  {
+    "plik": "auto-2026-09-09-1.mp4",
+    "kiedy": "2026-09-11T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Nie potrzebujesz kamery. Potrzebujesz okna i dwóch minut.\n\nTrzy rzeczy, które zmieniają nagranie z telefonu bardziej niż jakikolwiek sprzęt za kilka tysięcy.\n\nZapisz to sobie przed następnym nagraniem — wracaj do tego za każdym razem.\n\nzovu.pl\n\n#katowice #katowicefirmy #mojafirma #firmarodzinna #socialmediadlafirm",
+    "opublikowano": null,
+    "zrodlo": "auto-zdjecia-z-telefonu.mp4",
+    "scenariusz": "zdjecia-z-telefonu",
+    "forma": "mit",
+    "temat": "sprzęt nie jest problemem",
+    "dlugosc": 23.05,
+    "planow": 7,
+    "tempo": [
+      3.9,
+      3.9,
+      3.9,
+      3.9,
+      3.9,
+      3.9,
+      3.9
+    ]
   }
 ]
