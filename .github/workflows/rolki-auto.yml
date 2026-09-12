@@ -236,3 +236,12 @@ jobs:
             out/*-glos-gotowy.wav
           retention-days: 7
           if-no-files-found: ignore
+
+      # Сюда доходим, только если ни одна из трёх попыток не дала годного
+      # ролика: значит дело не в невезении со стоком, а в нас.
+      - name: Powiedz, że rolka nie wyszła
+        if: failure()
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT: ${{ secrets.TELEGRAM_CHAT }}
+        run: bash powiadom.sh "ZOVU: рилс не собрался" "Три попытки подряд забракованы — очередь не пополнилась."

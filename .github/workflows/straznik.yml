@@ -146,7 +146,11 @@ jobs:
           TOKEN_KEY: ${{ secrets.TOKEN_KEY }}
           ELEVENLABS_KEY: ${{ secrets.ELEVENLABS_KEY }}
           BUFFER_TOKEN: ${{ secrets.BUFFER_TOKEN }}
-        run: node doktor.mjs
+        # Жалобы кладём в файл: уведомлению нужен текст поломки, а не
+        # ссылка «посмотри сам».
+        run: |
+          set -o pipefail
+          node doktor.mjs 2>&1 | tee /tmp/doktor.log
 
       # Панель обновляется даже когда сторож ничего не чинил: она показывает
       # состояние ленты, а не результат сторожа. Раз в час — достаточно, чтобы
@@ -196,3 +200,16 @@ jobs:
             echo "::warning::$W не отработал сам — бужу"
             gh workflow run "$W" --repo "$GITHUB_REPOSITORY" || true
           done
+
+      # Сигнал человеку. Краснота на вкладке Actions сигналом не является:
+      # 10-12.09.2026 сторож падал трижды в день трое суток, и никто не
+      # увидел — писем GitHub про этот репозиторий не приходит вообще.
+      - name: Powiedz, że coś padło
+        if: failure()
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT: ${{ secrets.TELEGRAM_CHAT }}
+        run: |
+          POWOD=$(grep -o 'ZOVU autopilot ma problem — .*' /tmp/doktor.log 2>/dev/null | head -1)
+          [ -n "$POWOD" ] || POWOD="сторож упал — подробности в прогоне"
+          bash powiadom.sh "ZOVU: сторож нашёл поломку" "$POWOD"
