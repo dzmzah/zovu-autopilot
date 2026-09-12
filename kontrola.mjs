@@ -115,6 +115,7 @@ async function glosnosc(plik) {
  * @param {string} plik
  * @param {{oczekiwanePrzejscia?: number[], zakresyRuchu?: Array<[number,number]>}} opcje
  *        oczekiwanePrzejscia — секунды, где рывок ЗАПЛАНИРОВАН;
+ *        ogonOd — секунда, с которой идёт аутро: звук там тише по замыслу;
  *        zakresyRuchu — отрезки, где движение внутри кадра нормально
  *        (наши собственные съёмки: облако пудры, руки, вода)
  *        (въезд врезки, титр, склейка): там скачок это приём, а не брак.
@@ -175,7 +176,13 @@ export async function sprawdzRolke(plik, opcje = {}) {
 
   const cisze = await dziury(plik);
   // Провал в самом конце — это затухание, оно штатное.
-  const realne = cisze.filter((t) => t < dlugosc - 1.6);
+  // Где кончается тело ролика. Если сборщик сказал, с какой секунды идёт
+  // аутро, верим ему: хвост там тише не по браку, а по замыслу. Без подсказки
+  // отступаем от конца полторы секунды, как раньше.
+  const cialoDo = Number.isFinite(opcje.ogonOd)
+    ? Math.min(opcje.ogonOd, dlugosc - 1.6)
+    : dlugosc - 1.6;
+  const realne = cisze.filter((t) => t < cialoDo);
   for (const t of realne) uwagi.push(`провал звука на ${t.toFixed(2)} с`);
 
   // Ямы внутри ролика. Сравниваем с медианой, а не со средней: средняя сама
@@ -185,7 +192,7 @@ export async function sprawdzRolke(plik, opcje = {}) {
   if (rzad.length > 4) {
     // Хвост не смотрим: там штатное затухание, и оно обязано быть тише.
     // Полторы секунды — столько же, сколько отбрасывает проверка тишины.
-    const bezOgona = rzad.slice(0, Math.max(1, Math.floor(dlugosc - 1.5)));
+    const bezOgona = rzad.slice(0, Math.max(1, Math.floor(cialoDo)));
     const sort = [...bezOgona].sort((a, b) => a - b);
     const mediana = sort[Math.floor(sort.length / 2)];
     bezOgona.forEach((v, i) => {

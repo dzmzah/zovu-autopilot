@@ -1501,6 +1501,9 @@ await writeFile(
 if (!BEZ_KONTROLI) {
   const kontrola = await sprawdzRolke(wynik.plik, {
     bezGlosu: BEZ_GLOSU,
+    // Где кончается тело ролика и начинается аутро: дальше звук обязан быть
+    // тише, и мерить его по телу бессмысленно.
+    ogonOd: wynik.ogonOd,
     oczekiwanePrzejscia: [
       ...tytuly.map((t) => t.start),
       ...wstawki.map((w) => w.start),
