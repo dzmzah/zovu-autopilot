@@ -1020,5 +1020,30 @@
       "facebook": "1536085774990736",
       "tiktok": "bufor:6aa3df8a32d420cab6f1676b"
     }
+  },
+  {
+    "plik": "auto-2026-09-12-1.mp4",
+    "kiedy": "2026-09-14T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Ta rolka leżała gotowa cztery dni.\n\nNie dlatego, że nie było czasu jej wrzucić. Dlatego, że treść robiona na dziś jest treścią robioną w pośpiechu — a widz to czuje szybciej niż my.\n\nZapas kilku dni robi jedną rzecz: zepsuty plik albo padający serwer nie zostawia profilu pustego. Regularność to nie charakter. To zapas.\n\nNapisz PLAN, a pokażemy, jak zrobić taki zapas u siebie.\n\nzovu.pl\n\n#katowice #gliwice #przedsiebiorcy #malafirma #marketingdlafirm\n",
+    "opublikowano": null,
+    "zrodlo": "auto-lezala-cztery-dni.mp4",
+    "scenariusz": "lezala-cztery-dni",
+    "forma": "kulisy",
+    "temat": "dlaczego treść robi się z wyprzedzeniem",
+    "dlugosc": 19.13,
+    "planow": 5,
+    "tempo": [
+      3.3,
+      3.3,
+      3.3,
+      3.3,
+      3.3
+    ]
   }
 ]
