@@ -138,13 +138,38 @@ jobs:
           if [ "$PLYTY" = "true" ]; then FLAGI="--plyty"; fi
           if [ "$BEZ_GLOSU" = "true" ]; then FLAGI="$FLAGI --bez-glosu"; fi
           if [ -n "$TYP" ]; then FLAGI="$FLAGI --typ=$TYP"; fi
+          # Одна забракованная сборка НЕ должна стоить ленте дня. Проверка
+          # замерами права по сути, но материал у неё каждый день новый: сток
+          # приходит случайный, голос ложится по-своему, и один и тот же
+          # сценарий то проходит, то нет. За 60 прогонов упало 12 — каждый
+          # пятый, — и 10-12.09 три подряд оставили очередь пустой.
+          # Поэтому пробуем трижды: вторая попытка берёт другой сток и другие
+          # тайминги, третья уходит на другой сборщик целиком. Красным прогон
+          # станет только если не вышло ни разу — тогда это уже наша поломка,
+          # а не невезение.
+          zbuduj() {
+            if [ -n "$SCENARIUSZ" ]; then
+              node zbuduj-rolke.mjs --scenariusz="$SCENARIUSZ" $1
+            else
+              node zbuduj-rolke.mjs $1
+            fi
+          }
           for i in $(seq 1 "${ILE:-1}"); do
             echo "::group::rolka $i"
-            if [ -n "$SCENARIUSZ" ]; then
-              node zbuduj-rolke.mjs --scenariusz="$SCENARIUSZ" $FLAGI
-            else
-              node zbuduj-rolke.mjs $FLAGI
-            fi
+            F="$FLAGI"
+            PROBA=1
+            until zbuduj "$F"; do
+              PROBA=$((PROBA + 1))
+              if [ "$PROBA" -gt 3 ]; then
+                echo "::endgroup::"
+                echo "::error::рилс $i не собрался за три попытки — это уже не невезение со стоком"
+                exit 1
+              fi
+              # Третья попытка меняет сам тип ролика: если сток упорно не
+              # даёт годного материала, рисованный собирается другим путём.
+              if [ "$PROBA" -eq 3 ] && [ -z "$TYP" ]; then F="$FLAGI --typ=grafika"; fi
+              echo "::warning::рилс $i, попытка $PROBA из 3"
+            done
             echo "::endgroup::"
           done
 
