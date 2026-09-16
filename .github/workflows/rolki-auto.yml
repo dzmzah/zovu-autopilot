@@ -244,4 +244,5 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT: ${{ secrets.TELEGRAM_CHAT }}
-        run: bash powiadom.sh "ZOVU: рилс не собрался" "Три попытки подряд забракованы — очередь не пополнилась."
+        run: |
+          bash powiadom.sh "ZOVU: рилс не собрался" "Три попытки подряд забракованы — очередь не пополнилась."
