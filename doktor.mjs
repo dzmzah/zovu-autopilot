@@ -501,11 +501,60 @@ async function kanalyRolek() {
   }
 }
 
+// ── Жива ли сама монтажная ───────────────────────────────────────
+// Сторож умел видеть пустую очередь, но не видел ПРИЧИНЫ: с 12 по 16.09
+// сборка рилсов не запускалась вообще — коммит положил двоеточие в простой
+// скаляр YAML, и GitHub четыре дня держал `rolki-auto.yml` невалидным. Ни
+// расписания, ни ручного запуска, и ни одной красноты: сломанный
+// workflow-файл нигде не виден, потому что прогона просто нет.
+// Признаков ровно два:
+//   • имя вместо пути — у невалидного файла GitHub отдаёт `.github/...`;
+//   • дата последнего прогона — ловит и упавшее расписание, и выключенный
+//     руками workflow, то есть все остальные способы замолчать.
+async function montownia() {
+  const REPO = process.env.GITHUB_REPOSITORY || 'dzmzah/zovu-autopilot';
+  const PLIK = 'rolki-auto.yml';
+  // Репозиторий публичный, поэтому GitHub отвечает и без токена; с токеном
+  // просто выше предел запросов.
+  const tok = (await env('GH_TOKEN')) || (await env('GITHUB_TOKEN'));
+  const naglowki = { 'user-agent': 'zovu-doktor', ...(tok ? { authorization: 'Bearer ' + tok } : {}) };
+  const API = 'https://api.github.com/repos/' + REPO + '/actions/workflows/' + PLIK;
+  try {
+    const wf = await fetch(API, { headers: naglowki });
+    if (!wf.ok) return zapisz('montownia', false, 'GitHub nie odpowiada o ' + PLIK + ': ' + wf.status, 'uwaga');
+    const dane = await wf.json();
+    if (String(dane.name || '').startsWith('.github/')) {
+      return zapisz('montownia', false, PLIK + ' JEST NIEPOPRAWNY — GitHub go nie czyta, składanie rolek stoi');
+    }
+    if (dane.state !== 'active') {
+      return zapisz('montownia', false, PLIK + ' wyłączony (' + dane.state + ') — rolki się nie składają');
+    }
+    const bieg = await fetch(API + '/runs?per_page=1', { headers: naglowki });
+    const lista = bieg.ok ? (await bieg.json()).workflow_runs || [] : [];
+    if (!lista.length) return zapisz('montownia', false, 'brak jakiegokolwiek biegu składania rolek');
+    const godzin = (Date.now() - Date.parse(lista[0].created_at)) / 3600_000;
+    // Сборка идёт раз в сутки. 30 часов — сутки плюс запас на сдвиг
+    // расписания; сорок минут самого прогона в него укладываются.
+    const ok = godzin <= 30;
+    zapisz(
+      'montownia',
+      ok,
+      ok
+        ? 'ostatnie składanie ' + godzin.toFixed(1) + ' h temu (' + (lista[0].conclusion || lista[0].status) + ')'
+        : 'SKŁADANIE ROLEK NIE RUSZYŁO OD ' + godzin.toFixed(0) + ' h — kolejka przestanie się uzupełniać'
+    );
+  } catch (e) {
+    zapisz('montownia', false, 'nie udało się sprawdzić: ' + e.message, 'uwaga');
+  }
+}
+
+
 // ── поехали ──────────────────────────────────────────────────────
 const ostatni = await ostatniPost();
 await Promise.all([tokenInstagrama(), tokenFacebooka(), mozgTekstowy(), zdjecia(), glos(), zapas()]);
 await kolejka(ostatni?.stan);
 await rolki();
+await montownia();
 await powtorkiWLencie();
 await kanalyRolek();
 
