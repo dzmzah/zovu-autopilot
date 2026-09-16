@@ -1084,5 +1084,32 @@
       "facebook": "1056670937216939",
       "tiktok": "bufor:6aa6828ff7b1958d5ce524f9"
     }
+  },
+  {
+    "plik": "auto-2026-09-16-1.mp4",
+    "kiedy": "2026-09-16T18:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Ile trwa strona? Pytanie brzmi inaczej: ile trwa u ciebie.\n\nKod jest najkrótszą częścią tej roboty. Termin robią trzy rzeczy po stronie klienta — i o nich nikt nie mówi na początku.\n\nNapisz w komentarzu, na czym stoi twoja strona. Powiemy, jak to odblokować.\n\nzovu.pl\n\n#katowice #sosnowiec #firmarodzinna #wlasnafirma #socialmediadlafirm",
+    "opublikowano": null,
+    "zrodlo": "auto-ile-trwa-strona.mp4",
+    "scenariusz": "ile-trwa-strona",
+    "forma": "jedna-liczba",
+    "temat": "od czego zależy termin zrobienia strony",
+    "dlugosc": 23.65,
+    "planow": 7,
+    "tempo": [
+      3.5,
+      3.5,
+      3.5,
+      3.5,
+      3.5,
+      3.5,
+      3.5
+    ]
   }
 ]
