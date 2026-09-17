@@ -1175,5 +1175,31 @@
       3.5,
       3.5
     ]
+  },
+  {
+    "plik": "auto-2026-09-17-1-2.mp4",
+    "kiedy": "2026-09-18T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Jedna rolka idzie u nas na cztery serwisy. Każdy psuje ją inaczej.\n\nNapisy przy samym dole zasłania interfejs — inny na każdej platformie. Bezpieczne pole to środek kadru, a nie krawędź.\n\nOkładka: na YouTube pionowy kadr zostaje przycięty, więc twarz i tekst muszą siedzieć w środku, nie przy górnej krawędzi.\n\nGłośność: każdy serwis wyrównuje ją po swojemu, więc materiał zmiksowany za głośno i tak zostanie ściszony, tylko już bez oddechu.\n\nZapisz to sobie przed następnym eksportem — po publikacji poprawki już nie ma.\n\nzovu.pl\n\n#katowice #dabrowagornicza #wlasnafirma #jednoosobowadzialalnosc #socialmediadlafirm\n",
+    "opublikowano": null,
+    "zrodlo": "auto-jeden-plik-cztery-serwisy.mp4",
+    "scenariusz": "jeden-plik-cztery-serwisy",
+    "forma": "kulisy",
+    "temat": "dlaczego ten sam plik wygląda inaczej na każdej platformie",
+    "dlugosc": 21.49,
+    "planow": 6,
+    "tempo": [
+      3.9,
+      3.9,
+      3.9,
+      3.9,
+      3.9,
+      3.9
+    ]
   }
 ]
