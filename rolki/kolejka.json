@@ -1201,5 +1201,31 @@
       3.9,
       3.9
     ]
+  },
+  {
+    "plik": "auto-2026-09-18-1.mp4",
+    "kiedy": "2026-09-20T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Automat czyta tekst inaczej niż człowiek. Jedna kropka zmienia wszystko.\n\nZdanie bez kropki leci jednym ciągiem, na jednym oddechu, i po trzech sekundach brzmi jak zapowiedź na dworcu. Kropka postawiona w środku myśli daje oddech i nacisk dokładnie tam, gdzie chcesz.\n\nSprawdziliśmy to na kilkudziesięciu dublach własnym głosem: ten sam tekst z kropką w środku brzmi spokojniej i jest zrozumiały przy pierwszym przesłuchaniu.\n\nPauzy pisze się znakami, nie nadzieją. Przeczytaj swój tekst na głos — tam, gdzie brakuje ci powietrza, postaw kropkę.\n\nzovu.pl\n\n#katowice #bytom #mikrofirma #uslugilokalne #marketingdlafirm\n",
+    "opublikowano": null,
+    "zrodlo": "auto-kropka-w-srodku-zdania.mp4",
+    "scenariusz": "kropka-w-srodku-zdania",
+    "forma": "kulisy",
+    "temat": "jak pisać tekst, który ma przeczytać automat",
+    "dlugosc": 27.37,
+    "planow": 6,
+    "tempo": [
+      3.1,
+      3.1,
+      3.1,
+      3.1,
+      3.1,
+      3.1
+    ]
   }
 ]
