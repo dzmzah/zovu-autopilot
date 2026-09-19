@@ -1233,5 +1233,32 @@
       3.1,
       3.1
     ]
+  },
+  {
+    "plik": "auto-2026-09-19-1.mp4",
+    "kiedy": "2026-09-21T20:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Klient pyta o cenę. Odpisujesz kwotą i rozmowa się kończy.\n\nTrzy zdania, po których rozmowa idzie dalej — używamy ich u siebie przy każdym pierwszym zapytaniu.\n\nZapisz je sobie na jutro, przydadzą się szybciej niż myślisz.\n\nzovu.pl\n\n#katowice #slask #jdg #rzemioslo #zapytaniaofertowe",
+    "opublikowano": null,
+    "zrodlo": "auto-pierwsza-odpowiedz.mp4",
+    "scenariusz": "pierwsza-odpowiedz",
+    "forma": "lista",
+    "temat": "jak odpisać na pierwsze zapytanie",
+    "dlugosc": 25.09,
+    "planow": 7,
+    "tempo": [
+      3.4,
+      3.4,
+      3.4,
+      3.4,
+      3.4,
+      3.4,
+      3.4
+    ]
   }
 ]
