@@ -1298,5 +1298,32 @@
       3.8,
       3.8
     ]
+  },
+  {
+    "plik": "auto-2026-09-20-1-2.mp4",
+    "kiedy": "2026-09-21T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Masz kanał, który nic nie kosztuje. I pewnie stoi pusty.\n\nWizytówka Google decyduje o tym, czy ktoś do ciebie zadzwoni, zanim w ogóle zobaczy twój profil.\n\nSprawdź swoją teraz — zajmie minutę. Napisz w komentarzu, czego brakowało.\n\nzovu.pl\n\n#katowice #biznesslask #uslugilokalne #przedsiebiorcy #marketingdlafirm",
+    "opublikowano": null,
+    "zrodlo": "auto-wizytowka-google.mp4",
+    "scenariusz": "wizytowka-google",
+    "forma": "lista",
+    "temat": "wizytówka Google dla małej firmy",
+    "dlugosc": 25.49,
+    "planow": 7,
+    "tempo": [
+      3.4,
+      3.4,
+      3.4,
+      3.4,
+      3.4,
+      3.4,
+      3.4
+    ]
   }
 ]
