@@ -1364,5 +1364,32 @@
       3.7,
       3.7
     ]
+  },
+  {
+    "plik": "auto-2026-09-22-1.mp4",
+    "kiedy": "2026-09-24T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "To samo danie, dwa zdjęcia. Jedno sprzedaje, drugie nie.\n\nTrzy rzeczy do zrobienia telefonem, zanim wrzucisz zdjęcie z lokalu. Bez sprzętu i bez fotografa.\n\nZapisz i zrób tak przy następnym daniu — zobaczysz różnicę na pierwszym zdjęciu.\n\nzovu.pl\n\n#katowice #gornyslask #mojafirma #firmarodzinna #socialmediadlafirm",
+    "opublikowano": null,
+    "zrodlo": "auto-jedzenie-na-zdjeciach.mp4",
+    "scenariusz": "jedzenie-na-zdjeciach",
+    "forma": "przed-po",
+    "temat": "zdjęcia jedzenia telefonem",
+    "dlugosc": 24.05,
+    "planow": 7,
+    "tempo": [
+      3.5,
+      3.5,
+      3.5,
+      3.5,
+      3.5,
+      3.5,
+      3.5
+    ]
   }
 ]
