@@ -1397,5 +1397,32 @@
       3.5,
       3.5
     ]
+  },
+  {
+    "plik": "auto-2026-09-23-1.mp4",
+    "kiedy": "2026-09-25T20:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Tę rolkę zrobiliśmy bez kamery. Ale nie zrobiła się sama.\n\nMówimy wprost, co u nas robi AI, a czego nie zrobi za nikogo. Obietnica „wszystko zrobi sztuczna inteligencja\" kończy się rozczarowaniem po pierwszym miesiącu.\n\nNapisz w komentarzu, co chcesz zobaczyć w następnej.\n\nzovu.pl\n\n#katowice #slaskiefirmy #przedsiebiorcy #malafirma #aiwbiznesie",
+    "opublikowano": null,
+    "zrodlo": "auto-co-robi-ai-a-czego-nie.mp4",
+    "scenariusz": "co-robi-ai-a-czego-nie",
+    "forma": "pod-prad",
+    "temat": "co robi AI w naszej pracy, a czego nie",
+    "dlugosc": 25.17,
+    "planow": 7,
+    "tempo": [
+      3.4,
+      3.4,
+      3.4,
+      3.4,
+      3.4,
+      3.4,
+      3.4
+    ]
   }
 ]
