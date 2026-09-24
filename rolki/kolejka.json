@@ -1462,5 +1462,32 @@
       4.3,
       4.3
     ]
+  },
+  {
+    "plik": "auto-2026-09-24-1-2.mp4",
+    "kiedy": "2026-09-25T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Ładny feed nie znaczy nic, jeśli nikt z niego nie kupuje.\n\nZwykle to nie kwestia pomysłów ani budżetu. To trzy rzeczy, które robi prawie każdy — i każda z nich po cichu kosztuje klientów.\n\nMasz je w 20 sekund. Bez lania wody.\n\nKtóry z tych trzech robisz u siebie? Napisz w komentarzu — odpiszemy każdemu, co z tym zrobić.\n\nzovu.pl\n\n#katowice #gliwice #firmarodzinna #wlasnafirma #plantresci",
+    "opublikowano": null,
+    "zrodlo": "auto-trzy-bledy-w-postach.mp4",
+    "scenariusz": "trzy-bledy-w-postach",
+    "forma": "lista",
+    "temat": "dlaczego posty nie sprzedają",
+    "dlugosc": 23.57,
+    "planow": 7,
+    "tempo": [
+      3.5,
+      3.5,
+      3.5,
+      3.5,
+      3.5,
+      3.5,
+      3.5
+    ]
   }
 ]
