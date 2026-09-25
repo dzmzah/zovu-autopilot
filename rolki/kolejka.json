@@ -1489,5 +1489,32 @@
       3.5,
       3.5
     ]
+  },
+  {
+    "plik": "auto-2026-09-25-1.mp4",
+    "kiedy": "2026-09-27T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Pytanie „ile kosztuje strona?\" jest jak „ile kosztuje samochód\".\n\nOdpowiedź zależy od trzech rzeczy, a nie od liczby podstron. Rozbieramy je w 20 sekund.\n\nZapisz sobie te trzy pytania i zadaj je przed pierwszą rozmową o cenie — oszczędzą ci więcej niż negocjacje.\n\nzovu.pl\n\n#katowice #chorzow #malafirma #mikrofirma #budzetreklamowy",
+    "opublikowano": null,
+    "zrodlo": "auto-ile-kosztuje-strona.mp4",
+    "scenariusz": "ile-kosztuje-strona",
+    "forma": "lista",
+    "temat": "z czego składa się cena strony",
+    "dlugosc": 25.13,
+    "planow": 7,
+    "tempo": [
+      3.9,
+      3.9,
+      3.9,
+      3.9,
+      3.9,
+      3.9,
+      3.9
+    ]
   }
 ]
