@@ -1528,5 +1528,32 @@
       3.9,
       3.9
     ]
+  },
+  {
+    "plik": "auto-2026-09-26-1.mp4",
+    "kiedy": "2026-09-28T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Nagrałeś dobry materiał, a obejrzało go pięć osób.\n\nProblem prawie nigdy nie leży w treści. Leży w pierwszych trzech sekundach — i to jest do naprawienia w jeden wieczór.\n\nWyślij to komuś, kto właśnie nagrywa rolki — pierwsze trzy sekundy decydują o całej reszcie.\n\nzovu.pl\n\n#katowice #sosnowiec #lokalnybiznes #jdg #instagramdlafirm",
+    "opublikowano": null,
+    "zrodlo": "auto-pierwsze-trzy-sekundy.mp4",
+    "scenariusz": "pierwsze-trzy-sekundy",
+    "forma": "lista",
+    "temat": "dlaczego nikt nie ogląda twoich rolek",
+    "dlugosc": 26.01,
+    "planow": 7,
+    "tempo": [
+      3.6,
+      3.6,
+      3.6,
+      3.6,
+      3.6,
+      3.6,
+      3.6
+    ]
   }
 ]
