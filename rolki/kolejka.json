@@ -1561,5 +1561,32 @@
       3.6,
       3.6
     ]
+  },
+  {
+    "plik": "auto-2026-09-27-1.mp4",
+    "kiedy": "2026-09-29T20:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Masz zasięgi, masz polubienia, a wiadomości zero.\n\nTo nie przypadek i nie algorytm. To trzy rzeczy w twoim profilu, które mówią „nie pisz do mnie\".\n\nWyślij to komuś, kogo profil wygląda tak samo — trzy rzeczy, przez które ludzie nie piszą.\n\nzovu.pl\n\n#katowice #zabrze #wlasnafirma #jednoosobowadzialalnosc #wizytowkafirmy",
+    "opublikowano": null,
+    "zrodlo": "auto-dlaczego-nikt-nie-pisze.mp4",
+    "scenariusz": "dlaczego-nikt-nie-pisze",
+    "forma": "lista",
+    "temat": "dlaczego profil nie generuje wiadomości",
+    "dlugosc": 25.81,
+    "planow": 7,
+    "tempo": [
+      3.9,
+      3.9,
+      3.9,
+      3.9,
+      3.9,
+      3.9,
+      3.9
+    ]
   }
 ]
