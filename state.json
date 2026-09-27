@@ -1,11 +1,11 @@
 {
- "topic": 64,
- "format": 1,
- "bg": 4,
- "counter": 127,
- "trendDay": "2026-09-26",
+ "topic": 65,
+ "format": 2,
+ "bg": 0,
+ "counter": 128,
+ "trendDay": "2026-09-27",
  "posted": "2026-09-26-pm",
  "wznowiono": "2026-08-09T22:28:22.894Z",
- "rezerwaP": 11,
+ "rezerwaP": 0,
  "rezerwaK": 3
 }
