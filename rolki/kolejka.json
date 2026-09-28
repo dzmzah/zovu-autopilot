@@ -1594,5 +1594,32 @@
       3.9,
       3.9
     ]
+  },
+  {
+    "plik": "auto-2026-09-28-1.mp4",
+    "kiedy": "2026-09-30T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Rolka nie jest lepsza od posta. Robi coś innego.\n\nRolka przynosi nowych ludzi. Post rozmawia z tymi, których już masz. Kto robi tylko jedno z dwóch, stoi w miejscu.\n\nNie wiesz, co u ciebie kuleje? Napisz PLAN, a odeślemy prosty rozkład na miesiąc.\n\nzovu.pl\n\n#katowice #tychy #mikrofirma #uslugilokalne #tresciwsocialmediach",
+    "opublikowano": null,
+    "zrodlo": "auto-rolka-czy-post.mp4",
+    "scenariusz": "rolka-czy-post",
+    "forma": "pytanie",
+    "temat": "kiedy rolka, a kiedy zwykły post",
+    "dlugosc": 22.25,
+    "planow": 7,
+    "tempo": [
+      4.1,
+      4.1,
+      4.1,
+      4.1,
+      4.1,
+      4.1,
+      4.1
+    ]
   }
 ]
