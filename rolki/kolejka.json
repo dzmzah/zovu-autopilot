@@ -1658,5 +1658,31 @@
       3.8,
       3.8
     ]
+  },
+  {
+    "plik": "auto-2026-09-30-1.mp4",
+    "kiedy": "2026-10-02T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Trzy sekundy. Tyle masz, zanim palec pojedzie dalej.\n\nW tym czasie widz nie ocenia jakości montażu ani światła. Sprawdza jedną rzecz: czy to o nim.\n\nDlatego pierwsze zdanie mówi o widzu, a nie o tobie. Reszta rolki dopiero po tym ma sens.\n\nNapisz START, a przejrzymy pierwsze zdanie twojej ostatniej rolki.\n\nzovu.pl\n\n#katowice #bytom #jednoosobowadzialalnosc #mojafirma #hakwideo",
+    "opublikowano": null,
+    "zrodlo": "auto-trzy-sekundy.mp4",
+    "scenariusz": "trzy-sekundy",
+    "forma": "jedna-liczba",
+    "temat": "ile masz czasu na zatrzymanie widza",
+    "dlugosc": 22.37,
+    "planow": 7,
+    "tempo": [
+      3.8,
+      3.8,
+      3.8,
+      3.8,
+      3.8,
+      3.8
+    ]
   }
 ]
