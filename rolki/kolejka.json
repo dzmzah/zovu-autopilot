@@ -1696,5 +1696,31 @@
       3.8,
       3.8
     ]
+  },
+  {
+    "plik": "auto-2026-10-01-1.mp4",
+    "kiedy": "2026-10-03T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Musisz postować codziennie — to najdroższy mit w tej branży.\n\nCodziennie znaczy w pośpiechu. W pośpiechu znaczy o niczym. Dwa przemyślane posty biją siedem byle jakich, bo algorytm liczy, ile osób zostało — a nie ile razy coś wrzuciłeś.\n\nNapisz RYTM, a ułożymy plan pod twoje realne tempo, nie pod cudzy kalendarz.\n\nzovu.pl\n\n#katowice #slask #uslugilokalne #przedsiebiorcy #tresciwsocialmediach",
+    "opublikowano": null,
+    "zrodlo": "auto-mit-codziennie.mp4",
+    "scenariusz": "mit-codziennie",
+    "forma": "mit",
+    "temat": "czy trzeba publikować codziennie",
+    "dlugosc": 24.57,
+    "planow": 7,
+    "tempo": [
+      3.6,
+      3.6,
+      3.6,
+      3.6,
+      3.6,
+      3.6
+    ]
   }
 ]
