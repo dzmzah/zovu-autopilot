@@ -1792,5 +1792,32 @@
       3.8,
       3.8
     ]
+  },
+  {
+    "plik": "auto-2026-10-04-1.mp4",
+    "kiedy": "2026-10-06T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Strona za 500 zł wygląda jak strona za 500 zł. I klient to widzi pierwszy.\n\nCztery nasze realizacje, każda działa dziś w internecie — nie na makiecie w Figmie.\n\nWyślij to komuś, kto właśnie wybiera wykonawcę strony.\n\nzovu.pl\n\n#katowice #firmakatowice #przedsiebiorcy #malafirma #marketingdlafirm",
+    "opublikowano": null,
+    "zrodlo": "auto-nasze-strony.mp4",
+    "scenariusz": "nasze-strony",
+    "forma": "lista",
+    "temat": "nasze prawdziwe realizacje",
+    "dlugosc": 25.97,
+    "planow": 7,
+    "tempo": [
+      3.5,
+      3.5,
+      3.5,
+      3.5,
+      3.5,
+      3.5,
+      3.5
+    ]
   }
 ]
