@@ -1825,5 +1825,32 @@
       3.5,
       3.5
     ]
+  },
+  {
+    "plik": "auto-2026-10-05-1.mp4",
+    "kiedy": "2026-10-07T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Dziesięć minut w warsztacie to materiał na cały tydzień.\n\nTrzy ujęcia, które ma u siebie każdy — mechanik, fryzjer, stolarz, cukiernik. Nagrywasz telefonem, między jedną robotą a drugą.\n\nWyślij to komuś, kto mówi, że nie ma o czym nagrywać.\n\nzovu.pl\n\n#katowice #gornyslask #malybiznes #lokalnybiznes #instagramdlafirm",
+    "opublikowano": null,
+    "zrodlo": "auto-dziesiec-minut-w-warsztacie.mp4",
+    "scenariusz": "dziesiec-minut-w-warsztacie",
+    "forma": "kulisy",
+    "temat": "co nagrać w warsztacie w dziesięć minut",
+    "dlugosc": 24.25,
+    "planow": 7,
+    "tempo": [
+      3.8,
+      3.8,
+      3.8,
+      3.8,
+      3.8,
+      3.8,
+      3.8
+    ]
   }
 ]
