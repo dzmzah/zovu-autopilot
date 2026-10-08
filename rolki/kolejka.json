@@ -1922,5 +1922,30 @@
       3.8,
       3.8
     ]
+  },
+  {
+    "plik": "auto-2026-10-08-1.mp4",
+    "kiedy": "2026-10-10T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Automat przeczytał słowo NIC jako skrót. Litera po literze.\n\nTakich rzeczy w miesiąc uzbierało się kilka: muzyka urywała się dokładnie tam, gdzie kończył się głos, a napisy wchodziły po jednym słowie, więc na całym ekranie stało samotne NA.\n\nŻadnego z tych błędów nie widać w logach. Widać dopiero, jak się obejrzy i posłucha.\n\nDlatego automat składa, a człowiek zawsze odsłuchuje przed publikacją.\n\nzovu.pl\n\n#katowice #chorzow #wlasnafirma #jednoosobowadzialalnosc #wideomarketing\n",
+    "opublikowano": null,
+    "zrodlo": "auto-co-sie-psuje.mp4",
+    "scenariusz": "co-sie-psuje",
+    "forma": "kulisy",
+    "temat": "co się psuje, kiedy rolkę składa automat",
+    "dlugosc": 15.17,
+    "planow": 5,
+    "tempo": [
+      5.4,
+      5.4,
+      5.4,
+      5.4,
+      5.4
+    ]
   }
 ]
