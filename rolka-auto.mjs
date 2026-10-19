@@ -37,6 +37,7 @@ import {
   ostatniaForma,
 } from './historia-scenariuszy.mjs';
 import { ZAKONCZENIA } from './zakonczenia.mjs';
+import { SKORY } from './skory.mjs';
 
 const DIR = import.meta.dirname;
 const OUT = path.join(DIR, 'out');
@@ -1208,6 +1209,11 @@ if (zakTekst.cta) {
   const i = scen.czesci.findLastIndex((c) => c.rola === 'cta');
   if (i >= 0) scen.czesci[i] = { ...scen.czesci[i], tekst: zakTekst.cta, mowa: undefined };
 }
+// Монтажный скин (skory.mjs): --skora=typ или SKORA в окружении; пусто —
+// прежний монтаж «сток + жёлтые подписи».
+const SKORA = ((process.argv.find((a) => a.startsWith('--skora=')) || '').split('=')[1] || process.env.SKORA || '').trim();
+if (SKORA && !SKORY[SKORA]) throw new Error(`нет скина «${SKORA}», есть: ${Object.keys(SKORY).join(', ')}`);
+if (SKORA) console.log(`[rolka-auto] монтаж: скин «${SKORA}» — ${SKORY[SKORA].nazwa}`);
 console.log(`[rolka-auto] концовка: ${ZAKONCZENIE}${zakTekst.cta ? ' — «' + zakTekst.cta + '»' : ''}`);
 
 // 1. Голос. Фразы озвучиваются по одной — так границы каждой известны точно.
@@ -1470,6 +1476,32 @@ const plan = {
   },
 };
 
+// Скин рисует монтаж сам: подписи, номера, штампы и стикеры ему мешают.
+if (SKORA) {
+  plan.skora = {
+    typ: SKORA,
+    dane: {
+      temat: scen.temat ? scen.temat[0].toUpperCase() + scen.temat.slice(1) : '',
+      frazy: glos.frazy.map((f, i) => ({
+        tekst: scen.czesci[i]?.tekst ?? f.tekst,
+        a: f.a,
+        b: f.b,
+        rola: scen.czesci[i]?.rola || '',
+        numer: scen.czesci[i]?.numer || null,
+        tytul: scen.czesci[i]?.tytul || null,
+      })),
+      slowa: glos.slowa,
+    },
+  };
+  plan.karaoke = false;
+  plan.tytuly = [];
+  plan.stemple = [];
+  plan.naklejki = [];
+  plan.wstawki = [];
+  delete plan.podsumowanie;
+  delete plan.plakietka;
+}
+
 await mkdir(OUT, { recursive: true });
 await writeFile(path.join(OUT, `${plan.nazwa}-plan.json`), JSON.stringify(plan, null, 2), 'utf8');
 
@@ -1509,6 +1541,8 @@ await writeFile(
     {
       scenariusz: scen.nazwa,
       forma: scen.forma || 'lista',
+      skora: SKORA || 'stok',
+      zakonczenie: ZAKONCZENIE,
       temat: scen.temat,
       dlugosc: wynik.sekundy,
       planow: wynik.planow,
@@ -1530,8 +1564,10 @@ if (!BEZ_KONTROLI) {
     // тише, и мерить его по телу бессмысленно.
     ogonOd: wynik.ogonOd,
     oczekiwanePrzejscia: [
-      ...tytuly.map((t) => t.start),
-      ...wstawki.map((w) => w.start),
+      ...(SKORA ? [] : tytuly.map((t) => t.start)),
+      ...(SKORA ? [] : wstawki.map((w) => w.start)),
+      // У скина смена кадра идёт на каждой фразе: новый пузырь, новое слово, новый цвет.
+      ...(SKORA ? glos.frazy.flatMap((f) => [f.a - 0.08, f.a]) : []),
       ...wstawki.map((w) => w.start + w.dlugosc),
       ...klipy.reduce((acc, k) => { acc.push((acc.at(-1) ?? 0) + k.dlugosc); return acc; }, []),
     ],

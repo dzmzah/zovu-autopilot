@@ -21,6 +21,7 @@ import { chromium } from 'playwright';
 
 import { wybierzWejscie } from './dzwiek.mjs';
 import { zakonczenieHtml } from './zakonczenia.mjs';
+import { skoraHtml, SKORY } from './skory.mjs';
 import { mkdir, readFile, writeFile, rm, readdir } from 'node:fs/promises';
 import { existsSync, statSync } from 'node:fs';
 import path from 'node:path';
@@ -1617,7 +1618,9 @@ export async function zbuduj(plan) {
 
   const capDir = path.join(tmp, 'cap');
   await renderHtml(
-    karaoke
+    plan.skora
+      ? skoraHtml(plan.skora.typ, plan.skora.dane, { W, H })
+      : karaoke
       ? karaokeHtml(frazy, totalHero, plan.akcent || '#a78bfa')
       : podpisyHtml(bloki2, totalHero),
     totalHero,
@@ -1744,6 +1747,12 @@ export async function zbuduj(plan) {
         `y='(in_h-out_h)/2+${(amp * 0.7).toFixed(1)}*sin(2*PI*t/5.1+1.1)',setsar=1[dryf]`
     );
     baza = '[dryf]';
+  }
+  // Скин обрабатывает видео под своим слоем: размыть, ужать в окно, разрезать.
+  const filtrSkory = plan.skora && SKORY[plan.skora.typ]?.filtr;
+  if (filtrSkory) {
+    filtr.push(filtrSkory.replace('{IN}', baza).replace('{OUT}', '[skora]'));
+    baza = '[skora]';
   }
 
   // Наезд. Кадр берём тот же самый и накладываем его же увеличенную копию —

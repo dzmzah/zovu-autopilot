@@ -1,0 +1,54 @@
+name: ZOVU próba skórek montażu
+
+# Один сценарий — семь монтажных скинов (skory.mjs), чтобы Захар выбрал.
+# В очередь не ставится, ролики только артефактом.
+on:
+  workflow_dispatch:
+    inputs:
+      scenariusz:
+        description: 'Сценарий (имя или номер)'
+        type: string
+        default: 'pierwsza-odpowiedz'
+
+jobs:
+  zbuduj:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        skora: [czat, notatka, mem, slowo, split, typo, post]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Zależności node
+        run: |
+          npm ci --omit=dev || npm install --omit=dev
+          npx playwright install --with-deps chromium
+      - name: Zbuduj
+        env:
+          PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
+          GLOS_DOSTAWCA: ${{ vars.GLOS_DOSTAWCA }}
+          GCP_CLIENT_ID: ${{ secrets.GCP_CLIENT_ID }}
+          GCP_CLIENT_SECRET: ${{ secrets.GCP_CLIENT_SECRET }}
+          GCP_REFRESH_TOKEN: ${{ secrets.GCP_REFRESH_TOKEN }}
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+          GOOGLE_VOICE: ${{ vars.GOOGLE_VOICE }}
+          GOOGLE_VOICE_ZAPAS: ${{ vars.GOOGLE_VOICE_ZAPAS }}
+          GOOGLE_TTS_MODEL: ${{ vars.GOOGLE_TTS_MODEL }}
+          ZAKONCZENIE: blysk
+          SKORA: ${{ matrix.skora }}
+        run: node rolka-auto.mjs --scenariusz="${{ inputs.scenariusz }}"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skora-${{ matrix.skora }}
+          path: out/*.mp4
+          retention-days: 7
