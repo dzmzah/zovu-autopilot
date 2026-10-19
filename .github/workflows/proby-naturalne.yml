@@ -1,0 +1,37 @@
+name: ZOVU próbki — głos nie jak AI
+
+# Слепой отбор голоса 19.10.2026: один кусок ролика разными движками с
+# разговорной подачей, файлы под номерами, ключ к номерам — klucz.json.
+on:
+  workflow_dispatch:
+
+jobs:
+  probki:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: proby-naturalne.mjs
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Синтез
+        env:
+          ELEVENLABS_KEY: ${{ secrets.ELEVENLABS_KEY }}
+          ELEVENLABS_VOICE: ${{ secrets.ELEVENLABS_VOICE }}
+          GCP_CLIENT_ID: ${{ secrets.GCP_CLIENT_ID }}
+          GCP_CLIENT_SECRET: ${{ secrets.GCP_CLIENT_SECRET }}
+          GCP_REFRESH_TOKEN: ${{ secrets.GCP_REFRESH_TOKEN }}
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+        run: node proby-naturalne.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: probki-naturalne
+          path: |
+            out/proby-naturalne/*.mp3
+            out/proby-naturalne/klucz.json
+          if-no-files-found: error
