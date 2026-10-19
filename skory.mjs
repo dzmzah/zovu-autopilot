@@ -20,16 +20,16 @@
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 export const SKORY = {
-  czat: { nazwa: 'переписка', filtr: '{IN}boxblur=26:2,eq=brightness=-0.22:saturation=0.8{OUT}' },
+  czat: { nazwa: 'переписка', filtr: '{IN}boxblur=26:2,eq=brightness=-0.22:saturation=0.8,setsar=1{OUT}' },
   notatka: {
     nazwa: 'заметка iPhone',
     // Видео живёт только в окошке справа снизу — остальное закрывает заметка.
     filtr:
       '{IN}scale=400:640:force_original_aspect_ratio=increase,crop=400:640,' +
-      'pad=1080:1920:620:1160:black{OUT}',
+      'pad=1080:1920:620:1160:black,setsar=1{OUT}',
   },
   mem: { nazwa: 'мем', filtr: "{IN}crop=1080:1200:0:'(ih-1200)/2',pad=1080:1920:0:720:white{OUT}" },
-  slowo: { nazwa: 'одно слово', filtr: '{IN}eq=brightness=-0.30:saturation=0.55{OUT}' },
+  slowo: { nazwa: 'одно слово', filtr: '{IN}eq=brightness=-0.30:saturation=0.55,setsar=1{OUT}' },
   split: {
     nazwa: 'так / не так',
     // Две половины — одно видео со сдвигом в 2,5 с: сверху ч/б (как не надо),
@@ -38,10 +38,10 @@ export const SKORY = {
       "{IN}split=2[sa][sb];[sa]crop=1080:960:0:'(ih-960)/2',hue=s=0,eq=brightness=-0.06," +
       'pad=1080:1920:0:0[sg];' +
       "[sb]trim=start=2.5,setpts=PTS-STARTPTS,crop=1080:960:0:'(ih-960)/2'[sd];" +
-      '[sg][sd]overlay=0:960:eof_action=repeat{OUT}',
+      '[sg][sd]overlay=0:960:eof_action=repeat,setsar=1{OUT}',
   },
   typo: { nazwa: 'типографика на цвете', filtr: null },
-  post: { nazwa: 'пост-цитата', filtr: '{IN}boxblur=22:2,eq=brightness=-0.25{OUT}' },
+  post: { nazwa: 'пост-цитата', filtr: '{IN}boxblur=22:2,eq=brightness=-0.25,setsar=1{OUT}' },
 };
 
 // Слова, которые не годятся в «главное слово» фразы.
