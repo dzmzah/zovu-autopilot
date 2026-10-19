@@ -128,6 +128,8 @@ jobs:
           GCP_REFRESH_TOKEN: ${{ secrets.GCP_REFRESH_TOKEN }}
           GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
           GOOGLE_VOICE: ${{ vars.GOOGLE_VOICE }}
+          GOOGLE_VOICE_ZAPAS: ${{ vars.GOOGLE_VOICE_ZAPAS }}
+          GOOGLE_TTS_MODEL: ${{ vars.GOOGLE_TTS_MODEL }}
         run: |
           set -e
           # Расписание больше не знает, каким сборщиком собирать. Оно зовёт

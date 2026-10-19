@@ -194,7 +194,42 @@ async function tokenGoogle({ id, sekret, odswiez }) {
   return googleToken.t;
 }
 
-async function powiedzGoogle(tekst, wyjscie, { id, sekret, odswiez, projekt, glos, tempo, podanie }) {
+// Цепочка голосов. 19.10.2026 Захар выбрал вслепую Gemini 2.5 PRO TTS —
+// `Iapetus` основным, `Sadaltager` запасным; нынешний Flash Puck на той же
+// пробе проиграл («голос должен быть не ИИшным, это самое главное»).
+// Основной и запасной задаются переменными GOOGLE_VOICE / GOOGLE_VOICE_ZAPAS
+// и GOOGLE_TTS_MODEL. Если основной не отвечает — запасной, потом прежний
+// Flash тем же голосом: лента важнее тембра. Переключение ЛИПКОЕ — однажды
+// упав, прогон до конца идёт на запасном, чтобы в одном ролике не звучали
+// два разных человека.
+const GOOGLE_MODEL_ZAPAS = 'gemini-2.5-flash-tts';
+let googleSpad = 0;
+
+async function powiedzGoogle(tekst, wyjscie, opcje) {
+  const { glos, glosZapas, model } = opcje;
+  const lancuch = [{ glos, model }];
+  if (opcje.podanie) {
+    if (glosZapas && glosZapas !== glos) lancuch.push({ glos: glosZapas, model });
+    if (model && model !== GOOGLE_MODEL_ZAPAS) lancuch.push({ glos, model: GOOGLE_MODEL_ZAPAS });
+  }
+  let blad = null;
+  for (let n = googleSpad; n < lancuch.length; n++) {
+    try {
+      await powiedzGoogleRaz(tekst, wyjscie, { ...opcje, ...lancuch[n] });
+      return;
+    } catch (e) {
+      blad = e;
+      if (n + 1 < lancuch.length) {
+        googleSpad = n + 1;
+        const dalej = lancuch[n + 1];
+        console.warn(`[glos] ⚠ ${lancuch[n].glos} (${lancuch[n].model}) не отвечает: ${e.message.slice(0, 120)} — перехожу на ${dalej.glos} (${dalej.model})`);
+      }
+    }
+  }
+  throw blad;
+}
+
+async function powiedzGoogleRaz(tekst, wyjscie, { id, sekret, odswiez, projekt, glos, tempo, podanie, model }) {
   const token = await tokenGoogle({ id, sekret, odswiez });
 
   // Два разных движка под одним ключом:
@@ -213,7 +248,7 @@ async function powiedzGoogle(tekst, wyjscie, { id, sekret, odswiez, projekt, glo
   const body = {
     input: zPodaniem ? { text: tekst, prompt: podanie } : { text: tekst },
     voice: zPodaniem
-      ? { languageCode: 'pl-PL', name: nazwaGlosu, modelName: 'gemini-2.5-flash-tts' }
+      ? { languageCode: 'pl-PL', name: nazwaGlosu, modelName: model || GOOGLE_MODEL_ZAPAS }
       : { languageCode: 'pl-PL', name: nazwaGlosu },
     // Формат — не mp3: их mp3 это 24 кГц и 32 кбит/с, слышно как телефон.
     // speakingRate только у Chirp: у Gemini темп задаётся словами, а ползунок
@@ -289,10 +324,12 @@ export function zywaMowa(frazy, doWymowy) {
     .join(' ');
 }
 
+// С 19.10.2026 — подача слепой пробы, на которой Захар выбрал Iapetus:
+// голос выбирался вместе с ней, другая подача — это уже другой голос.
 const GOOGLE_PODANIE =
-  'Mów jak człowiek, który tłumaczy to koledze przy stole: swobodnie, ze zmiennym ' +
-  'rytmem i naturalnymi oddechami. Nie recytuj listy — prowadź jedną myśl do końca. ' +
-  'Na ostatnim zdaniu nie trać energii, uśmiechnij się głosem. ' +
+  'Mów jak zwykły chłopak, który opowiada coś znajomemu przy kawie: naturalnie i swobodnie, ' +
+  'z lekkim uśmiechem w głosie, z oddechami i drobnymi zawahaniami. Nie jak lektor, nie jak reklama. ' +
+  'Prowadź jedną myśl do końca, nie recytuj listy. ' +
   // Без этой строчки подача даёт 1,5 слога в секунду и ролик на 36 секунд
   // вместо двадцати: модель понимает «swobodnie» как «медленно».
   'Mów w tempie zwykłej rozmowy, żywo, bez zwalniania i bez długich przerw.';
@@ -755,6 +792,8 @@ export async function zbudujGlos(
           odswiez: gcpOdswiez,
           projekt: gcpProjekt,
           glos: glosId || (await zEnv('GOOGLE_VOICE')) || GOOGLE_GLOS,
+          glosZapas: glosId ? null : (await zEnv('GOOGLE_VOICE_ZAPAS')) || null,
+          model: (await zEnv('GOOGLE_TTS_MODEL')) || GOOGLE_MODEL_ZAPAS,
         }
       : null;
 
@@ -826,7 +865,7 @@ export async function zbudujGlos(
   // чего всё и затевалось. Кэш общий с остальными, ключ учитывает голос.
   if (google) {
     const odcisk = createHash('sha1')
-      .update(JSON.stringify(['google-dubel-v1', frazy.map((f) => doWymowy(f)), google.glos]))
+      .update(JSON.stringify(['google-dubel-v1', frazy.map((f) => doWymowy(f)), google.glos, google.model]))
       .digest('hex')
       .slice(0, 16);
     dubel = path.join(KESZ, `dubel-${odcisk}.wav`);
