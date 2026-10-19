@@ -36,6 +36,7 @@ import {
   sredniZasiegPoFormie,
   ostatniaForma,
 } from './historia-scenariuszy.mjs';
+import { ZAKONCZENIA } from './zakonczenia.mjs';
 
 const DIR = import.meta.dirname;
 const OUT = path.join(DIR, 'out');
@@ -459,6 +460,14 @@ const SCENARIUSZE = [
       { rola: 'zaplata', tekst: 'Cena bez rozmowy to zgadywanka. Dla obu stron.', szukaj: 'handshake business deal office', pauza: 0.32 },
       { rola: 'cta', tekst: 'Zapisz te trzy zdania. Na jutro.', szukaj: 'hands writing notebook desk', pauza: 0.20 },
     ],
+    // Призыв под каждый вид концовки (zakonczenia.mjs). Без записи здесь
+    // остаётся призыв из `czesci` — он годится для blysk и marka.
+    zakonczenia: {
+      petla: { cta: 'Bo inaczej znowu będzie tak:' },
+      pytanie: { cta: 'A ty? Co odpisujesz na pierwsze pytanie o cenę?', karta: { tekst: 'A ty co odpisujesz?', odpowiedz: 'Od razu kwotę…' } },
+      wyslij: { cta: 'Wyślij to komuś, kto dziś wycenia zlecenie.', karta: { tekst: 'Komuś, kto dziś wycenia' } },
+      seria: { cta: 'Jutro: co napisać, kiedy klient milknie po cenie.', karta: { kiedy: 'JUTRO', tekst: 'Co napisać, gdy klient milknie po cenie' } },
+    },
   },
   {
     nazwa: 'wizytowka-google',
@@ -1189,6 +1198,18 @@ async function nastepnaMuzyka() {
 const { scen, idx: scenIdx, wydanie } = await nastepnyScenariusz();
 console.log(`[rolka-auto] сценарий ${scenIdx + 1} из ${SCENARIUSZE.length}: ${scen.nazwa}`);
 
+// Концовка (zakonczenia.mjs). Пока выбирается явно: --zakonczenie=typ или
+// ZAKONCZENIE в окружении; пусто — прежняя карточка «marka».
+const ZAKONCZENIE =
+  ((process.argv.find((a) => a.startsWith('--zakonczenie=')) || '').split('=')[1] || process.env.ZAKONCZENIE || 'marka').trim();
+if (!ZAKONCZENIA[ZAKONCZENIE]) throw new Error(`нет концовки «${ZAKONCZENIE}», есть: ${Object.keys(ZAKONCZENIA).join(', ')}`);
+const zakTekst = scen.zakonczenia?.[ZAKONCZENIE] || {};
+if (zakTekst.cta) {
+  const i = scen.czesci.findLastIndex((c) => c.rola === 'cta');
+  if (i >= 0) scen.czesci[i] = { ...scen.czesci[i], tekst: zakTekst.cta, mowa: undefined };
+}
+console.log(`[rolka-auto] концовка: ${ZAKONCZENIE}${zakTekst.cta ? ' — «' + zakTekst.cta + '»' : ''}`);
+
 // 1. Голос. Фразы озвучиваются по одной — так границы каждой известны точно.
 //
 // `--bez-glosu` считает тайминги по слогам и дубль не тратит. Точно так же
@@ -1434,7 +1455,11 @@ const plan = {
   // случайная картинка сбоку, а не как приём. Захар: «что за стикеры
   // какие-то вообще непонятные».
   naklejki: scen.naklejki ? rozlozNaklejki(scen.czesci, glos.frazy, 2) : [],
-  ogon: {
+  ogon: ZAKONCZENIE === 'petla'
+    ? null
+    : ZAKONCZENIE !== 'marka'
+    ? { typ: ZAKONCZENIE, dlugosc: ZAKONCZENIA[ZAKONCZENIE].dlugosc, adres: 'zovu.pl', tekst: scen.czesci.findLast((c) => c.rola === 'cta')?.tekst || '', ...(zakTekst.karta || {}) }
+    : {
     marka: true,
     dlugosc: 3.8,
     adres: 'zovu.pl',

@@ -20,6 +20,7 @@
 import { chromium } from 'playwright';
 
 import { wybierzWejscie } from './dzwiek.mjs';
+import { zakonczenieHtml } from './zakonczenia.mjs';
 import { mkdir, readFile, writeFile, rm, readdir } from 'node:fs/promises';
 import { existsSync, statSync } from 'node:fs';
 import path from 'node:path';
@@ -1853,8 +1854,11 @@ export async function zbuduj(plan) {
   if (plan.ogon) {
     const o = plan.ogon;
     const dir = path.join(tmp, 'ogon');
+    // Новые концовки (zakonczenia.mjs) продолжают ПОСЛЕДНИЙ КАДР: он уходит
+    // в размытие, поверх приходит действие. Им нужен этот кадр заранее.
+    const nowaKoncowka = o.typ && o.typ !== 'marka';
     let logoUri = null;
-    if (o.marka) {
+    if (o.marka || o.typ === 'blysk') {
       try {
         const b64 = (await readFile(path.join(DIR, 'logo-white.b64'), 'utf8')).replace(/\s+/g, '');
         logoUri = 'data:image/png;base64,' + b64;
@@ -1862,12 +1866,20 @@ export async function zbuduj(plan) {
         logoUri = null;
       }
     }
-    await renderHtml(
-      o.marka ? markaHtml(o, o.dlugosc, logoUri) : kartaHtml(o, o.dlugosc),
-      o.dlugosc,
-      dir,
-      false
-    );
+    let html;
+    if (nowaKoncowka) {
+      const kadr = path.join(tmp, 'koncowka-tlo.jpg');
+      const dl = await ffprobeDuration(wynikV);
+      for (const t of [dl - 0.08, dl - 0.3, dl - 0.6]) {
+        await ffmpeg(['-ss', Math.max(0, t).toFixed(3), '-i', wynikV, '-frames:v', '1', '-q:v', '3', kadr]);
+        if (existsSync(kadr) && statSync(kadr).size > 1024) break;
+      }
+      const tlo = existsSync(kadr) ? 'data:image/jpeg;base64,' + (await readFile(kadr)).toString('base64') : '';
+      html = zakonczenieHtml(o, { W, H, tlo, logo: logoUri });
+    } else {
+      html = o.marka ? markaHtml(o, o.dlugosc, logoUri) : kartaHtml(o, o.dlugosc);
+    }
+    await renderHtml(html, o.dlugosc, dir, false);
 
     const ogonMp4 = path.join(tmp, 'ogon.mp4');
     await ffmpeg([
@@ -1882,7 +1894,8 @@ export async function zbuduj(plan) {
     // Аутро НЕ вставляем встык: подмена всего кадра на плашку читается тем же
     // скачком, что и склейка. Он наезжает снизу — движение делает это
     // переходом, а не резом.
-    const OGON_PRZ = plan.ogonPrzejscie ?? 0.4;
+    // Новой концовке наезд не нужен: она начинается с того же кадра.
+    const OGON_PRZ = nowaKoncowka ? 0 : plan.ogonPrzejscie ?? 0.4;
     const zOgonem = path.join(tmp, 'z-ogonem.mp4');
 
     // ── застывший последний кадр: с него начинается наезд аутро ──
