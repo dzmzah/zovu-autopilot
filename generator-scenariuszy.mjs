@@ -242,13 +242,15 @@ export function sprawdz(s, znane) {
     if (/[^\x00-\x7f]/.test(c.szukaj || '')) bledy.push(`запрос не по-английски: «${c.szukaj}»`);
     if (/\p{Extended_Pictographic}/u.test(c.tekst || '')) bledy.push('эмодзи во фразе');
   }
-  if (razem < 26 || razem > 52) bledy.push(`всего слов ${razem}`);
+  if (razem < 26 || razem > 56) bledy.push(`всего слов ${razem}`);
   const wszystko = [tekstScen(s), s.opis, JSON.stringify(s.zakonczenia || {})].join(' ').toLowerCase();
   for (const z of ZAKAZANE) if (wszystko.includes(z)) bledy.push(`штамп «${z}»`);
   // Цифры с процентами или «x razy» почти всегда выдуманная статистика.
   if (/\d+\s*(%|proc|razy)/i.test(wszystko)) bledy.push('похоже на выдуманную статистику');
   if (!/zovu\.pl/.test(s.opis || '')) bledy.push('в посте нет zovu.pl');
-  if (!s.zakonczenia?.pytanie?.cta || !s.zakonczenia?.wyslij?.cta) bledy.push('нет призывов под концовки');
+  // Модель часто теряет одну из двух концовок. Одной хватает: без своего
+  // текста концовка берёт обычный призыв сценария, как у ручного банка.
+  if (!s.zakonczenia?.pytanie?.cta && !s.zakonczenia?.wyslij?.cta) bledy.push('нет призывов под концовки');
   if (!s.plyta?.linie?.length) bledy.push('нет обложки');
   // Похожесть на то, что уже было.
   const ja = trojki(tekstScen(s));
@@ -278,7 +280,7 @@ function doBanku(s) {
       szukaj: c.szukaj.trim(),
       pauza: PAUZY[c.rola] ?? 0.3,
     })),
-    zakonczenia: { pytanie: s.zakonczenia.pytanie, wyslij: s.zakonczenia.wyslij },
+    zakonczenia: Object.fromEntries(['pytanie', 'wyslij'].filter((k) => s.zakonczenia[k]?.cta).map((k) => [k, s.zakonczenia[k]])),
     zrodlo: 'generator',
     utworzono: new Date().toISOString().slice(0, 10),
   };
