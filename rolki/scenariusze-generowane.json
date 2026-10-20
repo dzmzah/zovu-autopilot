@@ -1,0 +1,439 @@
+[
+  {
+    "nazwa": "mit-pytanie-na-poczatku-posta",
+    "plyta": {
+      "linie": [
+        "ZACZYNASZ POST",
+        "OD PYTANIA?"
+      ],
+      "plaszka": "MIT"
+    },
+    "forma": "mit",
+    "temat": "Czy post zawsze musi zaczynać się pytaniem?",
+    "opis": "Ciągle słyszysz, że post trzeba zaczynać pytaniem? To jedna z tych „dobrych rad”, która częściej szkodzi. Ludzie w sieci skanują treść, a nie czytają. Pytanie na starcie to dla nich zbędny wysiłek. Zanim pomyślą nad odpowiedzią, przewiną dalej. Zamiast zmuszać do myślenia, daj konkret. Najciekawszą informację, wniosek lub puentę. Pytanie zadaj na końcu, gdy czytelnik wie, o co chodzi.\n\nzovu.pl\n\n#pisaniepostów #socialmediatips #marketingdlamalychfirm #pierwszezdanie #copywritingpolska",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Mówią ci, żeby zaczynać posty od pytania?",
+        "szukaj": "person thinking with question marks",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "To pułapka. Ludzie nie chcą od razu myśleć.",
+        "szukaj": "person scrolling phone fast",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Ich kciuk jest szybszy od ich myśli.",
+        "szukaj": "thumb scrolling social media feed",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Dlatego na początku daj najważniejszy konkret.",
+        "szukaj": "highlighting text with a marker",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Najważniejsze zdanie posta to zawsze to pierwsze.",
+        "szukaj": "person pointing at first line of text",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Jak wygląda pierwsze zdanie twojego ostatniego posta?",
+        "szukaj": "person looking at their own phone screen",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "pytanie": {
+        "cta": "Jak wygląda pierwsze zdanie twojego ostatniego posta?",
+        "karta": {
+          "tekst": "Pierwsze zdanie twojego posta?",
+          "odpowiedz": "Zaczyna się od… / To było pytanie o…"
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-20"
+  },
+  {
+    "nazwa": "plan-na-tydzien-nie-na-miesiac",
+    "plyta": {
+      "linie": [
+        "PLAN TREŚCI",
+        "NA CAŁY MIESIĄC?"
+      ],
+      "plaszka": "SERIO?"
+    },
+    "forma": "pod-prad",
+    "temat": "Jak publikować regularnie i się nie wypalić?",
+    "opis": "Wszyscy radzą planować treści na miesiąc z góry. Brzmi to dobrze, ale dla małej firmy to przepis na porażkę. Taki plan jest sztywny. Nie uwzględnia bieżących spraw. Co gorsza, przytłacza. Myśl o wielu postach naraz zabija kreatywność. Spróbuj inaczej: planuj tylko na tydzień do przodu. To o wiele łatwiejsze. Masz luz na spontaniczne tematy i zachowujesz regularność. Mniej presji to lepsze treści.\n\nzovu.pl\n\n#planowanie #wypaleniezawodowe #małafirma #zarzadzanieczasem #socialmediaplan",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Każą ci planować posty na miesiąc do przodu?",
+        "szukaj": "person looking stressed at calendar",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "To prosta droga do wypalenia i sztywnych postów.",
+        "szukaj": "person tearing paper calendar page",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Spróbuj inaczej. Zaplanuj tylko najbliższy tydzień.",
+        "szukaj": "writing on a weekly planner",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Mniej presji i więcej luzu na spontaniczne tematy.",
+        "szukaj": "person relaxed drinking coffee",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Regularność jest ważna, ale nie kosztem zdrowia.",
+        "szukaj": "person closing laptop and smiling",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Wyślij to komuś, kto ciągle walczy z planem treści.",
+        "szukaj": "person sending message on phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto ciągle walczy z planem treści.",
+        "karta": {
+          "tekst": "Komuś, kto walczy z planem treści."
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-20"
+  },
+  {
+    "nazwa": "zamiast-katalogu-pokaz-kulisy",
+    "plyta": {
+      "linie": [
+        "ZAMIAST OFERTY",
+        "POKAŻ KULISY"
+      ],
+      "plaszka": "PRZED/PO"
+    },
+    "forma": "przed-po",
+    "temat": "Jedna zmiana, która ożywi twój profil na Instagramie.",
+    "opis": "Twój profil wygląda jak gazetka z supermarketu? Same produkty, usługi i ceny? Profil to nudny katalog. Zdjęcie produktu, cena, promocja. I tak w kółko. To nie buduje relacji, a klienci idą tam, gdzie taniej. Profil pokazuje kulisy. Opowiadasz, jak powstają produkty. Pokazujesz swoją twarz i warsztat. Dzielisz się wiedzą. Ludzie zaczynają ci ufać i cię lubić. A kupujemy od tych, których lubimy.\n\nzovu.pl\n\n#zakulisami #wizerunekfirmy #markaosobista #malafirma #instagramdlafirmy #katowice",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Twój profil wygląda jak ulotka reklamowa?",
+        "szukaj": "scrolling through boring product photos",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Same zdjęcia produktów i cennik. Nuda.",
+        "szukaj": "product catalog with prices",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Pokaż, jak pracujesz. Pokaż kulisy i swoją twarz.",
+        "szukaj": "craftsman hands working detail shot",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Ludzie nie kupują tylko rzeczy. Kupują od ludzi.",
+        "szukaj": "small business owner smiling at camera",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Zamiast być sklepem, stań się miejscem.",
+        "szukaj": "cozy local shop entrance",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Co ostatnio pokazałeś u siebie zza kulis?",
+        "szukaj": "person recording video with a phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "pytanie": {
+        "cta": "Co ostatnio pokazałeś u siebie zza kulis?",
+        "karta": {
+          "tekst": "Co pokazałeś zza kulis?",
+          "odpowiedz": "Nowe narzędzia w warsztacie."
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-20"
+  },
+  {
+    "nazwa": "co-zrobic-ze-zla-opinia-w-google",
+    "plyta": {
+      "linie": [
+        "ZŁA OPINIA",
+        "W GOOGLE?"
+      ],
+      "plaszka": "CO ROBIĆ?"
+    },
+    "forma": "pytanie",
+    "temat": "Jak reagować na negatywne opinie w Google?",
+    "opis": "Dostajesz jedną gwiazdkę i ostry komentarz w Google. Pierwsza myśl: ignorować albo usunąć. To najgorsze, co możesz zrobić. Brak odpowiedzi wygląda, jakbyś miał klienta gdzieś. Kłótnia i atak to jeszcze gorsze wyjście. Twoja odpowiedź nie jest dla autora opinii. Jest dla wszystkich, którzy ją przeczytają. Odpowiedz. Zawsze. Spokojnie, profesjonalnie i publicznie. Jeśli to twój błąd – przeproś. Jeśli nie – przedstaw swoją wersję. Pokaż, że ci zależy i potrafisz rozwiązywać problemy. To buduje zaufanie.\n\nzovu.pl\n\n#wizytówkagoogle #opinieklientów #negatywnaopinia #zarządzaniekryzysowe #lokalnybiznes",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Dostałeś złą opinię i nie wiesz, co robić?",
+        "szukaj": "person looking worried at phone screen",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Chcesz ją zignorować? To duży błąd.",
+        "szukaj": "deleting notification swipe gesture",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Zawsze odpowiadaj. Spokojnie i na temat.",
+        "szukaj": "person typing a calm reply",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Podziękuj, wyjaśnij albo przeproś.",
+        "szukaj": "handshake close up",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Odpowiadasz nie autorowi, ale przyszłym klientom.",
+        "szukaj": "group of people looking at screen",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Wyślij to komuś, kto właśnie dostał słabą ocenę.",
+        "szukaj": "person sending a link on phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto właśnie dostał słabą ocenę.",
+        "karta": {
+          "tekst": "Komuś, kto dostał słabą ocenę."
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-20"
+  },
+  {
+    "nazwa": "blad-w-reklamie-za-stowke",
+    "plyta": {
+      "linie": [
+        "REKLAMA POSZŁA",
+        "A EFEKTÓW BRAK?"
+      ],
+      "plaszka": "BŁĄD"
+    },
+    "forma": "blad",
+    "temat": "Częsty błąd w taniej reklamie na Facebooku.",
+    "opis": "Wrzucasz post, klikasz „Promuj post”, wydajesz pieniądze. Efekt? Trochę polubień, spory zasięg, ale zero zapytań o ofertę. To klasyczny błąd: promowanie bez celu. Puszczasz reklamę, nie mówiąc ludziom, co mają zrobić. Więc nie robią nic. Po prostu przewijają dalej. Naprawa jest prosta. Zanim klikniesz „Promuj”, zadaj sobie pytanie: co ma zrobić odbiorca? Wysłać wiadomość? Wejść na stronę? Zadzwonić? Wybierz cel w ustawieniach i napisz o nim w tekście. To wszystko.\n\nzovu.pl\n\n#reklamafacebook #facebookads #błądmarketingowy #małafirma #promocjafirmy",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Promujesz posty, a zyskujesz tylko polubienia?",
+        "szukaj": "phone screen showing likes notification",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Klikanie „promuj” bez żadnego celu to błąd.",
+        "szukaj": "finger hovering over boost post button",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Wydajesz pieniądze, a nikt nie dzwoni ani nie pisze.",
+        "szukaj": "burning money animation",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Zanim włączysz reklamę, określ jeden, prosty cel.",
+        "szukaj": "person writing one goal on paper",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Reklama bez celu to przepalanie pieniędzy.",
+        "szukaj": "empty wallet",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Jaki cel miała twoja ostatnia tania reklama?",
+        "szukaj": "person thinking looking at phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "pytanie": {
+        "cta": "Jaki cel miała twoja ostatnia tania reklama?",
+        "karta": {
+          "tekst": "Cel twojej ostatniej reklamy?",
+          "odpowiedz": "Chyba żaden… / Zdobyć wiadomości."
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-20"
+  },
+  {
+    "nazwa": "czego-nie-robi-dobrze-ai",
+    "plyta": {
+      "linie": [
+        "AI NAPISZE CI POSTY?",
+        "UWAŻAJ NA TO"
+      ],
+      "plaszka": "LISTA"
+    },
+    "forma": "lista",
+    "temat": "Trzy rzeczy, w których AI ci nie pomoże.",
+    "opis": "Sztuczna inteligencja kusi obietnicą gotowych tekstów. Czasem warto z niej skorzystać, ale są rzeczy, w których jest po prostu słaba. Po pierwsze, AI nie zna twojej firmy. Nie wie, kim są twoi klienci i co jest dla nich ważne. Dlatego jej teksty są bardzo ogólne. Po drugie, AI nie ma charakteru. Pisze poprawnie, ale nudno i bezosobowo. Przez to twoja firma traci unikalny głos. Po trzecie, AI nie opowiada historii i nie budzi emocji. A to one sprawiają, że ludzie zapamiętują markę i chcą kupować.\n\nzovu.pl\n\n#sztucznainteligencja #pisanietekstów #contentmarketing #malymarketing #chatgpt",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Myślisz, że AI napisze za ciebie dobre posty?",
+        "szukaj": "robot hands typing on a keyboard",
+        "pauza": 0.38
+      },
+      {
+        "rola": "punkt",
+        "numer": 1,
+        "tytul": "Ogólniki",
+        "tekst": "Po pierwsze, AI nie zna twojej firmy. Pisze ogólnikami.",
+        "szukaj": "generic office stock photo",
+        "pauza": 0.3
+      },
+      {
+        "rola": "punkt",
+        "numer": 2,
+        "tytul": "Nuda",
+        "tekst": "Po drugie, jej teksty są nudne i bez charakteru.",
+        "szukaj": "person looking bored at computer screen",
+        "pauza": 0.3
+      },
+      {
+        "rola": "punkt",
+        "numer": 3,
+        "tytul": "Zero emocji",
+        "tekst": "Po trzecie, nie opowie historii, która poruszy klienta.",
+        "szukaj": "blank face emoji",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "AI to pomocnik, a nie gotowy pracownik.",
+        "szukaj": "person correcting text on screen",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Wyślij to komuś, kto za bardzo ufa sztucznej inteligencji.",
+        "szukaj": "person sharing a link on a phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto za bardzo ufa sztucznej inteligencji.",
+        "karta": {
+          "tekst": "Komuś, kto za bardzo ufa AI."
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-20"
+  },
+  {
+    "nazwa": "mit-muzyki-w-rolkach",
+    "plyta": {
+      "linie": [
+        "ROLKA MUSI MIEĆ",
+        "MODNĄ MUZYKĘ?"
+      ],
+      "plaszka": "MIT"
+    },
+    "forma": "mit",
+    "temat": "Czy rolki naprawdę muszą mieć popularną muzykę?",
+    "opis": "Wszyscy powtarzają, że kluczem do zasięgów jest modna muzyka. Czy na pewno? Często taka muzyka nie pasuje do klimatu twojej firmy. Jesteś prawnikiem, a w tle leci smutna piosenka? To nie buduje profesjonalnego wizerunku. Trendy mijają błyskawicznie. Za chwilę nikt nie będzie pamiętał tego hitu. Co działa lepiej? Twój głos. Mówienie do kamery buduje zaufanie i pokazuje człowieka. To cenniejsze niż chwilowa moda.\n\nzovu.pl\n\n#poradydlafirm #krótkiewideo #rolki #wideo #socialmediaporady #śląsk",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Myślisz, że każda rolka musi mieć popularną muzykę?",
+        "szukaj": "person scrolling through music list on phone",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "To mit. Często taka muzyka po prostu nie pasuje.",
+        "szukaj": "person looking confused at phone",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "A trendy znikają tak szybko, jak się pojawiły.",
+        "szukaj": "calendar pages flying away",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Zamiast tego po prostu mów. Twój głos buduje zaufanie.",
+        "szukaj": "person talking confidently to camera",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Własny głos jest lepszy niż pożyczony trend.",
+        "szukaj": "audio waveform of a voice",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Wolisz rolki z mówieniem czy z samą muzyką?",
+        "szukaj": "person with headphones on",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "pytanie": {
+        "cta": "Wolisz rolki z mówieniem czy z samą muzyką?",
+        "karta": {
+          "tekst": "Rolki z mówieniem czy z muzyką?",
+          "odpowiedz": "Wolę, jak ktoś mówi."
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-20"
+  }
+]
