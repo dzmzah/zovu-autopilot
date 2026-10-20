@@ -119,13 +119,18 @@ async function trwanie(plik) {
 // в отличие от стыков посреди слова, которые Захар услышал как «лагает».
 export async function skrocPauzy(plik, { dluzszeNiz = 0.62, zostaw = 0.42 } = {}) {
   const calosc = await trwanie(plik);
-  const dziury = (await cisze(plik, -40, dluzszeNiz)).filter(
-    (c) => c.doo != null && c.od > 0.05 && c.doo < calosc - 0.05
+  const wszystkie = await cisze(plik, -40, 0.15);
+  const dziury = wszystkie.filter(
+    (c) => c.doo != null && c.od > 0.05 && c.doo < calosc - 0.05 && c.doo - c.od >= dluzszeNiz
   );
-  if (!dziury.length) return 0;
+  // Тишина В НАЧАЛЕ дубля: Pro-голос иногда молчит полсекунды и больше до
+  // первого слова, и проверка бракует ролик за провал звука на 0-й секунде
+  // (проба 20.10). Оставляем 0,08 с — паузу перед фразой задаёт сборка.
+  const wstep = wszystkie.find((c) => c.od <= 0.05 && c.doo != null && c.doo > 0.2);
+  let od = wstep ? +(wstep.doo - 0.08).toFixed(3) : 0;
+  if (!dziury.length && !wstep) return 0;
   const zostaje = [];
-  let od = 0;
-  let wycieto = 0;
+  let wycieto = od;
   for (const c of dziury) {
     const polowa = zostaw / 2;
     zostaje.push([od, c.od + polowa]);
@@ -144,7 +149,8 @@ export async function skrocPauzy(plik, { dluzszeNiz = 0.62, zostaw = 0.42 } = {}
   await copyFile(tmp, plik);
   await rm(tmp, { force: true });
   console.log(
-    `[glos] длинных пауз: ${dziury.length} (${dziury.map((c) => (c.doo - c.od).toFixed(2)).join(', ')} с) — ` +
+    (wstep ? `[glos] тишина в начале ${wstep.doo.toFixed(2)} с — срезал; ` : '[glos] ') +
+      `длинных пауз: ${dziury.length} (${dziury.map((c) => (c.doo - c.od).toFixed(2)).join(', ')} с) — ` +
       `ужал до ${zostaw} с, ролик короче на ${wycieto.toFixed(2)} с`
   );
   return wycieto;

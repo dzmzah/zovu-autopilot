@@ -10,7 +10,10 @@
 # что текст из подсказки уже прозвучал, и выбросила первые девять секунд.
 import json
 import os
+import subprocess
 import sys
+
+import numpy as np
 
 from faster_whisper import WhisperModel
 
@@ -20,8 +23,16 @@ model = WhisperModel(
     device='cpu',
     compute_type='int8',
 )
+# Звук декодируем сами через ffmpeg: свежий PyAV (av 15+) ломает чтение
+# внутри faster-whisper — «open() got an unexpected keyword argument
+# 'metadata_errors'», сервер 20.10.
+pcm = subprocess.run(
+    ['ffmpeg', '-v', 'error', '-i', plik, '-ac', '1', '-ar', '16000', '-f', 's16le', '-'],
+    check=True, capture_output=True,
+).stdout
+dzwiek = np.frombuffer(pcm, np.int16).astype(np.float32) / 32768.0
 segmenty, _ = model.transcribe(
-    plik,
+    dzwiek,
     language='pl',
     word_timestamps=True,
     vad_filter=False,
