@@ -83,6 +83,8 @@ Każdy scenariusz to obiekt JSON:
  }
 }
 
+Każdy scenariusz w pakiecie o INNYM temacie. Porady w pakiecie nie mogą sobie przeczyć i mają być zgodne z tym, jak platformy działają dziś (2026) — jeśli nie masz pewności, wybierz inną radę.
+"tekst" jest czytany na głos: bez etykiet z dwukropkiem („Przed:”, „Po:”, „Błąd:”, „Naprawa:”), bez nawiasów i skrótów.
 Fraza ("tekst"): 3–9 słów, jedna myśl, da się powiedzieć na jednym oddechu. Mogą być dwa bardzo krótkie zdania („Najpierw pytanie. O cel.”). Poprawna polszczyzna — sprawdź rodzaj, przypadki, ogonki.
 "szukaj": zapytanie PO ANGIELSKU do stocku wideo, 3–5 słów, konkretny obraz z życia (ręce, telefon, sklep, warsztat), bez abstrakcji typu "success" czy "growth".
 Pole "zakonczenia" jest OBOWIĄZKOWE w każdym scenariuszu — bez niego scenariusz jest odrzucany.
@@ -90,7 +92,7 @@ Odpowiadasz samym JSON: {"scenariusze": [ ... ]}.`;
 
 const ZASADY_KOREKTY = `Jesteś korektorem i redaktorem polskich tekstów do krótkich filmów. Dostajesz JSON ze scenariuszami.
 Popraw: błędy językowe (rodzaj, przypadki, ogonki, interpunkcja), zdania nienaturalne lub „przetłumaczone”, frazy dłuższe niż 9 słów, ogólniki, marketingowy żargon.
-Usuń każdą wymyśloną liczbę, statystykę lub historię o klientach — zamień na zwykłą radę.
+Usuń etykiety z dwukropkiem na początku fraz („Przed:”, „Błąd:”) — tekst jest czytany na głos. Jeśli dwa scenariusze dają sprzeczne porady, popraw słabszy. Usuń każdą wymyśloną liczbę, statystykę lub historię o klientach — zamień na zwykłą radę.
 Nie zmieniaj struktury, kluczy, ról, liczby fraz ani pól "szukaj" i "nazwa". Zachowaj WSZYSTKIE pola, także "zakonczenia", "plyta" i "opis" (je też popraw). Zwróć ten sam JSON: {"scenariusze": [ ... ]}.`;
 
 async function klucz() {
@@ -241,6 +243,7 @@ export function sprawdz(s, znane) {
     if (!c.szukaj || slowaW(c.szukaj).length < 2) bledy.push(`нет запроса к стоку у «${c.tekst}»`);
     if (/[^\x00-\x7f]/.test(c.szukaj || '')) bledy.push(`запрос не по-английски: «${c.szukaj}»`);
     if (/\p{Extended_Pictographic}/u.test(c.tekst || '')) bledy.push('эмодзи во фразе');
+    if (/^\s*\p{L}+\s*:/u.test(c.tekst || '')) bledy.push(`метка с двоеточием: «${c.tekst}»`);
   }
   if (razem < 26 || razem > 56) bledy.push(`всего слов ${razem}`);
   const wszystko = [tekstScen(s), s.opis, JSON.stringify(s.zakonczenia || {})].join(' ').toLowerCase();
@@ -294,7 +297,9 @@ export async function generuj(ile, { zapisz = true } = {}) {
   const start = Math.floor(Math.random() * 100);
   const zadania = Array.from({ length: ile + 2 }, (_, i) => ({
     forma: formy[(start + i) % formy.length],
-    temat: TEMATY[(start * 7 + i * 5) % TEMATY.length],
+    // Шаг 4 взаимно прост с 15 темами: с шагом 5 круг замыкался через три
+    // сценария, и в пачке 20.10 «ясная оферта» вышла дважды.
+    temat: TEMATY[(start + i * 4) % TEMATY.length],
   }));
   const juzBylo = znane.map((z) => `- ${z.temat}`).join('\n');
   const prosba =
