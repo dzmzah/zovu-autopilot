@@ -169,7 +169,8 @@ export async function wyrownaj(plik, slowaFraz) {
       timeout: 6 * 60 * 1000,
     });
   } catch (e) {
-    console.warn(`[glos] whisper недоступен (${String(e.message).split('\n')[0].slice(0, 120)}) — остаюсь на слогах`);
+    const tresc = String(e.stderr || e.message).trim().split('\n').slice(-6).join('\n');
+    console.warn(`[glos] whisper недоступен — остаюсь на слогах:\n${tresc}`);
     return null;
   }
   const r = JSON.parse(await readFile(wyj, 'utf8'));
