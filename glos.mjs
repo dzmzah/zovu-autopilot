@@ -23,6 +23,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { wyrownaj, skrocPauzy } from './wyrownaj.mjs';
 
 const execFileAsync = promisify(execFile);
 const DIR = import.meta.dirname;
@@ -368,6 +369,7 @@ async function jednymDublemGoogle(frazy, wyjscie, google) {
     console.warn('[glos] дубль тянет — прошу быстрее');
   }
   if (najlepszy) await copyFile(wyjscie + '.naj', wyjscie);
+  await skrocPauzy(wyjscie);
 
   const { stderr } = await execFileAsync(
     'ffmpeg',
@@ -418,6 +420,23 @@ async function jednymDublemGoogle(frazy, wyjscie, google) {
   // Темп считаем по тому, что ПРОИЗНЕСЕНО (mowa), а не по тому, что на
   // экране: тексты разной длины, и сравнение с подписью давало ложную
   // тревогу — разметка отбраковывалась там, где всё было в порядке.
+  // Настоящее время слов — если на машине есть whisper. Слоговая раскладка
+  // выше остаётся запасной: без неё ролик не собрался бы вовсе.
+  const slyszane = await wyrownaj(
+    wyjscie,
+    frazy.map((f) => String(f.mowa || doWymowy(f)).trim().split(/\s+/).filter(Boolean))
+  );
+  if (slyszane) {
+    const roznice = slyszane.granice.map(([a], n) => a - granice[n][0]);
+    console.log(
+      `[glos] время фраз по whisper (совпало ${(slyszane.trafien * 100).toFixed(0)} % слов); ` +
+        `слоги ошибались на ${roznice.map((d) => (d >= 0 ? '+' : '') + d.toFixed(2)).join(' ')} с`
+    );
+    const wynik = slyszane.granice;
+    wynik.slowaFraz = slyszane.slowa;
+    return wynik;
+  }
+
   const tempa = granice.map(([a, b], n) => sylaby(frazy[n].mowa || frazy[n].tekst) / Math.max(0.2, b - a));
   const zle = tempa.filter((t) => t < 1.2 || t > 9.5).length;
   if (zle) {
@@ -865,13 +884,15 @@ export async function zbudujGlos(
   // чего всё и затевалось. Кэш общий с остальными, ключ учитывает голос.
   if (google) {
     const odcisk = createHash('sha1')
-      .update(JSON.stringify(['google-dubel-v1', frazy.map((f) => doWymowy(f)), google.glos, google.model]))
+      .update(JSON.stringify(['google-dubel-v2', frazy.map((f) => doWymowy(f)), google.glos, google.model]))
       .digest('hex')
       .slice(0, 16);
     dubel = path.join(KESZ, `dubel-${odcisk}.wav`);
     const granicePlik = path.join(KESZ, `dubel-${odcisk}.json`);
     if (existsSync(dubel) && existsSync(granicePlik)) {
-      granice = JSON.parse(await readFile(granicePlik, 'utf8'));
+      const zapis = JSON.parse(await readFile(granicePlik, 'utf8'));
+      granice = Array.isArray(zapis) ? zapis : zapis.granice;
+      if (zapis.slowaFraz) granice.slowaFraz = zapis.slowaFraz;
       graniceDokladne = true;
       console.log('[glos] дубль из кэша');
     } else {
@@ -883,7 +904,7 @@ export async function zbudujGlos(
       // Под приблизительные границы режется КАРТИНКА, звук идёт целиком.
       if (granice) graniceDokladne = true;
       if (granice) {
-        await writeFile(granicePlik, JSON.stringify(granice), 'utf8');
+        await writeFile(granicePlik, JSON.stringify({ granice, slowaFraz: granice.slowaFraz || null }), 'utf8');
         console.log(`[glos] один дубль на ${frazy.length} фраз, границы по паузам`);
       }
     }
@@ -1076,7 +1097,21 @@ export async function zbudujGlos(
     const szybkie = tempa.filter((t, i) => t > progDla(frazy[i].rola)).length;
     if (szybkie) console.warn(`[glos] быстрых фраз: ${szybkie} — дубль вышел торопливым`);
 
-    const slowa = meta.flatMap((m) => rozlozSlowa(m.tekst, m.a, m.b));
+    // Слова: настоящее время из whisper, если оно есть. На экране текст
+    // фразы может отличаться от сказанного (`mowa`) — тогда слова экрана
+    // раскладываются внутри НАСТОЯЩИХ границ фразы.
+    const slowa = granice.slowaFraz
+      ? meta.flatMap((m, i) => {
+          const ekran = String(m.tekst).trim().split(/\s+/).filter(Boolean);
+          const czasy = granice.slowaFraz[i] || [];
+          if (ekran.length !== czasy.length) return rozlozSlowa(m.tekst, m.a, m.b);
+          return ekran.map((w, k) => ({
+            tekst: w,
+            a: +(czasy[k].a + przedPierwsza).toFixed(3),
+            b: +(czasy[k].b + przedPierwsza).toFixed(3),
+          }));
+        })
+      : meta.flatMap((m) => rozlozSlowa(m.tekst, m.a, m.b));
     // Длина ЛОГИЧЕСКАЯ — по концу речи, а не по длине файла. Клипы режутся
     // по ней, поэтому мёртвой секунды перед аутро не будет, а в самом файле
     // хвост пусть лежит: обрезать его опасно, игнорировать — нет.

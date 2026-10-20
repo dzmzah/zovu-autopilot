@@ -37,7 +37,7 @@ import {
   ostatniaForma,
 } from './historia-scenariuszy.mjs';
 import { ZAKONCZENIA } from './zakonczenia.mjs';
-import { SKORY } from './skory.mjs';
+import { SKORY, planMiksu, ruchSkory } from './skory.mjs';
 
 const DIR = import.meta.dirname;
 const OUT = path.join(DIR, 'out');
@@ -1493,6 +1493,20 @@ if (SKORA) {
       slowa: glos.slowa,
     },
   };
+  // Микс: стиль меняется по кускам ролика, стыки закрыты переходами.
+  // MIKS — для проб: «slowo,czat,post;iris,blysk» прибивает стили и переходы.
+  if (SKORA === 'miks') {
+    const [style = '', przejscia = ''] = String(process.env.MIKS || '').split(';');
+    const wymus = {};
+    style.split(',').filter(Boolean).forEach((t, i) => { wymus[i] = t; });
+    przejscia.split(',').filter(Boolean).forEach((t, i) => { wymus['p' + (i + 1)] = t; });
+    const m = planMiksu(plan.skora.dane.frazy, `${scen.nazwa}-${new Date().toISOString().slice(0, 10)}`, { wymus });
+    Object.assign(plan.skora.dane, m);
+    console.log(
+      `[rolka-auto] микс: ${m.segmenty.map((s) => `${s.typ}(${s.od}-${s.do - 1})`).join(' → ')}; ` +
+        `переходы: ${m.przejscia.map((p) => `${p.typ}@${p.t.toFixed(2)}`).join(', ')}`
+    );
+  }
   plan.karaoke = false;
   plan.tytuly = [];
   plan.stemple = [];
@@ -1567,7 +1581,7 @@ if (!BEZ_KONTROLI) {
       ...(SKORA ? [] : tytuly.map((t) => t.start)),
       ...(SKORA ? [] : wstawki.map((w) => w.start)),
       // У скина смена кадра идёт на каждой фразе: новый пузырь, новое слово, новый цвет.
-      ...(SKORA ? glos.frazy.flatMap((f) => [f.a - 0.08, f.a]) : []),
+      ...(SKORA ? glos.frazy.flatMap((f) => [f.a - 0.08, f.a - 0.04, f.a]) : []),
       ...wstawki.map((w) => w.start + w.dlugosc),
       ...klipy.reduce((acc, k) => { acc.push((acc.at(-1) ?? 0) + k.dlugosc); return acc; }, []),
     ],
@@ -1582,7 +1596,7 @@ if (!BEZ_KONTROLI) {
         return acc;
       },
       { czas: 0, zakresy: [] }
-    ).zakresy,
+    ).zakresy.concat(ruchSkory(plan.skora)),
   });
   console.log('[rolka-auto] проверка:', JSON.stringify(kontrola, null, 1));
   if (!kontrola.zdal) {

@@ -89,6 +89,15 @@ jobs:
           npm ci --omit=dev || npm install --omit=dev
           npx playwright install --with-deps chromium
 
+      # Время слов в голосе (wyrownaj.py): без него текст расходится с речью.
+      - name: Whisper
+        run: python -m pip install --quiet faster-whisper
+      - name: Model whispera z pamięci podręcznej
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: whisper-small-v1
+
       - name: Głos (Piper)
         run: python -m pip install --quiet piper-tts
 
@@ -130,6 +139,8 @@ jobs:
           GOOGLE_VOICE: ${{ vars.GOOGLE_VOICE }}
           GOOGLE_VOICE_ZAPAS: ${{ vars.GOOGLE_VOICE_ZAPAS }}
           GOOGLE_TTS_MODEL: ${{ vars.GOOGLE_TTS_MODEL }}
+          SKORA: ${{ vars.SKORA }}
+          ZAKONCZENIE: ${{ vars.ZAKONCZENIE }}
         run: |
           set -e
           # Расписание больше не знает, каким сборщиком собирать. Оно зовёт

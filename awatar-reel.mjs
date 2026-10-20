@@ -21,7 +21,7 @@ import { chromium } from 'playwright';
 
 import { wybierzWejscie } from './dzwiek.mjs';
 import { zakonczenieHtml } from './zakonczenia.mjs';
-import { skoraHtml, SKORY } from './skory.mjs';
+import { skoraHtml, filtrSkory as filtrSkoryPlanu } from './skory.mjs';
 import { mkdir, readFile, writeFile, rm, readdir } from 'node:fs/promises';
 import { existsSync, statSync } from 'node:fs';
 import path from 'node:path';
@@ -1151,6 +1151,13 @@ export async function renderHtml(html, seconds, outDir, transparent) {
     await page.goto('file:///' + htmlPath.replace(/\\/g, '/'), { waitUntil: 'load' });
     await page.evaluate(() => document.fonts.ready);
     await page.evaluate(() => window.__fit && window.__fit());
+    // Микс стилей держит каждый стиль в своём iframe: ждём их шрифты и подгонку.
+    await page.evaluate(() => window.__czekaj && window.__czekaj());
+    // Прозрачный слой держит один прозрачный пиксель в углу ВСЕГДА. Кадр,
+    // закрытый целиком (переход микса, бумага заметки), Chrome сохраняет PNG
+    // без альфы, и на смене формата ffmpeg молча обрывал слой (проба 20.10).
+    if (transparent)
+      await page.addStyleTag({ content: 'html{clip-path:polygon(1px 0,100% 0,100% 100%,0 100%,0 1px)}' });
     for (let i = 0; i < frames; i++) {
       await page.evaluate((t) => window.setT(t), i / FPS);
       await page.screenshot({
@@ -1749,9 +1756,9 @@ export async function zbuduj(plan) {
     baza = '[dryf]';
   }
   // Скин обрабатывает видео под своим слоем: размыть, ужать в окно, разрезать.
-  const filtrSkory = plan.skora && SKORY[plan.skora.typ]?.filtr;
+  const filtrSkory = filtrSkoryPlanu(plan.skora);
   if (filtrSkory) {
-    filtr.push(filtrSkory.replace('{IN}', baza).replace('{OUT}', '[skora]'));
+    filtr.push(filtrSkory.replace('{IN}', baza).replace(/{OUT}$/, '[skora]'));
     baza = '[skora]';
   }
 

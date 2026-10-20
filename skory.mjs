@@ -28,7 +28,7 @@ export const SKORY = {
       '{IN}scale=400:640:force_original_aspect_ratio=increase,crop=400:640,' +
       'pad=1080:1920:620:1160:black,setsar=1{OUT}',
   },
-  mem: { nazwa: 'мем', filtr: "{IN}crop=1080:1200:0:'(ih-1200)/2',pad=1080:1920:0:720:white{OUT}" },
+  mem: { nazwa: 'мем', filtr: "{IN}crop=1080:1200:0:'(ih-1200)/2',pad=1080:1920:0:720:white,setsar=1{OUT}" },
   slowo: { nazwa: 'одно слово', filtr: '{IN}eq=brightness=-0.30:saturation=0.55,setsar=1{OUT}' },
   split: {
     nazwa: 'так / не так',
@@ -42,6 +42,9 @@ export const SKORY = {
   },
   typo: { nazwa: 'типографика на цвете', filtr: null },
   post: { nazwa: 'пост-цитата', filtr: '{IN}boxblur=22:2,eq=brightness=-0.25,setsar=1{OUT}' },
+  // Несколько скинов в одном ролике, с переходами. Фильтр собирается под
+  // конкретный ролик — см. filtrSkory.
+  miks: { nazwa: 'микс со сменой стиля', filtr: null },
 };
 
 // Слова, которые не годятся в «главное слово» фразы.
@@ -69,17 +72,25 @@ const FONTY =
 const BAZA = (W, H) => `* { margin:0; padding:0; box-sizing:border-box; }
 html,body { width:${W}px; height:${H}px; overflow:hidden; background:transparent; font-family:'Inter',sans-serif; }`;
 
+// На сколько секунд смена фразы на экране идёт раньше голоса. Глаз читает
+// чуть впереди уха, но 20.10 Захар заметил «текст немного опережает голос»
+// — там была в основном ошибка разметки (wyrownaj.mjs), а запас ужат до 40 мс.
+export const PRZED = 0.04;
+
 // Общий кусок: фразы и слова + помощники времени.
 const JS = (dane) => `
+const PRZED = ${PRZED};
 const F = ${JSON.stringify(dane.frazy)};
 const S = ${JSON.stringify(dane.slowa)};
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const easeOut = (x) => 1 - Math.pow(1 - x, 3);
 const easeBack = (x) => { const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
-const biezaca = (t) => { let k = -1; F.forEach((f, i) => { if (t >= f.a - 0.08) k = i; }); return k; };
+const biezaca = (t) => { let k = -1; F.forEach((f, i) => { if (t >= f.a - PRZED) k = i; }); return k; };
 // Сколько слов фразы i уже прозвучало к моменту t.
 const slowFrazy = (i) => S.filter((w) => w.a >= F[i].a - 0.05 && w.a < (F[i + 1] ? F[i + 1].a - 0.05 : 1e9));
-const ileSlow = (i, t) => slowFrazy(i).filter((w) => t >= w.a - 0.03).length;
+const ileSlow = (i, t) => slowFrazy(i).filter((w) => t >= w.a - 0.02).length;
+// Где во фразе кончается РЕЧЬ (не пауза после неё) — по последнему слову.
+const koniecMowy = (i) => { const sl = slowFrazy(i); return sl.length ? sl[sl.length - 1].b : F[i].b; };
 function dopasuj(el, max, min, wys) {
   let s = max; el.style.fontSize = s + 'px';
   while (s > min && (el.scrollWidth > el.clientWidth + 2 || (wys && el.scrollHeight > wys))) { s -= 4; el.style.fontSize = s + 'px'; }
@@ -192,7 +203,7 @@ window.setT = (t) => {
     el.style.display = 'block';
     // Печатаем строку ровно под голос: буква за буквой между началом и концом фразы.
     const tekst = f.numer && f.tytul ? f.tytul : f.tekst;
-    const p = clamp01((t - f.a) / Math.max(0.3, (f.b - f.a) * 0.85));
+    const p = clamp01((t - f.a) / Math.max(0.3, koniecMowy(i) - f.a));
     const n = Math.round(tekst.length * p);
     const widac = tekst.slice(0, n).replace(/&/g,'&amp;').replace(/</g,'&lt;');
     const kursor = i === k && p < 1 ? KUR : '';
@@ -411,9 +422,278 @@ window.setT = (t) => {
 </script></body></html>`;
 }
 
-const BUDOWNICZE = { czat, notatka, mem, slowo, split, typo, post };
+// ── 8. микс: стиль меняется внутри ролика ────────────────────────
+//
+// 20.10.2026 Захар про семь стилей: «нравится каждая идея, но не нравится,
+// что каждая идея длится весь ролик… не хватает переходов». Поэтому ролик
+// режется на 3–4 куска по смыслу — хук, середина, вывод — и каждый кусок
+// идёт своим стилем. Стык закрывает переход на весь экран: под ним
+// одновременно меняются и слой, и обработка видео, и подмены не видно.
+// Типографика в микс не входит: Захар оставил её отдельным форматом.
+
+// Какие стили годятся для какого куска.
+const PULE = {
+  start: ['slowo', 'mem', 'split'],
+  srodek: ['notatka', 'czat', 'slowo', 'post'],
+  koniec: ['post', 'czat', 'mem', 'slowo'],
+};
+export const PRZEJSCIA = ['szyba', 'paski', 'iris', 'blysk', 'przelot'];
+
+// Детерминированный случай: тот же ролик собирается тем же миксом.
+function losuj(ziarno) {
+  let h = 2166136261;
+  for (const c of String(ziarno)) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+  return () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return ((h ^= h >>> 16) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * Раскладка микса по фразам.
+ * @param {Array<{a:number,b:number,rola:string}>} frazy
+ * @param {string} ziarno — например имя сценария + дата
+ * @param {{wymus?: Record<string,string>}} [o] — для проб: {0:'slowo', 1:'czat', p1:'iris'}
+ */
+export function planMiksu(frazy, ziarno, { wymus = {} } = {}) {
+  const los = losuj(ziarno);
+  const wybierz = (lista) => lista[Math.floor(los() * lista.length)];
+  const n = frazy.length;
+  const koncowe = (r) => r === 'zaplata' || r === 'cta';
+  // Границы кусков по ролям: хук | середина | вывод+призыв.
+  let s1 = frazy.findIndex((f) => f.rola !== 'hak');
+  if (s1 <= 0) s1 = 1;
+  let s2 = frazy.findIndex((f, i) => i >= s1 && koncowe(f.rola));
+  if (s2 < 0 || s2 <= s1) s2 = Math.max(s1 + 1, n - 1);
+  const kawalki = [
+    { czesc: 'start', od: 0, do: s1 },
+    { czesc: 'srodek', od: s1, do: s2 },
+    { czesc: 'koniec', od: s2, do: n },
+  ].filter((k) => k.do > k.od);
+  // Длинная середина (4+ фраз) делится пополам — иначе один стиль снова
+  // тянется полролика.
+  const sr = kawalki.find((k) => k.czesc === 'srodek');
+  if (sr && sr.do - sr.od >= 4) {
+    const pol = sr.od + Math.ceil((sr.do - sr.od) / 2);
+    kawalki.splice(kawalki.indexOf(sr), 1, { ...sr, do: pol }, { czesc: 'srodek', od: pol, do: sr.do });
+  }
+  const czas = (k) => frazy[k.do - 1].b - frazy[k.od].a;
+  // Кусок короче двух секунд — не стиль, а мелькание: приклеиваем к соседу.
+  for (let i = 0; i < kawalki.length; i++) {
+    if (kawalki.length > 2 && czas(kawalki[i]) < 2) {
+      const j = i === kawalki.length - 1 ? i - 1 : i + 1;
+      const x = kawalki[Math.min(i, j)], y = kawalki[Math.max(i, j)];
+      kawalki.splice(Math.min(i, j), 2, { czesc: x.czesc, od: x.od, do: y.do });
+      i = -1;
+    }
+  }
+  const segmenty = [];
+  kawalki.forEach((k, nr) => {
+    const uzyte = segmenty.map((s) => s.typ);
+    const pula = PULE[k.czesc].filter((t) => t !== uzyte.at(-1));
+    const swieze = pula.filter((t) => !uzyte.includes(t));
+    let typ = wymus[nr] || wybierz(swieze.length ? swieze : pula);
+    // «Так / не так» без второй половины бессмысленен: сверху хук, снизу —
+    // первая фраза середины. Забираем её в этот кусок.
+    if (typ === 'split') {
+      const nast = kawalki[nr + 1];
+      if (k.czesc === 'start' && nast && nast.do - nast.od >= 2) { k.do += 1; nast.od += 1; }
+      else typ = 'slowo';
+    }
+    segmenty.push({ typ, od: k.od, do: k.do, t: 0 });
+  });
+  segmenty.forEach((s, i) => { s.t = i === 0 ? 0 : +(frazy[s.od].a - PRZED).toFixed(3); });
+  const przejscia = [];
+  for (let i = 1; i < segmenty.length; i++) {
+    const pula = PRZEJSCIA.filter((p) => p !== przejscia.at(-1)?.typ);
+    przejscia.push({ t: segmenty[i].t, typ: wymus['p' + i] || wybierz(pula) });
+  }
+  return { segmenty, przejscia };
+}
+
+// Длина перехода: до стыка и после. Около самого стыка экран закрыт целиком.
+export const PRZEJSCIE_PRZED = 0.22, PRZEJSCIE_PO = 0.28;
+
+function miks(d, W, H) {
+  const { segmenty, przejscia } = d;
+  const ramki = segmenty.map((s) => {
+    const frazy = d.frazy.slice(s.od, s.do);
+    const od = frazy[0].a - 0.6, doo = (d.frazy[s.do]?.a ?? 1e9) - 0.01;
+    const slowa = d.slowa.filter((w) => w.a >= od && w.a < doo);
+    const html = BUDOWNICZE[s.typ]({ ...d, frazy, slowa }, W, H);
+    return html.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  });
+  // Главное слово первой фразы следующего куска — для перехода «przelot».
+  const slowaPrzejsc = przejscia.map((p, i) => glowneSlowo(d.frazy[segmenty[i + 1].od]).toUpperCase());
+  return `<!doctype html><html><head><meta charset="utf-8">${FONTY}<style>${BAZA(W, H)}
+iframe { position:absolute; left:0; top:0; width:${W}px; height:${H}px; border:0; background:transparent;
+  visibility:hidden; color-scheme:normal; }
+.pz { position:absolute; inset:0; pointer-events:none; display:none; overflow:hidden; }
+.szyba i { position:absolute; top:-200px; bottom:-200px; left:0; width:${Math.round(W * 1.7)}px; }
+.paski i { position:absolute; left:0; width:${W}px; height:${Math.ceil(H / 6) + 2}px; }
+.iris { background:#facc15; }
+.blysk i { position:absolute; left:0; right:0; }
+.przelot { align-items:center; justify-content:center; }
+.przelot b { font-family:'Bebas Neue',sans-serif; font-size:300px; letter-spacing:6px; white-space:nowrap; font-weight:400; }
+</style></head><body>
+${ramki.map((r, i) => `<iframe id="r${i}" srcdoc="${r}"></iframe>`).join('\n')}
+<div class="pz szyba"><i style="background:#facc15"></i><i style="background:#7c3aed"></i></div>
+<div class="pz paski">${[0, 1, 2, 3, 4, 5]
+    .map((k) => `<i style="top:${Math.round((k * H) / 6)}px;background:${k % 2 ? '#7c3aed' : '#111'}"></i>`)
+    .join('')}</div>
+<div class="pz iris"></div>
+<div class="pz blysk"><i></i><i></i><i></i></div>
+<div class="pz przelot"><b></b></div>
+<script>
+const SEG = ${JSON.stringify(segmenty.map((s) => s.t))};
+const PRZ = ${JSON.stringify(przejscia)};
+const SL = ${JSON.stringify(slowaPrzejsc)};
+const PP = ${PRZEJSCIE_PRZED}, PO = ${PRZEJSCIE_PO}, W = ${W}, H = ${H};
+const ramki = [...document.querySelectorAll('iframe')];
+const el = (s) => document.querySelector(s);
+const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
+const eio = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const eo = (x) => 1 - Math.pow(1 - x, 3);
+const ei = (x) => x * x * x;
+window.__czekaj = async () => {
+  for (const r of ramki) {
+    const w = r.contentWindow;
+    await w.document.fonts.ready;
+    if (w.__fit) w.__fit();
+  }
+};
+// Переход рисуется вокруг стыка ts; около ts экран закрыт полностью.
+const RYS = {
+  szyba(ts, t) {
+    // Половина пути — до стыка, половина — после: ровно на стыке шторка во весь экран.
+    const q = t < ts ? 0.5 * clamp01((t - (ts - PP)) / PP) : 0.5 + 0.5 * clamp01((t - ts) / PO);
+    const e = eio(q);
+    const [a, b] = el('.szyba').children;
+    const x = -1.75 * W + 2.9 * W * e - 0.05 * W;
+    a.style.transform = 'translateX(' + (x + 0.16 * W).toFixed(1) + 'px) skewX(-14deg)';
+    b.style.transform = 'translateX(' + x.toFixed(1) + 'px) skewX(-14deg)';
+  },
+  paski(ts, t) {
+    [...el('.paski').children].forEach((p, k) => {
+      const kier = k % 2 ? 1 : -1;
+      let x;
+      if (t < ts) x = kier * W * (1 - eo(clamp01((t - (ts - PP) - k * 0.018) / (PP - 0.1))));
+      else x = -kier * W * ei(clamp01((t - ts - 0.04 - k * 0.018) / (PO - 0.12)));
+      p.style.transform = 'translateX(' + x.toFixed(1) + 'px)';
+    });
+  },
+  iris(ts, t) {
+    const R = Math.hypot(W, H) / 2 + 20;
+    const s = el('.iris');
+    if (t < ts) {
+      const r = R * eio(clamp01((t - (ts - PP)) / PP));
+      s.style.clipPath = 'circle(' + r.toFixed(0) + 'px at 50% 52%)';
+      s.style.webkitMaskImage = 'none';
+    } else {
+      const r = R * eo(clamp01((t - ts - 0.04) / (PO - 0.04)));
+      s.style.clipPath = 'none';
+      s.style.webkitMaskImage = 'radial-gradient(circle at 50% 52%, transparent ' + r.toFixed(0) + 'px, #000 ' + (r + 2).toFixed(0) + 'px)';
+    }
+  },
+  blysk(ts, t) {
+    const s = el('.blysk');
+    const op = t < ts ? eo(clamp01((t - (ts - 0.1)) / 0.1)) : 1 - eo(clamp01((t - ts - 0.04) / (PO - 0.04)));
+    s.style.background = 'rgba(255,255,255,' + op.toFixed(3) + ')';
+    // Цветные срезы-глитч поверх вспышки, скачут каждые два кадра.
+    const kl = Math.floor(t * 15);
+    [...s.children].forEach((p, k) => {
+      const r = Math.abs(Math.sin(kl * 12.9898 + k * 78.233) * 43758.5453) % 1;
+      p.style.top = (r * H).toFixed(0) + 'px';
+      p.style.height = (20 + r * 90).toFixed(0) + 'px';
+      p.style.background = ['#7c3aed', '#facc15', '#22d3ee'][k];
+      p.style.opacity = Math.abs(t - ts) < 0.16 ? 0.85 : 0;
+      p.style.transform = 'translateX(' + ((r - 0.5) * 120).toFixed(0) + 'px)';
+    });
+  },
+  przelot(ts, t, n) {
+    const s = el('.przelot'), b = s.firstChild;
+    if (b.dataset.n !== String(n)) {
+      b.dataset.n = n; b.textContent = SL[n];
+      let f = 300; b.style.fontSize = f + 'px';
+      while (f > 120 && b.scrollWidth > W - 120) { f -= 10; b.style.fontSize = f + 'px'; }
+    }
+    s.style.background = n % 2 ? '#facc15' : '#7c3aed';
+    b.style.color = n % 2 ? '#111' : '#fff';
+    // Фон влетает кругом, слово садится, потом пролетает «сквозь камеру».
+    if (t < ts) {
+      const p = clamp01((t - (ts - PP)) / PP);
+      s.style.clipPath = 'circle(' + (Math.hypot(W, H) / 2 * eio(p) + 10).toFixed(0) + 'px at 50% 50%)';
+      s.style.opacity = 1;
+      b.style.transform = 'scale(' + (0.3 + 0.7 * eo(p)).toFixed(3) + ')';
+    } else {
+      const p = clamp01((t - ts - 0.06) / (PO - 0.06));
+      s.style.clipPath = 'none';
+      s.style.opacity = (1 - ei(p)).toFixed(3);
+      b.style.transform = 'scale(' + (1 + 7 * ei(p)).toFixed(3) + ')';
+    }
+  },
+};
+let aktywny = -1;
+window.setT = (t) => {
+  let k = 0;
+  SEG.forEach((s, i) => { if (t >= s) k = i; });
+  if (k !== aktywny) {
+    ramki.forEach((r, i) => { r.style.visibility = i === k ? 'visible' : 'hidden'; });
+    aktywny = k;
+  }
+  ramki[k].contentWindow.setT(t);
+  document.querySelectorAll('.pz').forEach((p) => { p.style.display = 'none'; });
+  PRZ.forEach((p, n) => {
+    if (t < p.t - PP || t > p.t + PO) return;
+    el('.' + p.typ).style.display = p.typ === 'przelot' ? 'flex' : 'block';
+    RYS[p.typ](p.t, t, n);
+  });
+};
+</script></body></html>`;
+}
+
+// Фильтр видео под слоем. У одиночного скина — свой из SKORY; у микса —
+// ветка на каждый кусок, и куски сменяют друг друга по времени стыков.
+// Под переходом «вспышка» картинка ещё и расслаивается по цветам (глитч).
+export function filtrSkory(skora) {
+  if (!skora) return null;
+  if (skora.typ !== 'miks') return SKORY[skora.typ]?.filtr || null;
+  const { segmenty, przejscia } = skora.dane;
+  const n = segmenty.length;
+  const czesci = [`{IN}split=${n}` + segmenty.map((_, i) => `[mz${i}]`).join('')];
+  segmenty.forEach((s, i) => {
+    const f = SKORY[s.typ]?.filtr || '{IN}null{OUT}';
+    czesci.push(f.replace('{IN}', `[mz${i}]`).replace('{OUT}', `[mf${i}]`));
+  });
+  let biez = '[mf0]';
+  for (let i = 1; i < n; i++) {
+    czesci.push(`${biez}[mf${i}]overlay=0:0:enable='gte(t,${segmenty[i].t.toFixed(3)})'[mo${i}]`);
+    biez = `[mo${i}]`;
+  }
+  const glitch = przejscia.filter((p) => p.typ === 'blysk');
+  if (glitch.length) {
+    const okna = glitch.map((p) => `between(t,${(p.t - 0.12).toFixed(2)},${(p.t + 0.16).toFixed(2)})`).join('+');
+    czesci.push(`${biez}rgbashift=rh=-26:bh=26:gv=8:enable='${okna}'[mg]`);
+    biez = '[mg]';
+  }
+  czesci.push(`${biez}setsar=1{OUT}`);
+  return czesci.join(';');
+}
+
+// Отрезки, где движение задумано (переходы микса), — для проверки рывков.
+export function ruchSkory(skora) {
+  if (skora?.typ !== 'miks') return [];
+  return skora.dane.przejscia.map((p) => [
+    +(p.t - PRZEJSCIE_PRZED - 0.05).toFixed(2),
+    +(p.t + PRZEJSCIE_PO + 0.05).toFixed(2),
+  ]);
+}
+
+const BUDOWNICZE = { czat, notatka, mem, slowo, split, typo, post, miks };
 
 // dane: { frazy: [{tekst, a, b, rola, numer, tytul}], slowa: [{tekst, a, b}], temat }
+// у микса ещё { segmenty, przejscia } из planMiksu
 export function skoraHtml(typ, dane, { W = 1080, H = 1920 } = {}) {
   const b = BUDOWNICZE[typ];
   if (!b) throw new Error(`нет скина «${typ}», есть: ${Object.keys(BUDOWNICZE).join(', ')}`);
