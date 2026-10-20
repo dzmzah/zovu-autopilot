@@ -52,7 +52,7 @@ const TEMATY = [
 const ZAKAZANE = [
   'w dzisiejszych czasach', 'każda firma marzy', 'świat się zmienia', 'kompleksowe rozwiązania', 'synergia',
   'dedykowany zespół', 'gwarantujemy', 'w zakresie', 'engagement', 'lejek konwersji', 'zasięgi organiczne',
-  'nie zostawaj w tyle', 'nie zostań w tyle', 'rewolucja', 'era ai', 'przyszłość', 'to nie hype', 'klucz do sukcesu',
+  'nie zostawaj w tyle', 'nie zostań w tyle', 'rewolucja', 'era ai', 'przyszłość marketingu', 'to nie hype', 'klucz do sukcesu',
   'nowe możliwości', 'bądź na bieżąco', 'wykorzystaj potencjał', 'wyprzedź konkurencję', 'w erze', 'cyfrowy świat',
   'game changer', 'sekret', 'hack', 'magia', 'magiczny', 'nikt ci nie powie', 'musisz to wiedzieć', 'szok',
   'nasi klienci', 'naszym klientom', 'u naszych klientów', 'sprawdziliśmy', 'nasze statystyki', 'nasze dane',
@@ -322,6 +322,13 @@ export async function generuj(ile, { zapisz = true } = {}) {
 
   const przyjete = [];
   for (const s of lista) {
+    // Адрес в посте — не дело модели: корректор 20.10 выбрасывал его из
+    // всех девяти постов. Ставим сами перед хэштегами.
+    if (s && typeof s.opis === 'string' && !/zovu\.pl/.test(s.opis)) {
+      const akapity = s.opis.trim().split(/\n\s*\n/);
+      const tagi = /^#/.test(akapity.at(-1) || '') ? akapity.pop() : null;
+      s.opis = [...akapity, 'zovu.pl', ...(tagi ? [tagi] : [])].join('\n\n');
+    }
     const bledy = sprawdz(s, [...znane, ...przyjete]);
     if (bledy.length) {
       console.log(`[generator] ✗ ${s?.nazwa}: ${bledy.join('; ')}`);
