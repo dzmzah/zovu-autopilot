@@ -1,0 +1,76 @@
+name: ZOVU przebudowa kolejki
+
+# Пересобирает ролики, уже стоящие в очереди, новым монтажом (przebuduj.mjs).
+on:
+  workflow_dispatch:
+    inputs:
+      pliki:
+        description: 'Файлы из очереди через пробел'
+        type: string
+        required: true
+
+concurrency:
+  group: rolki-kolejka
+  cancel-in-progress: false
+
+jobs:
+  przebuduj:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Whisper
+        run: python -m pip install --quiet faster-whisper
+      - name: Model whispera z pamięci podręcznej
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: whisper-small-v1
+      - name: ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Zależności node
+        run: |
+          npm ci --omit=dev || npm install --omit=dev
+          npx playwright install --with-deps chromium
+      - name: Przebuduj
+        env:
+          PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GLOS_DOSTAWCA: ${{ vars.GLOS_DOSTAWCA }}
+          GCP_CLIENT_ID: ${{ secrets.GCP_CLIENT_ID }}
+          GCP_CLIENT_SECRET: ${{ secrets.GCP_CLIENT_SECRET }}
+          GCP_REFRESH_TOKEN: ${{ secrets.GCP_REFRESH_TOKEN }}
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+          GOOGLE_VOICE: ${{ vars.GOOGLE_VOICE }}
+          GOOGLE_VOICE_ZAPAS: ${{ vars.GOOGLE_VOICE_ZAPAS }}
+          GOOGLE_TTS_MODEL: ${{ vars.GOOGLE_TTS_MODEL }}
+          SKORA: ${{ vars.SKORA }}
+        run: node przebuduj.mjs ${{ inputs.pliki }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: przebudowane
+          path: out/auto-*.mp4
+          retention-days: 7
+      - name: Zapisz
+        run: |
+          git config user.name  "zovu-autopilot"
+          git config user.email "autopilot@zovu.pl"
+          git add rolki/
+          git diff --cached --quiet && echo "нечего записывать" && exit 0
+          git commit -m "rolki: przebudowa kolejki nowym montażem [skip ci]"
+          for i in 1 2 3; do
+            git -c rebase.autoStash=true pull --rebase -q origin main && git push -q origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1
