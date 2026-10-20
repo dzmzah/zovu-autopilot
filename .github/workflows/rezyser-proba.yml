@@ -41,6 +41,7 @@ jobs:
       - name: Zbuduj dni
         env:
           PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GLOS_DOSTAWCA: ${{ vars.GLOS_DOSTAWCA }}
           GCP_CLIENT_ID: ${{ secrets.GCP_CLIENT_ID }}
           GCP_CLIENT_SECRET: ${{ secrets.GCP_CLIENT_SECRET }}

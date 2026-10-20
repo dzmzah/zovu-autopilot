@@ -340,7 +340,39 @@ const GOOGLE_PODANIE =
 // 3,5-4,5 слога в секунду.
 const TEMPO_DUBLA_MIN = 2.9;
 
+// Проверка произношения. 20.10 Захар: «иногда голос где-то не так
+// произнесёт». Whisper всё равно слушает каждый дубль ради времени слов —
+// заодно он видит слова, которые прозвучали заметно иначе, чем в сценарии.
+// Такой дубль переписываем, до трёх раз, и берём тот, где кривых слов меньше.
+// Интонацию и ударение так не поймать — только искажённые слова.
+const DUBLI_NA_WYMOWE = 3;
+
 async function jednymDublemGoogle(frazy, wyjscie, google) {
+  let najlepszy = null;
+  for (let n = 0; n < DUBLI_NA_WYMOWE; n++) {
+    const g = await dubelGoogle(frazy, wyjscie, google);
+    const krzywe = g?.krzywe ?? null;
+    // Whisper не сработал — сравнивать не с чем, переписывать вслепую незачем.
+    if (krzywe == null) return g;
+    if (!najlepszy || krzywe.length < najlepszy.krzywe.length) {
+      najlepszy = { g, krzywe };
+      await copyFile(wyjscie, wyjscie + '.wymowa');
+    }
+    if (!krzywe.length) break;
+    console.warn(
+      `[glos] дубль ${n + 1}: криво сказано ${krzywe.length} — ` +
+        krzywe.map((k) => `«${k.slowo}» → «${k.uslyszane}»`).join(', ') +
+        (n + 1 < DUBLI_NA_WYMOWE ? '; переписываю' : '')
+    );
+  }
+  await copyFile(wyjscie + '.wymowa', wyjscie);
+  await rm(wyjscie + '.wymowa', { force: true });
+  if (najlepszy.krzywe.length) console.log(`::warning::голос: в лучшем дубле осталось кривых слов ${najlepszy.krzywe.length}`);
+  else console.log('[glos] произношение: все слова на месте');
+  return najlepszy.g;
+}
+
+async function dubelGoogle(frazy, wyjscie, google) {
   const tekst = zywaMowa(frazy, doWymowy);
 
   // Темп проверяем ЗАМЕРОМ, а не на веру: подача с эмоцией легко уводит дубль
@@ -434,6 +466,7 @@ async function jednymDublemGoogle(frazy, wyjscie, google) {
     );
     const wynik = slyszane.granice;
     wynik.slowaFraz = slyszane.slowa;
+    wynik.krzywe = slyszane.krzywe;
     return wynik;
   }
 
@@ -884,7 +917,7 @@ export async function zbudujGlos(
   // чего всё и затевалось. Кэш общий с остальными, ключ учитывает голос.
   if (google) {
     const odcisk = createHash('sha1')
-      .update(JSON.stringify(['google-dubel-v2', frazy.map((f) => doWymowy(f)), google.glos, google.model]))
+      .update(JSON.stringify(['google-dubel-v3', frazy.map((f) => doWymowy(f)), google.glos, google.model]))
       .digest('hex')
       .slice(0, 16);
     dubel = path.join(KESZ, `dubel-${odcisk}.wav`);

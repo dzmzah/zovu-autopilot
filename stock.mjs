@@ -97,6 +97,8 @@ export async function searchStock(query, { perPage = 12, minSeconds = 4 } = {}) 
         // описания в ответе нет, а нам оно нужно — по нему и проверяем,
         // про то ли вообще кадр.
         opis: opisZeStrony(v.url),
+        // Превью кадра — для отбора глазами (ocena-kadrow.mjs).
+        podglad: v.image || null,
         file: bestFile(v),
       }))
       .filter((v) => v.file)

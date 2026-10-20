@@ -192,6 +192,20 @@ export async function wyrownaj(plik, slowaFraz) {
     return null;
   }
 
+  // Криво сказанные слова: whisper услышал заметно другое. Короткие слова
+  // (до трёх букв) не считаем — их и живой человек проглатывает, и whisper
+  // путает. Склейки (одно слово сценария = два услышанных) сравниваем целиком.
+  // Сравнение — по паре из выравнивания; соседние пары не мешают друг другу.
+  const krzywe = [];
+  plaskie.forEach((x, k) => {
+    const n = S[k];
+    if (n.length < 4 || /\d/.test(n)) return;
+    const p = para[k];
+    const uslyszane = p ? R.slice(p.j0, p.j1 + 1).join('') : '';
+    const pod = p ? podobienstwo(n, uslyszane) : 0;
+    if (pod < 0.5) krzywe.push({ slowo: x.w, uslyszane: p ? r.slice(p.j0, p.j1 + 1).map((y) => y.w).join(' ') : '—', fraza: x.i });
+  });
+
   // Время каждого слова сценария: из пары, иначе интерполяция по буквам между
   // соседями с известным временем.
   const czasy = plaskie.map((_, k) => {
@@ -244,5 +258,5 @@ export async function wyrownaj(plik, slowaFraz) {
     const b = nast != null ? Math.max(a + 0.15, nast) : Math.max(a + 0.15, f.at(-1).b);
     return [+a.toFixed(3), +b.toFixed(3)];
   });
-  return { granice, slowa, trafien };
+  return { granice, slowa, trafien, krzywe };
 }

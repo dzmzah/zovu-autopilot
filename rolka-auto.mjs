@@ -25,6 +25,7 @@ const execFileAsync = promisify(execFile);
 import { zbudujGlos } from './glos.mjs';
 import { zbuduj } from './awatar-reel.mjs';
 import { searchStock, fetchClip } from './stock.mjs';
+import { ocenKadry } from './ocena-kadrow.mjs';
 import { sprawdzRolke } from './kontrola.mjs';
 import { podmienHasztagi } from './tagi.mjs';
 import { rozlozNaklejki } from './naklejki.mjs';
@@ -1068,8 +1069,18 @@ async function podklad(czesc, i, scenNazwa, uzyte = new Set()) {
   // нужно, чтобы два соседних куска не взяли один и тот же клип.
   // Проходим всю выдачу, а не первые четыре: занятые клипы съедают начало
   // списка, и на коротком проходе кусок оставался вообще без картинки.
-  for (let k = 0; k < pula.length; k++) {
-    const kand = pula[(i + k) % pula.length];
+  // Если модель посмотрела кадры (ocena-kadrow.mjs) — идём по её оценке,
+  // лучшие первыми; кадр без оценки считаем средним.
+  const oceny = await ocenKadry(czesc.mowa || czesc.tekst || '', czesc.szukaj, pula);
+  let kolejnosc = pula.map((_, k) => pula[(i + k) % pula.length]);
+  if (oceny) {
+    const ocena = (k) => oceny.get(k.id)?.ocena ?? 4;
+    kolejnosc = [...pula].sort((x, y) => ocena(y) - ocena(x));
+    const best = kolejnosc.find((k) => !uzyte.has(k.id));
+    if (best) console.log(`[kadry] «${czesc.szukaj}»: ${ocena(best)}/10 — ${oceny.get(best.id)?.czemu || 'bez oceny'}`);
+  }
+  for (let k = 0; k < kolejnosc.length; k++) {
+    const kand = kolejnosc[k];
     if (uzyte.has(kand.id)) continue;
     // Имя КЭША обязано содержать сценарий: без этого второй сценарий
     // подтягивал клипы первого — на «co ma robić» стоял парень, снимающий
