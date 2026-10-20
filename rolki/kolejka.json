@@ -2297,17 +2297,32 @@
     "scenariusz": "wizytowka-google",
     "forma": "lista",
     "temat": "wizytówka Google dla małej firmy",
-    "dlugosc": 23.73,
+    "dlugosc": 22.74,
     "planow": 7,
     "tempo": [
-      3.8,
-      3.8,
-      3.8,
-      3.8,
-      3.8,
-      3.8,
-      3.8
-    ]
+      4.1,
+      2.6,
+      4.5,
+      2.2,
+      3.9,
+      3.5,
+      3.5
+    ],
+    "montaz": {
+      "format": "miks",
+      "paleta": "limonka",
+      "font": "oswald",
+      "zakonczenie": "blysk",
+      "style": [
+        "split",
+        "notatka",
+        "slowo"
+      ],
+      "przejscia": [
+        "szyba",
+        "przelot"
+      ]
+    }
   },
   {
     "plik": "auto-2026-10-19-1-2.mp4",
@@ -2324,17 +2339,32 @@
     "scenariusz": "pierwsza-odpowiedz",
     "forma": "lista",
     "temat": "jak odpisać na pierwsze zapytanie",
-    "dlugosc": 20.01,
+    "dlugosc": 21.62,
     "planow": 7,
     "tempo": [
       4.4,
-      4.4,
-      4.4,
-      4.4,
-      4.4,
-      4.4,
-      4.4
-    ]
+      3.6,
+      4.2,
+      3.4,
+      3.4,
+      3.7,
+      4.7
+    ],
+    "montaz": {
+      "format": "miks",
+      "paleta": "cyjan",
+      "font": "archivo",
+      "zakonczenie": "wyslij",
+      "style": [
+        "mem",
+        "post",
+        "czat"
+      ],
+      "przejscia": [
+        "przelot",
+        "blysk"
+      ]
+    }
   },
   {
     "plik": "auto-2026-10-20-1.mp4",
@@ -2351,21 +2381,30 @@
     "scenariusz": "cztery-sekundy-uwagi",
     "forma": "jedna-liczba",
     "temat": "ile realnie trwa uwaga widza na rolce",
-    "dlugosc": 19.74,
+    "dlugosc": 19.36,
     "planow": 6,
     "tempo": [
+      4.2,
+      5.1,
+      3.6,
+      4.2,
       4.5,
-      5.2,
-      3.7,
-      4.3,
-      4.8,
-      6.1
+      5
     ],
     "montaz": {
-      "format": "stok",
-      "paleta": "zovu",
-      "font": "bebas",
-      "zakonczenie": "marka"
+      "format": "miks",
+      "paleta": "pomarancz",
+      "font": "oswald",
+      "zakonczenie": "pytanie",
+      "style": [
+        "slowo",
+        "notatka",
+        "post"
+      ],
+      "przejscia": [
+        "iris",
+        "paski"
+      ]
     }
   }
 ]
