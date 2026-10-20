@@ -56,7 +56,7 @@ const FONTY =
 
 function pytanie(o, W, H, tlo) {
   return `<!doctype html><html><head><meta charset="utf-8">${FONTY}<style>${BAZA(W, H, tlo)}
-.pyt { position:absolute; left:90px; right:90px; top:640px; color:#fff; font-weight:900; font-size:112px;
+.pyt { position:absolute; left:90px; right:90px; bottom:780px; color:#fff; font-weight:900; font-size:112px;
   line-height:1.0; letter-spacing:-3px; text-transform:uppercase; text-shadow:0 10px 40px rgba(0,0,0,.5); }
 .pyt span { display:inline-block; opacity:0; }
 .pole { position:absolute; left:70px; right:70px; top:1190px; height:150px; border-radius:75px;
@@ -75,6 +75,10 @@ function pytanie(o, W, H, tlo) {
 <div class="pole"><div class="awatar"></div><div class="wpis pusty">Dodaj komentarz…</div><div class="kursor"></div><div class="wyslij">Opublikuj</div></div>
 <script>${WSPOLNE_JS}
 const slowa = [...document.querySelectorAll('.pyt span')];
+// Длинный вопрос растёт вверх от поля и ужимается, чтобы не залезть на него
+// и не уйти под верх кадра (проба 20.10: пять строк наехали на поле).
+const pytEl = document.querySelector('.pyt');
+for (let r = 112; r > 60 && pytEl.offsetHeight > 640; r -= 6) pytEl.style.fontSize = r + 'px';
 const pole = document.querySelector('.pole');
 const wpis = document.querySelector('.wpis');
 const kursor = document.querySelector('.kursor');

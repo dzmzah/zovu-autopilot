@@ -267,7 +267,7 @@ window.setT = (t) => {
     ostatni = k;
     w.textContent = G[k].toUpperCase();
     w.className = 'w' + (k % 3 === 1 ? ' zolty' : '');
-    dopasuj(w, 520, 140);
+    dopasuj(w, 520, 80);
     nr.textContent = F[k].numer ? '#' + F[k].numer : '';
   }
   // Удар: слово влетает с переразмером и садится.

@@ -186,7 +186,18 @@ const mieszaj = (h, z, k) => hex(rgb(h).map((x, i) => x + (rgb(z)[i] - x) * k));
 export function oprawHtml(html, { paleta = 'zovu', font = 'bebas' } = {}) {
   const P = PALETY[paleta] || PALETY.zovu;
   const F = FONTY[font] || FONTY.bebas;
-  let out = html;
+  // Шрифт качается, только когда им что-то написано, и fonts.ready до этого
+  // молчит. Проба 20.10: «ZDJĘCIA» подгонялось по ширине запасного шрифта,
+  // потом приезжал широкий Archivo Black — и слово вылезало за кадр. Невидимая
+  // строчка всеми шрифтами заставляет их загрузиться до первого кадра.
+  // Кавычки одинарные и имена без кавычек — строка попадает и в srcdoc микса.
+  const zaladuj =
+    "<div aria-hidden='true' style='position:absolute;left:-9999px;top:0;font-size:40px'>" +
+    [[F.duzy, 400], [F.duzy, 700], [F.tekst, 400], [F.tekst, 600], [F.tekst, 800], [F.tekst, 900], ['Caveat', 700]]
+      .map(([f, w]) => `<span style='font-family:${f};font-weight:${w}'>ZĄ</span>`)
+      .join('') +
+    '</div>';
+  let out = html.split('<body>').join('<body>' + zaladuj);
   if (paleta !== 'zovu') {
     const zam = [
       ['#facc15', P.a],
