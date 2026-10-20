@@ -37,6 +37,7 @@ import {
   ostatniaForma,
 } from './historia-scenariuszy.mjs';
 import { ZAKONCZENIA } from './zakonczenia.mjs';
+import { historiaMontazu, wybierzOprawe, wybierzMiks } from './rezyser.mjs';
 import { SKORY, planMiksu, ruchSkory } from './skory.mjs';
 
 const DIR = import.meta.dirname;
@@ -1199,19 +1200,34 @@ async function nastepnaMuzyka() {
 const { scen, idx: scenIdx, wydanie } = await nastepnyScenariusz();
 console.log(`[rolka-auto] сценарий ${scenIdx + 1} из ${SCENARIUSZE.length}: ${scen.nazwa}`);
 
-// Концовка (zakonczenia.mjs). Пока выбирается явно: --zakonczenie=typ или
+// Режиссёр (rezyser.mjs): SKORA=auto — формат, палитру, шрифт и концовку
+// выбирает он, глядя на монтаж последних роликов ленты, и берёт самое
+// непохожее. Явные --skora / --zakonczenie / SKORA / ZAKONCZENIE — для проб.
+const arg = (k) => (process.argv.find((a) => a.startsWith(`--${k}=`)) || '').split('=')[1] || '';
+const SKORA_ZADANA = (arg('skora') || process.env.SKORA || '').trim();
+const AUTO = SKORA_ZADANA === 'auto';
+const dzis = new Date().toISOString().slice(0, 10);
+const historiaM = AUTO ? await historiaMontazu(DIR) : [];
+const oprawa = AUTO
+  ? wybierzOprawe(historiaM, `${scen.nazwa}-${dzis}`, {
+      scen,
+      wymus: { zakonczenie: (arg('zakonczenie') || process.env.ZAKONCZENIE || '').trim() || undefined },
+    })
+  : null;
+if (oprawa) console.log(`[rezyser] ${oprawa.log}`);
+
+// Концовка (zakonczenia.mjs): от режиссёра, либо --zakonczenie=typ /
 // ZAKONCZENIE в окружении; пусто — прежняя карточка «marka».
-const ZAKONCZENIE =
-  ((process.argv.find((a) => a.startsWith('--zakonczenie=')) || '').split('=')[1] || process.env.ZAKONCZENIE || 'marka').trim();
+const ZAKONCZENIE = (oprawa?.zakonczenie || arg('zakonczenie') || process.env.ZAKONCZENIE || 'marka').trim();
 if (!ZAKONCZENIA[ZAKONCZENIE]) throw new Error(`нет концовки «${ZAKONCZENIE}», есть: ${Object.keys(ZAKONCZENIA).join(', ')}`);
 const zakTekst = scen.zakonczenia?.[ZAKONCZENIE] || {};
 if (zakTekst.cta) {
   const i = scen.czesci.findLastIndex((c) => c.rola === 'cta');
   if (i >= 0) scen.czesci[i] = { ...scen.czesci[i], tekst: zakTekst.cta, mowa: undefined };
 }
-// Монтажный скин (skory.mjs): --skora=typ или SKORA в окружении; пусто —
-// прежний монтаж «сток + жёлтые подписи».
-const SKORA = ((process.argv.find((a) => a.startsWith('--skora=')) || '').split('=')[1] || process.env.SKORA || '').trim();
+// Монтажный скин (skory.mjs). Формат «stok» у режиссёра — прежний монтаж
+// «сток + жёлтые подписи», то есть скина нет.
+const SKORA = oprawa ? (oprawa.format === 'stok' ? '' : oprawa.format) : SKORA_ZADANA;
 if (SKORA && !SKORY[SKORA]) throw new Error(`нет скина «${SKORA}», есть: ${Object.keys(SKORY).join(', ')}`);
 if (SKORA) console.log(`[rolka-auto] монтаж: скин «${SKORA}» — ${SKORY[SKORA].nazwa}`);
 console.log(`[rolka-auto] концовка: ${ZAKONCZENIE}${zakTekst.cta ? ' — «' + zakTekst.cta + '»' : ''}`);
@@ -1491,6 +1507,8 @@ if (SKORA) {
         tytul: scen.czesci[i]?.tytul || null,
       })),
       slowa: glos.slowa,
+      paleta: oprawa?.paleta,
+      font: oprawa?.font,
     },
   };
   // Микс: стиль меняется по кускам ролика, стыки закрыты переходами.
@@ -1500,7 +1518,13 @@ if (SKORA) {
     const wymus = {};
     style.split(',').filter(Boolean).forEach((t, i) => { wymus[i] = t; });
     przejscia.split(',').filter(Boolean).forEach((t, i) => { wymus['p' + (i + 1)] = t; });
-    const m = planMiksu(plan.skora.dane.frazy, `${scen.nazwa}-${new Date().toISOString().slice(0, 10)}`, { wymus });
+    const ziarno = `${scen.nazwa}-${dzis}`;
+    let m = planMiksu(plan.skora.dane.frazy, ziarno, { wymus });
+    // Режиссёр: из сорока раскладок — та, что меньше похожа на ленту.
+    if (oprawa && !process.env.MIKS) {
+      const kand = Array.from({ length: 40 }, (_, k) => planMiksu(plan.skora.dane.frazy, `${ziarno}-${k}`));
+      m = wybierzMiks(kand, oprawa, historiaM).m;
+    }
     Object.assign(plan.skora.dane, m);
     console.log(
       `[rolka-auto] микс: ${m.segmenty.map((s) => `${s.typ}(${s.od}-${s.do - 1})`).join(' → ')}; ` +
@@ -1557,6 +1581,16 @@ await writeFile(
       forma: scen.forma || 'lista',
       skora: SKORA || 'stok',
       zakonczenie: ZAKONCZENIE,
+      // Паспорт монтажа — по нему режиссёр сравнивает следующий ролик с лентой.
+      montaz: {
+        format: SKORA || 'stok',
+        paleta: plan.skora?.dane.paleta || 'zovu',
+        font: plan.skora?.dane.font || 'bebas',
+        zakonczenie: ZAKONCZENIE,
+        ...(SKORA === 'miks'
+          ? { style: plan.skora.dane.segmenty.map((s) => s.typ), przejscia: plan.skora.dane.przejscia.map((p) => p.typ) }
+          : {}),
+      },
       temat: scen.temat,
       dlugosc: wynik.sekundy,
       planow: wynik.planow,

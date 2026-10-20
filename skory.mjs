@@ -17,6 +17,8 @@
 //
 // В `filtr` метки {IN} и {OUT} — вход и выход куска графа ffmpeg.
 
+import { oprawHtml } from './rezyser.mjs';
+
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 export const SKORY = {
@@ -697,5 +699,6 @@ const BUDOWNICZE = { czat, notatka, mem, slowo, split, typo, post, miks };
 export function skoraHtml(typ, dane, { W = 1080, H = 1920 } = {}) {
   const b = BUDOWNICZE[typ];
   if (!b) throw new Error(`нет скина «${typ}», есть: ${Object.keys(BUDOWNICZE).join(', ')}`);
-  return b(dane, W, H);
+  // Палитра и шрифты — от режиссёра (rezyser.mjs); без них — цвета ZOVU.
+  return oprawHtml(b(dane, W, H), { paleta: dane.paleta, font: dane.font });
 }

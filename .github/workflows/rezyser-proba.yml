@@ -1,0 +1,68 @@
+name: ZOVU próba reżysera
+
+# Несколько роликов ПОДРЯД, как несколько дней ленты: каждый следующий
+# режиссёр (rezyser.mjs) выбирает, видя предыдущие в очереди. Очередь
+# меняется только внутри прогона — в репозиторий ничего не пишется.
+on:
+  workflow_dispatch:
+    inputs:
+      ile:
+        description: 'Сколько «дней» собрать'
+        type: string
+        default: '5'
+
+jobs:
+  zbuduj:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Whisper
+        run: python -m pip install --quiet faster-whisper
+      - name: Model whispera z pamięci podręcznej
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: whisper-small-v1
+      - name: ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Zależności node
+        run: |
+          npm ci --omit=dev || npm install --omit=dev
+          npx playwright install --with-deps chromium
+      - name: Zbuduj dni
+        env:
+          PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
+          GLOS_DOSTAWCA: ${{ vars.GLOS_DOSTAWCA }}
+          GCP_CLIENT_ID: ${{ secrets.GCP_CLIENT_ID }}
+          GCP_CLIENT_SECRET: ${{ secrets.GCP_CLIENT_SECRET }}
+          GCP_REFRESH_TOKEN: ${{ secrets.GCP_REFRESH_TOKEN }}
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+          GOOGLE_VOICE: ${{ vars.GOOGLE_VOICE }}
+          GOOGLE_VOICE_ZAPAS: ${{ vars.GOOGLE_VOICE_ZAPAS }}
+          GOOGLE_TTS_MODEL: ${{ vars.GOOGLE_TTS_MODEL }}
+          SKORA: auto
+        run: |
+          mkdir -p wynik
+          for d in $(seq 1 ${{ inputs.ile }}); do
+            echo "::group::dzień $d"
+            rm -f out/auto-*.mp4
+            node rolka-auto.mjs || { echo "::warning::dzień $d nie wyszedł"; echo "::endgroup::"; continue; }
+            for f in out/auto-*.mp4; do cp "$f" "wynik/$d-$(basename "$f")"; cp "${f%.mp4}-meta.json" "wynik/$d-$(basename "${f%.mp4}")-meta.json"; done
+            node do-kolejki.mjs
+            echo "::endgroup::"
+          done
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rezyser
+          path: wynik/
+          retention-days: 7

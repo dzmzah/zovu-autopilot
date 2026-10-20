@@ -244,6 +244,7 @@ for (const [i, f] of pliki.entries()) {
           dlugosc: meta.dlugosc,
           planow: meta.planow,
           tempo: meta.tempo,
+          ...(meta.montaz ? { montaz: meta.montaz } : {}),
         }
       : {}),
   });
