@@ -104,7 +104,45 @@ async function klucz() {
 
 // Сильная модель первой: сценарий пишется раз в неделю, а не на каждый ролик,
 // и экономить тут не на чем. Flash — запасная на случай лимита.
+// Первым — Gemini Pro через Google Cloud (Vertex) теми же ключами, что и голос.
+// 20.10 бесплатная квота ключа Gemini кончилась к обеду: её съедает отбор
+// кадров. У облака дневного потолка нет, платится из пробного кредита
+// (до 30.11), пачка сценариев — центы.
+async function zapytajVertex(system, user, temperatura) {
+  const { GCP_CLIENT_ID: id, GCP_CLIENT_SECRET: sekret, GCP_REFRESH_TOKEN: odswiez } = process.env;
+  const projekt = process.env.GCP_PROJECT;
+  if (!id || !sekret || !odswiez || !projekt) throw new Error('нет ключей Google Cloud');
+  const t = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ client_id: id, client_secret: sekret, refresh_token: odswiez, grant_type: 'refresh_token' }),
+  }).then((r) => r.json());
+  if (!t.access_token) throw new Error('токен Google: ' + JSON.stringify(t).slice(0, 160));
+  const model = process.env.VERTEX_MODEL || 'gemini-2.5-pro';
+  const r = await fetch(
+    `https://aiplatform.googleapis.com/v1/projects/${projekt}/locations/global/publishers/google/models/${model}:generateContent`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${t.access_token}`, 'x-goog-user-project': projekt },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: [{ role: 'user', parts: [{ text: user }] }],
+        generationConfig: { temperature: temperatura, responseMimeType: 'application/json' },
+      }),
+    }
+  );
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(`Vertex ${model} ${r.status}: ${JSON.stringify(j).slice(0, 200)}`);
+  console.log(`[generator] ответила ${model} (Google Cloud)`);
+  return JSON.parse((j.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join(''));
+}
+
 async function zapytaj(system, user, temperatura) {
+  try {
+    return await zapytajVertex(system, user, temperatura);
+  } catch (e) {
+    console.warn(`[generator] Google Cloud не ответил (${e.message}) — пробую ключ Gemini`);
+  }
   const key = await klucz();
   if (!key) throw new Error('нет GEMINI_API_KEY');
   let blad;
