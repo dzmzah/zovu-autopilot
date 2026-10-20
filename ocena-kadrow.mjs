@@ -54,18 +54,31 @@ export async function ocenKadry(fraza, zapytanie, kandydaci) {
       parts.push({ text: `Klatka ${nr}:` });
       parts.push({ inlineData: { mimeType: 'image/jpeg', data: b } });
     });
-    const model = process.env.GEMINI_MODEL || 'gemini-flash-latest';
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: ZASADY }] },
-        contents: [{ parts }],
-        generationConfig: { temperature: 0.2, responseMimeType: 'application/json' },
-      }),
+    // Проба 20.10: на пачке из пяти роликов основная модель то «перегружена»
+    // (503), то упиралась в лимит (429). У облегчённой своя квота — она запасная.
+    const body = JSON.stringify({
+      systemInstruction: { parts: [{ text: ZASADY }] },
+      contents: [{ parts }],
+      generationConfig: { temperature: 0.2, responseMimeType: 'application/json' },
     });
-    const j = await r.json();
-    if (!r.ok) throw new Error(`Gemini ${r.status}: ${JSON.stringify(j).slice(0, 160)}`);
+    let j, ostatni;
+    for (const model of [process.env.GEMINI_MODEL || 'gemini-flash-latest', 'gemini-flash-lite-latest']) {
+      for (let proba = 0; proba < 2; proba++) {
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
+          body,
+        });
+        const odp = await r.json();
+        if (r.ok) { j = odp; break; }
+        ostatni = `${model} ${r.status}: ${JSON.stringify(odp).slice(0, 120)}`;
+        // 503 проходит за секунды; 429 — квота, повтор той же модели бесполезен.
+        if (r.status !== 503) break;
+        await new Promise((res) => setTimeout(res, 4000));
+      }
+      if (j) break;
+    }
+    if (!j) throw new Error(ostatni);
     const tekst = (j.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
     const oceny = JSON.parse(tekst).oceny || [];
     const mapa = new Map();
