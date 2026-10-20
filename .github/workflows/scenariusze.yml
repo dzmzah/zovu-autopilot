@@ -1,0 +1,52 @@
+name: ZOVU generator scenariuszy
+
+# Дописывает сценарии в rolki/scenariusze-generowane.json (generator-scenariuszy.mjs).
+# Каждый день перед сборкой его зовёт rolki-auto.yml; руками — для проб.
+on:
+  workflow_dispatch:
+    inputs:
+      ile:
+        description: 'Сколько дописать (пусто — только если свежих мало)'
+        type: string
+        default: ''
+      proba:
+        description: 'Только показать, не сохранять'
+        type: boolean
+        default: true
+
+concurrency:
+  group: rolki-kolejka
+  cancel-in-progress: false
+
+jobs:
+  generuj:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Generuj
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          FLAGI=""
+          if [ -n "${{ inputs.ile }}" ]; then FLAGI="--ile=${{ inputs.ile }}"; fi
+          if [ "${{ inputs.proba }}" = "true" ]; then FLAGI="$FLAGI --proba"; fi
+          node generator-scenariuszy.mjs $FLAGI
+      - name: Zapisz
+        if: ${{ !inputs.proba }}
+        run: |
+          git config user.name  "zovu-autopilot"
+          git config user.email "autopilot@zovu.pl"
+          git add rolki/scenariusze-generowane.json || true
+          git diff --cached --quiet && echo "нечего записывать" && exit 0
+          git commit -m "scenariusze: generator dopisał [skip ci]"
+          for i in 1 2 3; do
+            git -c rebase.autoStash=true pull --rebase -q origin main && git push -q origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1
