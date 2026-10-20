@@ -53,7 +53,9 @@ export const SKORY = {
 const PUSTE = new Set(
   ('i a o u w z na do że to nie się jest są czy ale bo jak co już tak ten ta te ty ja my wy ' +
     'po od za przy dla bez nad pod przed tylko też jeszcze kiedy gdy który która które ' +
-    'twoja twój twoje nasz nasza nasze jego jej ich mi ci go mu jej sobie siebie tym tego')
+    'twoja twój twoje twojej twoją twoim twoich twoimi nasz nasza nasze naszej naszą naszym swoja swój swoje swojej swoją swoim swoich ' +
+    'jego jej ich mi ci go mu sobie siebie tym tego temu tej tą który która które którego której jaki jaka jakie ' +
+    'wszystko wszyscy każdy każda każde bardzo naprawdę zawsze nigdy można trzeba będzie było jesteś masz')
     .split(' ')
 );
 export function glowneSlowo(fraza) {
