@@ -299,6 +299,7 @@ export async function generuj(ile, { zapisz = true } = {}) {
     return surowe;
   });
   const lista = poprawione.scenariusze || [];
+  if (process.argv.includes('--proba')) console.log('[generator] пример ответа: ' + JSON.stringify(lista[0]).slice(0, 2500));
 
   const przyjete = [];
   for (const s of lista) {
