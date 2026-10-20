@@ -26,6 +26,7 @@
 //   node generator-scenariuszy.mjs --proba    — написать и показать, не сохраняя
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { vertex } from './vertex.mjs';
 import { historiaScenariuszy, MIN_DNI } from './historia-scenariuszy.mjs';
 
 const DIR = import.meta.dirname;
@@ -112,38 +113,10 @@ async function klucz() {
 // кадров. У облака дневного потолка нет, платится из пробного кредита
 // (до 30.11), пачка сценариев — центы.
 async function zapytajVertex(system, user, temperatura) {
-  const { GCP_CLIENT_ID: id, GCP_CLIENT_SECRET: sekret, GCP_REFRESH_TOKEN: odswiez } = process.env;
-  const projekt = process.env.GCP_PROJECT;
-  if (!id || !sekret || !odswiez || !projekt) throw new Error('нет ключей Google Cloud');
-  const t = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ client_id: id, client_secret: sekret, refresh_token: odswiez, grant_type: 'refresh_token' }),
-  }).then((r) => r.json());
-  if (!t.access_token) throw new Error('токен Google: ' + JSON.stringify(t).slice(0, 160));
   const model = process.env.VERTEX_MODEL || 'gemini-2.5-pro';
-  const r = await fetch(
-    `https://aiplatform.googleapis.com/v1/projects/${projekt}/locations/global/publishers/google/models/${model}:generateContent`,
-    {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', authorization: `Bearer ${t.access_token}`, 'x-goog-user-project': projekt },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: system }] },
-        contents: [{ role: 'user', parts: [{ text: user }] }],
-        generationConfig: { temperature: temperatura, responseMimeType: 'application/json' },
-      }),
-    }
-  );
-  const j = await r.json().catch(() => ({}));
-  if (r.status === 429 && !zapytajVertex.powtorka) {
-    // «Нет свободной мощности» у общего пула — проходит за десятки секунд.
-    zapytajVertex.powtorka = true;
-    await new Promise((res) => setTimeout(res, 25000));
-    try { return await zapytajVertex(system, user, temperatura); } finally { zapytajVertex.powtorka = false; }
-  }
-  if (!r.ok) throw new Error(`Vertex ${model} ${r.status}: ${JSON.stringify(j).slice(0, 200)}`);
+  const tekst = await vertex({ model, system, parts: [{ text: user }], temperatura });
   console.log(`[generator] ответила ${model} (Google Cloud)`);
-  return JSON.parse((j.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join(''));
+  return JSON.parse(tekst);
 }
 
 async function zapytaj(system, user, temperatura) {

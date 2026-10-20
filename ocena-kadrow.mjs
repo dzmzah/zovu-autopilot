@@ -7,6 +7,7 @@
 // Нет ключа, лимит, сеть — возвращаем null, и выбор идёт по-старому.
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { vertex } from './vertex.mjs';
 
 async function klucz() {
   if (process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY.trim();
@@ -38,7 +39,7 @@ const ZASADY =
 export async function ocenKadry(fraza, zapytanie, kandydaci) {
   const key = await klucz();
   const zPodgladem = kandydaci.filter((k) => k.podglad).slice(0, 8);
-  if (!key || zPodgladem.length < 2) return null;
+  if ((!key && !process.env.GCP_PROJECT) || zPodgladem.length < 2) return null;
   try {
     const obrazy = await Promise.all(
       zPodgladem.map(async (k) => {
@@ -62,7 +63,14 @@ export async function ocenKadry(fraza, zapytanie, kandydaci) {
       generationConfig: { temperature: 0.2, responseMimeType: 'application/json' },
     });
     let j, ostatni;
-    for (const model of [process.env.GEMINI_MODEL || 'gemini-flash-latest', 'gemini-flash-lite-latest']) {
+    // Сначала облако: бесплатная квота ключа нужна текстам постов.
+    try {
+      const t = await vertex({ model: 'gemini-2.5-flash', system: ZASADY, parts, temperatura: 0.2 });
+      j = { candidates: [{ content: { parts: [{ text: t }] } }] };
+    } catch (e) {
+      ostatni = e.message;
+    }
+    for (const model of j ? [] : [process.env.GEMINI_MODEL || 'gemini-flash-latest', 'gemini-flash-lite-latest']) {
       for (let proba = 0; proba < 2; proba++) {
         const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
           method: 'POST',
