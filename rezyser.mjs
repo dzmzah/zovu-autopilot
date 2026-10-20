@@ -103,9 +103,12 @@ export function powtarzalnosc(kandydat, historia) {
 export async function historiaMontazu(dir) {
   try {
     const kolejka = JSON.parse(await readFile(path.join(dir, 'rolki', 'kolejka.json'), 'utf8'));
+    // Порядок СБОРКИ (очередь дописывается в конец), а не слота: очередь
+    // ставит ролик в лучший свободный час, и вчерашняя сборка может выйти
+    // раньше позавчерашней. Сравнивать надо с тем, что делали последним.
     return kolejka
       .filter((p) => p.kiedy || p.opublikowano)
-      .sort((a, b) => Date.parse(b.kiedy || b.opublikowano) - Date.parse(a.kiedy || a.opublikowano))
+      .reverse()
       .slice(0, PAMIEC)
       .map((p) => p.montaz || { format: 'stok', paleta: 'zovu', font: 'bebas', zakonczenie: 'marka' });
   } catch {
