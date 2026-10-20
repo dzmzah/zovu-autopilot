@@ -85,12 +85,13 @@ Każdy scenariusz to obiekt JSON:
 
 Fraza ("tekst"): 3–9 słów, jedna myśl, da się powiedzieć na jednym oddechu. Mogą być dwa bardzo krótkie zdania („Najpierw pytanie. O cel.”). Poprawna polszczyzna — sprawdź rodzaj, przypadki, ogonki.
 "szukaj": zapytanie PO ANGIELSKU do stocku wideo, 3–5 słów, konkretny obraz z życia (ręce, telefon, sklep, warsztat), bez abstrakcji typu "success" czy "growth".
+Pole "zakonczenia" jest OBOWIĄZKOWE w każdym scenariuszu — bez niego scenariusz jest odrzucany.
 Odpowiadasz samym JSON: {"scenariusze": [ ... ]}.`;
 
 const ZASADY_KOREKTY = `Jesteś korektorem i redaktorem polskich tekstów do krótkich filmów. Dostajesz JSON ze scenariuszami.
 Popraw: błędy językowe (rodzaj, przypadki, ogonki, interpunkcja), zdania nienaturalne lub „przetłumaczone”, frazy dłuższe niż 9 słów, ogólniki, marketingowy żargon.
 Usuń każdą wymyśloną liczbę, statystykę lub historię o klientach — zamień na zwykłą radę.
-Nie zmieniaj struktury, kluczy, ról, liczby fraz ani pól "szukaj" i "nazwa". Zwróć ten sam JSON: {"scenariusze": [ ... ]}.`;
+Nie zmieniaj struktury, kluczy, ról, liczby fraz ani pól "szukaj" i "nazwa". Zachowaj WSZYSTKIE pola, także "zakonczenia", "plyta" i "opis" (je też popraw). Zwróć ten sam JSON: {"scenariusze": [ ... ]}.`;
 
 async function klucz() {
   if (process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY.trim();
@@ -132,6 +133,12 @@ async function zapytajVertex(system, user, temperatura) {
     }
   );
   const j = await r.json().catch(() => ({}));
+  if (r.status === 429 && !zapytajVertex.powtorka) {
+    // «Нет свободной мощности» у общего пула — проходит за десятки секунд.
+    zapytajVertex.powtorka = true;
+    await new Promise((res) => setTimeout(res, 25000));
+    try { return await zapytajVertex(system, user, temperatura); } finally { zapytajVertex.powtorka = false; }
+  }
   if (!r.ok) throw new Error(`Vertex ${model} ${r.status}: ${JSON.stringify(j).slice(0, 200)}`);
   console.log(`[generator] ответила ${model} (Google Cloud)`);
   return JSON.parse((j.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join(''));
@@ -298,7 +305,12 @@ export async function generuj(ile, { zapisz = true } = {}) {
     console.warn(`[generator] корректор не ответил (${e.message}) — беру без корректуры`);
     return surowe;
   });
-  const lista = poprawione.scenariusze || [];
+  // Корректор иногда теряет поля целиком — возвращаем их из первого ответа.
+  const zrodla = new Map((surowe.scenariusze || []).map((x) => [x?.nazwa, x]));
+  const lista = (poprawione.scenariusze || []).map((x) => {
+    const z = zrodla.get(x?.nazwa) || {};
+    return { ...z, ...x, zakonczenia: x?.zakonczenia || z.zakonczenia, plyta: x?.plyta || z.plyta, opis: x?.opis || z.opis };
+  });
   if (process.argv.includes('--proba')) console.log('[generator] пример ответа: ' + JSON.stringify(lista[0]).slice(0, 2500));
 
   const przyjete = [];
