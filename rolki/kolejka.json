@@ -2406,5 +2406,37 @@
         "paski"
       ]
     }
+  },
+  {
+    "plik": "auto-2026-10-21-1.mp4",
+    "kiedy": "2026-10-23T11:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Ciągle słyszysz, że post trzeba zaczynać pytaniem? To jedna z tych „dobrych rad”, która częściej szkodzi. Ludzie w sieci skanują treść, a nie czytają. Pytanie na starcie to dla nich zbędny wysiłek. Zanim pomyślą nad odpowiedzią, przewiną dalej. Zamiast zmuszać do myślenia, daj konkret. Najciekawszą informację, wniosek lub puentę. Pytanie zadaj na końcu, gdy czytelnik wie, o co chodzi.\n\nzovu.pl\n\n#katowice #chorzow #jdg #rzemioslo #postydlafirm",
+    "opublikowano": null,
+    "zrodlo": "auto-mit-pytanie-na-poczatku-posta.mp4",
+    "scenariusz": "mit-pytanie-na-poczatku-posta",
+    "forma": "mit",
+    "temat": "Czy post zawsze musi zaczynać się pytaniem?",
+    "dlugosc": 17.72,
+    "planow": 6,
+    "tempo": [
+      5.7,
+      4.5,
+      4.5,
+      4.8,
+      4.2,
+      7.1
+    ],
+    "montaz": {
+      "format": "typo",
+      "paleta": "zovu",
+      "font": "grotesk",
+      "zakonczenie": "blysk"
+    }
   }
 ]

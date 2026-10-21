@@ -435,5 +435,313 @@
     },
     "zrodlo": "generator",
     "utworzono": "2026-10-20"
+  },
+  {
+    "nazwa": "odpowiedz-na-piec-gwiazdek",
+    "plyta": {
+      "linie": [
+        "DOSTAŁEŚ 5 GWIAZDEK?",
+        "I CO TERAZ?"
+      ],
+      "plaszka": "PYTANIE"
+    },
+    "forma": "pytanie",
+    "temat": "Czy odpisywać na pozytywne opinie w Google",
+    "opis": "Klient zostawił ci 5 gwiazdek w Google, ale nic nie napisał. Odpowiadać?\n\nKrótka odpowiedź: tak, zawsze. To zajmuje chwilę, a korzyści są duże. Pokazujesz innym klientom, że jesteś zaangażowany i zależy ci na ich zdaniu.\n\nTo też sygnał dla algorytmów Google. Profil, na którym właściciel odpowiada klientom, jest postrzegany jako bardziej aktywny i wiarygodny. Wystarczy proste „Dziękujemy za ocenę i zapraszamy ponownie!”.\n\nzovu.pl\n\n#googlemójbiznes #wizytówkagoogle #opinieklientów #lokalnybiznes #małafirma #śląsk",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Dostałeś 5 gwiazdek w Google bez komentarza?",
+        "szukaj": "notification on phone screen 5 stars",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Zastanawiasz się, czy na nie odpisywać?",
+        "szukaj": "person thinking looking at phone",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Krótka odpowiedź: tak, zawsze warto.",
+        "szukaj": "person nodding head yes",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Wystarczy proste: „Dziękujemy za ocenę, zapraszamy!”.",
+        "szukaj": "person typing on phone",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "To sygnał dla Google i klientów, że po prostu dbasz.",
+        "szukaj": "customer smiling in a shop",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Idź i podziękuj za ostatnią opinię.",
+        "szukaj": "finger tapping on google maps app",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "pytanie": {
+        "cta": "Odpisujesz na wszystkie opinie, nawet te bez tekstu?",
+        "karta": {
+          "tekst": "Odpisujesz na wszystkie opinie?",
+          "odpowiedz": "Od dzisiaj tak…"
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-21"
+  },
+  {
+    "nazwa": "rolki-bez-tanczenia",
+    "plyta": {
+      "linie": [
+        "NIE MUSISZ TAŃCZYĆ",
+        "W SWOICH ROLKACH"
+      ],
+      "plaszka": "MIT"
+    },
+    "forma": "mit",
+    "temat": "Czy w rolkach trzeba tańczyć i pokazywać trendy",
+    "opis": "Boisz się nagrywać rolki, bo myślisz, że trzeba w nich tańczyć i robić głupie miny? To mit, który paraliżuje wielu przedsiębiorców.\n\nLudzie są zmęczeni powtarzalnymi trendami. Chcą zobaczyć coś prawdziwego. Twoja praca, umiejętności, kulisy biznesu – to jest naprawdę ciekawe.\n\nPokaż, jak powstaje twój produkt. Nagraj fragment usługi. Opowiedz o problemie, który rozwiązujesz. Twoja autentyczność jest twoją największą siłą. Nie ukrywaj jej za popularnymi trendami.\n\nzovu.pl\n\n#rolki #krótkiewideo #reels #własnafirma #biznes #marketing",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Myślisz, że w rolkach trzeba robić z siebie klauna?",
+        "szukaj": "person cringing at phone screen",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Myślisz, że musisz tańczyć i naśladować trendy? To mit.",
+        "szukaj": "person awkwardly dancing for a video",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Ludzie chcą zobaczyć twoją pracę od kulis. Prawdziwe życie.",
+        "szukaj": "potter shaping clay on a wheel",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Pokaż proces, narzędzia i gotowy efekt. To jest ciekawe.",
+        "szukaj": "chef plating a beautiful dish",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Twoja autentyczność jest ciekawsza niż jakikolwiek trend.",
+        "szukaj": "person smiling proudly at their work",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Nagraj dziś 10 sekund swojej pracy.",
+        "szukaj": "hand holding phone recording a video",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto boi się nagrywać, bo myśli, że musi tańczyć.",
+        "karta": {
+          "tekst": "Komuś, kto boi się nagrywać"
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-21"
+  },
+  {
+    "nazwa": "nie-odpisuj-od-razu",
+    "plyta": {
+      "linie": [
+        "DOSTAŁEŚ WIADOMOŚĆ?",
+        "NIE ODPISUJ OD RAZU"
+      ],
+      "plaszka": "RADA"
+    },
+    "forma": "pod-prad",
+    "temat": "Kiedy nie odpisywać klientowi od razu",
+    "opis": "Wszyscy radzą, by na zapytania klientów odpisywać natychmiast. To nie zawsze dobra strategia, zwłaszcza przy wycenach.\n\nPośpiech to zły doradca. Odpisując w biegu, pod presją, łatwo o błąd, zapomnienie o ważnych pytaniach lub zaniżenie ceny, by „złapać” klienta.\n\nDaj sobie chwilę. Przeczytaj wiadomość na spokojnie, zastanów się, o co dopytać. Lepiej odpisać wyczerpująco po godzinie niż rzucić byle jaką odpowiedź po minucie. To buduje wizerunek eksperta.\n\nzovu.pl\n\n#obsługaklienta #małafirma #jednoosobowadziałalność #freelancer #biznes #poradybiznesowe",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Dostałeś zapytanie o wycenę? Odpisujesz od razu?",
+        "szukaj": "phone notification with message icon",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Poczekaj. Szybka odpowiedź nie zawsze jest najlepsza.",
+        "szukaj": "person putting phone down",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Pośpiech prowadzi do pomyłek i zaniżania cen.",
+        "szukaj": "man frustrated looking at calculator",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Daj sobie chwilę na przemyślaną odpowiedź. To procentuje.",
+        "szukaj": "person sipping coffee and thinking",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Przemyślana odpowiedź jest warta więcej niż szybka reakcja.",
+        "szukaj": "satisfied smile of a business owner",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Zapisz tę radę na następny raz.",
+        "szukaj": "hand saving instagram post on phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "pytanie": {
+        "cta": "Czujesz presję, by odpisywać na wiadomości od razu?",
+        "karta": {
+          "tekst": "Czujesz presję szybkiej odpowiedzi?",
+          "odpowiedz": "Tak, ogromną."
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-21"
+  },
+  {
+    "nazwa": "wnetrze-ktore-robi-reklame",
+    "plyta": {
+      "linie": [
+        "MIEJSCE NA ZDJĘCIE",
+        "W TWOIM LOKALU"
+      ],
+      "plaszka": "POMYSŁ"
+    },
+    "forma": "przed-po",
+    "temat": "Jak sprawić, by klienci sami robili ci reklamę",
+    "opis": "Prowadzisz kawiarnię, salon, warsztat? Chcesz, by klienci o tobie mówili i przyprowadzali kolejnych? Daj im powód i miejsce.\n\nZamiast nijakiego wnętrza, stwórz jeden mały punkt, przy którym chce się zrobić zdjęcie. Coś, co ludzie sami sfotografują i czym oznaczą twoją lokalizację.\n\nTo może być neon z chwytliwym hasłem, oryginalny fotel lub ściana z ciekawą tapetą. Mały koszt, a działa jak darmowa reklama, którą robią za ciebie zadowoleni klienci.\n\nzovu.pl\n\n#bizneslokalny #marketinglokalny #gastronomia #salonurody #barber #katowice",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Twoi klienci nie robią sobie zdjęć w twoim lokalu?",
+        "szukaj": "empty cafe interior",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Masz ładne, ale nijakie wnętrze. Niczym się nie wyróżnia.",
+        "szukaj": "generic modern restaurant interior",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Dodajesz jeden charakterystyczny element: neon, mural, fotel.",
+        "szukaj": "person taking selfie with neon sign",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Coś, przy czym każdy odruchowo wyciąga telefon.",
+        "szukaj": "group of friends posing for a photo in a bar",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Daj ludziom powód, by cię oznaczali. Zrobią ci darmową reklamę.",
+        "szukaj": "phone screen with instagram tag location",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Rozejrzyj się po swoim lokalu i znajdź takie miejsce.",
+        "szukaj": "business owner looking around their shop",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to właścicielowi fajnego miejsca, któremu brakuje „tego czegoś”.",
+        "karta": {
+          "tekst": "Właścicielowi fajnego miejsca"
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-21"
+  },
+  {
+    "nazwa": "czy-twoja-oferta-jest-jasna",
+    "plyta": {
+      "linie": [
+        "5 SEKUND",
+        "NA ZROZUMIENIE OFERTY"
+      ],
+      "plaszka": "TEST"
+    },
+    "forma": "pytanie",
+    "temat": "Test 5 sekund dla twojej oferty na stronie",
+    "opis": "Ktoś pierwszy raz wchodzi na twoją stronę. Ile czasu potrzebuje, by zrozumieć, czym się zajmujesz i co oferujesz?\n\nJeśli więcej niż kilka sekund, masz problem. Ludzie w internecie nie mają cierpliwości. Jeśli nie znajdą od razu odpowiedzi na pytanie „co tu dla mnie jest?”, po prostu wyjdą.\n\nZrób prosty test. Pokaż swoją stronę główną znajomemu na pięć sekund. Potem zapytaj: „co sprzedaję?”. Jeśli nie będzie umiał odpowiedzieć, musisz natychmiast uprościć swój komunikat.\n\nzovu.pl\n\n#stronawww #stronainternetowa #małafirma #własnybiznes #oferta #sprzedaż",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Ktoś wchodzi na twoją stronę i… co widzi?",
+        "szukaj": "person looking at website on laptop",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Czy ktoś obcy zrozumie twoją ofertę w 5 sekund?",
+        "szukaj": "countdown timer 5 seconds",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Zrób prosty test. Pokaż komuś swoją stronę na 5 sekund.",
+        "szukaj": "person showing phone to a friend",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "I zapytaj: „co sprzedaję?”. Nie podpowiadaj.",
+        "szukaj": "person asking a question",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Jeśli ludzie nie rozumieją, co oferujesz, nie kupią.",
+        "szukaj": "person closing laptop frustrated",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Zrób ten test jeszcze dziś.",
+        "szukaj": "finger pointing at the camera",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "pytanie": {
+        "cta": "Myślisz, że twoja strona zdaje test 5 sekund?",
+        "karta": {
+          "tekst": "Twoja oferta zdaje ten test?",
+          "odpowiedz": "Chyba nie…"
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-21"
   }
 ]
