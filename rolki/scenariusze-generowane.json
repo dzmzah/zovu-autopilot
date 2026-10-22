@@ -743,5 +743,385 @@
     },
     "zrodlo": "generator",
     "utworzono": "2026-10-21"
+  },
+  {
+    "nazwa": "lista-strona-glowna",
+    "plyta": {
+      "linie": [
+        "TRZY ZMIANY",
+        "NA STRONIE GŁÓWNEJ"
+      ],
+      "plaszka": "LISTA"
+    },
+    "forma": "lista",
+    "temat": "trzy rzeczy do dodania na stronę główną firmy",
+    "opis": "Twoja strona to sprzedawca, który pracuje całą dobę. Ale żeby sprzedawał, musi być skuteczny. Klient musi w kilka sekund znaleźć najważniejsze informacje. Nie każ mu szukać ani się domyślać. Daj mu na tacy to, po co przyszedł. Najczęściej szuka numeru telefonu, informacji o usłudze i lokalizacji. Przejrzyj swoją stronę główną i sprawdź, czy spełnia te trzy punkty. To małe zmiany, które robią dużą różnicę.\n\nzovu.pl\n\n#stronawww #stronainternetowa #malabirma #firmaześląska #webdesign #uzytecznosc",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Twoja strona ma sprzedawać, nie tylko być.",
+        "szukaj": "person scrolling website on laptop",
+        "pauza": 0.38
+      },
+      {
+        "rola": "punkt",
+        "numer": 1,
+        "tytul": "Numer",
+        "tekst": "Po pierwsze, numer telefonu. Na samej górze, dobrze widoczny.",
+        "szukaj": "finger pointing at phone number on screen",
+        "pauza": 0.3
+      },
+      {
+        "rola": "punkt",
+        "numer": 2,
+        "tytul": "Konkret",
+        "tekst": "Po drugie, jedno zdanie: co robisz i dla kogo.",
+        "szukaj": "person writing a clear sentence on paper",
+        "pauza": 0.3
+      },
+      {
+        "rola": "punkt",
+        "numer": 3,
+        "tytul": "Adres",
+        "tekst": "Po trzecie, twój adres. Chociaż miasto i dzielnica.",
+        "szukaj": "map pin dropping on a city district",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Klient daje ci trzy sekundy. Wykorzystaj je dobrze.",
+        "szukaj": "hourglass with sand running out quickly",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Sprawdź swoją stronę główną jeszcze dziś.",
+        "szukaj": "person looking critically at computer screen",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto właśnie robi stronę.",
+        "karta": {
+          "tekst": "Komuś, kto robi stronę"
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-22"
+  },
+  {
+    "nazwa": "pod-prad-rytm-publikacji",
+    "plyta": {
+      "linie": [
+        "PUBLIKUJ SERIAMI",
+        "A NIE REGULARNIE"
+      ],
+      "plaszka": "INACZEJ"
+    },
+    "forma": "pod-prad",
+    "temat": "rada wbrew wszystkim: nie publikuj według kalendarza",
+    "opis": "Wszyscy mówią, że trzeba publikować regularnie. Post w poniedziałek, rolka w środę, relacja w piątek. Brzmi jak plan idealny. A w praktyce? To przepis na zmęczenie i tworzenie treści na siłę. Wrzucasz cokolwiek, byle tylko coś było. A byle jakie treści szkodzą wizerunkowi bardziej niż cisza. Spróbuj inaczej. Masz dobry temat? Masz wenę? Nagraj od razu kilka rolek. Napisz kilka postów. Opublikuj je w ciągu kilku dni, a potem zrób sobie przerwę. Jakość jest ważniejsza niż zegarek.\n\nzovu.pl\n\n#zarządzanieczasem #wypaleniezawodowe #socialmediatips #malafirma #produktywność #jdg",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Męczysz się, by publikować regularnie co tydzień?",
+        "szukaj": "stressed person looking at calendar",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Wszyscy każą trzymać się sztywnego harmonogramu.",
+        "szukaj": "hand marking dates on a wall calendar",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "To prosta droga do wypalenia i słabych treści.",
+        "szukaj": "person looking tired at a laptop",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Lepiej publikuj seriami, gdy masz wenę i temat.",
+        "szukaj": "filming multiple short videos in a row",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Lepsza jest seria dobrych treści niż ciąg słabych.",
+        "szukaj": "chef carefully plating a beautiful dish",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Pomyśl o jednym temacie na kilka szybkich postów.",
+        "szukaj": "person brainstorming with sticky notes",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto ciągle nie ma czasu.",
+        "karta": {
+          "tekst": "Komuś, kto nie ma czasu"
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-22"
+  },
+  {
+    "nazwa": "przed-po-kulisy-pracy",
+    "plyta": {
+      "linie": [
+        "PRZED: EFEKT",
+        "PO: KULISY"
+      ],
+      "plaszka": "ZMIANA"
+    },
+    "forma": "przed-po",
+    "temat": "jedna zmiana w postach: pokaż kulisy zamiast efektu",
+    "opis": "Większość firm pokazuje tylko efekt końcowy: pięknie wyremontowaną łazienkę, lśniący samochód, idealnie podane danie. To dobre, ale nie wszystko. Takie zdjęcia wyglądają jak z katalogu. Są trochę nieludzkie. A w małej firmie najważniejszy jest człowiek: twoja wiedza, ręce i zaangażowanie. Pokaż to. Pokaż narzędzia, trochę bałaganu, pot na czole. Pokaż proces. To buduje zaufanie bardziej niż idealne zdjęcie produktu.\n\nzovu.pl\n\n#wizerunekfirmy #markaosobista #marketingwideo #zakulisami #reklamafirmy #śląsk",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "W postach pokazujesz tylko gotowy efekt?",
+        "szukaj": "perfectly clean modern kitchen",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Wrzucasz tylko idealne zdjęcia po skończonej pracy.",
+        "szukaj": "finished construction project photo",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Pokaż też bałagan w trakcie pracy i swoje ręce.",
+        "szukaj": "dirty hands of a mechanic",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Ludzie chcą zobaczyć fachowca przy pracy, nie w katalogu.",
+        "szukaj": "carpenter measuring wood in workshop",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Pokaż pracę, a nie tylko jej efekt.",
+        "szukaj": "chef tasting a sauce from a spoon",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Nagraj jutro kilka sekund swojej prawdziwej pracy.",
+        "szukaj": "person records video with smartphone in workshop",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "pytanie": {
+        "cta": "Co częściej pokazujesz: proces czy efekt?",
+        "karta": {
+          "tekst": "Proces czy efekt?",
+          "odpowiedz": "Zawsze sam efekt"
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-22"
+  },
+  {
+    "nazwa": "blad-tania-reklama-fb",
+    "plyta": {
+      "linie": [
+        "REKLAMA ZA 20 ZŁ",
+        "KTÓRA NIE DZIAŁA"
+      ],
+      "plaszka": "BŁĄD"
+    },
+    "forma": "blad",
+    "temat": "błąd w taniej reklamie na Facebooku, który kosztuje najwięcej",
+    "opis": "Przycisk „Promuj post” to najprostszy sposób na reklamę. I na wyrzucenie pieniędzy w błoto. Problem leży w domyślnych ustawieniach. Facebook chce dotrzeć do jak największej liczby osób, więc pokazuje reklamę wszystkim. Także ludziom z drugiego końca Polski, którzy nie skorzystają z twoich usług. Poświęć chwilę i wejdź w ustawienia grupy odbiorców. Zamiast całej Polski wybierz swoje miasto albo dzielnicę. Lepiej dotrzeć do stu potencjalnych klientów niż do dziesięciu tysięcy przypadkowych osób.\n\nzovu.pl\n\n#reklamafacebook #facebookads #reklamanaslasku #malafirma #promocjafirmy #socialmedia",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Wydajesz pieniądze na reklamę, a efektów brak?",
+        "szukaj": "person looking at empty wallet",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Klikasz „promuj post” i nie zmieniasz ustawień.",
+        "szukaj": "finger clicking boost post button on phone",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Twoja reklama trafia do przypadkowych osób w całej Polsce.",
+        "szukaj": "map of Poland with random dots",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Zawęź grupę. Wybierz tylko swoje miasto albo dzielnicę.",
+        "szukaj": "finger drawing a circle on a city map",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Lepiej dotrzeć do dziesięciu chętnych niż tysiąca obojętnych.",
+        "szukaj": "small group of interested people",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Następnym razem ustaw odbiorców reklamy ręcznie.",
+        "szukaj": "person adjusting settings in ads manager",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto przepala pieniądze na Fejsie.",
+        "karta": {
+          "tekst": "Komuś, kto przepala pieniądze"
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-22"
+  },
+  {
+    "nazwa": "lista-ai-w-firmie",
+    "plyta": {
+      "linie": [
+        "AI W MAŁEJ FIRMIE",
+        "TRZY ZASTOSOWANIA"
+      ],
+      "plaszka": "LISTA"
+    },
+    "forma": "lista",
+    "temat": "trzy konkretne zadania, w których AI ci pomoże",
+    "opis": "AI to nie magiczne narzędzie, które napisze za ciebie idealne teksty. Ale może być świetnym pomocnikiem, który oszczędzi ci mnóstwo czasu. Zamiast zlecać AI pisanie całych postów, użyj jej do małych zadań. Potraktuj ją jak stażystę: da ci pomysły, zrobi pierwszy szkic, poprawi błędy. Ale to ty nadajesz ostateczny kształt i dodajesz ludzki głos. Zobaczysz, że praca nad treściami stanie się o wiele łatwiejsza i szybsza.\n\nzovu.pl\n\n#sztucznainteligencja #ainarzędzia #chatgpt #malafirma #produktywnosc #automatyzacja",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Chcesz używać AI, ale nie wiesz, jak zacząć?",
+        "szukaj": "person looking confused at a computer screen",
+        "pauza": 0.38
+      },
+      {
+        "rola": "punkt",
+        "numer": 1,
+        "tytul": "Pomysły",
+        "tekst": "Po pierwsze, burza mózgów. Poproś o pomysły na posty.",
+        "szukaj": "lightbulb appearing over a person's head",
+        "pauza": 0.3
+      },
+      {
+        "rola": "punkt",
+        "numer": 2,
+        "tytul": "Skracanie",
+        "tekst": "Po drugie, zmiana formy. Poproś o skrócenie tekstu.",
+        "szukaj": "editing text with a red pen",
+        "pauza": 0.3
+      },
+      {
+        "rola": "punkt",
+        "numer": 3,
+        "tytul": "Korekta",
+        "tekst": "Po trzecie, poprawki. AI znajdzie twoje literówki.",
+        "szukaj": "text being corrected for typos on screen",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Traktuj AI jak sprytnego pomocnika, nie jak autora.",
+        "szukaj": "person working alongside a friendly robot",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Przetestuj dziś jeden ze swoich tekstów w AI.",
+        "szukaj": "copy pasting text into an AI chat window",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "pytanie": {
+        "cta": "Do czego ty używasz AI w firmie?",
+        "karta": {
+          "tekst": "AI w twojej firmie?",
+          "odpowiedz": "Do pomysłów na posty"
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-22"
+  },
+  {
+    "nazwa": "mit-idealne-wideo",
+    "plyta": {
+      "linie": [
+        "TWOJE ROLKI",
+        "NIE MUSZĄ BYĆ IDEALNE"
+      ],
+      "plaszka": "MIT"
+    },
+    "forma": "mit",
+    "temat": "mit idealnie nagranej i zmontowanej rolki",
+    "opis": "Perfekcjonizm to największy wróg tworzenia rolek. Godzinami ustawiasz światło, nagrywasz w kółko to samo ujęcie, martwisz się każdym detalem. A prawda jest taka, że ludzie nie szukają w rolkach jakości z telewizji. Szukają autentyczności. Chcą zobaczyć prawdziwego człowieka, fachowca przy pracy. Lepsza jest rolka nagrana z ręki, z bałaganem w tle i twoim głosem, niż idealny klip, który wygląda jak reklama. Nie bój się niedoskonałości. To one sprawiają, że jesteś wiarygodny.\n\nzovu.pl\n\n#rolki #krótkiewideo #reels #tworzeniewideo #markaosobista #autentyczność",
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Myślisz, że twoje wideo musi być idealne?",
+        "szukaj": "person stressed while filming with phone",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Wideo wcale nie musi być gładkie i bez wpadek.",
+        "szukaj": "professional video camera on a tripod",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Ludzie w rolkach szukają prawdy, a nie reklamy.",
+        "szukaj": "person smiling genuinely at the camera",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Lepsze jest wideo z ręki, nawet krzywe, z twoim głosem.",
+        "szukaj": "handheld phone video of a workshop",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "To, co prawdziwe, przekonuje bardziej niż ideał.",
+        "szukaj": "person laughing at their own mistake on camera",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Nagraj dziś coś, co nie będzie idealne.",
+        "szukaj": "person confidently records selfie video",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto za bardzo się spina przy nagrywaniu.",
+        "karta": {
+          "tekst": "Komuś, kto się spina"
+        }
+      }
+    },
+    "zrodlo": "generator",
+    "utworzono": "2026-10-22"
   }
 ]
