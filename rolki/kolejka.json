@@ -2514,5 +2514,46 @@
         "blysk"
       ]
     }
+  },
+  {
+    "plik": "auto-2026-10-23-1.mp4",
+    "kiedy": "2026-10-25T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Boisz się nagrywać rolki, bo myślisz, że trzeba w nich tańczyć i robić głupie miny? To mit, który paraliżuje wielu przedsiębiorców.\n\nLudzie są zmęczeni powtarzalnymi trendami. Chcą zobaczyć coś prawdziwego. Twoja praca, umiejętności, kulisy biznesu – to jest naprawdę ciekawe.\n\nPokaż, jak powstaje twój produkt. Nagraj fragment usługi. Opowiedz o problemie, który rozwiązujesz. Twoja autentyczność jest twoją największą siłą. Nie ukrywaj jej za popularnymi trendami.\n\nzovu.pl\n\n#katowice #tychy #rzemioslo #malybiznes #rolkidlafirm",
+    "opublikowano": null,
+    "zrodlo": "auto-rolki-bez-tanczenia.mp4",
+    "scenariusz": "rolki-bez-tanczenia",
+    "forma": "mit",
+    "temat": "Czy w rolkach trzeba tańczyć i pokazywać trendy",
+    "dlugosc": 27.54,
+    "planow": 6,
+    "tempo": [
+      3.6,
+      3.2,
+      4.1,
+      4.1,
+      3.8,
+      3.3
+    ],
+    "montaz": {
+      "format": "miks",
+      "paleta": "mieta",
+      "font": "oswald",
+      "zakonczenie": "pytanie",
+      "style": [
+        "mem",
+        "slowo",
+        "post"
+      ],
+      "przejscia": [
+        "przelot",
+        "szyba"
+      ]
+    }
   }
 ]
