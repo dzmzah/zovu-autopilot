@@ -2561,5 +2561,46 @@
         "szyba"
       ]
     }
+  },
+  {
+    "plik": "auto-2026-10-24-1.mp4",
+    "kiedy": "2026-10-26T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Dostajesz jedną gwiazdkę i ostry komentarz w Google. Pierwsza myśl: ignorować albo usunąć. To najgorsze, co możesz zrobić. Brak odpowiedzi wygląda, jakbyś miał klienta gdzieś. Kłótnia i atak to jeszcze gorsze wyjście. Twoja odpowiedź nie jest dla autora opinii. Jest dla wszystkich, którzy ją przeczytają. Odpowiedz. Zawsze. Spokojnie, profesjonalnie i publicznie. Jeśli to twój błąd – przeproś. Jeśli nie – przedstaw swoją wersję. Pokaż, że ci zależy i potrafisz rozwiązywać problemy. To buduje zaufanie.\n\nzovu.pl\n\n#katowice #dabrowagornicza #mojafirma #firmarodzinna #socialmediadlafirm",
+    "opublikowano": null,
+    "zrodlo": "auto-co-zrobic-ze-zla-opinia-w-google.mp4",
+    "scenariusz": "co-zrobic-ze-zla-opinia-w-google",
+    "forma": "pytanie",
+    "temat": "Jak reagować na negatywne opinie w Google?",
+    "dlugosc": 19.34,
+    "planow": 6,
+    "tempo": [
+      5.7,
+      3.8,
+      4.8,
+      3.9,
+      4.5,
+      5.9
+    ],
+    "montaz": {
+      "format": "miks",
+      "paleta": "limonka",
+      "font": "archivo",
+      "zakonczenie": "wyslij",
+      "style": [
+        "slowo",
+        "notatka",
+        "czat"
+      ],
+      "przejscia": [
+        "paski",
+        "blysk"
+      ]
+    }
   }
 ]
