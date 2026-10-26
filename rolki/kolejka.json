@@ -2699,5 +2699,46 @@
         "szyba"
       ]
     }
+  },
+  {
+    "plik": "auto-2026-10-26-1-2.mp4",
+    "kiedy": "2026-10-27T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Sztuczna inteligencja kusi obietnicą gotowych tekstów. Czasem warto z niej skorzystać, ale są rzeczy, w których jest po prostu słaba. Po pierwsze, AI nie zna twojej firmy. Nie wie, kim są twoi klienci i co jest dla nich ważne. Dlatego jej teksty są bardzo ogólne. Po drugie, AI nie ma charakteru. Pisze poprawnie, ale nudno i bezosobowo. Przez to twoja firma traci unikalny głos. Po trzecie, AI nie opowiada historii i nie budzi emocji. A to one sprawiają, że ludzie zapamiętują markę i chcą kupować.\n\nzovu.pl\n\n#katowice #katowicebiznes #firmarodzinna #wlasnafirma #automatyzacja",
+    "opublikowano": null,
+    "zrodlo": "auto-czego-nie-robi-dobrze-ai.mp4",
+    "scenariusz": "czego-nie-robi-dobrze-ai",
+    "forma": "lista",
+    "temat": "Trzy rzeczy, w których AI ci nie pomoże.",
+    "dlugosc": 25.72,
+    "planow": 6,
+    "tempo": [
+      3.7,
+      3.9,
+      3.5,
+      4.5,
+      4.3,
+      5.3
+    ],
+    "montaz": {
+      "format": "miks",
+      "paleta": "pomarancz",
+      "font": "oswald",
+      "zakonczenie": "pytanie",
+      "style": [
+        "mem",
+        "czat",
+        "slowo"
+      ],
+      "przejscia": [
+        "blysk",
+        "przelot"
+      ]
+    }
   }
 ]
