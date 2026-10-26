@@ -2652,5 +2652,46 @@
       "font": "bebas",
       "zakonczenie": "blysk"
     }
+  },
+  {
+    "plik": "auto-2026-10-26-1.mp4",
+    "kiedy": "2026-10-28T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Klient zostawił ci 5 gwiazdek w Google, ale nic nie napisał. Odpowiadać?\n\nKrótka odpowiedź: tak, zawsze. To zajmuje chwilę, a korzyści są duże. Pokazujesz innym klientom, że jesteś zaangażowany i zależy ci na ich zdaniu.\n\nTo też sygnał dla algorytmów Google. Profil, na którym właściciel odpowiada klientom, jest postrzegany jako bardziej aktywny i wiarygodny. Wystarczy proste „Dziękujemy za ocenę i zapraszamy ponownie!”.\n\nzovu.pl\n\n#katowice #slask #malybiznes #lokalnybiznes #instagramdlafirm",
+    "opublikowano": null,
+    "zrodlo": "auto-odpowiedz-na-piec-gwiazdek.mp4",
+    "scenariusz": "odpowiedz-na-piec-gwiazdek",
+    "forma": "pytanie",
+    "temat": "Czy odpisywać na pozytywne opinie w Google",
+    "dlugosc": 20.04,
+    "planow": 6,
+    "tempo": [
+      4.3,
+      5.6,
+      4.5,
+      5.2,
+      5.6,
+      4.8
+    ],
+    "montaz": {
+      "format": "miks",
+      "paleta": "zovu",
+      "font": "anton",
+      "zakonczenie": "marka",
+      "style": [
+        "split",
+        "czat",
+        "post"
+      ],
+      "przejscia": [
+        "iris",
+        "szyba"
+      ]
+    }
   }
 ]
