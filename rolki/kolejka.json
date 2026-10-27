@@ -2740,5 +2740,46 @@
         "przelot"
       ]
     }
+  },
+  {
+    "plik": "auto-2026-10-27-1.mp4",
+    "kiedy": "2026-10-29T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Twoja strona to sprzedawca, który pracuje całą dobę. Ale żeby sprzedawał, musi być skuteczny. Klient musi w kilka sekund znaleźć najważniejsze informacje. Nie każ mu szukać ani się domyślać. Daj mu na tacy to, po co przyszedł. Najczęściej szuka numeru telefonu, informacji o usłudze i lokalizacji. Przejrzyj swoją stronę główną i sprawdź, czy spełnia te trzy punkty. To małe zmiany, które robią dużą różnicę.\n\nzovu.pl\n\n#katowice #biznesslask #malafirma #mikrofirma #marketingdlafirm",
+    "opublikowano": null,
+    "zrodlo": "auto-lista-strona-glowna.mp4",
+    "scenariusz": "lista-strona-glowna",
+    "forma": "lista",
+    "temat": "trzy rzeczy do dodania na stronę główną firmy",
+    "dlugosc": 22.7,
+    "planow": 6,
+    "tempo": [
+      4.3,
+      4.3,
+      4.8,
+      3.8,
+      4,
+      6.2
+    ],
+    "montaz": {
+      "format": "miks",
+      "paleta": "koral",
+      "font": "bebas",
+      "zakonczenie": "wyslij",
+      "style": [
+        "slowo",
+        "notatka",
+        "post"
+      ],
+      "przejscia": [
+        "iris",
+        "przelot"
+      ]
+    }
   }
 ]
