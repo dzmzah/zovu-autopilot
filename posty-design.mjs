@@ -53,17 +53,66 @@ function rich(s) {
 }
 
 const fotoCache = new Map();
-// Кадр из posty-foto/ (или абсолютный путь) → data URI нужного размера.
-async function foto(ref, w, h, position = 'attention') {
+// Кадр под слот w×h. ref — имя файла в posty-foto/ или объект из банка:
+//   { plik, fokus:[x,y], crop:[x,y,w,h], fit:'cover'|'contain', tlo:'auto'|'#hex' }
+//   fokus — точка интереса (доли 0..1): кроп идёт вокруг неё, а не по центру;
+//   crop  — сначала вырезать прямоугольник (доли), например убрать чужую плашку;
+//   fit 'contain' — объект целиком на подложке (цвет края кадра или tlo), когда
+//   продукт/люди не помещаются в пропорцию слота без обрезки; tlo 'kopia' —
+//   продлить краевые пиксели (для студийного однотонного фона).
+// Правило (Mat, 29.10): товар, лица, животные и сам бой — целиком в кадре.
+async function foto(ref, w, h, domyslnyFokus = [0.5, 0.5]) {
   if (!ref) return null;
-  const file = path.isAbsolute(ref) ? ref : path.join(FOTO_DIR, ref);
-  const key = `${file}|${w}|${h}|${position}`;
+  const spec = typeof ref === 'string' ? { plik: ref } : ref;
+  const file = path.isAbsolute(spec.plik) ? spec.plik : path.join(FOTO_DIR, spec.plik);
+  const key = JSON.stringify([file, w, h, spec, domyslnyFokus]);
   if (fotoCache.has(key)) return fotoCache.get(key);
-  const pos = position === 'top' ? 'north' : position === 'attention' ? sharp.strategy.attention : position;
-  const buf = await sharp(file)
-    .resize(w * 2 > 2000 ? w : w * 2, h * 2 > 2400 ? h : h * 2, { fit: 'cover', position: pos })
-    .jpeg({ quality: 88 })
-    .toBuffer();
+  const S = 2; // рендерим с запасом под чёткость
+  const W2 = Math.min(w * S, 2000);
+  const H2 = Math.round((W2 * h) / w);
+  let img = sharp(file).rotate();
+  let { width: iw, height: ih } = await img.metadata();
+  if (spec.crop) {
+    const [cx, cy, cw, ch] = spec.crop;
+    const left = Math.round(cx * iw);
+    const top = Math.round(cy * ih);
+    const ex = { left, top, width: Math.min(iw - left, Math.round(cw * iw)), height: Math.min(ih - top, Math.round(ch * ih)) };
+    img = sharp(await img.extract(ex).toBuffer());
+    iw = ex.width;
+    ih = ex.height;
+  }
+  let buf;
+  if (spec.fit === 'contain') {
+    let tlo = spec.tlo && spec.tlo !== 'auto' && spec.tlo !== 'kopia' ? spec.tlo : null;
+    if (!tlo && spec.tlo !== 'kopia') {
+      // цвет подложки = средний цвет левой полосы кадра: шов не виден
+      const pas = await img.clone().extract({ left: 0, top: 0, width: Math.max(1, Math.round(iw * 0.03)), height: ih }).stats();
+      const [r, g, b] = pas.channels.map((c) => Math.round(c.mean));
+      tlo = { r, g, b };
+    }
+    if (spec.tlo === 'kopia') {
+      // студийный фон: продлеваем краевые пиксели, шва не видно
+      const sc = Math.min(W2 / iw, H2 / ih);
+      const rw = Math.round(iw * sc);
+      const rh = Math.round(ih * sc);
+      const l = Math.floor((W2 - rw) / 2);
+      const t = Math.floor((H2 - rh) / 2);
+      buf = await sharp(await img.resize(rw, rh).toBuffer())
+        .extend({ left: l, right: W2 - rw - l, top: t, bottom: H2 - rh - t, extendWith: 'copy' })
+        .jpeg({ quality: 88 })
+        .toBuffer();
+    } else {
+      buf = await img.resize(W2, H2, { fit: 'contain', background: tlo }).jpeg({ quality: 88 }).toBuffer();
+    }
+  } else {
+    const [fx, fy] = spec.fokus || domyslnyFokus;
+    const sc = Math.max(W2 / iw, H2 / ih);
+    const rw = Math.round(iw * sc);
+    const rh = Math.round(ih * sc);
+    const left = Math.min(Math.max(0, Math.round(fx * rw - W2 / 2)), rw - W2);
+    const top = Math.min(Math.max(0, Math.round(fy * rh - H2 / 2)), rh - H2);
+    buf = await img.resize(rw, rh).extract({ left, top, width: W2, height: H2 }).jpeg({ quality: 88 }).toBuffer();
+  }
   const uri = 'data:image/jpeg;base64,' + buf.toString('base64');
   fotoCache.set(key, uri);
   return uri;
@@ -108,7 +157,7 @@ function css() {
   .tag { display:inline-flex; align-items:center; gap:12px; font-size:22px; font-weight:700;
     letter-spacing:.14em; text-transform:uppercase; color:var(--ink); }
   .tag::before { content:''; width:14px; height:14px; background:var(--accent); border-radius:3px; }
-  .foto { border-radius:28px; overflow:hidden; background:#ddd; flex:none; }
+  .foto { border-radius:28px; overflow:hidden; background:transparent; flex:none; }
   .foto img { width:100%; height:100%; object-fit:cover; display:block; }
   `;
 }
@@ -151,7 +200,7 @@ function tezaHtml(p) {
 // ── KARUZELA: обложка ────────────────────────────────────────────
 async function okladkaHtml(p, ile) {
   const o = p.okladka;
-  const img = o.foto ? await foto(o.foto, 912, 470, o.fotoPoz || 'attention') : null;
+  const img = o.foto ? await foto(o.foto, 912, 470) : null;
   return doc(
     `<div class="page">
       ${top(p.rubryka)}
@@ -237,7 +286,7 @@ function ctaHtml(p, ile) {
 
 // ── CASE: карточка клиента ───────────────────────────────────────
 async function caseKartaHtml(p, ile) {
-  const img = await foto(p.foto, 912, 500, p.fotoPoz || 'attention');
+  const img = await foto(p.foto, 912, 500);
   return doc(
     `<div class="page">
       ${top('Case study')}
@@ -302,7 +351,7 @@ function caseWniosekHtml(p, ile) {
 // ── KULISY: настоящий скрин/кадр ─────────────────────────────────
 async function kulisyHtml(p) {
   const tel = p.ekran === 'telefon';
-  const img = tel ? await foto(p.screen, 412, 732, 'top') : await foto(p.screen, 912, 640, p.fotoPoz || 'attention');
+  const img = tel ? await foto(p.screen, 412, 732, [0.5, 0]) : await foto(p.screen, 912, 640);
   const obraz = tel
     ? `<div class="tel"><img src="${img}"></div>`
     : `<div class="foto" style="height:640px; margin-top:40px"><img src="${img}"></div>`;

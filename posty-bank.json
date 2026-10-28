@@ -32,7 +32,7 @@
       "cta": "ROLKA",
       "klient": "Amorki",
       "branza": "show TVN WBD na YouTube",
-      "foto": "amorki-odcinek.jpg",
+      "foto": { "plik": "amorki-odcinek.jpg", "fit": "contain", "tlo": "#F6F4EF" },
       "zadanie": "Więcej wyświetleń długich odcinków i większy kanał.",
       "efekt": { "liczba": "66 → 146 tys.", "opis": "wyświetleń odcinka „KUKIRINIARA” w 7 dni kampanii" },
       "zrobilismy": [
@@ -83,7 +83,7 @@
       "typ": "kulisy",
       "cta": "ROLKA",
       "ekran": "telefon",
-      "screen": "kulisy-kolejka.jpg",
+      "screen": { "plik": "kulisy-kolejka.jpg", "fokus": [0.5, 0] },
       "tytul": "Tak wygląda nasza *kolejka rolek*",
       "kroki": [
         "W nocy robot pisze scenariusz i nagrywa lektora",
@@ -119,7 +119,7 @@
       "cta": "ROLKA",
       "klient": "Fight Mode",
       "branza": "gale walk na gołe pięści, PPV",
-      "foto": "fm-walka.jpg",
+      "foto": { "plik": "fm-wymiana-ciosow.jpg", "fokus": [0.58, 0.36] },
       "zadanie": "Zbudować widownię przed galą i sprzedać transmisję PPV.",
       "efekt": { "liczba": "+52 tys.", "opis": "obserwujących między pierwszą a drugą galą (IG, FB, TikTok, YouTube)" },
       "zrobilismy": [
@@ -170,8 +170,7 @@
       "typ": "kulisy",
       "cta": "ZAPISZ",
       "ekran": "kadr",
-      "screen": "fm-karta-walk.jpg",
-      "fotoPoz": "top",
+      "screen": { "plik": "fm-karta-walk.jpg", "fit": "contain" },
       "tytul": "24 zawodników na *jednym* plakacie",
       "podpis": "Karta walk dla Fight Mode. Zasada: każde nazwisko czytelne z telefonu. <b>Najwyżej 2 kroje pisma, nazwiska wersalikami, mocny kontrast.</b>",
       "caption": "Karta walk, którą zrobiliśmy dla gali Fight Mode. 24 zawodników, logotypy partnerów, data i miejsce na jednym plakacie.\n\nNajtrudniejsze jest to, żeby z telefonu dało się przeczytać każde nazwisko. Trzymamy się trzech zasad: najwyżej dwa kroje pisma, nazwiska wersalikami i mocny kontrast tekstu z tłem.\n\nZapisz, jeśli robisz plakaty albo grafiki na wydarzenia.",
@@ -201,8 +200,7 @@
       "cta": "ROLKA",
       "klient": "New Orchard",
       "branza": "wegańskie buty, Zurych",
-      "foto": "no-caramel.jpg",
-      "fotoPoz": "bottom",
+      "foto": { "plik": "no-karmelowy-snieg.jpg", "crop": [0, 0.27, 1, 0.73], "fit": "contain", "tlo": "#F6F4EF" },
       "zadanie": "Sprzedaż w sklepie online w Niemczech, Austrii, Szwajcarii i UE.",
       "efekt": { "liczba": "11 z 20", "opis": "najlepszych reklam z 2 sezonów miało to samo 8-sekundowe wideo" },
       "zrobilismy": [
@@ -254,7 +252,7 @@
       "typ": "kulisy",
       "cta": "ROLKA",
       "ekran": "telefon",
-      "screen": "no-stories-1.jpg",
+      "screen": { "plik": "no-stories-gory.jpg", "fokus": [0.5, 0.5] },
       "tytul": "9 stories na *jeden* rynek",
       "kroki": [
         "Bierzemy prawdziwe zdjęcia klientki, bez stocku",
