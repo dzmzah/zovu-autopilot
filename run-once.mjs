@@ -22,6 +22,10 @@ const KIND = (process.argv.find((a) => a.startsWith('--kind=')) || '').split('='
 // --uklad=lista|foto|cytat — принудительно задать макет одиночного поста.
 // Без него макет выбирает ротация: лента не должна выглядеть одними обоями.
 const UKLAD = (process.argv.find((a) => a.startsWith('--uklad=')) || '').split('=')[1] || undefined;
+// --post=<id> — принудительно взять пост из банка (posty-bank.json).
+const POST_ID = (process.argv.find((a) => a.startsWith('--post=')) || '').split('=')[1] || undefined;
+// --stary — старый генератор (content-engine) вместо банка редакции. Только для проверок.
+const STARY = process.argv.includes('--stary');
 
 const IG_API = 'https://graph.instagram.com/v23.0';
 // На сервере GitHub Actions картинки кладём в этот же репозиторий (он публичный),
@@ -247,15 +251,56 @@ async function publish(urls, caption, kind) {
 // подряд, помечаем выполненный слот в state.json и на повторе выходим.
 const STATE_FILE = path.join(import.meta.dirname, 'state.json');
 
-// Три слота в сутках: утро — пост, обед — рилс, вечер — второй пост.
-// Границы с запасом, потому что планировщик GitHub опаздывает на десятки
-// минут: утренние попытки идут до 10 UTC, обеденные с 10 до 14, вечерние
-// после 14. Иначе задержавшийся утренний запуск попал бы в обеденный слот и
-// выложил рилс вместо поста.
+// ── расписание графики (28.10.2026) ──────────────────────────────
+// ОДИН графический пост в день, вечером, около 18:30 по Варшаве. Рилс выходит
+// около 13:00 (rolka.yml), так что они не сталкиваются.
+//
+// Что было сломано: слотов было три (am / noon / pm) с границами по UTC, а
+// планировщик GitHub опаздывает на 4–6 часов. Утренний крон 07:00 UTC
+// стартовал в 13:48, попадал в слот «noon» и публиковал; следующий опоздавший
+// в 14:19 уже считался «pm» и публиковал ещё раз. Итог: два поста с разницей
+// в 30 минут днём и пустой вечер. Теперь:
+//   • слот один на сутки и считается по ВАРШАВСКОЙ дате;
+//   • публиковать можно только в окне 18:15–23:30 по Варшаве, ранний запуск
+//     (в том числе опоздавший утренний) молча выходит;
+//   • между двумя графическими публикациями не меньше 12 часов, что бы ни
+//     показывал слот (страховка от гонки двух прогонов и ручных запусков);
+//   • если рилс вышел меньше часа назад или вот-вот выйдет, пост ждёт
+//     следующей попытки (сторож разбудит в 19:00).
+const OKNO_OD = 18 * 60 + 15;
+const OKNO_DO = 23 * 60 + 30;
+const MIN_PRZERWA_H = 12;
+
+function warszawa(d = new Date()) {
+  const t = d.toLocaleString('sv-SE', { timeZone: 'Europe/Warsaw' });
+  return { data: t.slice(0, 10), minuta: +t.slice(11, 13) * 60 + +t.slice(14, 16) };
+}
+
+// Формат «ДАТА-pm» оставлен прежним: его читают doktor.mjs, gotowe.mjs,
+// panel.mjs, strażnik и rolka.yml.
 function slotId(d = new Date()) {
-  const g = d.getUTCHours();
-  const pora = g < 10 ? 'am' : g < 14 ? 'noon' : 'pm';
-  return `${d.toISOString().slice(0, 10)}-${pora}`;
+  return `${warszawa(d).data}-pm`;
+}
+
+// Рилс рядом по времени? Смотрим очередь рилсов: вышедший за последний час
+// или назначенный на ближайшие 40 минут (включая просроченный, он выйдет вот-вот).
+async function rolkaObok(teraz = Date.now()) {
+  let k = [];
+  try {
+    k = JSON.parse(await readFile(path.join(import.meta.dirname, 'rolki', 'kolejka.json'), 'utf8'));
+  } catch {
+    return null;
+  }
+  for (const p of Array.isArray(k) ? k : []) {
+    if (p.opublikowano) {
+      const t = Date.parse(p.opublikowano);
+      if (teraz - t < 60 * 60000 && teraz >= t) return `rolka ${p.plik} wyszła ${Math.round((teraz - t) / 60000)} min temu`;
+    } else if (p.kiedy) {
+      const t = Date.parse(p.kiedy);
+      if (t - teraz < 40 * 60000 && teraz - t < 6 * 3600_000) return `rolka ${p.plik} zaplanowana na ${p.kiedy}`;
+    }
+  }
+  return null;
 }
 
 async function readState() {
@@ -269,6 +314,7 @@ async function readState() {
 async function markSlot(id) {
   const s = await readState();
   s.posted = id;
+  s.ostatniaPublikacja = new Date().toISOString();
   // Первая удачная публикация после блокировки запускает отсчёт щадящей недели.
   if (!s.wznowiono) {
     s.wznowiono = new Date().toISOString();
@@ -356,27 +402,29 @@ let zablokowane = false;
 console.log(`[autopilot] start ${new Date().toISOString()}${DRY ? ' (dry run)' : ''}`);
 
 const slot = slotId();
-if (!DRY && !KIND) {
+if (!DRY && !KIND && !POST_ID) {
   const s = await readState();
   if (s.posted === slot) {
     console.log(`[autopilot] slot ${slot} już opublikowany — kończę bez postu`);
     process.exit(0);
   }
-
-  // ── щадящий режим после блокировки ──
-  // Meta закрыла доступ 31.07 именно за резкий старт. Поэтому первую неделю
-  // после восстановления идём по одному посту в день — вечерний слот
-  // пропускаем. Дата первой удачной публикации ставится сама, решать ничего
-  // не нужно; через семь дней режим отключается тоже сам.
-  if (s.wznowiono && slot.endsWith('-pm')) {
-    const dni = (Date.now() - Date.parse(s.wznowiono)) / 86400_000;
-    if (dni < 7) {
-      console.log(
-        `[autopilot] tryb łagodny: ${dni.toFixed(1)} dnia od wznowienia, ` +
-          'wieczorny slot pomijam (jeden post dziennie przez tydzień)'
-      );
+  const { minuta } = warszawa();
+  const hh = `${String(Math.floor(minuta / 60)).padStart(2, '0')}:${String(minuta % 60).padStart(2, '0')}`;
+  if (minuta < OKNO_OD || minuta > OKNO_DO) {
+    console.log(`[autopilot] ${hh} w Warszawie — poza oknem posta 18:15–23:30, kończę bez postu`);
+    process.exit(0);
+  }
+  if (s.ostatniaPublikacja) {
+    const h = (Date.now() - Date.parse(s.ostatniaPublikacja)) / 3600_000;
+    if (h < MIN_PRZERWA_H) {
+      console.log(`[autopilot] ostatni post ${h.toFixed(1)} h temu (< ${MIN_PRZERWA_H} h) — kończę bez postu`);
       process.exit(0);
     }
+  }
+  const rolka = await rolkaObok();
+  if (rolka) {
+    console.log(`[autopilot] ${rolka} — post poczeka na następną próbę, żeby nie wyjść razem z rolką`);
+    process.exit(0);
   }
 }
 
@@ -423,22 +471,38 @@ if (!DRY && !KIND) {
   }
 }
 
-const post = await makePost({ trends: true, kind: KIND, uklad: UKLAD });
-console.log(`[autopilot] #${post.meta.counter} ${post.kind} | ${post.meta.format} | ${post.meta.provider}`);
-console.log(`[autopilot] ${post.data.title}`);
-
-// У рилса свой вертикальный макет — слайды карусели ему не нужны вовсе.
+// Графика по умолчанию идёт из банка редакции (posty-redakcja.mjs) и новым
+// дизайном (posty-design.mjs). Старый генератор остаётся для рилса
+// (--kind=reel) и для проверок (--stary).
+let post;
 let files;
-if (post.kind === 'reel') {
-  const { makeReel } = await import('./make-reel.mjs');
-  const reel = await makeReel({ data: post.data, name: post.data.name, photo: post.data.photoCta || 'mat' });
-  console.log(
-    `[autopilot] rolka: ${reel.seconds.toFixed(1)}s, ${(reel.bytes / 1048576).toFixed(1)} MB` +
-      `, ${reel.clips.length} ujęć` + (reel.withMusic ? `, montaż pod ${reel.bpm} BPM` : ', bez muzyki')
-  );
-  files = [{ file: reel.file, name: reel.name }];
+let zBanku = null;
+if (KIND === 'reel' || STARY || UKLAD) {
+  post = await makePost({ trends: true, kind: KIND, uklad: UKLAD });
+  console.log(`[autopilot] #${post.meta.counter} ${post.kind} | ${post.meta.format} | ${post.meta.provider}`);
+  console.log(`[autopilot] ${post.data.title}`);
+  if (post.kind === 'reel') {
+    const { makeReel } = await import('./make-reel.mjs');
+    const reel = await makeReel({ data: post.data, name: post.data.name, photo: post.data.photoCta || 'mat' });
+    console.log(
+      `[autopilot] rolka: ${reel.seconds.toFixed(1)}s, ${(reel.bytes / 1048576).toFixed(1)} MB` +
+        `, ${reel.clips.length} ujęć` + (reel.withMusic ? `, montaż pod ${reel.bpm} BPM` : ', bez muzyki')
+    );
+    files = [{ file: reel.file, name: reel.name }];
+  } else {
+    const slides = post.kind === 'single' ? [await renderPost(post.data)] : await renderCarousel(post.data);
+    console.log(`[autopilot] obrazki: ${slides.length}`);
+    files = slides;
+  }
 } else {
-  const slides = post.kind === 'single' ? [await renderPost(post.data)] : await renderCarousel(post.data);
+  const { nastepnyPost } = await import('./posty-redakcja.mjs');
+  const { renderujPost } = await import('./posty-design.mjs');
+  zBanku = await nastepnyPost({ id: POST_ID });
+  const p = zBanku.post;
+  const dzien = warszawa().data;
+  const slides = await renderujPost(p, { nazwa: `auto-${dzien}-${p.id}` });
+  post = { kind: slides.length > 1 ? 'carousel' : 'single', caption: zBanku.caption };
+  console.log(`[autopilot] bank: ${p.id} (${p.typ}), krąg ${zBanku.krag}, w kręgu zostało ${zBanku.pozostalo}`);
   console.log(`[autopilot] obrazki: ${slides.length}`);
   files = slides;
 }
@@ -492,6 +556,10 @@ if (result) {
 // блокировки следующая попытка решила бы, что за сегодня уже отработано.
 if (result) try {
   await markSlot(slot);
+  if (zBanku) {
+    const { oznaczWydany } = await import('./posty-redakcja.mjs');
+    await oznaczWydany(zBanku.post.id, zBanku.krag);
+  }
   console.log(`[autopilot] slot ${slot} zamknięty`);
 } catch (e) {
   console.warn(`[autopilot] nie zapisałem slotu: ${e.message}`);

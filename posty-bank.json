@@ -1,0 +1,355 @@
+{
+  "_opis": "Bank graficznych postów ZOVU (nowy design 28.10.2026). Kolejność w 'kolejnosc' to ritm lenty: karuzela, case, teza, karuzela, kulisy... Jeden post dziennie. Teksty pisane ręcznie: konkret albo dowód w każdym poście, jedno działanie (ROLKA albo ZAPISZ). Bez kwot w case'ach, bez myślników, bez Katowic.",
+  "kolejnosc": [
+    "k-pierwsze-zdanie", "c-amorki", "t-powod", "k-cisza-w-dm", "u-kolejka",
+    "k-bio", "c-fight-mode", "t-zapisy", "k-bez-twarzy", "u-karta-walk",
+    "k-przed-reklama", "c-new-orchard", "t-godzina", "k-opinia-google", "u-stories",
+    "k-newsletter", "k-strona", "t-konkret", "k-10-rolek", "k-wyszukiwarka"
+  ],
+  "posty": [
+    {
+      "id": "k-pierwsze-zdanie",
+      "typ": "karuzela",
+      "rubryka": "Rolki",
+      "cta": "ROLKA",
+      "okladka": {
+        "liczba": "4%",
+        "tytul": "Tyle osób obejrzało do końca naszą rolkę z *długim wstępem*",
+        "podtytul": "Krótki hak w tym samym tygodniu: 17–32%. Oto co zmieniliśmy."
+      },
+      "punkty": [
+        { "naglowek": "Pierwsze zdanie: *max 8 słów*", "tekst": "Masz sekundę, zanim kciuk przewinie dalej. Jedno krótkie zdanie, bez „cześć” i bez przedstawiania się.", "przyklad": "Rabat nie sprzedaje. Powód sprzedaje." },
+        { "naglowek": "Napis na ekranie od *0,0 sekundy*", "tekst": "Większość ogląda bez dźwięku. Hak musi być widoczny w pierwszej klatce, dużymi literami.", "przyklad": "Tekst w górnej połowie kadru, 2 linijki, kontrast czarny na białym." },
+        { "naglowek": "Zacznij od *środka* historii", "tekst": "Nie „dziś opowiem o…”. Wejdź od razu w moment, który ciekawi.", "przyklad": "Klientka napisała o 23:40: „usuńcie to”." },
+        { "naglowek": "Obietnica, którą *spełnisz* w 20 s", "tekst": "Jeśli hak obiecuje trzy sposoby, pokaż trzy sposoby. Zawód w połowie to ucieczka z rolki.", "przyklad": "„3 błędy w bio” i dokładnie trzy slajdy, bez lania wody." }
+      ],
+      "caption": "Ta sama rolka, dwa początki. Z długim wstępem obejrzało ją do końca 4% osób. Z krótkim hakiem od 17 do 32%.\n\nPierwsze zdanie decyduje o wszystkim, co jest dalej. Najwyżej osiem słów, napis na ekranie od pierwszej klatki i wejście od razu w ciekawy moment.\n\nChcesz, żebyśmy napisali takie początki pod Twoją branżę? Napisz ROLKA w wiadomości.",
+      "tagi": ["rolkinainstagram", "marketingdlafirm"]
+    },
+    {
+      "id": "c-amorki",
+      "typ": "case",
+      "cta": "ROLKA",
+      "klient": "Amorki",
+      "branza": "show TVN WBD na YouTube",
+      "foto": "amorki-odcinek.jpg",
+      "zadanie": "Więcej wyświetleń długich odcinków i większy kanał.",
+      "efekt": { "liczba": "66 → 146 tys.", "opis": "wyświetleń odcinka „KUKIRINIARA” w 7 dni kampanii" },
+      "zrobilismy": [
+        "Kampanie YouTube: in-stream, in-feed i Shorts pod każdy odcinek",
+        "Reklamy Meta i TikTok z najlepszymi momentami",
+        "5 krótkich rolek dziennie na każdej platformie, plus konto fanowskie",
+        "Dzienny raport: wyświetlenia, średni czas oglądania, co zmieniamy jutro"
+      ],
+      "wniosek": {
+        "tytul": "Shorts robią zasięg. *Nie przenoszą* ludzi same z siebie.",
+        "tekst": "Shorty kanału miały 268 tys. wyświetleń w 28 dni, a na długie odcinki trafiło z nich tylko kilkaset wyświetleń. Dodaj „Powiązany film” w każdym Shorcie i reklamuj sam odcinek."
+      },
+      "caption": "Amorki to show TVN WBD na YouTube. Naszym zadaniem było podnieść wyświetlenia długich odcinków i rozbujać kanał.\n\nOdcinek „KUKIRINIARA” w 7 dni kampanii poszedł z 66 do 146 tys. wyświetleń. Najważniejsza lekcja: Shorty robią zasięg, ale same nie przenoszą widzów na długi film. Trzeba im w tym pomóc linkiem i osobną reklamą odcinka.\n\nMasz kanał albo produkt, który potrzebuje widowni? Napisz ROLKA w wiadomości.",
+      "tagi": ["youtubeads", "marketingwideo"]
+    },
+    {
+      "id": "t-powod",
+      "typ": "teza",
+      "rubryka": "Sprzedaż",
+      "etykieta": "Teza",
+      "cta": "ZAPISZ",
+      "tytul": "Rabat nie sprzedaje. *Powód* sprzedaje.",
+      "tekst": "„-20%” widzi każdy i każdy przewija. „Mamy 5 lat, -20% do niedzieli” ma <b>powód i termin</b>, więc zostaje w głowie.",
+      "zrob": "Do najbliższej promocji dopisz jedno zdanie: dlaczego teraz i do kiedy.",
+      "caption": "Sam rabat już nikogo nie zatrzymuje. Ludzie widzą „-20%” dziesięć razy dziennie.\n\nZatrzymuje powód i termin. Urodziny firmy, koniec sezonu, ostatnie pary w rozmiarze 38. Jedno zdanie, które mówi, dlaczego właśnie teraz.\n\nZapisz ten post i wróć do niego przed następną promocją.",
+      "tagi": ["sprzedaz", "marketingdlafirm"]
+    },
+    {
+      "id": "k-cisza-w-dm",
+      "typ": "karuzela",
+      "rubryka": "Social media",
+      "cta": "ZAPISZ",
+      "okladka": {
+        "tytul": "Wrzucasz, a *nikt nie pisze*? 4 powody",
+        "podtytul": "Zasięg jest, wiadomości nie ma. Zwykle psuje to koniec posta, nie początek."
+      },
+      "punkty": [
+        { "naglowek": "Na końcu jest *pięć* próśb naraz", "tekst": "Polub, skomentuj, udostępnij, wejdź w link, zadzwoń. Człowiek nie robi żadnej z nich.", "przyklad": "Zostaw jedno działanie: „Napisz CENA, wyślemy cennik”." },
+        { "naglowek": "„Link w bio” to *dodatkowy krok*", "tekst": "Każde kliknięcie po drodze gubi część ludzi. Słowo w wiadomości to jeden ruch kciukiem.", "przyklad": "„Napisz TERMIN w wiadomości” zamiast „szczegóły w bio”." },
+        { "naglowek": "Nie wiadomo, *co dostanę*", "tekst": "Ludzie piszą, kiedy wiedzą, co przyjdzie w odpowiedzi. Nazwij to wprost.", "przyklad": "„Napisz MENU, odeślemy kartę z cenami na weekend”." },
+        { "naglowek": "Odpowiedź przychodzi *jutro*", "tekst": "Po kilku godzinach klient pyta już konkurencję. Gotowe odpowiedzi skracają to do minuty.", "przyklad": "Instagram: Ustawienia > Narzędzia firmowe > Zapisane odpowiedzi." }
+      ],
+      "caption": "Post ma zasięg, a skrzynka milczy. Najczęściej winny jest koniec, nie początek.\n\nJedno działanie zamiast pięciu, słowo w wiadomości zamiast linku w bio i jasna informacja, co ktoś dostanie, kiedy napisze. Do tego szybka odpowiedź, bo po kilku godzinach klient jest już u kogoś innego.\n\nZapisz, przyda się przy następnym poście.",
+      "tagi": ["instagramdlafirm", "socialmedia"]
+    },
+    {
+      "id": "u-kolejka",
+      "typ": "kulisy",
+      "cta": "ROLKA",
+      "ekran": "telefon",
+      "screen": "kulisy-kolejka.jpg",
+      "tytul": "Tak wygląda nasza *kolejka rolek*",
+      "kroki": [
+        "W nocy robot pisze scenariusz i nagrywa lektora",
+        "Składa montaż, napisy i muzykę",
+        "Rano rolka czeka w kolejce, możemy ją jeszcze zatrzymać",
+        "O 13:00 sama wychodzi na Instagram, Facebook, TikTok i YouTube"
+      ],
+      "caption": "To prawdziwy ekran z naszego systemu. Rolki dla ZOVU robi automat, który sami zbudowaliśmy.\n\nW nocy pisze scenariusz, nagrywa lektora i składa montaż. Rano rolka czeka w kolejce, a o 13:00 sama wychodzi na cztery platformy. My tylko sprawdzamy i poprawiamy to, co trzeba.\n\nChcesz to samo dla swojej firmy? Napisz ROLKA w wiadomości.",
+      "tagi": ["automatyzacja", "rolkinainstagram"]
+    },
+    {
+      "id": "k-bio",
+      "typ": "karuzela",
+      "rubryka": "Profil",
+      "cta": "ZAPISZ",
+      "okladka": {
+        "liczba": "3 s",
+        "tytul": "Tyle ma bio, żeby ktoś *został* na profilu",
+        "podtytul": "4 linijki, które odpowiadają na pytania nowej osoby."
+      },
+      "punkty": [
+        { "naglowek": "Linijka 1: *co robisz*", "tekst": "Zwykłymi słowami, bez sloganu. Nazwa firmy rzadko cokolwiek tłumaczy.", "przyklad": "Tort na zamówienie w 48 godzin." },
+        { "naglowek": "Linijka 2: *dla kogo i gdzie*", "tekst": "Miasto i dzielnica pomagają w wyszukiwarce Instagrama i od razu filtrują klientów.", "przyklad": "Urodziny i wesela. Warszawa, Mokotów." },
+        { "naglowek": "Linijka 3: *dowód*", "tekst": "Liczba, opinia albo znane miejsce. Jedna rzecz, która mówi „to działa”.", "przyklad": "Ponad 1200 tortów, 4,9 w Google." },
+        { "naglowek": "Linijka 4: *jedno działanie*", "tekst": "Jak zamówić, w jednym ruchu. Bez listy pięciu opcji.", "przyklad": "Napisz TORT, odeślemy wolne terminy." }
+      ],
+      "caption": "Nowa osoba na profilu daje Ci około trzech sekund. Jeśli w tym czasie nie zrozumie, co robisz, wychodzi.\n\nCztery linijki wystarczą: co robisz, dla kogo i gdzie, jeden dowód i jedno działanie. Przykład z tortami podmień na swoją branżę.\n\nZapisz i popraw bio jeszcze dziś, to 5 minut.",
+      "tagi": ["instagramdlafirm", "malafirma"]
+    },
+    {
+      "id": "c-fight-mode",
+      "typ": "case",
+      "cta": "ROLKA",
+      "klient": "Fight Mode",
+      "branza": "gale walk na gołe pięści, PPV",
+      "foto": "fm-walka.jpg",
+      "zadanie": "Zbudować widownię przed galą i sprzedać transmisję PPV.",
+      "efekt": { "liczba": "+52 tys.", "opis": "obserwujących między pierwszą a drugą galą (IG, FB, TikTok, YouTube)" },
+      "zrobilismy": [
+        "Rolki, highlighty i dokument z życia zawodniczki",
+        "Plakaty, karty walk i grafiki zawodników",
+        "Spot 15 s na ekrany LED w hali",
+        "Mailing do bazy 200 tys. adresów i kampanie Meta oraz YouTube",
+        "Raport po gali: kto kupił, kiedy i skąd przyszedł"
+      ],
+      "wniosek": {
+        "tytul": "Prawie wszyscy kupują *w dniu* wydarzenia",
+        "tekst": "Przy drugiej gali 95,6% transmisji kupiono w dniu walk. Najwięcej treści i reklam dajemy więc na ostatnie 48 godzin, a wcześniej budujemy listę osób, do których wtedy wrócimy."
+      },
+      "caption": "Fight Mode organizuje gale walk na gołe pięści i sprzedaje transmisje PPV. Robimy dla nich rolki, plakaty, karty walk, spot na ekrany w hali, mailing i reklamy.\n\nMiędzy pierwszą a drugą galą kanały Fight Mode urosły o około 52 tys. obserwujących. A dane sprzedaży pokazały jedno: 95,6% osób kupiło transmisję w dniu gali. Dlatego najmocniej grzejemy ostatnie 48 godzin.\n\nRobisz wydarzenie i chcesz pełną salę albo sprzedaż biletów? Napisz ROLKA w wiadomości.",
+      "tagi": ["marketingwydarzen", "kampaniereklamowe"]
+    },
+    {
+      "id": "t-zapisy",
+      "typ": "teza",
+      "rubryka": "Zasięg",
+      "etykieta": "Teza",
+      "cta": "ZAPISZ",
+      "tytul": "Zasięg robią *zapisy*, nie lajki",
+      "tekst": "Instagram mocniej rozsyła posty, które ludzie <b>zapisują i wysyłają znajomym</b>. Lajk to najsłabszy sygnał, jaki możesz dostać.",
+      "zrob": "Zrób jeden post, który warto zachować: cennik, lista, instrukcja krok po kroku.",
+      "caption": "Lajk kosztuje odbiorcę pół sekundy i tyle samo znaczy dla algorytmu. Zapis i wysłanie znajomemu to sygnał, że post jest naprawdę przydatny.\n\nDlatego najlepiej niosą posty, do których się wraca: cennik, lista kroków, porównanie, ściąga. Jeden taki w tygodniu robi więcej niż pięć ładnych zdjęć.\n\nZapisz ten post, to dobry początek.",
+      "tagi": ["instagramdlafirm", "socialmedia"]
+    },
+    {
+      "id": "k-bez-twarzy",
+      "typ": "karuzela",
+      "rubryka": "Rolki",
+      "cta": "ROLKA",
+      "okladka": {
+        "tytul": "Nie chcesz się pokazywać? *Nie musisz*",
+        "podtytul": "3 formaty rolek bez twarzy, które robimy dla firm."
+      },
+      "punkty": [
+        { "naglowek": "Zdjęcia z telefonu *i napisy*", "tekst": "Wystarczy 6–8 zdjęć z pracy. Do tego jedno zdanie na kadr i rytm pod muzykę.", "przyklad": "Piekarnia: ciasto, piec, półka o 6:00, kolejka. Napis: „Chleb, który był jeszcze ciepły o 7:00”." },
+        { "naglowek": "Lektor *i nagrania rąk*", "tekst": "Kamera pokazuje pracę, nie osobę. Głos tłumaczy, co się dzieje i dlaczego to ważne.", "przyklad": "Mechanik: zbliżenia na klocki hamulcowe, głos mówi, po czym poznać, że trzeba je wymienić." },
+        { "naglowek": "Ekran *i liczby*", "tekst": "Grafika z jedną liczbą albo nagranie ekranu. Dobre dla usług, które trudno sfotografować.", "przyklad": "Biuro rachunkowe: „3 daty, których nie możesz przegapić w listopadzie”." }
+      ],
+      "caption": "Wiele firm nie robi rolek, bo nikt nie chce stanąć przed kamerą. To nie jest warunek.\n\nRolka może być ze zdjęć z telefonu z napisami, z lektorem i nagraniami rąk przy pracy albo z prostą grafiką i jedną liczbą. Każdy z tych formatów robimy dla klientów na co dzień.\n\nChcesz zobaczyć, jak to wyjdzie u Ciebie? Napisz ROLKA w wiadomości, zrobimy próbkę.",
+      "tagi": ["rolkinainstagram", "marketingdlafirm"]
+    },
+    {
+      "id": "u-karta-walk",
+      "typ": "kulisy",
+      "cta": "ZAPISZ",
+      "ekran": "kadr",
+      "screen": "fm-karta-walk.jpg",
+      "fotoPoz": "top",
+      "tytul": "24 zawodników na *jednym* plakacie",
+      "podpis": "Karta walk dla Fight Mode. Zasada: każde nazwisko czytelne z telefonu. <b>Najwyżej 2 kroje pisma, nazwiska wersalikami, mocny kontrast.</b>",
+      "caption": "Karta walk, którą zrobiliśmy dla gali Fight Mode. 24 zawodników, logotypy partnerów, data i miejsce na jednym plakacie.\n\nNajtrudniejsze jest to, żeby z telefonu dało się przeczytać każde nazwisko. Trzymamy się trzech zasad: najwyżej dwa kroje pisma, nazwiska wersalikami i mocny kontrast tekstu z tłem.\n\nZapisz, jeśli robisz plakaty albo grafiki na wydarzenia.",
+      "tagi": ["projektowaniegraficzne", "marketingwydarzen"]
+    },
+    {
+      "id": "k-przed-reklama",
+      "typ": "karuzela",
+      "rubryka": "Reklama",
+      "cta": "ZAPISZ",
+      "okladka": {
+        "tytul": "Zanim zapłacisz za reklamę, *sprawdź* te 4 rzeczy",
+        "podtytul": "Inaczej płacisz za kliknięcia, z których nic nie wynika."
+      },
+      "punkty": [
+        { "naglowek": "Czy *widzisz*, kto kupił?", "tekst": "Piksel Meta i zdarzenia na stronie muszą działać przed startem. Bez tego reklama uczy się na ślepo.", "przyklad": "Test: zrób zakup albo wyślij formularz i sprawdź, czy zdarzenie pojawiło się w Menedżerze zdarzeń." },
+        { "naglowek": "Strona na telefonie *w 3 sekundy*", "tekst": "Większość kliknięć przychodzi z telefonu. Każda sekunda ładowania to ludzie, którzy wracają do lenty.", "przyklad": "Sprawdź w PageSpeed Insights wersję mobilną, nie komputerową." },
+        { "naglowek": "Jedna oferta, *jeden* przycisk", "tekst": "Reklama obiecuje jedno, strona pokazuje to samo. Bez szukania.", "przyklad": "Reklama „Tort w 48 h” prowadzi na stronę zamówienia tortu, nie na stronę główną." },
+        { "naglowek": "Wiesz, *co mierzysz*", "tekst": "Zapytania, zakupy, telefony. Wybierz jeden cel i patrz na niego, nie na zasięg.", "przyklad": "Cel: wiadomości. Wynik oceniasz po liczbie rozmów, nie po polubieniach." }
+      ],
+      "caption": "Najdroższa reklama to ta, która działa na zepsutą stronę. Kliknięcia są, efektu nie ma i nikt nie wie dlaczego.\n\nPrzed startem sprawdź cztery rzeczy: czy piksel widzi zakupy, czy strona ładuje się szybko na telefonie, czy reklama i strona mówią o tym samym i co właściwie mierzysz.\n\nZapisz tę listę przed następną kampanią.",
+      "tagi": ["reklamafacebook", "kampaniereklamowe"]
+    },
+    {
+      "id": "c-new-orchard",
+      "typ": "case",
+      "cta": "ROLKA",
+      "klient": "New Orchard",
+      "branza": "wegańskie buty, Zurych",
+      "foto": "no-caramel.jpg",
+      "fotoPoz": "bottom",
+      "zadanie": "Sprzedaż w sklepie online w Niemczech, Austrii, Szwajcarii i UE.",
+      "efekt": { "liczba": "11 z 20", "opis": "najlepszych reklam z 2 sezonów miało to samo 8-sekundowe wideo" },
+      "zrobilismy": [
+        "Reklamy Meta i Google po niemiecku i angielsku",
+        "Newslettery EN i DE co tydzień",
+        "Posty, stories i piny na Pinterest",
+        "Analiza dwóch sezonów reklam: co naprawdę sprzedawało",
+        "Panel z wynikami i raport co niedzielę"
+      ],
+      "wniosek": {
+        "tytul": "Zanim zrobisz nowe kreacje, *sprawdź stare*",
+        "tekst": "W danych klientki wygrywał prosty zestaw: statyczna grafika z konkretną akcją i krótkie wideo. Często najlepsza reklama już istnieje, trzeba ją tylko znaleźć."
+      },
+      "caption": "New Orchard to wegańskie buty z Zurychu. Prowadzimy dla nich reklamy Meta i Google na Niemcy, Austrię i Szwajcarię, newslettery po angielsku i niemiecku, posty, stories i Pinterest.\n\nZaczęliśmy od przekopania dwóch sezonów reklam. Wyszło, że 11 z 20 najlepszych reklam miało to samo 8-sekundowe wideo. Zamiast wymyślać wszystko od nowa, wróciliśmy do tego, co już działało.\n\nChcesz, żebyśmy tak przejrzeli Twoje reklamy? Napisz ROLKA w wiadomości.",
+      "tagi": ["ecommerce", "reklamafacebook"]
+    },
+    {
+      "id": "t-godzina",
+      "typ": "teza",
+      "rubryka": "Obsługa klienta",
+      "etykieta": "Teza",
+      "cta": "ZAPISZ",
+      "tytul": "Odpowiedź po godzinie to *klient u konkurencji*",
+      "tekst": "Kto pisze do kilku firm naraz, wybiera tę, która <b>odpisze pierwsza</b>. Nie najtańszą, nie najładniejszą.",
+      "zrob": "Ustaw 3 zapisane odpowiedzi na najczęstsze pytania: cena, termin, dojazd.",
+      "caption": "Klient, który pyta o cenę, zwykle pisze do trzech firm naraz. Wygrywa ta, która odpowie pierwsza.\n\nNie musisz siedzieć w telefonie cały dzień. Wystarczą trzy gotowe odpowiedzi na pytania, które słyszysz najczęściej, i odpowiadasz w minutę.\n\nZapisz i ustaw je jeszcze dziś.",
+      "tagi": ["obslugaklienta", "malafirma"]
+    },
+    {
+      "id": "k-opinia-google",
+      "typ": "karuzela",
+      "rubryka": "Opinie",
+      "cta": "ZAPISZ",
+      "okladka": {
+        "tytul": "Zła opinia w Google? *4 kroki* odpowiedzi",
+        "podtytul": "Odpowiadasz nie autorowi, tylko każdemu, kto to przeczyta później."
+      },
+      "punkty": [
+        { "naglowek": "Podziękuj i *użyj imienia*", "tekst": "Spokojne pierwsze zdanie gasi emocje. Bez „szanowny kliencie”.", "przyklad": "„Pani Kasiu, dziękujemy, że Pani o tym napisała.”" },
+        { "naglowek": "Przyznaj *fakt*, nie winę za wszystko", "tekst": "Jeśli coś poszło źle, powiedz to wprost. Jedno zdanie, bez tłumaczenia się.", "przyklad": "„Czekała Pani 40 minut, a obiecaliśmy 20. To nie powinno się zdarzyć.”" },
+        { "naglowek": "Powiedz, *co zmieniasz*", "tekst": "To czytają przyszli klienci. Konkret uspokaja bardziej niż przeprosiny.", "przyklad": "„Od poniedziałku w piątki pracują u nas dwie osoby więcej.”" },
+        { "naglowek": "Przenieś rozmowę *na prywatną*", "tekst": "Zaproś do kontaktu z nazwiskiem osoby. Nie kłóć się publicznie.", "przyklad": "„Proszę zadzwonić do mnie, Tomek, 500 000 000.”" }
+      ],
+      "caption": "Na złą opinię w Google odpowiadasz nie tylko autorowi. Czytają to wszyscy, którzy sprawdzają Cię przed wizytą.\n\nPodziękuj z imieniem, przyznaj fakt, powiedz, co zmieniasz, i zaproś do rozmowy prywatnie. Bez kłótni i bez kopiowanych formułek.\n\nZapisz, żeby mieć to pod ręką, kiedy przyjdzie gorsza opinia.",
+      "tagi": ["opiniegoogle", "malafirma"]
+    },
+    {
+      "id": "u-stories",
+      "typ": "kulisy",
+      "cta": "ROLKA",
+      "ekran": "telefon",
+      "screen": "no-stories-1.jpg",
+      "tytul": "9 stories na *jeden* rynek",
+      "kroki": [
+        "Bierzemy prawdziwe zdjęcia klientki, bez stocku",
+        "Jeden produkt na kadr, napis w 2–4 słowach",
+        "Każdy kadr w dwóch wersjach: niemieckiej i angielskiej",
+        "Reklama pokazuje się tylko tym, którzy byli już w sklepie"
+      ],
+      "caption": "Kulisy pracy dla New Orchard. Na sam remarketing w Niemczech i Austrii zrobiliśmy 9 stories, każde w dwóch językach.\n\nZasady są proste: prawdziwe zdjęcia klientki zamiast stocku, jeden produkt na kadr i napis, który da się przeczytać w sekundę. Reklama trafia tylko do osób, które już odwiedziły sklep.\n\nChcesz takie kreacje dla swojego sklepu? Napisz ROLKA w wiadomości.",
+      "tagi": ["ecommerce", "reklamainstagram"]
+    },
+    {
+      "id": "k-newsletter",
+      "typ": "karuzela",
+      "rubryka": "Newsletter",
+      "cta": "ZAPISZ",
+      "okladka": {
+        "tytul": "Newsletter, który *ktoś otworzy*",
+        "podtytul": "5 zasad, których trzymamy się w mailingach dla klientów."
+      },
+      "punkty": [
+        { "naglowek": "Temat w *6 słowach*", "tekst": "Telefon ucina dłuższe tematy. Konkret wygrywa z zagadką.", "przyklad": "„Caramel -20% tylko do soboty”" },
+        { "naglowek": "Jeden mail, *jeden* przycisk", "tekst": "Trzy oferty w jednym mailu to zero kliknięć w każdą z nich.", "przyklad": "Jedna promocja, jeden produkt na górze, jeden przycisk „Zobacz”." },
+        { "naglowek": "Do całej bazy *co ok. 7 dni*", "tekst": "Częściej męczy i rośnie liczba wypisów. Rzadziej i ludzie zapominają, kim jesteś.", "przyklad": "Przypomnienie wysyłaj tylko do tych, którzy otworzyli pierwszy mail." },
+        { "naglowek": "Pierwsze zdanie *jak w rozmowie*", "tekst": "Podgląd w skrzynce pokazuje początek maila. Niech to nie będzie „Drogi Kliencie”.", "przyklad": "„Ostatnie pary w rozmiarze 38 wyjechały wczoraj.”" },
+        { "naglowek": "Sprawdzaj *kliknięcia*, nie otwarcia", "tekst": "Otwarcia zawyża Apple Mail. Kliknięcia mówią, czy mail zadziałał.", "przyklad": "Porównuj klikalność między mailami, zawsze w tym samym dniu tygodnia." }
+      ],
+      "caption": "Newslettery dla klientów wysyłamy w dwóch językach co tydzień. Te zasady sprawdzają się najbardziej.\n\nKrótki temat, jedna oferta z jednym przyciskiem, wysyłka do całej bazy mniej więcej co tydzień i przypomnienie tylko dla zainteresowanych. Wynik oceniasz po kliknięciach, bo otwarcia są zawyżone.\n\nZapisz przed następną wysyłką.",
+      "tagi": ["emailmarketing", "ecommerce"]
+    },
+    {
+      "id": "k-strona",
+      "typ": "karuzela",
+      "rubryka": "Strony www",
+      "cta": "ROLKA",
+      "okladka": {
+        "tytul": "Pierwszy ekran strony: *5 rzeczy*, które muszą tam być",
+        "podtytul": "Bez przewijania. Tak ogląda stronę ktoś z telefonu."
+      },
+      "punkty": [
+        { "naglowek": "*Co* robisz, w jednym zdaniu", "tekst": "Nie „innowacyjne rozwiązania”. Usługa i efekt, który klient dostaje.", "przyklad": "„Naprawa iPhone’ów w 60 minut. Warszawa, Wola.”" },
+        { "naglowek": "Cena *od*", "tekst": "Brak ceny to pierwszy powód, żeby wyjść. „Od” wystarczy, żeby zostać.", "przyklad": "„Wymiana ekranu od 290 zł”" },
+        { "naglowek": "Jeden *przycisk*", "tekst": "Zadzwoń albo napisz. Jeden kolor, jedno działanie, widoczne bez przewijania.", "przyklad": "Przycisk „Zadzwoń” przyklejony do dołu ekranu w telefonie." },
+        { "naglowek": "*Dowód*", "tekst": "Ocena w Google, liczba klientów, zdjęcie z pracy. Prawdziwe, nie ze stocku.", "przyklad": "„4,8 w Google, 900 opinii”" },
+        { "naglowek": "Ładuje się *w 3 sekundy*", "tekst": "Wielki film w tle i ekran powitalny zabijają stronę na telefonie.", "przyklad": "Sprawdź wersję mobilną w PageSpeed Insights." }
+      ],
+      "caption": "Większość ludzi zobaczy tylko pierwszy ekran Twojej strony, na telefonie, bez przewijania.\n\nMusi tam być: co robisz w jednym zdaniu, cena od, jeden przycisk, prawdziwy dowód i szybkie ładowanie. Reszta strony to dodatek.\n\nRobimy strony i od razu podpinamy je pod reklamy. Chcesz, żebyśmy spojrzeli na Twoją? Napisz ROLKA w wiadomości.",
+      "tagi": ["stronywww", "malafirma"]
+    },
+    {
+      "id": "t-konkret",
+      "typ": "teza",
+      "rubryka": "Rolki",
+      "etykieta": "Teza",
+      "cta": "ROLKA",
+      "tytul": "Ładna rolka nie sprzedaje. *Konkretna* sprzedaje.",
+      "tekst": "Widz w 3 sekundy musi wiedzieć: <b>co, dla kogo i ile</b>. Piękne przejścia i modna muzyka tego nie powiedzą.",
+      "zrob": "W pierwszym kadrze następnej rolki napisz, co sprzedajesz i cenę od.",
+      "caption": "Ładne ujęcia i modne przejścia nie powiedzą nikomu, co sprzedajesz. Widz musi to zrozumieć w trzy sekundy.\n\nCo, dla kogo i ile. Jeśli tego nie ma w pierwszym kadrze, rolka może mieć zasięg, ale nie przyniesie klienta.\n\nChcesz, żebyśmy zrobili konkretną rolkę dla Twojej firmy? Napisz ROLKA w wiadomości.",
+      "tagi": ["rolkinainstagram", "sprzedaz"]
+    },
+    {
+      "id": "k-10-rolek",
+      "typ": "karuzela",
+      "rubryka": "Nagrywanie",
+      "cta": "ZAPISZ",
+      "okladka": {
+        "liczba": "10",
+        "tytul": "rolek z *jednej godziny* nagrywania",
+        "podtytul": "Tak nagrywamy materiał u klientów, żeby starczyło na cały miesiąc."
+      },
+      "punkty": [
+        { "naglowek": "Lista ujęć *przed* nagraniem", "tekst": "Spisz 20 krótkich ujęć: ręce, produkt, miejsce, klient. Na miejscu nie wymyślasz.", "przyklad": "„Kawa leci do filiżanki”, „szyld z ulicy”, „ręce przy kasie”." },
+        { "naglowek": "Każde ujęcie *po 5 sekund*", "tekst": "Krótkie kawałki łatwo poskładać w różne rolki. Długie ujęcia rzadko się przydają.", "przyklad": "Nagraj to samo z trzech odległości: daleko, średnio, bardzo blisko." },
+        { "naglowek": "Światło *z okna*", "tekst": "Stań przodem do okna, nie plecami. Lampa sufitowa robi cienie pod oczami.", "przyklad": "Najlepiej przed południem, bez bezpośredniego słońca." },
+        { "naglowek": "Pion i *ten sam* telefon", "tekst": "Wszystko w pionie 9:16, jedno urządzenie. Kolory i jakość wtedy pasują do siebie.", "przyklad": "Zablokuj ostrość i jasność, przytrzymując palec na ekranie." }
+      ],
+      "caption": "Jedna godzina nagrywania może dać materiał na 10 rolek. Pod warunkiem, że wiesz, co nagrać, zanim włączysz kamerę.\n\nLista 20 ujęć, każde po 5 sekund z trzech odległości, światło z okna i wszystko w pionie jednym telefonem. Potem montaż składa z tego różne historie.\n\nZapisz przed najbliższym nagraniem.",
+      "tagi": ["rolkinainstagram", "nagrywanie"]
+    },
+    {
+      "id": "k-wyszukiwarka",
+      "typ": "karuzela",
+      "rubryka": "Instagram",
+      "cta": "ZAPISZ",
+      "okladka": {
+        "tytul": "Hasztagi to nie wszystko. *Instagram to wyszukiwarka*",
+        "podtytul": "Ludzie wpisują „fryzjer Mokotów”, a nie #hair. 3 miejsca, gdzie to wpisać."
+      },
+      "punkty": [
+        { "naglowek": "Nazwa w profilu, *nie tylko* nick", "tekst": "Pole „Imię i nazwisko” jest przeszukiwane. Dopisz tam usługę i miasto.", "przyklad": "„Studio Ola | Fryzjer Warszawa Mokotów”" },
+        { "naglowek": "Słowa *w opisie* posta", "tekst": "Napisz zwykłymi słowami, czego dotyczy post. Instagram czyta podpis.", "przyklad": "„Koloryzacja blond na krótkich włosach, salon na Mokotowie.”" },
+        { "naglowek": "3–5 *lokalnych* tagów", "tekst": "Wielkie tagi z milionami postów nic nie dadzą małemu kontu. Lokalne i branżowe tak.", "przyklad": "#fryzjerwarszawa #mokotow #koloryzacjablond" }
+      ],
+      "caption": "Coraz więcej osób szuka na Instagramie jak w Google: „fryzjer Mokotów”, „tort na zamówienie Warszawa”.\n\nPomóż im Cię znaleźć: dopisz usługę i miasto w polu z nazwą profilu, opisuj posty zwykłymi słowami i używaj kilku lokalnych tagów zamiast wielkich ogólnych.\n\nZapisz i popraw profil w 10 minut.",
+      "tagi": ["instagramdlafirm", "malafirma"]
+    }
+  ]
+}
