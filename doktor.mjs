@@ -451,7 +451,13 @@ async function powtorkiWLencie() {
         .pop();
       if (!wczesniej) continue;
       const dni = (wyszlo[n].kiedy - wczesniej.kiedy) / 86400000;
-      if (dni < MIN_DNI) powtorki.push(`${wyszlo[n].id} (co ${dni.toFixed(0)} dni)`);
+      // Допуск полдня. 21.09 → 21.10 «wizytowka-google» вышел в тот же слот
+      // 13:00 на 10 секунд раньше, чем через ровно 30 суток (29,9999 дн.):
+      // ротация считала его отдохнувшим, а сторож — повтором, и краснел с
+      // 21.10 неделю за ролик, который правило как раз разрешает. Час
+      // публикации плавает на минуты, поэтому сравниваем с полудневным
+      // допуском, а не до секунды.
+      if (dni < MIN_DNI - 0.5) powtorki.push(`${wyszlo[n].id} (co ${dni.toFixed(1)} dni)`);
     }
     if (powtorki.length) {
       zapisz(

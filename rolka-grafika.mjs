@@ -861,10 +861,16 @@ const cta = wiersz('cta');
 
 // Тема нужна тегам: по ней подбираются нишевые и тематические хэштеги.
 // Берём её из названия сценария — оно у нас как раз описывает тему.
-const opisTekst = podmienHasztagi(
-  [hak, zaplata, cta, 'zovu.pl'].filter(Boolean).join(String.fromCharCode(10, 10)),
-  { temat: scenariusz.nazwa, forma: 'rysowana', nr: stan.grafikaScen ?? 0 }
-);
+// 28.10: та же формула подписи, что у стоковых (podpisy.mjs): заголовок →
+// польза → ROLKA в личку → 3–5 тегов. Подпись ≠ озвучка, поэтому польза
+// берётся из вывода, а хук становится заголовком.
+const { zbudujPodpisy } = await import('./podpisy.mjs');
+const opisTekst = zbudujPodpisy(
+  { nazwa: scenariusz.nazwa, forma: 'rysowana', temat: scenariusz.temat || scenariusz.nazwa.replace(/-/g, ' '),
+    podpis: { tytul: hak.split(/(?<=[.?!])\s+/)[0], wartosc: [zaplata].filter(Boolean) }, czesci: [] },
+  { nr: stan.grafikaScen ?? 0 }
+).ig;
+void podmienHasztagi; void cta;
 await writeFile(gotowy.replace(/\.mp4$/, '-opis.txt'), opisTekst, 'utf8');
 
 await writeFile(

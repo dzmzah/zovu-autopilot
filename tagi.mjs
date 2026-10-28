@@ -21,61 +21,45 @@
 //   hasztagi({ temat: 'dlaczego profil nie generuje wiadomości', nr: 7 })
 
 // ── банки ─────────────────────────────────────────────────────────
-// Локальные. Клиент ZOVU — фирма, до которой можно доехать. Город в теге
-// сужает выдачу в тысячи раз и одновременно отсекает случайных зрителей из
-// другой страны, которые портят досмотр и ничего не покупают.
-const LOKALNE = [
-  'katowice', 'slask', 'katowicebiznes', 'biznesslask', 'firmakatowice',
-  'gornyslask', 'slaskiefirmy', 'katowicefirmy', 'gliwice', 'chorzow',
-  'sosnowiec', 'zabrze', 'tychy', 'dabrowagornicza', 'bytom',
-];
+// 28.10.2026 (Mat + Zahar): ZOVU больше не «студия из Катовице». Мы в
+// Варшаве, работаем по всей Польше и за границей, и продаём весь маркетинг:
+// ведение соцсетей, рекламу Meta/Google/TikTok, контент и монтаж, съёмки,
+// сайты, рассылки, автоматизацию. Городские теги (#katowice,
+// #firmakatowice…) сужали ленту до одного региона — сняты совсем и стоят в
+// запрещённых, чтобы не вернулись руками.
+//
+// Набор теперь 3–5 тематических: два общих (о чём аккаунт вообще) и два
+// по смыслу ролика, плюс #zovu.
+const OGOLNE = ['marketing', 'rolki', 'reklama', 'socialmedia', 'malafirma', 'marketingdlafirm', 'wlasnafirma'];
 
-// Нишевые: кто именно нас читает. Не «бизнес», а форма и размер дела.
-const NISZOWE = [
-  'malafirma', 'lokalnybiznes', 'wlasnafirma', 'mikrofirma', 'jdg',
-  'jednoosobowadzialalnosc', 'uslugilokalne', 'rzemioslo', 'mojafirma',
-  'przedsiebiorcy', 'malybiznes', 'firmarodzinna',
-];
-
-// Отраслевые — под живой сток и под тех, кому мы реально продаём.
-const BRANZOWE = [
-  'salonurody', 'gastronomiapl', 'warsztatsamochodowy', 'sklepinternetowy',
-  'fryzjerstwo', 'kosmetyczka', 'restauracja', 'kawiarnia', 'barbershop',
-  'nieruchomosci', 'fotografslubny', 'trenerpersonalny',
-];
-
-// Тематические: подбираются по смыслу конкретного ролика. Ключ — то, что
-// ищем в теме и в форме; значение — теги, которые описывают ЭТУ мысль.
+// Тематические: подбираются по смыслу конкретного ролика.
 const TEMATYCZNE = [
-  { klucz: /profil|bio|opis/i, tagi: ['profilfirmowy', 'opisprofilu', 'wizytowkafirmy'] },
-  { klucz: /wiadomo|klient|sprzeda|zapyta/i, tagi: ['pozyskiwanieklientow', 'zapytaniaofertowe', 'obslugaklienta'] },
-  { klucz: /strona|www|sklep/i, tagi: ['stronadlafirmy', 'stronainternetowa', 'wizytowkawgoogle'] },
-  { klucz: /rolk|reels|wideo|film/i, tagi: ['wideodlafirm', 'rolkidlafirm', 'wideomarketing'] },
-  { klucz: /\bai\b|sztuczn/i, tagi: ['aiwbiznesie', 'sztucznainteligencja', 'automatyzacja'] },
-  { klucz: /post|tre[śs]c|publik|codzien/i, tagi: ['tresciwsocialmediach', 'postydlafirm', 'plantresci'] },
-  { klucz: /zasi[ęe]g|algorytm/i, tagi: ['zasiegiorganiczne', 'algorytminstagrama', 'instagramdlafirm'] },
-  { klucz: /czas|uwag|zatrzyma|sekund/i, tagi: ['uwagaodbiorcy', 'pierwszesekundy', 'hakwideo'] },
-  { klucz: /cena|budzet|kosztuj|pieni/i, tagi: ['budzetreklamowy', 'kosztymarketingu', 'oplacalnosc'] },
+  { klucz: /rolk|reels|wideo|film|monta|shorts/i, tagi: ['rolkidlafirm', 'wideomarketing', 'montazwideo'] },
+  { klucz: /reklam|ads|kampani|promuj|budzet|budżet/i, tagi: ['reklamanafacebooku', 'metaads', 'kampaniareklamowa'] },
+  { klucz: /tiktok/i, tagi: ['tiktokdlafirm', 'tiktokmarketing'] },
+  { klucz: /google|opini|wizyt/i, tagi: ['wizytowkagoogle', 'googleads', 'opiniegoogle'] },
+  { klucz: /strona|www|sklep/i, tagi: ['stronainternetowa', 'stronadlafirmy'] },
+  { klucz: /newsletter|mail/i, tagi: ['newsletter', 'emailmarketing'] },
+  { klucz: /\bai\b|sztuczn|automaty|robot|autopilot|kulisy/i, tagi: ['automatyzacja', 'aiwmarketingu', 'kulisypracy'] },
+  { klucz: /profil|bio|opis|post|tre[śs]c|publik|codzien|instagram|facebook/i, tagi: ['instagramdlafirm', 'tresci', 'prowadzeniesocialmedia'] },
+  { klucz: /wiadomo|klient|sprzeda|zapyta|cena|wycen/i, tagi: ['pozyskiwanieklientow', 'sprzedaz', 'obslugaklienta'] },
+  { klucz: /zasi[ęe]g|algorytm|sekund|uwag|hak|zdanie/i, tagi: ['zasiegi', 'algorytminstagrama', 'pierwszesekundy'] },
+  { klucz: /fight|gala|tvn|amork|orchard|klient|kejs|case/i, tagi: ['casestudy', 'kampaniareklamowa', 'prowadzeniesocialmedia'] },
 ];
 
 // Запасной тематический — когда тема не легла ни на один ключ.
-const ZAPASOWE = ['marketingdlafirm', 'instagramdlafirm', 'socialmediadlafirm'];
+const ZAPASOWE = ['marketingdlafirm', 'instagramdlafirm', 'prowadzeniesocialmedia'];
 
-// Общие слова, которые в набор не попадают ни при каких условиях. Список
-// нужен не для генерации, а для проверки: если такой тег появился, значит
-// кто-то опять вписал его руками мимо этого файла.
+// Теги, которые в набор не попадают ни при каких условиях. Местные — по
+// решению 28.10; общие пустышки — потому что ничего не описывают.
 export const ZAKAZANE = new Set([
-  'marketing', 'biznes', 'reklama', 'sukces', 'motywacja', 'socialmedia',
-  'reels', 'instagram', 'contentmarketing', 'agencjamarketingowa',
-  'przedsiebiorca', 'praca', 'polska',
+  'katowice', 'firmakatowice', 'katowicebiznes', 'katowicefirmy', 'slask', 'biznesslask', 'gornyslask',
+  'slaskiefirmy', 'gliwice', 'chorzow', 'sosnowiec', 'zabrze', 'tychy', 'dabrowagornicza', 'bytom',
+  'sukces', 'motywacja', 'praca', 'polska', 'biznes', 'reels', 'instagram',
 ]);
 
 // Берём `ile` штук из банка со сдвигом. Сдвиг, а не случайность: прогон
-// должен повторяться байт в байт, иначе перезапуск сборки даёт другой файл
-// и очередь начинает расходиться сама с собой.
-// Шаг перебора зависит от размера банка: на маленьком банке шаг 3 попадает
-// в ту же ячейку (3 % 3 = 0) и две метки схлопываются в одну — набор молча
-// выходит короче задуманного.
+// должен повторяться байт в байт.
 function wybierz(bank, ile, przesun) {
   const krok = bank.length > 6 ? 3 : 1;
   const out = [];
@@ -84,53 +68,24 @@ function wybierz(bank, ile, przesun) {
 }
 
 /**
- * Набор хэштегов под одну публикацию.
+ * Набор хэштегов под одну публикацию: 4–5 штук, без городов.
  * @param {object} o
- * @param {string} [o.temat]  тема ролика — по ней подбирается тематический тег
+ * @param {string} [o.temat]  тема ролика — по ней подбираются тематические
  * @param {string} [o.forma]  форма ролика, тоже участвует в подборе
- * @param {number} [o.nr]     номер публикации: сдвигает банки, чтобы наборы не повторялись
+ * @param {number} [o.nr]     номер публикации: сдвигает банки
  * @param {boolean} [o.marka] добавлять ли #zovu (по умолчанию да)
- * @returns {string} строка вида `#katowice #slask #malafirma ...`
+ * @returns {string} строка вида `#marketing #rolkidlafirm ...`
  */
-export function hasztagi({ temat = '', forma = '', nr = 0, branza = '', marka = true } = {}) {
+export function hasztagi({ temat = '', forma = '', nr = 0, marka = true } = {}) {
   const p = Math.abs(Math.trunc(nr));
   const opis = `${temat} ${forma}`;
-
-  // Тематические — по смыслу ролика, и их ДВА. Раньше здесь стоял один
-  // тематический плюс отраслевой наугад, и под роликом про описание профиля
-  // оказывался #warsztatsamochodowy. Нерелевантный тег хуже отсутствующего:
-  // площадка сверяет теги с содержимым и режет показы за несовпадение, а
-  // человек по такому тегу приходит не за нами и уходит через секунду —
-  // портит досмотр, ради которого всё и делается.
   const trafione = TEMATYCZNE.filter((t) => t.klucz.test(opis)).flatMap((t) => t.tagi);
-  const pula = trafione.length ? trafione : ZAPASOWE;
-  const tematyczne = wybierz(pula, 2, p);
-
-  // Две локальные метки: столица региона и один соседний город. Держать
-  // «katowice» постоянно — осознанно: это единственный тег, по которому нас
-  // ищут те, кто уже решил искать подрядчика рядом.
-  const lokalne = ['katowice', wybierz(LOKALNE.slice(1), 1, p)[0]];
-  const niszowe = wybierz(NISZOWE, 2, p);
-
-  // Отрасль — только если её назвали явно. Сам угадать её по теме ролика
-  // нельзя: ролики у нас про маркетинг вообще, а не про чью-то мастерскую.
-  const branzowe = branza
-    ? [String(branza).replace(/^#/, '').toLowerCase()].filter((b) => BRANZOWE.includes(b))
-    : [];
-
-  const zestaw = [...lokalne, ...niszowe, ...branzowe, ...tematyczne, ...(marka ? ['zovu'] : [])];
-
-  // Чистка на выходе. Дубли и запрещённые слова тут появиться не должны, но
-  // банки правятся руками, и молча выпустить #marketing нельзя.
+  const tematyczne = wybierz([...new Set(trafione.length ? trafione : ZAPASOWE)], 2, p);
+  const ogolne = wybierz(OGOLNE, 2, p);
+  const zestaw = [...ogolne, ...tematyczne, ...(marka ? ['zovu'] : [])];
   const gotowe = [...new Set(zestaw.map((t) => String(t).replace(/^#/, '').toLowerCase()))]
     .filter((t) => t && !ZAKAZANE.has(t));
-
-  // Ровно пять. Instagram сам ограничил пост пятью тегами, а всё сверх того
-  // мы отправляли в никуда. Порядок в наборе не случайный: сначала местные
-  // (там мы реально можем быть заметны при охвате в две сотни), потом
-  // нишевые, потом тематические, и бренд последним — если место осталось.
-  const PIEC = 5;
-  return gotowe.slice(0, PIEC).map((t) => `#${t}`).join(' ');
+  return gotowe.slice(0, 5).map((t) => `#${t}`).join(' ');
 }
 
 /**

@@ -1,0 +1,53 @@
+name: ZOVU rolki próbne
+
+# Пробные рилсы (Trial Reels): раз в день лучший вышедший ≥ 7 дней назад
+# рилс уходит повторно, но только НЕподписчикам, с новой подписью.
+# Логика и правила — rolki-probne.mjs, журнал — rolki/probne.json.
+on:
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: 'Сухой прогон — показать выбор и подпись, ничего не публиковать'
+        type: boolean
+        default: true
+  schedule:
+    # 14:37 UTC — после дневного слота 13:00, не на круглый час (GitHub
+    # роняет круглые кроны чаще всего).
+    - cron: '37 14 * * *'
+
+concurrency:
+  group: zovu-rolki-probne
+  cancel-in-progress: false
+
+jobs:
+  probny:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Zależności
+        run: npm ci --omit=dev || npm install --omit=dev
+      - name: Wyłóż próbną rolkę
+        env:
+          INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+          TOKEN_KEY: ${{ secrets.TOKEN_KEY }}
+          RAW_BASE: https://raw.githubusercontent.com/${{ github.repository }}/main
+        run: node rolki-probne.mjs ${{ (github.event_name == 'workflow_dispatch' && inputs.dry) && '--dry' || '' }}
+      - name: Zapisz dziennik
+        if: ${{ always() && !(github.event_name == 'workflow_dispatch' && inputs.dry) }}
+        run: |
+          git config user.name  "zovu-autopilot"
+          git config user.email "autopilot@zovu.pl"
+          git add rolki/probne.json || true
+          git diff --cached --quiet && echo "нечего записывать" && exit 0
+          git commit -m "rolki próbne: dziennik [skip ci]"
+          for i in 1 2 3; do
+            git -c rebase.autoStash=true pull --rebase -q origin main && git push -q origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1

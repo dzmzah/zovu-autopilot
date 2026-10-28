@@ -1123,5 +1123,1193 @@
     },
     "zrodlo": "generator",
     "utworzono": "2026-10-22"
+  },
+  {
+    "nazwa": "kulisy-robot-robi-rolki",
+    "forma": "kulisy",
+    "hak_typ": "historia",
+    "temat": "kulisy: robot, który robi nam rolki",
+    "plyta": {
+      "linie": [
+        "ROBOT",
+        "ROBI NAM ROLKI"
+      ],
+      "plaszka": "KULISY"
+    },
+    "podpis": {
+      "tytul": "Ta rolka powstała bez kamery i bez nas.",
+      "wartosc": [
+        "Scenariusz, lektor, montaż i publikacja dzieją się same, a my patrzymy tylko na wyniki.",
+        "Każdy film przechodzi kontrolę: jeśli obraz skacze albo dźwięk jest za cichy, system składa go od nowa.",
+        "Ten sam system możemy ustawić dla twojej firmy."
+      ],
+      "yt": "Robot robi nam rolki codziennie | automatyzacja marketingu"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Zbudowaliśmy robota, który robi nam rolki.",
+        "szukaj": "robot arm assembly line closeup",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Co noc pisze scenariusz i nagrywa lektora.",
+        "szukaj": "night city window laptop glowing",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Rano montuje film i sam go sprawdza.",
+        "szukaj": "video editing timeline screen",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Słaby film odrzuca i składa od nowa.",
+        "szukaj": "hand deleting file on laptop",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Publikuje na czterech platformach. Bez nas.",
+        "szukaj": "smartphone notifications social media",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Chcesz tak u siebie? Napisz ROLKA w wiadomości.",
+        "szukaj": "person typing message phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto prowadzi firmę i nie ma czasu na rolki.",
+        "karta": {
+          "tekst": "Komuś, kto nie ma czasu"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
+  },
+  {
+    "nazwa": "kulisy-86-rolek-zero-zapisow",
+    "forma": "jedna-liczba",
+    "hak_typ": "wynik",
+    "temat": "kulisy: audyt naszych 86 rolek",
+    "plyta": {
+      "linie": [
+        "86 ROLEK",
+        "ZERO ZAPISÓW"
+      ],
+      "plaszka": "86"
+    },
+    "podpis": {
+      "tytul": "Policzyliśmy swoje rolki. Nie było przyjemnie.",
+      "wartosc": [
+        "Ludzie oglądali nasze filmy średnio około trzech sekund.",
+        "Najsłabiej szły rolki, które zaczynały się od długiego wstępu.",
+        "Zajrzyj w statystyki: średni czas oglądania powie ci więcej niż wyświetlenia."
+      ],
+      "yt": "86 rolek i zero zapisów. Co poprawiliśmy | rolki dla firm"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "mowa": "Osiemdziesiąt sześć rolek. Zero zapisów.",
+        "tekst": "86 rolek. Zero zapisów.",
+        "szukaj": "stack of papers counting desk",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Tak wyglądał nasz profil w październiku.",
+        "szukaj": "scrolling instagram profile phone",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Ludzie uciekali po trzech sekundach.",
+        "szukaj": "thumb swiping phone fast",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Winne było pierwsze zdanie. Za długie.",
+        "szukaj": "crossing out text notebook pen",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Teraz ma najwyżej dziesięć słów.",
+        "szukaj": "short note on sticky paper",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Napisz ROLKA w wiadomości, pokażemy więcej.",
+        "szukaj": "woman texting smartphone cafe",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto robi rolki i nie wie, czemu nie działają.",
+        "karta": {
+          "tekst": "Komuś, kto robi rolki"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
+  },
+  {
+    "nazwa": "kulisy-esej-na-poczatku",
+    "forma": "przed-po",
+    "hak_typ": "historia",
+    "temat": "kulisy: rolka, która zaczynała się od eseju",
+    "plyta": {
+      "linie": [
+        "ZACZĘLIŚMY",
+        "OD ESEJU"
+      ],
+      "plaszka": "BŁĄD"
+    },
+    "podpis": {
+      "tytul": "Nasza najgorsza rolka miała za długi początek.",
+      "wartosc": [
+        "Pierwsze zdanie widać na ekranie od zerowej sekundy, więc musi dać się przeczytać od razu.",
+        "Napisz je na końcu, kiedy wiesz już, co w filmie jest najmocniejsze."
+      ],
+      "yt": "Dlaczego nikt nie ogląda rolki do końca | pierwsze zdanie"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Ta rolka zaczynała się od eseju.",
+        "szukaj": "person yawning bored phone",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Dwa długie zdania, zanim cokolwiek się działo.",
+        "szukaj": "long text on phone screen",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "mowa": "Do końca dotrwały cztery osoby na sto.",
+        "tekst": "Do końca dotrwały cztery osoby na sto.",
+        "szukaj": "empty cinema seats",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Następną zaczęliśmy od jednego krótkiego zdania.",
+        "szukaj": "hand writing one line notebook",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Pierwsze zdanie trzyma albo wyrzuca.",
+        "szukaj": "door closing slowly",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Napisz ROLKA w wiadomości.",
+        "szukaj": "man typing message phone street",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto pisze długie wstępy.",
+        "karta": {
+          "tekst": "Komuś, kto pisze wstępy"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
+  },
+  {
+    "nazwa": "fight-mode-promocja-gali",
+    "forma": "kulisy",
+    "hak_typ": "historia",
+    "temat": "case: promocja gali Fight Mode",
+    "plyta": {
+      "linie": [
+        "GALA",
+        "FIGHT MODE"
+      ],
+      "plaszka": "CASE"
+    },
+    "podpis": {
+      "tytul": "Tak promowaliśmy galę Fight Mode.",
+      "wartosc": [
+        "Przy wydarzeniu nie wystarczy jeden post z datą. Ludzie muszą widzieć je codziennie przez kilka tygodni.",
+        "Każdy kanał miał swoje zadanie: strona informowała, reklamy przyprowadzały ludzi, mailing przypominał przed walką."
+      ],
+      "yt": "Jak promowaliśmy galę Fight Mode | promocja wydarzenia"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Gala walk na gołe pięści. Promocja była na nas.",
+        "szukaj": "boxing ring arena lights",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Strona, rolki, reklamy i mailing do kibiców.",
+        "szukaj": "laptop website event tickets",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Rolki z castingu, obozu i konferencji.",
+        "szukaj": "fighters training gym",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Do tego spot na ekran LED w klubie.",
+        "szukaj": "led screen nightclub",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Kibic widział galę wszędzie, gdzie przewijał.",
+        "szukaj": "man scrolling phone night",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Masz wydarzenie? Napisz ROLKA w wiadomości.",
+        "szukaj": "hand typing message phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto organizuje wydarzenie.",
+        "karta": {
+          "tekst": "Komuś, kto robi wydarzenia"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
+  },
+  {
+    "nazwa": "fight-mode-zawodnik-nie-plakat",
+    "forma": "pod-prad",
+    "hak_typ": "mit",
+    "temat": "case: zawodnik sprzedaje lepiej niż plakat",
+    "plyta": {
+      "linie": [
+        "PLAKAT",
+        "NIE SPRZEDA"
+      ],
+      "plaszka": "CASE"
+    },
+    "podpis": {
+      "tytul": "Transmisję gali sprzedają ludzie, nie grafika.",
+      "wartosc": [
+        "Widz kupuje walkę, kiedy zna zawodnika i ma swojego faworyta.",
+        "Krótkie odcinki z treningu i rozmowy przed walką budują to szybciej niż kolejny plakat z datą."
+      ],
+      "yt": "Co sprzedaje transmisję gali | marketing wydarzeń sportowych"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Plakat nie sprzeda transmisji gali.",
+        "szukaj": "event poster on wall",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Sprzedaje ją zawodnik, którego znasz z rolek.",
+        "szukaj": "fighter portrait gym dark",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Jego trening, jego słowa, jego nerwy.",
+        "szukaj": "boxer wrapping hands closeup",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Przy Fight Mode robiliśmy odcinki o zawodnikach.",
+        "szukaj": "camera filming athlete interview",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Ludzie kupują walkę ludzi, których znają.",
+        "szukaj": "crowd cheering arena",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Napisz ROLKA w wiadomości.",
+        "szukaj": "person texting phone couch",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto robi wydarzenia sportowe.",
+        "karta": {
+          "tekst": "Komuś od wydarzeń"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
+  },
+  {
+    "nazwa": "amorki-tvn-osiem-szortow",
+    "forma": "kulisy",
+    "hak_typ": "wynik",
+    "temat": "case: promocja programu Amorki TVN",
+    "plyta": {
+      "linie": [
+        "8 SZORTÓW",
+        "DZIENNIE"
+      ],
+      "plaszka": "TVN"
+    },
+    "podpis": {
+      "tytul": "Promujemy program TVN Amorki w krótkich filmach.",
+      "wartosc": [
+        "Pięć filmów z głównych momentów i trzy w stylu fanowskim, każdego dnia, na wszystkich platformach.",
+        "Po premierze nowego odcinka wszystkie miejsca w planie dostaje właśnie on.",
+        "Reklamy prowadzimy osobno dla każdego odcinka."
+      ],
+      "yt": "Jak promujemy program TVN na YouTube i TikToku | case study"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Osiem krótkich filmów dziennie dla programu TVN.",
+        "szukaj": "tv studio lights camera",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Promujemy Amorki na YouTube, TikToku i Instagramie.",
+        "szukaj": "phone vertical video watching",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Każdy odcinek tniemy na najlepsze momenty.",
+        "szukaj": "video editing cutting timeline",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Po premierze wszystko dostaje nowy odcinek.",
+        "szukaj": "calendar premiere date",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Widz trafia na program, gdziekolwiek przewija.",
+        "szukaj": "people watching phones subway",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Masz program albo markę? Napisz ROLKA w wiadomości.",
+        "szukaj": "woman typing message phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto promuje program albo kanał.",
+        "karta": {
+          "tekst": "Komuś od programu"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
+  },
+  {
+    "nazwa": "amorki-dlugosc-szortow",
+    "forma": "jedna-liczba",
+    "hak_typ": "wynik",
+    "temat": "case: długość szortów przy Amorki",
+    "plyta": {
+      "linie": [
+        "83 KONTRA",
+        "55"
+      ],
+      "plaszka": "%"
+    },
+    "podpis": {
+      "tytul": "Nasze szorty były za długie. Policzyliśmy to.",
+      "wartosc": [
+        "Szorty programu oglądano do końca w 83 procentach, nasze w 55.",
+        "Po skróceniu do 15–25 sekund więcej osób dociera do puenty.",
+        "Sprawdź, w której sekundzie ludzie wychodzą z twojego filmu, i tam utnij."
+      ],
+      "yt": "Ile powinien trwać szort na YouTube | rolki dla firm"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "mowa": "Ich szorty: osiemdziesiąt trzy procent. Nasze: pięćdziesiąt pięć.",
+        "tekst": "Ich szorty: 83 procent. Nasze: 55.",
+        "szukaj": "two bar charts screen",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Tyle osób oglądało do samego końca.",
+        "szukaj": "person watching phone closeup",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Różnica była w długości. Nasze trwały za długo.",
+        "szukaj": "stopwatch hand closeup",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Przycięliśmy je do dwudziestu sekund.",
+        "szukaj": "scissors cutting film strip",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Krótszy film to więcej osób na końcu.",
+        "szukaj": "finish line runners",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Napisz ROLKA w wiadomości.",
+        "szukaj": "man texting phone office",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto robi za długie filmy.",
+        "karta": {
+          "tekst": "Komuś, kto robi długie filmy"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
+  },
+  {
+    "nazwa": "new-orchard-marketing-z-zurychu",
+    "forma": "kulisy",
+    "hak_typ": "historia",
+    "temat": "case: marketing wegańskich butów z Zurychu",
+    "plyta": {
+      "linie": [
+        "BUTY",
+        "Z ZURYCHU"
+      ],
+      "plaszka": "CASE"
+    },
+    "podpis": {
+      "tytul": "Prowadzimy marketing marki butów ze Szwajcarii.",
+      "wartosc": [
+        "New Orchard to wegańskie buty szyte ręcznie we Włoszech, sprzedawane z Zurychu.",
+        "Robimy im Instagram, reklamy Meta i Google oraz newslettery po angielsku i niemiecku.",
+        "Wszystko zdalnie: zdjęcia i materiały przychodzą od właścicielki, reszta jest po naszej stronie."
+      ],
+      "yt": "Marketing sklepu z butami z Zurychu | social media i reklamy"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Wegańskie buty z Zurychu. Robimy im cały marketing.",
+        "szukaj": "handmade leather shoes workshop",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Instagram, reklamy na Facebooku i w Google.",
+        "szukaj": "instagram shop phone shoes",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Do tego newsletter po angielsku i niemiecku.",
+        "szukaj": "email newsletter laptop screen",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Marka jest w Szwajcarii, my w Polsce.",
+        "szukaj": "zurich lake city view",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Odległość nie gra roli. Liczy się sprzedaż.",
+        "szukaj": "online order package box",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Masz sklep? Napisz ROLKA w wiadomości.",
+        "szukaj": "woman typing message phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto ma sklep internetowy.",
+        "karta": {
+          "tekst": "Komuś ze sklepem"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
+  },
+  {
+    "nazwa": "new-orchard-kadr-nie-aparat",
+    "forma": "mit",
+    "hak_typ": "mit",
+    "temat": "zdjęcia produktu: kadr ważniejszy niż aparat",
+    "plyta": {
+      "linie": [
+        "KADR",
+        "NIE APARAT"
+      ],
+      "plaszka": "MIT"
+    },
+    "podpis": {
+      "tytul": "Do zdjęć produktu nie potrzebujesz drogiego aparatu.",
+      "wartosc": [
+        "Przy butach New Orchard zdjęcia z telefonu właścicielki idą do newslettera i działają.",
+        "Ustaw produkt przy oknie, zrób zdjęcie z bliska i zostaw spokojne tło."
+      ],
+      "yt": "Zdjęcia produktu telefonem | jak robić zdjęcia do sklepu"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Dobre zdjęcie nie potrzebuje drogiego aparatu.",
+        "szukaj": "expensive camera on table",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Przy butach New Orchard liczy się kadr.",
+        "szukaj": "shoes product photo phone",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Światło z okna, but blisko, spokojne tło.",
+        "szukaj": "window light product photography",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Telefon właścicielki wystarcza do newslettera.",
+        "szukaj": "woman photographing with phone",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Klient kupuje produkt, nie sprzęt.",
+        "szukaj": "customer holding shopping bag",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Napisz ROLKA w wiadomości.",
+        "szukaj": "hand typing message phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto robi zdjęcia produktów.",
+        "karta": {
+          "tekst": "Komuś, kto robi zdjęcia"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
+  },
+  {
+    "nazwa": "newsletter-raz-w-tygodniu",
+    "forma": "blad",
+    "hak_typ": "zakaz",
+    "temat": "newsletter: jak często wysyłać",
+    "plyta": {
+      "linie": [
+        "NEWSLETTER",
+        "CO TYDZIEŃ"
+      ],
+      "plaszka": "ZASADA"
+    },
+    "podpis": {
+      "tytul": "Ile razy wysyłać newsletter, żeby nie wypisywali.",
+      "wartosc": [
+        "Do całej listy piszemy mniej więcej co siedem dni.",
+        "Przypomnienie o promocji idzie tylko do tych, którzy otworzyli poprzedni mail.",
+        "Treść daj do sprawdzenia dzień wcześniej, nie w dniu wysyłki."
+      ],
+      "yt": "Jak często wysyłać newsletter | email marketing dla firm"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Nie wysyłaj newslettera częściej niż co tydzień.",
+        "szukaj": "inbox full of emails laptop",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Inaczej ludzie zaczynają się wypisywać.",
+        "szukaj": "unsubscribe button click",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Przypomnienie wysyłaj tylko tym, którzy otworzyli.",
+        "szukaj": "person reading email phone",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Reszta dostaje następny mail za tydzień.",
+        "szukaj": "calendar week planning",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Mniej maili, a lista zostaje z tobą.",
+        "szukaj": "happy customer reading phone",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Napisz ROLKA w wiadomości.",
+        "szukaj": "man typing message phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto wysyła newslettery.",
+        "karta": {
+          "tekst": "Komuś od newslettera"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
+  },
+  {
+    "nazwa": "rabat-widzi-klient",
+    "forma": "blad",
+    "hak_typ": "zakaz",
+    "temat": "nazwa rabatu w koszyku sklepu",
+    "plyta": {
+      "linie": [
+        "NAZWA RABATU",
+        "W KOSZYKU"
+      ],
+      "plaszka": "BŁĄD"
+    },
+    "podpis": {
+      "tytul": "Kupujący widzi nazwę rabatu. Napisz ją dla niego.",
+      "wartosc": [
+        "W wielu sklepach tytuł zniżki pokazuje się w koszyku i na potwierdzeniu.",
+        "Bez dat, nazw agencji i skrótów: krótko, w języku klienta, z tym, co dostaje."
+      ],
+      "yt": "Nazwa rabatu w sklepie internetowym | błąd w promocji"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Nie nazywaj rabatu jak notatki dla siebie.",
+        "szukaj": "online shopping cart laptop",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Kupujący widzi tę nazwę w koszyku.",
+        "szukaj": "checkout page phone closeup",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Bez dat i bez nazwy agencji.",
+        "szukaj": "crossing out notes pen",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Napisz, co dostaje. Krótko i po ludzku.",
+        "szukaj": "woman smiling shopping online",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Koszyk to też miejsce na reklamę.",
+        "szukaj": "payment card online purchase",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Napisz ROLKA w wiadomości.",
+        "szukaj": "hand typing message phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto prowadzi sklep internetowy.",
+        "karta": {
+          "tekst": "Komuś ze sklepem"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
+  },
+  {
+    "nazwa": "kulisy-kontrola-co-piaty",
+    "forma": "kulisy",
+    "hak_typ": "wynik",
+    "temat": "kulisy: kontrola jakości naszych rolek",
+    "plyta": {
+      "linie": [
+        "CO PIĄTY FILM",
+        "DO KOSZA"
+      ],
+      "plaszka": "KULISY"
+    },
+    "podpis": {
+      "tytul": "Nasz system wyrzuca co piąty swój film.",
+      "wartosc": [
+        "Zanim rolka trafi do kolejki, maszyna mierzy obraz i dźwięk klatka po klatce.",
+        "Jeśli coś nie gra, bierze inne ujęcia i składa film jeszcze raz, do trzech prób."
+      ],
+      "yt": "Jak sprawdzamy rolki przed publikacją | automatyzacja wideo"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Nasz robot odrzuca co piąty swój film.",
+        "szukaj": "trash bin paper office",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Sprawdza, czy obraz nie skacze.",
+        "szukaj": "video frames screen closeup",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Czy dźwięk nie jest za cichy albo za głośny.",
+        "szukaj": "audio waveform screen",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Jeśli coś nie gra, składa film od nowa.",
+        "szukaj": "puzzle pieces hands table",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Publikujemy tylko to, co przeszło kontrolę.",
+        "szukaj": "checklist pen tick",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Chcesz tak u siebie? Napisz ROLKA w wiadomości.",
+        "szukaj": "person typing message phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto publikuje wszystko jak leci.",
+        "karta": {
+          "tekst": "Komuś, kto publikuje"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
+  },
+  {
+    "nazwa": "kulisy-jeden-film-cztery-platformy",
+    "forma": "lista",
+    "hak_typ": "wynik",
+    "temat": "kulisy: jeden film na cztery platformy",
+    "plyta": {
+      "linie": [
+        "1 FILM",
+        "4 PLATFORMY"
+      ],
+      "plaszka": "KULISY"
+    },
+    "podpis": {
+      "tytul": "Jeden film wychodzi u nas w czterech miejscach.",
+      "wartosc": [
+        "Każda platforma dostaje swój podpis: w TikToku widać dwie linie, na YouTube liczy się tytuł pod wyszukiwanie.",
+        "Publikacja idzie przez oficjalne API, bez klikania w aplikacjach."
+      ],
+      "yt": "Jeden film na Instagram, YouTube i TikTok | automatyzacja"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Jeden film. Cztery platformy. Zero klikania.",
+        "szukaj": "four phones on table",
+        "pauza": 0.38
+      },
+      {
+        "rola": "punkt",
+        "numer": 1,
+        "tytul": "Meta",
+        "tekst": "Instagram i Facebook biorą go przez API.",
+        "szukaj": "instagram app phone closeup",
+        "pauza": 0.3
+      },
+      {
+        "rola": "punkt",
+        "numer": 2,
+        "tytul": "YouTube",
+        "tekst": "YouTube dostaje szort z własnym tytułem.",
+        "szukaj": "youtube app phone",
+        "pauza": 0.3
+      },
+      {
+        "rola": "punkt",
+        "numer": 3,
+        "tytul": "TikTok",
+        "tekst": "TikTok publikuje się sam o tej porze.",
+        "szukaj": "tiktok app phone hand",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Nie musisz pamiętać o żadnej z nich.",
+        "szukaj": "relaxed man coffee window",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Napisz ROLKA w wiadomości.",
+        "szukaj": "woman typing message phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto wrzuca filmy ręcznie wszędzie.",
+        "karta": {
+          "tekst": "Komuś, kto wrzuca ręcznie"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
+  },
+  {
+    "nazwa": "reklama-nie-naprawi-filmu",
+    "forma": "mit",
+    "hak_typ": "mit",
+    "temat": "reklama Meta: najpierw film, potem budżet",
+    "plyta": {
+      "linie": [
+        "REKLAMA",
+        "NIE NAPRAWI FILMU"
+      ],
+      "plaszka": "MIT"
+    },
+    "podpis": {
+      "tytul": "Zanim dołożysz budżet, sprawdź sam film.",
+      "wartosc": [
+        "Wypuść film bez reklamy i zobacz, ile osób ogląda go do końca.",
+        "Pieniądze dokładaj do tego, co już trzyma ludzi. Słaby film z budżetem po prostu szybciej się przewija."
+      ],
+      "yt": "Reklama na Facebooku nie naprawi słabego filmu | Meta Ads"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Reklama nie naprawi słabego filmu.",
+        "szukaj": "man looking at ads dashboard",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Zapłacisz tylko za więcej przewinięć.",
+        "szukaj": "thumb scrolling fast phone",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Najpierw sprawdź film bez budżetu.",
+        "szukaj": "phone analytics screen",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Ogląda do końca? Wtedy dokładaj pieniądze.",
+        "szukaj": "coins stacking table",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Budżet wzmacnia to, co już działa.",
+        "szukaj": "speaker volume up music",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Napisz ROLKA w wiadomości.",
+        "szukaj": "hand typing message phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto płaci za reklamy.",
+        "karta": {
+          "tekst": "Komuś, kto płaci za reklamy"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
+  },
+  {
+    "nazwa": "bol-nie-masz-czasu-na-rolki",
+    "forma": "pytanie",
+    "hak_typ": "bol",
+    "temat": "rolki, kiedy nie masz na nie czasu",
+    "plyta": {
+      "linie": [
+        "NIE MASZ",
+        "CZASU NA ROLKI?"
+      ],
+      "plaszka": "BEZ CZASU"
+    },
+    "podpis": {
+      "tytul": "Rolki dla firmy bez twojego czasu.",
+      "wartosc": [
+        "Wystarczy temat albo kilka zdjęć z telefonu, resztę robi zespół i nasz system.",
+        "Dostajesz gotowy film do akceptacji, a publikacja idzie sama na wszystkie platformy."
+      ],
+      "yt": "Rolki dla firmy bez nagrywania | prowadzenie social media"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Nie masz czasu na rolki? My też nie mieliśmy.",
+        "szukaj": "busy man phone calls office",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Dlatego zbudowaliśmy system, który robi je sam.",
+        "szukaj": "laptop code night",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Ty dajesz temat albo kilka zdjęć.",
+        "szukaj": "phone gallery photos scrolling",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "My piszemy, montujemy i publikujemy.",
+        "szukaj": "video editing studio",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Ty tylko akceptujesz.",
+        "szukaj": "thumbs up hand closeup",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Napisz ROLKA w wiadomości.",
+        "szukaj": "woman typing message phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto nie ma czasu na social media.",
+        "karta": {
+          "tekst": "Komuś bez czasu"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
+  },
+  {
+    "nazwa": "bol-wrzucasz-a-nikt-nie-pisze",
+    "forma": "blad",
+    "hak_typ": "bol",
+    "temat": "koniec rolki, po którym ktoś pisze",
+    "plyta": {
+      "linie": [
+        "NIKT",
+        "NIE PISZE?"
+      ],
+      "plaszka": "KONIEC"
+    },
+    "podpis": {
+      "tytul": "Dlaczego po twojej rolce nikt nie pisze.",
+      "wartosc": [
+        "Koniec filmu to miejsce na jedno zadanie dla widza, a nie na logo.",
+        "Jedno słowo do wysłania jest łatwiejsze niż wymyślanie pytania. Od razu widać też, ile osób przyszło z konkretnej rolki."
+      ],
+      "yt": "Jak zakończyć rolkę, żeby klienci pisali | rolki dla firm"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Wrzucasz rolki, a nikt nie pisze?",
+        "szukaj": "man waiting phone empty inbox",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Sprawdź, czym kończy się twój film.",
+        "szukaj": "video ending screen phone",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Samo logo i adres strony nic nie mówią.",
+        "szukaj": "logo on screen closeup",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Daj jedno zadanie. Jedno słowo do wysłania.",
+        "szukaj": "single word message phone",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Słowo napisać łatwiej niż pytanie.",
+        "szukaj": "quick typing phone hands",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Na przykład: napisz ROLKA w wiadomości.",
+        "szukaj": "woman texting smartphone street",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto kończy rolki logo.",
+        "karta": {
+          "tekst": "Komuś, kto kończy logo"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
+  },
+  {
+    "nazwa": "zdalnie-cala-polska",
+    "forma": "pod-prad",
+    "hak_typ": "mit",
+    "temat": "marketing zdalnie dla firm z całej Polski",
+    "plyta": {
+      "linie": [
+        "NIE MUSIMY",
+        "SIĘ SPOTKAĆ"
+      ],
+      "plaszka": "ZDALNIE"
+    },
+    "podpis": {
+      "tytul": "Marketing dla firmy z drugiego końca Polski? Bez problemu.",
+      "wartosc": [
+        "Biuro mamy w Warszawie, a marki prowadzimy także spoza Polski, na przykład ze Szwajcarii.",
+        "Na start wystarczy rozmowa online i dostęp do twoich kont."
+      ],
+      "yt": "Agencja marketingowa zdalnie, cała Polska | social media i reklama"
+    },
+    "czesci": [
+      {
+        "rola": "hak",
+        "tekst": "Nie musimy się spotkać, żeby robić ci marketing.",
+        "szukaj": "video call laptop home office",
+        "pauza": 0.38
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Pracujemy dla firm w Warszawie, w Zurychu i dalej.",
+        "szukaj": "map pins europe",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Zdjęcia i materiały wysyłasz telefonem.",
+        "szukaj": "sending photos phone",
+        "pauza": 0.3
+      },
+      {
+        "rola": "tresc",
+        "tekst": "Na sesję przyjeżdżamy, kiedy trzeba.",
+        "szukaj": "photographer arriving car camera bag",
+        "pauza": 0.3
+      },
+      {
+        "rola": "zaplata",
+        "tekst": "Reszta dzieje się online, codziennie.",
+        "szukaj": "laptop dashboard coffee morning",
+        "pauza": 0.32
+      },
+      {
+        "rola": "cta",
+        "tekst": "Napisz ROLKA w wiadomości.",
+        "szukaj": "man typing message phone",
+        "pauza": 0.2
+      }
+    ],
+    "zakonczenia": {
+      "wyslij": {
+        "cta": "Wyślij to komuś, kto szuka agencji, ale nie ma jej blisko.",
+        "karta": {
+          "tekst": "Komuś, kto szuka agencji"
+        }
+      }
+    },
+    "zrodlo": "redakcja",
+    "utworzono": "2026-10-28"
   }
 ]

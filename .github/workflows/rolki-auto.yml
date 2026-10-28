@@ -210,6 +210,14 @@ jobs:
         if: ${{ !inputs.bez_kolejki }}
         run: node do-kolejki.mjs --za-dni=${{ inputs.za_dni || '2' }} --z-grafika
 
+      # 28.10: ролики, собранные до новых правил, ещё ждут в очереди со
+      # старой подписью (пересказ озвучки, #katowice, обрезанный заголовок
+      # YouTube). Переписываем только их — у новых подписи уже свои.
+      - name: Nowe podpisy w kolejce
+        if: ${{ !inputs.bez_kolejki }}
+        continue-on-error: true
+        run: node podpisy.mjs --kolejka --tylko-stare
+
       # Цифры по уже вышедшим рилсам. Без обратной связи автоматика не
       # улучшается, а дрейфует: те же шаблоны, тот же голос, и через месяц
       # лента однообразна. Считаем досмотр, сохранения и пересылки — лайк

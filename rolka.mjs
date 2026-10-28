@@ -225,8 +225,10 @@ for (const poz of kolejka) {
     try {
       const plik = path.join(DIR, 'rolki', poz.plik);
       wynik.youtube = await naYouTube(plik, {
-        tytul: tytulZOpisu(poz.tekst),
-        opis: poz.tekst,
+        // 28.10: свой заголовок (тема + ключевое слово, ≤ 70, без «…») и
+        // своё описание со ссылкой — из podpisy.mjs через очередь.
+        tytul: poz.tytulYT || tytulZOpisu(poz.tekst),
+        opis: poz.opisYT || poz.tekst,
         prywatnosc: 'public',
       });
       console.log(`[rolka] YouTube: ${wynik.youtube}`);
@@ -268,7 +270,7 @@ for (const poz of kolejka) {
         const { podpisTikToka } = await import('./tagi.mjs');
         const post = await opublikuj(process.env.BUFFER_TOKEN, {
           kanal: tt.id,
-          tekst: podpisTikToka(poz.tekst, {
+          tekst: poz.podpisTT || podpisTikToka(poz.tekst, {
             temat: poz.temat || '',
             forma: poz.forma || '',
             nr: Number(String(poz.plik).replace(/\D/g, '').slice(-3)) || 0,
