@@ -2793,5 +2793,37 @@
         "przelot"
       ]
     }
+  },
+  {
+    "plik": "auto-2026-10-28-1.mp4",
+    "kiedy": "2026-10-30T13:00:00+02:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Ktoś pierwszy raz wchodzi na twoją stronę. Ile czasu potrzebuje, by zrozumieć, czym się zajmujesz i co oferujesz?\n\nJeśli więcej niż kilka sekund, masz problem. Ludzie w internecie nie mają cierpliwości. Jeśli nie znajdą od razu odpowiedzi na pytanie „co tu dla mnie jest?”, po prostu wyjdą.\n\nZrób prosty test. Pokaż swoją stronę główną znajomemu na pięć sekund. Potem zapytaj: „co sprzedaję?”. Jeśli nie będzie umiał odpowiedzieć, musisz natychmiast uprościć swój komunikat.\n\nzovu.pl\n\n#katowice #firmakatowice #lokalnybiznes #jdg #pierwszesekundy",
+    "opublikowano": null,
+    "zrodlo": "auto-czy-twoja-oferta-jest-jasna.mp4",
+    "scenariusz": "czy-twoja-oferta-jest-jasna",
+    "forma": "pytanie",
+    "temat": "Test 5 sekund dla twojej oferty na stronie",
+    "dlugosc": 24.06,
+    "planow": 6,
+    "tempo": [
+      3.6,
+      3.9,
+      4,
+      3.8,
+      4.8,
+      3.6
+    ],
+    "montaz": {
+      "format": "typo",
+      "paleta": "zovu",
+      "font": "grotesk",
+      "zakonczenie": "marka"
+    }
   }
 ]
