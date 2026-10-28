@@ -46,8 +46,8 @@ const DZIS = dzien(TERAZ);
 // подробности; на светофоре только это.
 const postyDzis = posty.filter((f) => f.startsWith(`auto-${DZIS}`));
 const slotOstatni = String(stan.posted || '');
-const rankiem = slotOstatni.startsWith(DZIS) || postyDzis.length >= 1;
-const wieczorem = postyDzis.length >= 2 || slotOstatni === `${DZIS}-pm`;
+// С 28.10.2026 графический пост один в день, вечером (~18:30).
+const wieczorem = slotOstatni === `${DZIS}-pm` || postyDzis.length >= 1;
 
 const rolkiDzis = kolejka.filter((p) => p.kiedy && dzien(p.kiedy) === DZIS);
 const rolkaWyszla = rolkiDzis.some((p) => p.opublikowano);
@@ -60,7 +60,6 @@ const godzTeraz = +new Date(TERAZ).toLocaleString('en-GB', {
   hour: '2-digit',
   hour12: false,
 });
-if (!rankiem && godzTeraz >= 11) alarmy.push('утренний пост не вышел');
 if (!wieczorem && godzTeraz >= 20) alarmy.push('вечерний пост не вышел');
 if (rolkaCzeka && godzTeraz >= 22) alarmy.push('рилс на сегодня так и не вышел');
 
@@ -180,8 +179,7 @@ ${alarmy.length ? `<section class="karta alarm">
 <section class="karta">
   <h2>Сегодня</h2>
   <div class="dzis">
-    <div class="rz">${swiatlo(rankiem)}<b>Пост утром</b><span>${rankiem ? 'вышел' : 'ждём'}</span></div>
-    <div class="rz">${swiatlo(wieczorem, godzTeraz < 18)}<b>Пост вечером</b><span>${wieczorem ? 'вышел' : godzTeraz < 18 ? 'по расписанию' : 'ждём'}</span></div>
+    <div class="rz">${swiatlo(wieczorem, godzTeraz < 18)}<b>Пост (18:30)</b><span>${wieczorem ? 'вышел' : godzTeraz < 18 ? 'по расписанию' : 'ждём'}</span></div>
     <div class="rz">${swiatlo(rolkaWyszla, rolkaCzeka)}<b>Рилс</b><span>${
       rolkaWyszla ? 'вышел' : rolkaCzeka ? 'ждёт' : 'на сегодня не планировался'
     }</span></div>
@@ -251,7 +249,6 @@ ${alarmy.length ? `<section class="karta alarm">
 
 await writeFile(path.join(DIR, 'panel.html'), html, 'utf8');
 console.log(
-  `[panel] собрана: сегодня пост-утро ${rankiem ? 'есть' : 'нет'}, ` +
-    `вечер ${wieczorem ? 'есть' : 'нет'}, рилс ${rolkaWyszla ? 'есть' : rolkaCzeka ? 'ждёт' : '—'}` +
+  `[panel] собрана: сегодня пост ${wieczorem ? 'есть' : 'нет'}, рилс ${rolkaWyszla ? 'есть' : rolkaCzeka ? 'ждёт' : '—'}` +
     (alarmy.length ? ` · ТРЕВОГ: ${alarmy.length}` : '')
 );

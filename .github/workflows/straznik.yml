@@ -94,11 +94,13 @@ jobs:
           POSTED=$(node -e "try{console.log(JSON.parse(require('fs').readFileSync('state.json','utf8')).posted||'')}catch(e){console.log('')}")
           echo "слот в состоянии: $POSTED, сейчас $DZIS $GODZ UTC"
 
+          # С 28.10.2026 графический пост один, вечером (окно 18:15–23:30 по
+          # Варшаве, слот «ДАТА-pm» по варшавской дате). Будить раньше 18:45
+          # бессмысленно: run-once.mjs всё равно выйдет.
+          WAW=$(TZ=Europe/Warsaw date +%H%M)
+          DZIS=$(TZ=Europe/Warsaw date +%F)
           BRAK=""
-          if [ "$GODZ" -ge 8 ] && [ "$POSTED" != "$DZIS-noon" ] && [ "$POSTED" != "$DZIS-pm" ]; then
-            BRAK="утренний"
-          fi
-          if [ "$GODZ" -ge 17 ] && [ "$POSTED" != "$DZIS-pm" ]; then
+          if [ "$WAW" -ge 1845 ] && [ "$WAW" -le 2330 ] && [ "$POSTED" != "$DZIS-pm" ]; then
             BRAK="вечерний"
           fi
 
@@ -194,7 +196,8 @@ jobs:
             const co = [];
             let stan = "";
             try { stan = JSON.parse(fs.readFileSync("./state.json", "utf8")).posted || ""; } catch {}
-            if (godzina >= 1010 && !stan.startsWith(dzis)) co.push("autopilot.yml");
+            // один графический пост в день, окно 18:15–23:30 по Варшаве
+            if (godzina >= 1845 && godzina <= 2330 && stan !== dzis + "-pm") co.push("autopilot.yml");
             let kolejka = [];
             try { kolejka = JSON.parse(fs.readFileSync("./rolki/kolejka.json", "utf8")); } catch {}
             const prog = Date.now() - 20 * 60000;

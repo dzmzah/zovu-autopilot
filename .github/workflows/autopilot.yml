@@ -3,21 +3,21 @@ name: ZOVU autopilot
 # Запускается на серверах GitHub — компьютер Захара не нужен.
 # Время в UTC: 07:00 = 9:00 в Польше летом, 16:00 = 18:00.
 on:
-  # Планировщик GitHub задерживает и иногда роняет запуски — первый слот после
-  # заведения крона так и не сработал. Поэтому три попытки на слот; повторную
-  # публикацию не даёт отметка слота в state.json, лишние запуски выходят молча.
+  # С 28.10.2026 — ОДИН графический пост в день, около 18:30 по Варшаве
+  # (рилс выходит около 13:00). Окно публикации 18:15–23:30 по Варшаве
+  # проверяет сам run-once.mjs, поэтому кроны стоят пачкой с запасом на оба
+  # времени года (зимой Варшава = UTC+1, летом UTC+2) и на опоздания
+  # планировщика GitHub (бывает 4–6 часов). Ранний запуск выходит молча за
+  # секунды (шаг «Czy dziś już był post»), второй пост за сутки не выйдет:
+  # слот по варшавской дате + минимум 12 часов между публикациями.
   schedule:
-    - cron: '0 7 * * *'
-    - cron: '30 7 * * *'
-    - cron: '10 8 * * *'
-    # Запас на случай исчерпанной суточной квоты Gemini. Она сбрасывается в
-    # полночь по тихоокеанскому времени, то есть около 9:00 в Польше — ровно
-    # в наш первый слот. Лишние запуски ничего не стоят: если пост за сегодня
-    # уже вышел, прогон видит отметку слота и выходит, не трогая модель.
-    - cron: '0 9 * * *'
-    - cron: '0 16 * * *'
-    - cron: '30 16 * * *'
-    - cron: '10 17 * * *'
+    - cron: '20 16 * * *'
+    - cron: '35 16 * * *'
+    - cron: '25 17 * * *'
+    - cron: '45 17 * * *'
+    - cron: '15 18 * * *'
+    - cron: '0 19 * * *'
+    - cron: '0 20 * * *'
   workflow_dispatch:
     inputs:
       udawaj:
@@ -58,21 +58,49 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Дешёвая проверка ДО установки браузера: рилсы и сторож будят автопилот
+      # много раз в день, и каждый такой прогон раньше ставил Chromium ради
+      # того, чтобы через секунду выйти. Решение то же, что в run-once.mjs:
+      # слот по варшавской дате и окно 18:15–23:30. Ручной запуск с dry/kind
+      # проверку проходит всегда.
+      - name: Czy dziś już był post
+        id: bramka
+        env:
+          RECZNIE: ${{ github.event_name == 'workflow_dispatch' && (inputs.dry || (inputs.kind && inputs.kind != 'auto')) }}
+        run: |
+          if [ "$RECZNIE" = "true" ]; then echo "idz=1" >> "$GITHUB_OUTPUT"; exit 0; fi
+          IDZ=$(node -e '
+            const t = new Date().toLocaleString("sv-SE", { timeZone: "Europe/Warsaw" });
+            const m = +t.slice(11, 13) * 60 + +t.slice(14, 16);
+            let s = {}; try { s = require("./state.json"); } catch {}
+            let kolejka = []; try { kolejka = require("./rolki/kolejka.json"); } catch {}
+            const rolkaCzeka = kolejka.some((p) => !p.opublikowano && Date.parse(p.kiedy) < Date.now() - 20 * 60000);
+            const postTeraz = s.posted !== t.slice(0, 10) + "-pm" && m >= 18 * 60 + 15 && m <= 23 * 60 + 30;
+            console.log(postTeraz ? "1" : rolkaCzeka ? "rolka" : "0");
+          ')
+          echo "decyzja: $IDZ"
+          echo "idz=$IDZ" >> "$GITHUB_OUTPUT"
+
       - uses: actions/setup-node@v4
+        if: steps.bramka.outputs.idz == '1'
         with:
           node-version: '22'
 
       - name: Zależności
+        if: steps.bramka.outputs.idz == '1'
         run: npm ci || npm install
 
       - name: Chromium dla Playwright
+        if: steps.bramka.outputs.idz == '1'
         run: npx playwright install --with-deps chromium
 
       # рилсы собираются ffmpeg'ом; на образе runner'а его может не быть
       - name: ffmpeg
+        if: steps.bramka.outputs.idz == '1'
         run: ffmpeg -version >/dev/null 2>&1 || sudo apt-get install -y --no-install-recommends ffmpeg
 
       - name: Zrób i opublikuj post
+        if: steps.bramka.outputs.idz == '1'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           # запасной провайдер текста: подхватывает, когда у Gemini кончилась квота
@@ -109,7 +137,7 @@ jobs:
       # always(): при блокировке Meta шаг публикации валится намеренно, чтобы
       # ран был красный и пришло письмо. Страницу и стан всё равно сохраняем.
       - name: Strona z gotowymi postami
-        if: ${{ always() && !inputs.dry }}
+        if: ${{ always() && !inputs.dry && steps.bramka.outputs.idz == '1' }}
         run: node gotowe.mjs
         env:
           CDN_REPO: ${{ github.workspace }}
@@ -121,7 +149,7 @@ jobs:
       # активность», за которую Meta закрыла доступ 31.07. Поэтому push здесь
       # не «|| true», а с догоном и повторами.
       - name: Zapisz stan rotacji
-        if: ${{ always() && !inputs.dry }}
+        if: ${{ always() && !inputs.dry && steps.bramka.outputs.idz == '1' }}
         run: |
           git config user.name "zovu-autopilot"
           git config user.email "zovu.pl@gmail.com"

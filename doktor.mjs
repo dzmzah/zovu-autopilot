@@ -26,7 +26,10 @@ const JSON_OUT = process.argv.includes('--json');
 // потолок в 30 промолчал бы ровно в тот день, ради которого всё и делалось,
 // и крикнул бы только назавтра. 26 ловит пропуск в тот же день и при этом с
 // запасом переживает щадящий режим: там сутки между постами ровно 24 часа.
-const LIMIT_GODZIN = 26;
+// 28.10.2026: графика раз в сутки (~18:30 по Варшаве), возраст считается по
+// реальному времени публикации (state.ostatniaPublikacja). 28 часов = сутки
+// плюс запас на опоздание планировщика GitHub.
+const LIMIT_GODZIN = 28;
 
 async function env(key) {
   if (process.env[key]) return process.env[key].trim();
@@ -68,7 +71,9 @@ async function ostatniPost() {
   // Слот отмечается по факту публикации; час берём по границе слота — так
   // оценка возраста получается консервативной, тревога не срабатывает раньше.
   const GODZINA_SLOTU = { am: '07', noon: '11', pm: '16' };
-  const kiedy = Date.parse(`${m[1]}T${GODZINA_SLOTU[m[2]]}:00:00Z`);
+  const kiedy = s.ostatniaPublikacja
+    ? Date.parse(s.ostatniaPublikacja)
+    : Date.parse(`${m[1]}T${GODZINA_SLOTU[m[2]]}:00:00Z`);
   const godzin = (Date.now() - kiedy) / 3600_000;
   const ok = godzin <= LIMIT_GODZIN;
   zapisz(
@@ -556,7 +561,26 @@ async function montownia() {
 
 // ── поехали ──────────────────────────────────────────────────────
 const ostatni = await ostatniPost();
-await Promise.all([tokenInstagrama(), tokenFacebooka(), mozgTekstowy(), zdjecia(), glos(), zapas()]);
+// ── 10. Банк графических постов (posty-bank.json) ─────────────────
+// Пост в день из банка: если он кончается, круг начнётся заново и лента
+// пойдёт повторами. Предупреждаем заранее, за 5 постов.
+async function bankPostow() {
+  try {
+    const { stanBanku } = await import('./posty-redakcja.mjs');
+    const b = await stanBanku();
+    if (b.zle.length) {
+      zapisz('Bank postów', false, 'posty nie przechodzą kontroli: ' + b.zle.join(' | ').slice(0, 240));
+      return;
+    }
+    zapisz('Bank postów', b.pozostalo >= 5,
+      `w kręgu zostało ${b.pozostalo} z ${b.wszystkie} postów` + (b.pozostalo < 5 ? ' — dopisz nowe do posty-bank.json' : ''),
+      'uwaga');
+  } catch (e) {
+    zapisz('Bank postów', false, 'nie udało się sprawdzić banku: ' + e.message);
+  }
+}
+
+await Promise.all([tokenInstagrama(), tokenFacebooka(), mozgTekstowy(), zdjecia(), glos(), zapas(), bankPostow()]);
 await kolejka(ostatni?.stan);
 await rolki();
 await montownia();

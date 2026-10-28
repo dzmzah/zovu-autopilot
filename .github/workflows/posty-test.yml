@@ -1,0 +1,37 @@
+name: ZOVU posty test
+
+# Проверка графических постов: тексты всего банка (без тире, без Katowice,
+# без денег в кейсах, одно действие) и рендер каждого поста с контролем
+# обрезанного текста. Ничего не публикует. Картинки — артефактом.
+on:
+  pull_request:
+    paths:
+      - 'posty-*.mjs'
+      - 'posty-bank.json'
+      - 'posty-foto/**'
+      - '.github/workflows/posty-test.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Zależności
+        run: |
+          npm ci || npm install
+          npx playwright install --with-deps chromium
+      - name: Tekst i render wszystkich postów
+        run: node posty-test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: posty-podglad
+          path: |
+            out/podglad/*.png
+            out/podglad/PRZEGLAD.html
+          retention-days: 7
