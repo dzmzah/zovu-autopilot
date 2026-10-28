@@ -257,7 +257,9 @@ export function sprawdz(s, znane) {
   if (!bezLokalnych(JSON.stringify(s))) bledy.push('упоминание Катовице/Śląsk');
   // Модель часто теряет одну из двух концовок. Одной хватает: без своего
   // текста концовка берёт обычный призыв сценария, как у ручного банка.
-  if (!s.zakonczenia?.pytanie?.cta && !s.zakonczenia?.wyslij?.cta) bledy.push('нет призывов под концовки');
+  // 28.10: концовки marka/blysk/pytanie сами ведут к кодовому слову, поэтому
+  // своих призывов под концовки больше не требуем — без них wyslij берёт
+  // обычный призыв сценария.
   if (!s.plyta?.linie?.length) bledy.push('нет обложки');
   // Похожесть на то, что уже было.
   const ja = trojki(tekstScen(s));
@@ -284,11 +286,12 @@ function doBanku(s) {
     czesci: s.czesci.map((c) => ({
       rola: c.rola,
       ...(c.rola === 'punkt' ? { numer: c.numer, tytul: c.tytul } : {}),
-      tekst: c.tekst.trim(),
+      // Призыв без кодового слова чиним сами: действие у ленты одно.
+      tekst: c.rola === 'cta' && !c.tekst.includes(SLOWO) ? `Napisz ${SLOWO} w wiadomości.` : c.tekst.trim(),
       szukaj: c.szukaj.trim(),
       pauza: PAUZY[c.rola] ?? 0.3,
     })),
-    zakonczenia: Object.fromEntries(['pytanie', 'wyslij'].filter((k) => s.zakonczenia[k]?.cta).map((k) => [k, s.zakonczenia[k]])),
+    zakonczenia: Object.fromEntries(['wyslij'].filter((k) => s.zakonczenia?.[k]?.cta).map((k) => [k, s.zakonczenia[k]])),
     zrodlo: 'generator',
     utworzono: new Date().toISOString().slice(0, 10),
   };
