@@ -702,5 +702,26 @@ export function skoraHtml(typ, dane, { W = 1080, H = 1920 } = {}) {
   const b = BUDOWNICZE[typ];
   if (!b) throw new Error(`нет скина «${typ}», есть: ${Object.keys(BUDOWNICZE).join(', ')}`);
   // Палитра и шрифты — от режиссёра (rezyser.mjs); без них — цвета ZOVU.
-  return oprawHtml(b(dane, W, H), { paleta: dane.paleta, font: dane.font });
+  return oprawHtml(klatkaHaka(b(dane, W, H), dane), { paleta: dane.paleta, font: dane.font });
+}
+
+// Хук с нулевого кадра (28.10, haki.mjs). Скины показывали первую фразу
+// только когда до неё доходил голос (0,41 с) — первые полсекунды из трёх,
+// что вообще есть у ролика, кадр был без текста. Решение то же, что у
+// караоке: до конца первой фразы скин стоит в своём кадре «фраза сказана
+// целиком», дальше идёт как обычно. Работает для всех скинов и микса разом:
+// подменяется только время, которое движок отдаёт странице.
+export function konecHaka(dane) {
+  const f = dane?.frazy || [];
+  if (!f.length) return 0;
+  const nast = f[1]?.a ?? Infinity;
+  const sl = (dane.slowa || []).filter((w) => w.a >= f[0].a - 0.05 && w.a < nast - 0.05);
+  const koniec = sl.length ? sl[sl.length - 1].b : f[0].b;
+  return Math.min(koniec, nast - PRZED - 0.02);
+}
+export function klatkaHaka(html, dane) {
+  const T = konecHaka(dane);
+  if (!(T > 0)) return html;
+  const skrypt = `<script>(() => { const s = window.setT; if (!s) return; const T = ${T.toFixed(3)}; window.setT = (t) => s(t < T ? T : t); })();</script>`;
+  return html.includes('</body>') ? html.replace(/<\/body>(?![\s\S]*<\/body>)/, skrypt + '</body>') : html + skrypt;
 }

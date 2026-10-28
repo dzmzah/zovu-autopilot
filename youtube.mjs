@@ -45,9 +45,10 @@ async function token() {
 export function tytulZOpisu(tekst, zapas = 'ZOVU') {
   const pierwsza = String(tekst || '').split(String.fromCharCode(10))[0].trim();
   if (!pierwsza) return zapas;
-  // Потолок ютуба сто знаков, но обрезать посреди слова некрасиво.
-  if (pierwsza.length <= 95) return pierwsza;
-  return pierwsza.slice(0, 95).replace(/\s+\S*$/, '') + '…';
+  // 28.10: не длиннее 70 знаков и БЕЗ «…» — обрыв в поиске читается как
+  // брак. Режем по слову. Обычно заголовок приходит готовым (poz.tytulYT).
+  if (pierwsza.length <= 70) return pierwsza;
+  return pierwsza.slice(0, 71).replace(/\s+\S*$/, '').replace(/[\s,;:—–-]+$/, '');
 }
 
 /**

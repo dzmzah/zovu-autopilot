@@ -17,6 +17,11 @@
 //   4. Прошедшие дописываются в rolki/scenariusze-generowane.json — rolka-auto
 //      берёт их наравне с ручными.
 //
+// 28.10: хук (haki.mjs) — первое предложение ≤ 10 слов, один из пяти типов,
+// без «эссе»; проверка машиной, при провале — одна попытка переписать хук.
+// Подпись — поле `podpis` (заголовок, 2–3 предложения пользы, заголовок YT),
+// пост собирает podpisy.mjs. Katowice под запретом.
+//
 // Чего генератор НЕ пишет: «kulisy» и «jedna liczba». Эти формы держатся на
 // настоящих фактах про ZOVU (наши цифры, наши ролики), а выдуманный факт в
 // ленте студии — хуже повтора.
@@ -28,6 +33,8 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { vertex } from './vertex.mjs';
 import { historiaScenariuszy, MIN_DNI } from './historia-scenariuszy.mjs';
+import { HAKI_TYPY, sprawdzHak, slowa as slowaHaka, MAX_SLOW_HAKA, ESEJ_ZACZYNY } from './haki.mjs';
+import { bezLokalnych, SLOWO } from './haki.mjs';
 
 const DIR = import.meta.dirname;
 export const PLIK = path.join(DIR, 'rolki', 'scenariusze-generowane.json');
@@ -41,12 +48,15 @@ const FORMY = {
   blad: 'jeden częsty błąd, po czym go poznać i jak naprawić w 5 minut',
 };
 
+// 28.10.2026: ZOVU — полный маркетинг для фирм по всей Польше и за
+// границей, а не «рилсы из Катовице». Темы — по всем услугам.
 const TEMATY = [
-  'Instagram i Facebook małej firmy', 'rolki i krótkie wideo', 'zdjęcia produktów i usług telefonem',
-  'strona internetowa małej firmy', 'wizytówka Google i opinie', 'odpisywanie klientom i wiadomości',
-  'cena i wycena w rozmowie z klientem', 'teksty postów i pierwsze zdanie', 'reklama na Facebooku za małe pieniądze',
-  'lokalny biznes: kawiarnia, barber, salon, warsztat', 'TikTok dla firmy', 'stały rytm publikacji bez wypalenia',
-  'AI w treściach: co robi dobrze, a czego nie', 'oferta, która jest jasna w 5 sekund', 'polecenia i powracający klienci',
+  'prowadzenie Instagrama i Facebooka firmy', 'rolki i krótkie wideo bez kamery', 'zdjęcia i sesje produktowe',
+  'strona internetowa firmy', 'wizytówka Google i opinie', 'odpisywanie klientom w wiadomościach',
+  'reklama na Facebooku i Instagramie (Meta)', 'reklama w Google', 'reklama na TikToku', 'TikTok dla firmy',
+  'newsletter i mailing do klientów', 'pierwsze zdanie posta i rolki', 'stały rytm publikacji bez wypalenia',
+  'automatyzacja marketingu i AI w treściach', 'oferta, która jest jasna w 5 sekund', 'montaż wideo: co trzyma widza',
+  'promocja wydarzenia lub premiery', 'sklep internetowy i kampania wyprzedażowa', 'polecenia i powracający klienci',
 ];
 
 // Штампы: общий список контент-движка + свои для рилсов.
@@ -59,7 +69,10 @@ const ZAKAZANE = [
   'nasi klienci', 'naszym klientom', 'u naszych klientów', 'sprawdziliśmy', 'nasze statystyki', 'nasze dane',
 ];
 
-const ZASADY = `Piszesz scenariusze krótkich pionowych filmów (rolki, 15–22 sekundy) dla ZOVU — małego studia z Katowic, które robi treści, rolki i strony dla małych firm. Widz: właściciel małej firmy lub JDG ze Śląska, nie marketingowiec.
+const ZASADY = `Piszesz scenariusze krótkich pionowych filmów (rolki, 15–22 sekundy) dla ZOVU — agencji marketingowej z Warszawy, która pracuje dla firm z całej Polski i z zagranicy: prowadzenie social mediów, reklamy Meta/Google/TikTok, treści i montaż, sesje, strony, newslettery, automatyzacja. Widz: właściciel firmy, nie marketingowiec. NIGDY nie wymieniaj Katowic ani Śląska; jeśli potrzebne miejsce — „Warszawa” albo „cała Polska”.
+
+PIERWSZE ZDANIE decyduje o wszystkim: najwyżej ${MAX_SLOW_HAKA} słów, mówi od razu, bez wstępu i bez „eseju”. Zakazane początki: ${ESEJ_ZACZYNY.slice(0, 14).map((z) => '„' + z + '…”').join(', ')}, zdanie podrzędne na start. Pierwsza fraza to jeden z typów hooka (pole "hak_typ"):
+${Object.entries(HAKI_TYPY).map(([k, v]) => `- ${k}: ${v}`).join('\n')}
 
 Głos: zwykły człowiek mówi do znajomego. Krótkie zdania. Konkret zamiast ogólników. Zwracasz się na „ty”. Zero słów z korporacji i marketingowego żargonu. Bez emoji w czesci.
 
@@ -70,13 +83,18 @@ Każdy scenariusz to obiekt JSON:
  "nazwa": "slug-po-polsku-bez-ogonkow",
  "forma": jedna z: ${Object.keys(FORMY).join(', ')},
  "temat": "o czym, 3–7 słów",
+ "hak_typ": jeden z: ${Object.keys(HAKI_TYPY).join(', ')},
  "plyta": {"linie": ["2–3 SŁOWA", "2–4 SŁOWA"], "plaszka": "1–2 SŁOWA"},   // okładka, WIELKIE LITERY
- "opis": "tekst posta pod rolką: 3–5 krótkich akapitów rozdzielonych \\n\\n, ostatni akapit 'zovu.pl', potem \\n\\n i 4–6 hashtagów po polsku",
+ "podpis": {   // tekst pod rolką — NIE powtarza tego, co słychać w filmie
+   "tytul": "pierwsza linia podpisu, max ${MAX_SLOW_HAKA} słów, konkretna obietnica",
+   "wartosc": ["2–3 krótkie zdania z dodatkową wartością: przykład, liczba z rady, krok do zrobienia — czego NIE MA w lektorze"],
+   "yt": "tytuł na YouTube: temat + fraza, której ktoś szuka (np. „reklama na Facebooku”), max 70 znaków, bez wielokropka"
+ },
  "czesci": [   // 6–8 fraz, cały tekst czytany na głos to 30–48 słów
    {"rola": "hak", "tekst": "...", "szukaj": "..."},        // 1–2 frazy: zatrzymuje kciuk, konkretna sytuacja widza
    {"rola": "punkt", "numer": 1, "tytul": "1–2 słowa", "tekst": "...", "szukaj": "..."},  // przy formie lista: dokładnie 3 punkty; przy innych formach rola "tresc" bez numeru
    {"rola": "zaplata", "tekst": "...", "szukaj": "..."},    // 1 fraza: puenta, którą chce się zapamiętać
-   {"rola": "cta", "tekst": "...", "szukaj": "..."}         // 1 fraza: zapisz / sprawdź u siebie / napisz w komentarzu
+   {"rola": "cta", "tekst": "...", "szukaj": "..."}         // 1 fraza z kodowym słowem: „Napisz ${SLOWO} w wiadomości.” (w wiadomości, NIE w komentarzu)
  ],
  "zakonczenia": {
    "pytanie": {"cta": "pytanie do widza zamiast cta", "karta": {"tekst": "to samo pytanie krócej, max 6 słów", "odpowiedz": "przykładowa odpowiedź widza, max 4 słowa…"}},
@@ -88,13 +106,16 @@ Każdy scenariusz w pakiecie o INNYM temacie. Porady w pakiecie nie mogą sobie 
 "tekst" jest czytany na głos: bez etykiet z dwukropkiem („Przed:”, „Po:”, „Błąd:”, „Naprawa:”), bez nawiasów i skrótów.
 Fraza ("tekst"): 3–9 słów, jedna myśl, da się powiedzieć na jednym oddechu. Mogą być dwa bardzo krótkie zdania („Najpierw pytanie. O cel.”). Poprawna polszczyzna — sprawdź rodzaj, przypadki, ogonki.
 "szukaj": zapytanie PO ANGIELSKU do stocku wideo, 3–5 słów, konkretny obraz z życia (ręce, telefon, sklep, warsztat), bez abstrakcji typu "success" czy "growth".
-Pole "zakonczenia" jest OBOWIĄZKOWE w każdym scenariuszu — bez niego scenariusz jest odrzucany.
+Pola "zakonczenia", "hak_typ" i "podpis" są OBOWIĄZKOWE — bez nich scenariusz jest odrzucany. Hashtagów i adresu strony nie piszesz — dokleja je system.
 Odpowiadasz samym JSON: {"scenariusze": [ ... ]}.`;
 
 const ZASADY_KOREKTY = `Jesteś korektorem i redaktorem polskich tekstów do krótkich filmów. Dostajesz JSON ze scenariuszami.
 Popraw: błędy językowe (rodzaj, przypadki, ogonki, interpunkcja), zdania nienaturalne lub „przetłumaczone”, frazy dłuższe niż 9 słów, ogólniki, marketingowy żargon.
 Usuń etykiety z dwukropkiem na początku fraz („Przed:”, „Błąd:”) — tekst jest czytany na głos. Jeśli dwa scenariusze dają sprzeczne porady, popraw słabszy. Usuń każdą wymyśloną liczbę, statystykę lub historię o klientach — zamień na zwykłą radę.
-Nie zmieniaj struktury, kluczy, ról, liczby fraz ani pól "szukaj" i "nazwa". Zachowaj WSZYSTKIE pola, także "zakonczenia", "plyta" i "opis" (je też popraw). Zwróć ten sam JSON: {"scenariusze": [ ... ]}.`;
+Pierwsze zdanie pierwszej frazy: najwyżej ${MAX_SLOW_HAKA} słów i bez wstępu — jeśli dłuższe, skróć do sedna. Usuń każdą wzmiankę o Katowicach i Śląsku.
+Nie zmieniaj struktury, kluczy, ról, liczby fraz ani pól "szukaj", "nazwa" i "hak_typ". Zachowaj WSZYSTKIE pola, także "zakonczenia", "plyta" i "podpis" (je też popraw; "podpis.yt" max 70 znaków). Zwróć ten sam JSON: {"scenariusze": [ ... ]}.`;
+
+const ZASADY_HAKA = `Dostajesz JSON ze scenariuszami rolek, których pierwsza fraza jest za długa albo zaczyna się jak esej. Przepisz TYLKO tekst pierwszej frazy (czesci[0].tekst): pierwsze zdanie najwyżej ${MAX_SLOW_HAKA} słów, od razu do sedna, zgodnie z polem "hak_typ" (${Object.keys(HAKI_TYPY).join(', ')}). Reszty nie ruszaj. Zwróć ten sam JSON: {"scenariusze": [ ... ]}.`;
 
 async function klucz() {
   if (process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY.trim();
@@ -175,7 +196,7 @@ const tekstScen = (s) => [s.temat, ...(s.czesci || []).map((c) => c.tekst)].join
 export async function znaneScenariusze() {
   const zrodlo = await readFile(path.join(DIR, 'rolka-auto.mjs'), 'utf8');
   const reczne = [];
-  for (const blok of zrodlo.split(/\n  \{\n    nazwa: /).slice(1)) {
+  for (const blok of zrodlo.split(/\r?\n  \{\r?\n    nazwa: /).slice(1)) {
     const nazwa = blok.match(/^'([^']+)'/)?.[1];
     const temat = blok.match(/temat: '([^']+)'/)?.[1] || '';
     const teksty = [...blok.matchAll(/tekst: '((?:[^'\\]|\\.)*)'/g)].map((m) => m[1]);
@@ -219,11 +240,21 @@ export function sprawdz(s, znane) {
     if (/^\s*\p{L}+\s*:/u.test(c.tekst || '')) bledy.push(`метка с двоеточием: «${c.tekst}»`);
   }
   if (razem < 26 || razem > 56) bledy.push(`всего слов ${razem}`);
-  const wszystko = [tekstScen(s), s.opis, JSON.stringify(s.zakonczenia || {})].join(' ').toLowerCase();
+  const wszystko = [tekstScen(s), s.opis, JSON.stringify(s.podpis || {}), JSON.stringify(s.zakonczenia || {})].join(' ').toLowerCase();
   for (const z of ZAKAZANE) if (wszystko.includes(z)) bledy.push(`штамп «${z}»`);
   // Цифры с процентами или «x razy» почти всегда выдуманная статистика.
   if (/\d+\s*(%|proc|razy)/i.test(wszystko)) bledy.push('похоже на выдуманную статистику');
-  if (!/zovu\.pl/.test(s.opis || '')) bledy.push('в посте нет zovu.pl');
+  // Хук и подпись (28.10): первое предложение ≤ 10 слов, тип хука, подпись
+  // по формуле и не пересказ озвучки, никаких Катовице.
+  bledy.push(...sprawdzHak(s, { wymagajTypu: true }));
+  const pd = s.podpis || {};
+  if (!pd.tytul || slowaHaka(pd.tytul).length > MAX_SLOW_HAKA) bledy.push(`плохая строка-заголовок подписи «${pd.tytul}»`);
+  if (!Array.isArray(pd.wartosc) || pd.wartosc.length < 2 || pd.wartosc.length > 3) bledy.push('в подписи не 2–3 предложения пользы');
+  if (!pd.yt || pd.yt.length > 70 || /…|\.\.\.$/.test(pd.yt)) bledy.push(`плохой заголовок YouTube «${pd.yt}»`);
+  const mowa = new Set(slowaW(cz.map((c) => c.tekst).join(' ')).filter((w) => w.length > 3));
+  const wart = slowaW((pd.wartosc || []).join(' ')).filter((w) => w.length > 3);
+  if (wart.length && wart.filter((w) => mowa.has(w)).length / wart.length > 0.6) bledy.push('подпись пересказывает озвучку');
+  if (!bezLokalnych(JSON.stringify(s))) bledy.push('упоминание Катовице/Śląsk');
   // Модель часто теряет одну из двух концовок. Одной хватает: без своего
   // текста концовка берёт обычный призыв сценария, как у ручного банка.
   if (!s.zakonczenia?.pytanie?.cta && !s.zakonczenia?.wyslij?.cta) bledy.push('нет призывов под концовки');
@@ -247,8 +278,9 @@ function doBanku(s) {
     nazwa: s.nazwa,
     plyta: s.plyta,
     forma: s.forma,
+    hak_typ: s.hak_typ,
     temat: s.temat,
-    opis: s.opis,
+    podpis: { tytul: s.podpis.tytul.trim(), wartosc: s.podpis.wartosc.map((x) => String(x).trim()), yt: s.podpis.yt.trim() },
     czesci: s.czesci.map((c) => ({
       rola: c.rola,
       ...(c.rola === 'punkt' ? { numer: c.numer, tytul: c.tytul } : {}),
@@ -268,8 +300,10 @@ export async function generuj(ile, { zapisz = true } = {}) {
   // каждому сценарию — своя форма и своя тема.
   const formy = Object.keys(FORMY);
   const start = Math.floor(Math.random() * 100);
+  const typy = Object.keys(HAKI_TYPY);
   const zadania = Array.from({ length: ile + 2 }, (_, i) => ({
     forma: formy[(start + i) % formy.length],
+    hak: typy[(start + i * 2) % typy.length],
     // Шаг 4 взаимно прост с 15 темами: с шагом 5 круг замыкался через три
     // сценария, и в пачке 20.10 «ясная оферта» вышла дважды.
     temat: TEMATY[(start + i * 4) % TEMATY.length],
@@ -277,7 +311,7 @@ export async function generuj(ile, { zapisz = true } = {}) {
   const juzBylo = znane.map((z) => `- ${z.temat}`).join('\n');
   const prosba =
     `Napisz ${zadania.length} scenariuszy:\n` +
-    zadania.map((z, i) => `${i + 1}. forma „${z.forma}” (${FORMY[z.forma]}), obszar: ${z.temat}`).join('\n') +
+    zadania.map((z, i) => `${i + 1}. forma „${z.forma}” (${FORMY[z.forma]}), hook „${z.hak}”, obszar: ${z.temat}`).join('\n') +
     `\n\nTe tematy już były — nie powtarzaj ich ani ich puent:\n${juzBylo}`;
 
   const surowe = await zapytaj(ZASADY, prosba, 0.9);
@@ -289,19 +323,28 @@ export async function generuj(ile, { zapisz = true } = {}) {
   const zrodla = new Map((surowe.scenariusze || []).map((x) => [x?.nazwa, x]));
   const lista = (poprawione.scenariusze || []).map((x) => {
     const z = zrodla.get(x?.nazwa) || {};
-    return { ...z, ...x, zakonczenia: x?.zakonczenia || z.zakonczenia, plyta: x?.plyta || z.plyta, opis: x?.opis || z.opis };
+    return { ...z, ...x, zakonczenia: x?.zakonczenia || z.zakonczenia, plyta: x?.plyta || z.plyta, podpis: x?.podpis || z.podpis, hak_typ: x?.hak_typ || z.hak_typ };
   });
+  // Хук длиннее 10 слов или «эссе» — не выбрасываем сразу, а один раз
+  // отдаём модели переписать именно первую фразу. Не помогло — отказ.
+  const zlyHak = lista.filter((x) => x && sprawdzHak(x, { wymagajTypu: true }).length);
+  if (zlyHak.length) {
+    console.log(`[generator] переписываю хук у ${zlyHak.length}: ${zlyHak.map((x) => x.nazwa).join(', ')}`);
+    try {
+      const nap = await zapytaj(ZASADY_HAKA, JSON.stringify({ scenariusze: zlyHak }), 0.4);
+      for (const n of nap.scenariusze || []) {
+        const cel = lista.find((x) => x?.nazwa === n?.nazwa);
+        const nowy = n?.czesci?.[0]?.tekst;
+        if (cel && nowy) cel.czesci[0] = { ...cel.czesci[0], tekst: nowy };
+      }
+    } catch (e) {
+      console.warn(`[generator] переписать хук не вышло (${e.message})`);
+    }
+  }
   if (process.argv.includes('--proba')) console.log('[generator] пример ответа: ' + JSON.stringify(lista[0]).slice(0, 2500));
 
   const przyjete = [];
   for (const s of lista) {
-    // Адрес в посте — не дело модели: корректор 20.10 выбрасывал его из
-    // всех девяти постов. Ставим сами перед хэштегами.
-    if (s && typeof s.opis === 'string' && !/zovu\.pl/.test(s.opis)) {
-      const akapity = s.opis.trim().split(/\n\s*\n/);
-      const tagi = /^#/.test(akapity.at(-1) || '') ? akapity.pop() : null;
-      s.opis = [...akapity, 'zovu.pl', ...(tagi ? [tagi] : [])].join('\n\n');
-    }
     const bledy = sprawdz(s, [...znane, ...przyjete]);
     if (bledy.length) {
       console.log(`[generator] ✗ ${s?.nazwa}: ${bledy.join('; ')}`);

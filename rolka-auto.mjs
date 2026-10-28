@@ -27,7 +27,8 @@ import { zbuduj } from './awatar-reel.mjs';
 import { searchStock, fetchClip } from './stock.mjs';
 import { ocenKadry } from './ocena-kadrow.mjs';
 import { sprawdzRolke } from './kontrola.mjs';
-import { podmienHasztagi } from './tagi.mjs';
+import { zbudujPodpisy, akcjaMowa, SLOWO } from './podpisy.mjs';
+import { sprawdzHak } from './haki.mjs';
 import { rozlozNaklejki } from './naklejki.mjs';
 import { zeSpizarni, SPIZARNIA } from './spizarnia.mjs';
 import {
@@ -1163,8 +1164,15 @@ async function nastepnyScenariusz() {
   // Теперь при равном возрасте вперёд идёт форма с лучшими цифрами.
   const wagiForm = await sredniZasiegPoFormie(DIR);
   const poprzedniaForma = await ostatniaForma(DIR);
+  // Хук-фильтр (haki.mjs, 28.10): сценарий с «эссе» в первой фразе в ленту
+  // не идёт, даже если он давно не выходил. Явный --scenariusz — для проб.
+  const pozycje = SCENARIUSZE.map((s, i) => ({ id: s.nazwa, idx: i, forma: s.forma })).filter((p) => {
+    const b = sprawdzHak(SCENARIUSZE[p.idx]);
+    if (b.length) console.log(`[rolka-auto] пропускаю «${p.id}»: ${b.join('; ')}`);
+    return !b.length;
+  });
   const wybor = wybierzNajdawniejszy(
-    SCENARIUSZE.map((s, i) => ({ id: s.nazwa, idx: i, forma: s.forma })),
+    pozycje.length ? pozycje : SCENARIUSZE.map((s, i) => ({ id: s.nazwa, idx: i, forma: s.forma })),
     historia,
     zajete,
     wagiForm,
@@ -1239,7 +1247,17 @@ if (oprawa) console.log(`[rezyser] ${oprawa.log}`);
 // ZAKONCZENIE в окружении; пусто — прежняя карточка «marka».
 const ZAKONCZENIE = (oprawa?.zakonczenie || arg('zakonczenie') || process.env.ZAKONCZENIE || 'marka').trim();
 if (!ZAKONCZENIA[ZAKONCZENIE]) throw new Error(`нет концовки «${ZAKONCZENIE}», есть: ${Object.keys(ZAKONCZENIA).join(', ')}`);
-const zakTekst = scen.zakonczenia?.[ZAKONCZENIE] || {};
+const zakTekst = { ...(scen.zakonczenia?.[ZAKONCZENIE] || {}) };
+// Концовки, где раньше стояло голое «zovu.pl» или просьба о комментарии
+// (marka, blysk, pytanie), теперь ведут к одному действию: кодовое слово
+// в личку (podpisy.mjs, решение 28.10). Комментарий не просим, пока нет
+// автоответа на комментарии. wyslij/seria/petla — со своим призывом.
+const KONCOWKI_SLOWA = ['marka', 'blysk', 'pytanie'];
+if (KONCOWKI_SLOWA.includes(ZAKONCZENIE)) {
+  const wlasne = scen.zakonczenia?.slowo?.cta;
+  zakTekst.cta = wlasne && wlasne.includes(SLOWO) ? wlasne : akcjaMowa(wydanie);
+  zakTekst.karta = { tekst: `Napisz ${SLOWO} w wiadomości`, odpowiedz: SLOWO, dm: true, slowo: SLOWO };
+}
 if (zakTekst.cta) {
   const i = scen.czesci.findLastIndex((c) => c.rola === 'cta');
   if (i >= 0) scen.czesci[i] = { ...scen.czesci[i], tekst: zakTekst.cta, mowa: undefined };
@@ -1504,9 +1522,10 @@ const plan = {
     marka: true,
     dlugosc: 3.8,
     adres: 'zovu.pl',
+    // Карточка та же, но вместо «robimy treści» — действие (28.10).
     linie: [
-      { tekst: 'robimy treści', maly: false },
-      { tekst: 'które sprzedają', maly: true },
+      { tekst: `napisz ${SLOWO}`, maly: false },
+      { tekst: 'w wiadomości', maly: true },
     ],
   },
 };
@@ -1575,14 +1594,14 @@ console.log('[rolka-auto] собрано:', JSON.stringify(wynik));
 // охватом 11 не показывается никому. Вторая: сценарии крутятся по кругу,
 // значит один и тот же набор повторяется под каждым третьим роликом, а
 // повтор площадка читает как шаблон и режет показы сама.
-if (scen.opis) {
-  const opis = podmienHasztagi(scen.opis, {
-    temat: scen.temat,
-    forma: scen.forma,
-    nr: wydanie,
-  });
-  await writeFile(path.join(OUT, `${plan.nazwa}-opis.txt`), opis, 'utf8');
-}
+// 28.10: подпись больше не пересказ озвучки — формула «заголовок → 2–3
+// предложения пользы → одно действие → 3–5 тегов» (podpisy.mjs). Заголовок
+// YouTube и подпись TikTok — свои, едут в паспорте и дальше в очередь.
+const podpisy = zbudujPodpisy(scen, { nr: wydanie });
+await writeFile(path.join(OUT, `${plan.nazwa}-opis.txt`), podpisy.ig, 'utf8');
+console.log(`[rolka-auto] подпись:
+${podpisy.ig}
+[rolka-auto] YouTube: ${podpisy.yt.tytul}`);
 
 // ── паспорт ролика ────────────────────────────────────────────────
 // Цифры сами по себе ничего не говорят: «охват 800» — это много или мало
@@ -1617,6 +1636,10 @@ await writeFile(
       frazy: glos.frazy.length,
       tempo: glos.frazy.map((f) => +(((f.tekst.toLowerCase().match(/[aeiouyąęó]+/g) || []).length) / Math.max(0.2, f.b - f.a)).toFixed(1)),
       hak: scen.czesci[0]?.tekst || null,
+      hak_typ: scen.hak_typ || null,
+      tytulYT: podpisy.yt.tytul,
+      opisYT: podpisy.yt.opis,
+      podpisTT: podpisy.tt,
     },
     null,
     2

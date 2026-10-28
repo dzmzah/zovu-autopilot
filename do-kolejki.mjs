@@ -245,6 +245,9 @@ for (const [i, f] of pliki.entries()) {
           planow: meta.planow,
           tempo: meta.tempo,
           ...(meta.montaz ? { montaz: meta.montaz } : {}),
+          ...(meta.hak_typ ? { hak_typ: meta.hak_typ } : {}),
+          // Подписи под площадки (podpisy.mjs): YouTube и TikTok свои.
+          ...(meta.tytulYT ? { tytulYT: meta.tytulYT, opisYT: meta.opisYT, podpisTT: meta.podpisTT } : {}),
         }
       : {}),
   });

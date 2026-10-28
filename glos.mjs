@@ -660,7 +660,7 @@ async function granicaMowy(plik, prog = -45) {
 const SKROTY = new Set([
   'AI', 'SEO', 'SEM', 'CEO', 'CTA', 'PDF', 'VAT', 'NIP', 'ROI', 'CRM', 'SMS',
   'DM', 'PPC', 'UX', 'UI', 'HTML', 'CSS', 'KPI', 'IG', 'FB', 'YT', 'TT',
-  'B2B', 'B2C', 'PR', 'TV',
+  'B2B', 'B2C', 'PR', 'TV', 'TVN', 'API', 'LED', 'PPV',
 ]);
 
 // Поле `mowa` — прямая замена текста для голоса, когда нужно подать фразу

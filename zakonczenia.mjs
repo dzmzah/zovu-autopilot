@@ -22,7 +22,8 @@ export const ZAKONCZENIA = {
   pytanie: { dlugosc: 2.3 },
   wyslij: { dlugosc: 2.4 },
   seria: { dlugosc: 2.0 },
-  blysk: { dlugosc: 0.9 },
+  // 1,6 вместо 0,9: на вспышке теперь кодовое слово, его надо успеть прочитать.
+  blysk: { dlugosc: 1.6 },
   marka: { dlugosc: 3.8 },
 };
 
@@ -72,7 +73,7 @@ function pytanie(o, W, H, tlo) {
     .split(' ')
     .map((w) => `<span>${w}</span>`)
     .join(' ')}</div>
-<div class="pole"><div class="awatar"></div><div class="wpis pusty">Dodaj komentarz…</div><div class="kursor"></div><div class="wyslij">Opublikuj</div></div>
+<div class="pole"><div class="awatar"></div><div class="wpis pusty">${o.dm ? 'Wyślij wiadomość…' : 'Dodaj komentarz…'}</div><div class="kursor"></div><div class="wyslij">${o.dm ? 'Wyślij' : 'Opublikuj'}</div></div>
 <script>${WSPOLNE_JS}
 const slowa = [...document.querySelectorAll('.pyt span')];
 // Длинный вопрос растёт вверх от поля и ужимается, чтобы не залезть на него
@@ -201,9 +202,13 @@ function blysk(o, W, H, tlo, logo) {
 .kolo img { width:190px; height:190px; }
 .adres { position:absolute; left:0; right:0; top:1150px; text-align:center; color:#fff; font-weight:900; font-size:96px;
   letter-spacing:-2px; opacity:0; }
+.slowo { position:absolute; left:60px; right:60px; top:1290px; text-align:center; color:#fff; font-weight:900;
+  font-size:84px; line-height:1.05; letter-spacing:-2px; text-transform:uppercase; opacity:0; text-shadow:0 10px 40px rgba(0,0,0,.5); }
+.slowo b { color:#facc15; }
+.slowo small { display:block; font-size:54px; letter-spacing:0; text-transform:none; font-weight:700; color:rgba(255,255,255,.85); margin-top:12px; }
 .flash { position:absolute; inset:0; background:#fff; opacity:0; }
 </style></head><body><div class="tlo"></div><div class="cien"></div><div class="fiolet"></div>
-<div class="kolo">${logo ? `<img src="${logo}">` : ''}</div><div class="adres">${esc(o.adres || 'zovu.pl')}</div><div class="flash"></div>
+<div class="kolo">${logo ? `<img src="${logo}">` : ''}</div><div class="adres">${esc(o.adres || 'zovu.pl')}</div>${o.slowo ? `<div class="slowo">Napisz <b>${esc(o.slowo)}</b><small>w wiadomości</small></div>` : ''}<div class="flash"></div>
 <script>${WSPOLNE_JS}
 const kolo = document.querySelector('.kolo'), adres = document.querySelector('.adres');
 const flash = document.querySelector('.flash'), fiolet = document.querySelector('.fiolet');
@@ -215,6 +220,8 @@ window.setT = (t) => {
   flash.style.opacity = (0.35 * Math.max(0, 1 - Math.abs(t - 0.2) / 0.08)).toFixed(3);
   const pa = easeOut(clamp01((t - 0.25) / 0.2));
   adres.style.opacity = pa; adres.style.transform = 'translateY(' + ((1 - pa) * 30).toFixed(1) + 'px)';
+  const sl = document.querySelector('.slowo');
+  if (sl) { const ps = easeBack(clamp01((t - 0.4) / 0.3)); sl.style.opacity = clamp01((t - 0.4) / 0.12); sl.style.transform = 'scale(' + (0.85 + 0.15 * ps).toFixed(3) + ')'; }
 };
 </script></body></html>`;
 }
