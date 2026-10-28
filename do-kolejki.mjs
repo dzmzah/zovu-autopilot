@@ -13,6 +13,7 @@
 //   node do-kolejki.mjs --za-dni=2
 //   node do-kolejki.mjs --za-dni=2 --sloty=13,19        — поставить жёстко
 //   node do-kolejki.mjs --godziny=11,13,18,20           — что перебирать
+import { slotWarszawa, dataWarszawy } from './czas.mjs';
 import { readFile, writeFile, readdir, copyFile, mkdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -170,7 +171,9 @@ if (!pliki.length) {
 
 // Считаем, на какие сутки ставим: берём максимум уже занятого и идём дальше,
 // чтобы повторный прогон не положил два ролика на одно время.
-const zajete = new Set(kolejka.filter((p) => !p.opublikowano).map((p) => p.kiedy));
+// Занятость сравниваем по моменту времени, а не по строке: старые записи
+// с «+02:00» и новые с «+01:00» иначе не совпали бы.
+const zajete = new Set(kolejka.filter((p) => !p.opublikowano).map((p) => Date.parse(p.kiedy)));
 
 let dodane = 0;
 for (const [i, f] of pliki.entries()) {
@@ -203,10 +206,11 @@ for (const [i, f] of pliki.entries()) {
   const godz = GODZINY[i % GODZINY.length];
   let kiedy = null;
   for (let plus = 0; plus < 10 && !kiedy; plus++) {
-    const d = new Date();
-    d.setDate(d.getDate() + ZA_DNI + plus);
-    const kandydat = `${d.toISOString().slice(0, 10)}T${String(godz).padStart(2, '0')}:00:00+02:00`;
-    if (!zajete.has(kandydat)) kiedy = kandydat;
+    // Дата и смещение — по Варшаве (czas.mjs): с 25.10 там +01:00, а жёсткое
+    // «+02:00» сдвигало слот 13:00 на 12:00.
+    const d = new Date(Date.now() + (ZA_DNI + plus) * 86400000);
+    const kandydat = slotWarszawa(dataWarszawy(d), godz);
+    if (!zajete.has(Date.parse(kandydat))) kiedy = kandydat;
   }
   if (!kiedy) {
     console.log(`[kolejka] свободного слота на десять дней вперёд нет — ${nazwa} оставляю в out/`);
@@ -251,7 +255,7 @@ for (const [i, f] of pliki.entries()) {
         }
       : {}),
   });
-  zajete.add(kiedy);
+  zajete.add(Date.parse(kiedy));
   dodane++;
   console.log(`[kolejka] ${nazwa} → ${kiedy}`);
 }
