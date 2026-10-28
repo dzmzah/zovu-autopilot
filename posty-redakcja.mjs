@@ -9,7 +9,11 @@
 // (doktor.mjs) заранее предупреждает, что банк пора пополнить.
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { czytajBank } from './posty-design.mjs';
+// Банк читаем сами, без posty-design.mjs: тот тянет playwright и sharp, а
+// сторож (straznik.yml) проверяет банк без установки браузера.
+async function czytajBank() {
+  return JSON.parse(await readFile(path.join(import.meta.dirname, 'posty-bank.json'), 'utf8'));
+}
 
 const STATE_FILE = path.join(import.meta.dirname, 'state.json');
 
