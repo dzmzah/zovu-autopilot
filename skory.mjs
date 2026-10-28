@@ -1,4 +1,6 @@
 // Монтажные «скины» — семь разных видов одного и того же ролика.
+// 29.10.2026: перекрашены в бренд ZOVU 2026 — светлые карточки поверх кадра,
+// один акцент #FF4A1C, никакого фиолетового (цвета — переменные --z*).
 //
 // 20.10.2026 Захар: «всё равно сам монтаж один и тот же… попробуем все
 // идеи». До этого каждый рилс был стоком с жёлтыми подписями по 2–3 слова.
@@ -71,10 +73,23 @@ export function glowneSlowo(fraza) {
 }
 
 const FONTY =
-  '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Bebas+Neue&family=Caveat:wght@700&display=swap" rel="stylesheet">';
+  '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inter+Tight:wght@700;800;900&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">';
+
+// Бренд ZOVU 2026 (reference_zovu_brand_2026): тёплый белый, белые карточки,
+// текст #111, один акцент #FF4A1C. Цвета — переменными: режиссёр (rezyser.mjs)
+// меняет тон (светлый / тёмный / бумага) и шрифт крупного слова, оставаясь
+// внутри бренда. Здесь — значения по умолчанию («jasny»).
+//   --zt фон/бумага · --zk карточка · --zx текст · --zs второстепенный
+//   --za акцент · --zl светлый тон акцента (маркер) · --zd тёмная плашка
+//   --zfd/--zfw/--zfs/--zfl — шрифт крупного слова: семейство/жирность/начертание/трекинг
+export const TOKENY_DOMYSLNE =
+  ":root{--zt:#F6F4EF;--zk:#FFFFFF;--zx:#111111;--zs:#55524C;--za:#FF4A1C;--zl:#FFD6C8;--zd:#111111;" +
+  "--zfd:'Inter Tight';--zfw:900;--zfs:normal;--zfl:-0.03em;--zfa:'Inter Tight';--zfas:normal}";
 
 const BAZA = (W, H) => `* { margin:0; padding:0; box-sizing:border-box; }
-html,body { width:${W}px; height:${H}px; overflow:hidden; background:transparent; font-family:'Inter',sans-serif; }`;
+${TOKENY_DOMYSLNE}
+html,body { width:${W}px; height:${H}px; overflow:hidden; background:transparent; font-family:'Inter',sans-serif; }
+.zduzy { font-family:var(--zfd),'Inter Tight',sans-serif; font-weight:var(--zfw); font-style:var(--zfs); letter-spacing:var(--zfl); }`;
 
 // На сколько секунд смена фразы на экране идёт раньше голоса. Глаз читает
 // чуть впереди уха, но 20.10 Захар заметил «текст немного опережает голос»
@@ -104,22 +119,22 @@ function dopasuj(el, max, min, wys) {
 // ── 1. переписка ─────────────────────────────────────────────────
 function czat(d, W, H) {
   return `<!doctype html><html><head><meta charset="utf-8">${FONTY}<style>${BAZA(W, H)}
-.tel { position:absolute; left:56px; right:56px; top:150px; bottom:250px; background:#000; border-radius:64px;
-  box-shadow:0 30px 100px rgba(0,0,0,.65); overflow:hidden; }
+.tel { position:absolute; left:56px; right:56px; top:150px; bottom:250px; background:var(--zt); border-radius:64px;
+  box-shadow:0 30px 100px rgba(0,0,0,.45); overflow:hidden; }
 .gora { position:absolute; left:0; right:0; top:0; height:190px; padding:56px 40px 0; display:flex; gap:24px;
-  align-items:center; border-bottom:1px solid #262626; background:#000; z-index:2; }
-.av { width:92px; height:92px; border-radius:50%; background:linear-gradient(135deg,#7c3aed,#a78bfa); flex:none; }
-.nm { color:#fff; font-weight:800; font-size:42px; } .st { color:#8e8e8e; font-size:30px; margin-top:4px; }
+  align-items:center; border-bottom:2px solid rgba(17,17,17,.08); background:var(--zt); z-index:2; }
+.av { width:92px; height:92px; border-radius:50%; background:var(--za); flex:none; }
+.nm { color:var(--zx); font-family:'Inter Tight','Inter',sans-serif; font-weight:900; font-size:42px; } .st { color:var(--zs); font-size:30px; margin-top:4px; }
 .lista { position:absolute; left:34px; right:34px; top:220px; will-change:transform; }
 .m { max-width:80%; padding:28px 36px; border-radius:46px; font-size:46px; line-height:1.24; margin:16px 0;
-  background:#262626; color:#fff; opacity:0; transform-origin:left bottom; }
-.m.ja { background:#7c3aed; margin-left:auto; transform-origin:right bottom; }
-.m b { color:#facc15; font-weight:800; }
-.pis { width:150px; padding:30px 34px; border-radius:46px; background:#262626; display:flex; gap:14px; margin:16px 0; opacity:0; }
-.pis i { width:20px; height:20px; border-radius:50%; background:#8e8e8e; display:block; }
-.dol { position:absolute; left:0; right:0; bottom:0; height:150px; background:#000; border-top:1px solid #262626;
+  background:var(--zk); color:var(--zx); opacity:0; transform-origin:left bottom; box-shadow:0 4px 18px rgba(17,17,17,.08); }
+.m.ja { background:var(--za); color:#FFFFFF; margin-left:auto; transform-origin:right bottom; font-weight:600; }
+.m b { color:var(--za); font-weight:800; } .m.ja b { color:#111111; }
+.pis { width:150px; padding:30px 34px; border-radius:46px; background:var(--zk); display:flex; gap:14px; margin:16px 0; opacity:0; }
+.pis i { width:20px; height:20px; border-radius:50%; background:var(--zs); display:block; }
+.dol { position:absolute; left:0; right:0; bottom:0; height:150px; background:var(--zt); border-top:2px solid rgba(17,17,17,.08);
   display:flex; align-items:center; padding:0 40px; z-index:2; }
-.pole { flex:1; height:96px; border-radius:48px; border:2px solid #363636; color:#8e8e8e; font-size:38px;
+.pole { flex:1; height:96px; border-radius:48px; border:2px solid rgba(17,17,17,.18); color:var(--zs); font-size:38px;
   display:flex; align-items:center; padding:0 36px; }
 </style></head><body>
 <div class="tel">
@@ -163,25 +178,25 @@ function notatka(d, W, H) {
   return `<!doctype html><html><head><meta charset="utf-8">${FONTY}<style>${BAZA(W, H)}
 /* Бумага — тенью окна: так в заметке остаётся дырка, где видно видео. */
 .okno { position:absolute; left:620px; top:1160px; width:400px; height:640px; border-radius:44px;
-  box-shadow:0 0 0 3000px #fffdf5, 0 24px 60px rgba(0,0,0,.25) inset; transform:rotate(0deg); }
-.hd { position:absolute; left:70px; right:70px; top:100px; color:#e0a800; font-size:42px; font-weight:500;
+  box-shadow:0 0 0 3000px var(--zt), 0 24px 60px rgba(0,0,0,.25) inset; transform:rotate(0deg); }
+.hd { position:absolute; left:70px; right:70px; top:100px; color:var(--za); font-size:42px; font-weight:600;
   display:flex; justify-content:space-between; }
-.t { position:absolute; left:70px; right:70px; top:200px; font-size:92px; font-weight:800; color:#111;
-  line-height:1.04; letter-spacing:-2px; }
-.d { position:absolute; left:70px; top:0; color:#9a9a9a; font-size:34px; }
+.t { position:absolute; left:70px; right:70px; top:200px; font-size:92px; color:var(--zx);
+  line-height:1.04; }
+.d { position:absolute; left:70px; top:0; color:var(--zs); font-size:34px; }
 .tekst { position:absolute; left:70px; right:70px; top:0; bottom:790px; overflow:hidden;
   -webkit-mask-image:linear-gradient(transparent 0, #000 70px); mask-image:linear-gradient(transparent 0, #000 70px); }
 .in { padding-top:40px; }
 .in { will-change:transform; }
-.li { font-size:58px; color:#222; line-height:1.32; margin-bottom:18px; }
+.li { font-size:58px; color:var(--zx); line-height:1.32; margin-bottom:18px; }
 .li.p { font-weight:700; }
-.li.p mark { background:linear-gradient(transparent 58%, #fde68a 58%); color:#111; }
-.li .kw { display:inline-block; width:62px; }
-.kur { display:inline-block; width:5px; height:64px; background:#e0a800; vertical-align:-10px; margin-left:4px; }
+.li.p mark { background:linear-gradient(transparent 58%, var(--zl) 58%); color:var(--zx); }
+.li .kw { display:inline-block; width:62px; color:var(--za); }
+.kur { display:inline-block; width:5px; height:64px; background:var(--za); vertical-align:-10px; margin-left:4px; }
 </style></head><body>
 <div class="okno"></div>
 <div class="hd"><span>‹ Notatki</span><span>Gotowe</span></div>
-<div class="t">${esc(d.temat)}</div>
+<div class="t zduzy">${esc(d.temat)}</div>
 <div class="d">${esc(dzis)}</div>
 <div class="tekst"><div class="in"></div></div>
 <script>${JS(d)}
@@ -225,20 +240,27 @@ window.setT = (t) => {
 // ── 3. мем ───────────────────────────────────────────────────────
 function mem(d, W, H) {
   return `<!doctype html><html><head><meta charset="utf-8">${FONTY}<style>${BAZA(W, H)}
-.top { position:absolute; left:0; right:0; top:0; height:720px; background:#fff; }
-.tx { position:absolute; left:64px; right:64px; bottom:56px; font-size:74px; font-weight:600; line-height:1.17; color:#000; }
-.tag { position:absolute; left:64px; top:96px; font-size:36px; color:#888; font-weight:500; }
+.top { position:absolute; left:0; right:0; top:0; height:720px; background:var(--zk); }
+.tx { position:absolute; left:64px; right:64px; bottom:56px; font-size:74px; font-weight:600; line-height:1.17; color:var(--zx); }
+.tx em { font-style:normal; color:var(--za); font-weight:800; }
+.tag { position:absolute; left:64px; top:96px; font-size:36px; color:var(--zs); font-weight:600; }
+.tag:before { content:''; display:inline-block; width:22px; height:22px; border-radius:50%; background:var(--za); margin-right:14px; vertical-align:-2px; }
 </style></head><body>
 <div class="top"><div class="tag">@zovu.pl</div><div class="tx"></div></div>
 <script>${JS(d)}
 const tx = document.querySelector('.tx');
+const G = ${JSON.stringify(d.frazy.map(glowneSlowo))};
 let ostatni = -2;
 window.setT = (t) => {
   const k = biezaca(t);
   if (k !== ostatni) {
     ostatni = k;
     const f = F[Math.max(0, k)];
-    tx.textContent = f.tekst.toLowerCase().replace(/[.]$/, '');
+    // Главное слово фразы — акцентом: глаз цепляется за одно слово, а не за строку.
+    const g = (G[Math.max(0, k)] || '').toLowerCase();
+    const zwykly = f.tekst.toLowerCase().replace(/[.]$/, '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const i0 = g ? zwykly.indexOf(g) : -1;
+    tx.innerHTML = i0 >= 0 ? zwykly.slice(0, i0) + '<em>' + zwykly.slice(i0, i0 + g.length) + '</em>' + zwykly.slice(i0 + g.length) : zwykly;
     dopasuj(tx, 78, 44, 560);
   }
 };
@@ -249,15 +271,17 @@ window.setT = (t) => {
 function slowo(d, W, H) {
   const glowne = d.frazy.map(glowneSlowo);
   return `<!doctype html><html><head><meta charset="utf-8">${FONTY}<style>${BAZA(W, H)}
-.w { position:absolute; left:40px; right:40px; top:560px; text-align:center; font-family:'Bebas Neue',sans-serif;
-  line-height:.86; color:#fff; letter-spacing:4px; white-space:nowrap; text-shadow:0 18px 60px rgba(0,0,0,.55); }
-.w.zolty { color:#facc15; }
-.s { position:absolute; left:90px; right:90px; top:1240px; text-align:center; color:rgba(255,255,255,.9);
-  font-size:50px; font-weight:600; line-height:1.25; }
-.s b { color:#facc15; font-weight:800; }
-.nr { position:absolute; left:0; right:0; top:400px; text-align:center; font-family:'Bebas Neue'; font-size:120px;
-  color:#a78bfa; letter-spacing:8px; }
-</style></head><body><div class="nr"></div><div class="w"></div><div class="s"></div>
+.w { position:absolute; left:40px; right:40px; top:560px; text-align:center;
+  line-height:.92; color:#F6F4EF; white-space:nowrap; text-shadow:0 18px 60px rgba(0,0,0,.55); padding:0 .06em; }
+.w.zolty { color:var(--za); font-family:var(--zfa),'Inter Tight',sans-serif; font-style:var(--zfas); }
+.s { position:absolute; left:80px; right:80px; top:1240px; text-align:center; color:var(--zx);
+  font-size:50px; font-weight:600; line-height:1.25; background:var(--zk); border-radius:30px; padding:26px 34px;
+  box-shadow:0 18px 50px rgba(0,0,0,.28); }
+.s:empty { display:none; }
+.s b { color:var(--zx); font-weight:800; }
+.nr { position:absolute; left:0; right:0; top:400px; text-align:center; font-size:120px;
+  color:var(--za); }
+</style></head><body><div class="nr zduzy"></div><div class="w zduzy"></div><div class="s"></div>
 <script>${JS(d)}
 const G = ${JSON.stringify(glowne)};
 const w = document.querySelector('.w'), s = document.querySelector('.s'), nr = document.querySelector('.nr');
@@ -268,8 +292,8 @@ window.setT = (t) => {
   if (k !== ostatni) {
     ostatni = k;
     w.textContent = G[k].toUpperCase();
-    w.className = 'w' + (k % 3 === 1 ? ' zolty' : '');
-    dopasuj(w, 520, 80);
+    w.className = 'w zduzy' + (k % 3 === 1 ? ' zolty' : '');
+    dopasuj(w, 400, 80);
     nr.textContent = F[k].numer ? '#' + F[k].numer : '';
   }
   // Удар: слово влетает с переразмером и садится.
@@ -286,14 +310,14 @@ window.setT = (t) => {
 // ── 5. так / не так ──────────────────────────────────────────────
 function split(d, W, H) {
   return `<!doctype html><html><head><meta charset="utf-8">${FONTY}<style>${BAZA(W, H)}
-.l { position:absolute; left:50px; padding:14px 32px; border-radius:18px; font-weight:900; font-size:58px; color:#fff; }
-.x { top:56px; background:#ef4444; } .v { top:1016px; background:#22c55e; }
-.q { position:absolute; left:50px; right:50px; padding:26px 36px; border-radius:26px; background:rgba(0,0,0,.74);
-  color:#fff; font-size:52px; font-weight:600; line-height:1.22; opacity:0; }
+.l { position:absolute; left:50px; padding:14px 32px; border-radius:18px; font-family:'Inter Tight','Inter',sans-serif; font-weight:900; font-size:58px; color:#FFFFFF; }
+.x { top:56px; background:#111111; color:#F6F4EF; } .v { top:1016px; background:var(--za); }
+.q { position:absolute; left:50px; right:50px; padding:26px 36px; border-radius:26px; background:var(--zk);
+  color:var(--zx); font-size:52px; font-weight:600; line-height:1.22; opacity:0; box-shadow:0 16px 44px rgba(0,0,0,.3); }
 .q1 { bottom:1000px; } .q2 { bottom:60px; }
 .cien { position:absolute; left:0; right:0; height:960px; background:#000; opacity:0; }
 .c1 { top:0; } .c2 { top:960px; }
-.kreska { position:absolute; left:0; right:0; top:952px; height:16px; background:#fff; }
+.kreska { position:absolute; left:0; right:0; top:952px; height:16px; background:var(--zt); }
 </style></head><body>
 <div class="cien c1"></div><div class="cien c2"></div><div class="kreska"></div>
 <div class="l x">✕ NIE TAK</div><div class="l v">✓ TAK</div>
@@ -322,20 +346,21 @@ window.setT = (t) => {
 function typo(d, W, H) {
   return `<!doctype html><html><head><meta charset="utf-8">${FONTY}<style>${BAZA(W, H)}
 .c { position:absolute; inset:0; }
-.t { position:absolute; left:80px; right:80px; top:360px; font-weight:900; line-height:.98;
+.t { position:absolute; left:80px; right:80px; top:360px; font-family:'Inter Tight','Inter',sans-serif; font-weight:900; line-height:.98;
   letter-spacing:-5px; text-transform:uppercase; }
 .t span { display:inline-block; margin-right:.22em; }
 .t span.k { padding:0 16px; }
-.r { position:absolute; left:80px; top:1300px; font-family:'Caveat',cursive; font-size:104px; transform:rotate(-4deg); white-space:nowrap; }
+.r { position:absolute; left:80px; top:1300px; font-family:'Instrument Serif',serif; font-style:italic; font-size:110px; transform:rotate(-4deg); white-space:nowrap; }
 .st { position:absolute; right:90px; top:1460px; width:260px; height:260px; border-radius:50%; display:flex;
-  align-items:center; justify-content:center; text-align:center; font-weight:900; font-size:150px; line-height:1; }
-.logo { position:absolute; left:80px; bottom:110px; font-weight:900; font-size:44px; letter-spacing:-1px; }
+  align-items:center; justify-content:center; text-align:center; font-family:'Inter Tight','Inter',sans-serif; font-weight:900; font-size:150px; line-height:1; }
+.logo { position:absolute; left:80px; bottom:110px; font-family:'Inter Tight','Inter',sans-serif; font-weight:900; font-size:44px; letter-spacing:-1px; }
 </style></head><body><div class="c"></div><div class="t"></div><div class="r"></div><div class="st"></div><div class="logo">zovu.pl</div>
 <script>${JS(d)}
 // Палитра меняется на каждой фразе: фон / текст / акцент.
+// Внутри бренда: тёплый белый, акцент, чёрный, белый — один акцент на всё.
 const P = [
-  ['#facc15', '#111111', '#7c3aed'], ['#7c3aed', '#ffffff', '#facc15'], ['#111111', '#facc15', '#a78bfa'],
-  ['#fffdf5', '#111111', '#ef4444'], ['#a78bfa', '#111111', '#ffffff'],
+  ['var(--zt)', 'var(--zx)', 'var(--za)'], ['var(--za)', '#111111', '#FFFFFF'], ['#111111', '#F6F4EF', 'var(--za)'],
+  ['#FFFFFF', '#111111', 'var(--za)'], ['var(--za)', '#FFFFFF', '#111111'],
 ];
 const G = ${JSON.stringify(d.frazy.map(glowneSlowo))};
 const c = document.querySelector('.c'), tt = document.querySelector('.t'), r = document.querySelector('.r');
@@ -376,16 +401,17 @@ window.setT = (t) => {
 // ── 7. пост-цитата ───────────────────────────────────────────────
 function post(d, W, H) {
   return `<!doctype html><html><head><meta charset="utf-8">${FONTY}<style>${BAZA(W, H)}
-.card { position:absolute; left:64px; right:64px; top:300px; background:#fff; border-radius:46px;
-  padding:56px 56px 46px; box-shadow:0 30px 100px rgba(0,0,0,.5); }
+.card { position:absolute; left:64px; right:64px; top:300px; background:var(--zk); color:var(--zx); border-radius:46px;
+  padding:56px 56px 46px; box-shadow:0 30px 100px rgba(0,0,0,.4); }
 .h { display:flex; align-items:center; gap:24px; margin-bottom:34px; }
-.av { width:104px; height:104px; border-radius:50%; background:linear-gradient(135deg,#7c3aed,#a78bfa); flex:none; }
-.n { font-weight:800; font-size:44px; } .u { color:#777; font-size:34px; }
-.ile { margin-left:auto; color:#999; font-size:34px; font-weight:600; }
-.tx { font-size:58px; line-height:1.3; color:#111; }
+.av { width:104px; height:104px; border-radius:50%; background:var(--za); flex:none; }
+.n { font-family:'Inter Tight','Inter',sans-serif; font-weight:900; font-size:44px; } .u { color:var(--zs); font-size:34px; }
+.ile { margin-left:auto; color:var(--zs); font-size:34px; font-weight:600; }
+.tx { font-size:58px; line-height:1.3; color:var(--zx); }
 .tx p { margin-bottom:26px; } .tx p:last-child { margin-bottom:0; }
-.tx b { background:linear-gradient(transparent 60%, #ddd6fe 60%); font-weight:700; }
-.f { display:flex; gap:60px; margin-top:42px; color:#777; font-size:38px; font-weight:500; }
+.tx b { background:linear-gradient(transparent 60%, var(--zl) 60%); font-weight:700; }
+.f { display:flex; gap:60px; margin-top:42px; color:var(--zs); font-size:38px; font-weight:500; }
+.f .lk { color:var(--za); font-weight:700; }
 </style></head><body>
 <div class="card"><div class="h"><div class="av"></div><div><div class="n">ZOVU</div><div class="u">@zovu.pl · teraz</div></div><div class="ile"></div></div>
 <div class="tx"></div><div class="f"><span class="lk">♡ 0</span><span>💬 <span class="km">0</span></span><span>↻ <span class="rp">0</span></span></div></div>
@@ -536,15 +562,15 @@ iframe { position:absolute; left:0; top:0; width:${W}px; height:${H}px; border:0
 .pz { position:absolute; inset:0; pointer-events:none; display:none; overflow:hidden; }
 .szyba i { position:absolute; top:-200px; bottom:-200px; left:0; width:${Math.round(W * 1.7)}px; }
 .paski i { position:absolute; left:0; width:${W}px; height:${Math.ceil(H / 6) + 2}px; }
-.iris { background:#facc15; }
+.iris { background:var(--za); }
 .blysk i { position:absolute; left:0; right:0; }
 .przelot { align-items:center; justify-content:center; }
-.przelot b { font-family:'Bebas Neue',sans-serif; font-size:300px; letter-spacing:6px; white-space:nowrap; font-weight:400; }
+.przelot b { font-family:var(--zfd),'Inter Tight',sans-serif; font-weight:var(--zfw); font-style:var(--zfs); letter-spacing:var(--zfl); font-size:300px; white-space:nowrap; padding:0 .06em; }
 </style></head><body>
 ${ramki.map((r, i) => `<iframe id="r${i}" srcdoc="${r}"></iframe>`).join('\n')}
-<div class="pz szyba"><i style="background:#facc15"></i><i style="background:#7c3aed"></i></div>
+<div class="pz szyba"><i style="background:var(--za)"></i><i style="background:var(--zt)"></i></div>
 <div class="pz paski">${[0, 1, 2, 3, 4, 5]
-    .map((k) => `<i style="top:${Math.round((k * H) / 6)}px;background:${k % 2 ? '#7c3aed' : '#111'}"></i>`)
+    .map((k) => `<i style="top:${Math.round((k * H) / 6)}px;background:${['var(--za)', 'var(--zt)', '#111111'][k % 3]}"></i>`)
     .join('')}</div>
 <div class="pz iris"></div>
 <div class="pz blysk"><i></i><i></i><i></i></div>
@@ -562,6 +588,13 @@ const eo = (x) => 1 - Math.pow(1 - x, 3);
 const ei = (x) => x * x * x;
 window.__czekaj = async () => {
   for (const r of ramki) {
+    // srcdoc грузится асинхронно: без ожидания первые кадры снимались, пока
+    // кусок ещё about:blank, — хук пропадал с кадра 0 (проба 29.10).
+    for (let i = 0; i < 400; i++) {
+      const cw = r.contentWindow;
+      if (cw && cw.setT && cw.document.readyState === 'complete') break;
+      await new Promise((q) => setTimeout(q, 25));
+    }
     const w = r.contentWindow;
     await w.document.fonts.ready;
     if (w.__fit) w.__fit();
@@ -610,7 +643,7 @@ const RYS = {
       const r = Math.abs(Math.sin(kl * 12.9898 + k * 78.233) * 43758.5453) % 1;
       p.style.top = (r * H).toFixed(0) + 'px';
       p.style.height = (20 + r * 90).toFixed(0) + 'px';
-      p.style.background = ['#7c3aed', '#facc15', '#22d3ee'][k];
+      p.style.background = ['var(--za)', '#F6F4EF', '#111111'][k];
       p.style.opacity = Math.abs(t - ts) < 0.16 ? 0.85 : 0;
       p.style.transform = 'translateX(' + ((r - 0.5) * 120).toFixed(0) + 'px)';
     });
@@ -622,8 +655,8 @@ const RYS = {
       let f = 300; b.style.fontSize = f + 'px';
       while (f > 120 && b.scrollWidth > W - 120) { f -= 10; b.style.fontSize = f + 'px'; }
     }
-    s.style.background = n % 2 ? '#facc15' : '#7c3aed';
-    b.style.color = n % 2 ? '#111' : '#fff';
+    s.style.background = n % 2 ? 'var(--za)' : '#111111';
+    b.style.color = n % 2 ? '#111111' : 'var(--za)';
     // Фон влетает кругом, слово садится, потом пролетает «сквозь камеру».
     if (t < ts) {
       const p = clamp01((t - (ts - PP)) / PP);

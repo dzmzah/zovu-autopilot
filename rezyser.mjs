@@ -28,26 +28,30 @@ const ZANIK = 0.6;
 // богатый, сток самый скучный. Новизна всё равно важнее веса.
 export const FORMATY = { miks: 4, typo: 1, stok: 0.35 };
 
-// Палитры: [акцент, второй цвет]. В скинах акцент — жёлтый ZOVU, второй —
-// фиолетовый; палитра подменяет оба. Свои цвета ZOVU весят вдвое: лента
-// должна оставаться узнаваемой.
+// Палитры — ТОНА внутри бренда ZOVU 2026 (reference_zovu_brand_2026).
+// 29.10.2026 Митя: прежние шесть палитр (жёлтый/фиолетовый, коралл, мята…)
+// — «скучно и однообразно», а фиолетовый — клише ИИ-сервисов. Теперь акцент
+// всегда один, #FF4A1C; режиссёр меняет только тон карточек: светлый,
+// бумага (белый фон и тёплые карточки), тёмный режим бренда, «огонь»
+// (акцентный маркер ярче). Значения — CSS-переменные скинов (skory.mjs).
 export const PALETY = {
-  zovu: { a: '#facc15', b: '#7c3aed', waga: 2 },
-  koral: { a: '#fb7185', b: '#1e3a8a', waga: 1 },
-  mieta: { a: '#34d399', b: '#312e81', waga: 1 },
-  pomarancz: { a: '#fb923c', b: '#0f172a', waga: 1 },
-  cyjan: { a: '#22d3ee', b: '#9d174d', waga: 1 },
-  limonka: { a: '#bef264', b: '#4c1d95', waga: 1 },
+  jasny: { waga: 2, t: { zt: '#F6F4EF', zk: '#FFFFFF', zx: '#111111', zs: '#55524C', za: '#FF4A1C', zl: '#FFD6C8', zd: '#111111' } },
+  papier: { waga: 1.2, t: { zt: '#FFFFFF', zk: '#F6F4EF', zx: '#111111', zs: '#55524C', za: '#FF4A1C', zl: '#FFE2D8', zd: '#111111' } },
+  ogien: { waga: 1, t: { zt: '#F6F4EF', zk: '#FFFFFF', zx: '#111111', zs: '#55524C', za: '#FF4A1C', zl: '#FF9B7A', zd: '#FF4A1C' } },
+  ciemny: { waga: 0.5, t: { zt: '#111111', zk: '#1D1C1A', zx: '#F6F4EF', zs: '#B8B3A9', za: '#FF4A1C', zl: '#6B2814', zd: '#111111' } },
 };
 
-// Крупный шрифт (вместо Bebas Neue) и основной (вместо Inter). Все — с
-// польскими буквами (latin-ext).
+// Шрифт КРУПНОГО слова (заголовки, «одно слово», переходы). Текст везде Inter.
+// Бренд: Inter Tight 800/900 + 1–2 акцентных слова Instrument Serif italic.
+//   tight   — всё Inter Tight 900;
+//   serif   — крупное слово Instrument Serif italic (редакционный вид);
+//   miks    — Inter Tight, а акцентное (оранжевое) слово — Instrument Serif italic;
+//   tight8  — Inter Tight 800 с плотным трекингом.
 export const FONTY = {
-  bebas: { duzy: 'Bebas Neue', gf: 'Bebas+Neue', tekst: 'Inter', gfTekst: 'Inter:wght@400;500;600;700;800;900' },
-  anton: { duzy: 'Anton', gf: 'Anton', tekst: 'Inter', gfTekst: 'Inter:wght@400;500;600;700;800;900' },
-  archivo: { duzy: 'Archivo Black', gf: 'Archivo+Black', tekst: 'Manrope', gfTekst: 'Manrope:wght@400;500;600;700;800' },
-  oswald: { duzy: 'Oswald', gf: 'Oswald:wght@700', tekst: 'Montserrat', gfTekst: 'Montserrat:wght@400;500;600;700;800;900' },
-  grotesk: { duzy: 'Space Grotesk', gf: 'Space+Grotesk:wght@700', tekst: 'Space Grotesk', gfTekst: 'Space+Grotesk:wght@400;500;600;700' },
+  tight: { d: "'Inter Tight'", w: 900, s: 'normal', l: '-0.03em', a: "'Inter Tight'", as: 'normal' },
+  serif: { d: "'Instrument Serif'", w: 400, s: 'italic', l: '-0.01em', a: "'Instrument Serif'", as: 'italic' },
+  miks: { d: "'Inter Tight'", w: 900, s: 'normal', l: '-0.03em', a: "'Instrument Serif'", as: 'italic' },
+  tight8: { d: "'Inter Tight'", w: 800, s: 'normal', l: '-0.045em', a: "'Inter Tight'", as: 'normal' },
 };
 
 // Концовки, которые идут с любым сценарием. `petla` — только если сценарий
@@ -82,8 +86,8 @@ const jaccard = (a = [], b = []) => {
 export function podobienstwo(x, y) {
   let s = 0;
   if (x.format === y.format) s += 2;
-  if ((x.paleta || 'zovu') === (y.paleta || 'zovu')) s += 2;
-  if ((x.font || 'bebas') === (y.font || 'bebas')) s += 1;
+  if ((x.paleta || 'jasny') === (y.paleta || 'jasny')) s += 2;
+  if ((x.font || 'tight') === (y.font || 'tight')) s += 1;
   if (x.zakonczenie && x.zakonczenie === y.zakonczenie) s += 1.5;
   if (x.format === 'miks' && y.format === 'miks' && x.style && y.style) {
     if (x.style[0] === y.style[0]) s += 1.5;
@@ -110,7 +114,7 @@ export async function historiaMontazu(dir) {
       .filter((p) => p.kiedy || p.opublikowano)
       .reverse()
       .slice(0, PAMIEC)
-      .map((p) => p.montaz || { format: 'stok', paleta: 'zovu', font: 'bebas', zakonczenie: 'marka' });
+      .map((p) => p.montaz || { format: 'stok', paleta: 'jasny', font: 'tight', zakonczenie: 'marka' });
   } catch {
     return [];
   }
@@ -142,8 +146,8 @@ export function wybierzOprawe(historia, ziarno, { scen = {}, wymus = {} } = {}) 
     const k = {
       format,
       // Сток рисует свои подписи — палитра и шрифт скинов его не касаются.
-      paleta: format === 'stok' ? 'zovu' : wymus.paleta || wazony(los, wagiPalet),
-      font: format === 'stok' ? 'bebas' : wymus.font || Object.keys(FONTY)[Math.floor(los() * Object.keys(FONTY).length)],
+      paleta: format === 'stok' ? 'jasny' : wymus.paleta || wazony(los, wagiPalet),
+      font: format === 'stok' ? 'tight' : wymus.font || Object.keys(FONTY)[Math.floor(los() * Object.keys(FONTY).length)],
       zakonczenie: wymus.zakonczenie || koncowki[Math.floor(los() * koncowki.length)],
     };
     // Чуть-чуть случайности поверх новизны: иначе при пустой истории
@@ -176,48 +180,32 @@ export function wybierzMiks(kandydaci, oprawa, historia) {
   return ocenione[0];
 }
 
-// Подмена палитры и шрифтов в готовом HTML скина. Цвета в скинах заданы
-// прямо в CSS и в JS — поэтому меняем по точному значению, а не через
-// переменные: ни один скин не надо переписывать.
-const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-const hex = (c) => '#' + c.map((x) => Math.round(Math.max(0, Math.min(255, x))).toString(16).padStart(2, '0')).join('');
-const mieszaj = (h, z, k) => hex(rgb(h).map((x, i) => x + (rgb(z)[i] - x) * k));
+// Тон и шрифт в готовом HTML скина: одна строка CSS-переменных сразу после
+// <body>. Строка в одинарных кавычках — попадает и в srcdoc микса (там
+// экранированы только & и "), так что каждый кусок микса берёт тот же тон.
+export function tokenyCss(paleta = 'jasny', font = 'tight') {
+  const P = (PALETY[paleta] || PALETY.jasny).t;
+  const F = FONTY[font] || FONTY.tight;
+  return (
+    ':root{' +
+    Object.entries(P).map(([k, v]) => `--${k}:${v}`).join(';') +
+    `;--zfd:${F.d};--zfw:${F.w};--zfs:${F.s};--zfl:${F.l};--zfa:${F.a};--zfas:${F.as}}`
+  );
+}
 
-export function oprawHtml(html, { paleta = 'zovu', font = 'bebas' } = {}) {
-  const P = PALETY[paleta] || PALETY.zovu;
-  const F = FONTY[font] || FONTY.bebas;
+export function oprawHtml(html, { paleta = 'jasny', font = 'tight' } = {}) {
   // Шрифт качается, только когда им что-то написано, и fonts.ready до этого
-  // молчит. Проба 20.10: «ZDJĘCIA» подгонялось по ширине запасного шрифта,
-  // потом приезжал широкий Archivo Black — и слово вылезало за кадр. Невидимая
-  // строчка всеми шрифтами заставляет их загрузиться до первого кадра.
-  // Кавычки одинарные и имена без кавычек — строка попадает и в srcdoc микса.
+  // молчит. Проба 20.10: слово подгонялось по ширине запасного шрифта, потом
+  // приезжал настоящий — и вылезало за кадр. Невидимая строчка всеми
+  // шрифтами заставляет их загрузиться до первого кадра.
   const zaladuj =
     "<div aria-hidden='true' style='position:absolute;left:-9999px;top:0;font-size:40px'>" +
-    [[F.duzy, 400], [F.duzy, 700], [F.tekst, 400], [F.tekst, 600], [F.tekst, 800], [F.tekst, 900], ['Caveat', 700]]
-      .map(([f, w]) => `<span style='font-family:${f};font-weight:${w}'>ZĄ</span>`)
+    [['Inter Tight', 700, 'normal'], ['Inter Tight', 800, 'normal'], ['Inter Tight', 900, 'normal'],
+      ['Instrument Serif', 400, 'italic'], ['Instrument Serif', 400, 'normal'],
+      ['Inter', 400, 'normal'], ['Inter', 600, 'normal'], ['Inter', 800, 'normal'], ['Inter', 900, 'normal']]
+      .map(([f, w, st]) => `<span style='font-family:${f};font-weight:${w};font-style:${st}'>ZĄ</span>`)
       .join('') +
     '</div>';
-  let out = html.split('<body>').join('<body>' + zaladuj);
-  if (paleta !== 'zovu') {
-    const zam = [
-      ['#facc15', P.a],
-      ['#e0a800', mieszaj(P.a, '#000000', 0.12)],
-      ['#fde68a', mieszaj(P.a, '#ffffff', 0.55)],
-      ['#7c3aed', P.b],
-      ['#a78bfa', mieszaj(P.b, '#ffffff', 0.45)],
-    ];
-    for (const [z, na] of zam) out = out.split(z).join(na).split(z.toUpperCase()).join(na);
-    out = out.split('124,58,237').join(rgb(P.b).join(','));
-  }
-  if (font !== 'bebas') {
-    out = out
-      .split("'Bebas Neue'").join(`'${F.duzy}'`)
-      .split('family=Bebas+Neue').join('family=' + F.gf);
-    if (F.tekst !== 'Inter') {
-      out = out
-        .split("'Inter'").join(`'${F.tekst}'`)
-        .split('family=Inter:wght@400;500;600;700;800;900').join('family=' + F.gfTekst);
-    }
-  }
-  return out;
+  const styl = `<style>${tokenyCss(paleta, font)}</style>`;
+  return html.split('<body>').join('<body>' + styl + zaladuj);
 }

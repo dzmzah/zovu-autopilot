@@ -224,15 +224,15 @@ html,body{width:${W}px;height:${H}px}
 body{overflow:hidden;font-family:'Inter',sans-serif;
   background:
     radial-gradient(ellipse 820px 620px at 50% 30%, ${akcent}4d, transparent 64%),
-    linear-gradient(180deg,#16112b 0%,#0b0718 100%);}
+    linear-gradient(180deg,#1D1C1A 0%,#111111 100%);}
 .wrap{position:absolute;left:90px;right:90px;top:430px;}
-.tytul{font-weight:800;font-size:52px;color:#a9a2c4;letter-spacing:1px;
+.tytul{font-weight:800;font-size:52px;color:#B8B3A9;letter-spacing:1px;
   text-transform:uppercase;opacity:0}
 .licznik{font-weight:900;font-size:250px;line-height:1;color:#fff;letter-spacing:-10px;
   margin:14px 0 6px;opacity:0}
 .licznik small{font-size:96px;letter-spacing:-3px;color:${akcent2};margin-left:18px}
 .podpis{font-family:'Playfair Display',serif;font-style:italic;font-size:56px;
-  color:#b9b2d6;opacity:0}
+  color:#B8B3A9;opacity:0}
 svg{position:absolute;left:60px;top:1030px;}
 .siatka{stroke:#ffffff18;stroke-width:3}
 .krzywa{fill:none;stroke:url(#g);stroke-width:14;stroke-linecap:round;stroke-linejoin:round}
@@ -313,7 +313,7 @@ async function zbudujKolaz(karty, sekundy, tmp, nazwa, akcent = '#7c3aed') {
       *{margin:0;padding:0}html,body{width:${W}px;height:${H}px}
       body{background:
         radial-gradient(ellipse 820px 620px at 50% 34%, ${akcent}55, transparent 64%),
-        linear-gradient(180deg,#16112b 0%,#0b0718 100%);}
+        linear-gradient(180deg,#1D1C1A 0%,#111111 100%);}
     </style></head><body><script>window.setT=()=>{};window.__fit=()=>{};</script></body></html>`,
     1 / FPS,
     dir,
@@ -581,7 +581,7 @@ const SLUZBOWE = new Set([
   'tak', 'jak', 'co', 'kto', 'gdy', 'bo', 'by', 'za', 'przez', 'dla', 'bez',
 ]);
 
-function karaokeHtml(frazy, total, akcent = '#a78bfa') {
+function karaokeHtml(frazy, total, akcent = '#a78bfa', { gra = '#ffd23f', font = 'Inter' } = {}) {
   const esc = (s) =>
     String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -613,11 +613,11 @@ function karaokeHtml(frazy, total, akcent = '#a78bfa') {
   );
 
   return `<!doctype html><html><head><meta charset="utf-8">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@800;900&family=Inter+Tight:wght@800;900&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { width:${W}px; height:${H}px; }
-body { background:transparent; overflow:hidden; font-family:'Inter',sans-serif; }
+body { background:transparent; overflow:hidden; font-family:'${font}','Inter',sans-serif; }
 /* Толстая тёмная обводка вокруг букв — то, чем короткий формат отличается
    от «титров в кино». Тень мягкая и на светлом фоне пропадает, обводка
    держит текст на любом кадре и заставляет глаз зацепиться. */
@@ -636,8 +636,8 @@ body { background:transparent; overflow:hidden; font-family:'Inter',sans-serif; 
 /* Произносимое слово — ЦВЕТОМ. Плашка под ним меняла вес строки на каждом
    слове и читалась как автосубтитры телефона; Захар забраковал её на
    рисованных роликах, и здесь она стояла та же. */
-.s.gra { color:#ffd23f; }
-.s.drobne.gra { color:#ffd23f; }
+.s.gra { color:${gra}; }
+.s.drobne.gra { color:${gra}; }
 </style></head><body>
 ${divy}
 <script>
@@ -676,10 +676,16 @@ window.setT = (t) => {
     // прочитать фразу можно было уже на первом кадре.
     if (i === 0 && t < f.w[0].a - 0.09) {
       el.style.visibility = 'visible';
-      spany.forEach((s) => {
+      // 29.10: хук не стоит мёртвой строкой — слова «впечатываются» по
+      // одному (0,86 → 1,03 → 1), но читаются целиком уже на кадре 0.
+      // Больше 1,03 не раздуваем: строка не должна вылезать за поля.
+      spany.forEach((s, k) => {
         s.style.opacity = 1;
         s.classList.remove('gra');
-        s.style.transform = 'scale(1)';
+        const p = clamp01((t - k * 0.05) / 0.22);
+        const c = 1.7, x = p - 1;
+        const e = 1 + (c + 1) * x * x * x + c * x * x;
+        s.style.transform = 'scale(' + (0.86 + 0.14 * Math.min(1.2, e)).toFixed(3) + ')';
       });
       return;
     }
@@ -727,41 +733,42 @@ export function markaHtml(karta, seconds, logoDataUri) {
     : '';
 
   return `<!doctype html><html><head><meta charset="utf-8">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@1,400;1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Inter+Tight:wght@800;900&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { width:${W}px; height:${H}px; }
 body { overflow:hidden; font-family:'Inter',sans-serif;
-  background:linear-gradient(180deg, #160e2e 0%, #0d0820 100%);
+  background:#F6F4EF; color:#111111;
   display:flex; flex-direction:column; justify-content:center; padding:0 96px;
   perspective:1800px; }
 /* Свечение вынесено отдельным слоем: в фоне тела его не подышать, а
    аутро стоит на экране почти три секунды — это самый мёртвый кусок
    ролика, если в нём ничего не движется. */
 .blask { position:absolute; inset:0; z-index:-1; will-change:transform,opacity;
-  background:radial-gradient(ellipse 900px 700px at 50% 26%, rgba(124,58,237,.42), transparent 62%); }
+  background:radial-gradient(ellipse 900px 700px at 50% 26%, rgba(255,74,28,.16), transparent 62%); }
 /* Блик. Один проход по карточке — то, чем «живая» заставка отличается от
    картинки. Полоса широкая и слабая: если её видно как полосу, это уже
    спецэффект, а нужно ощущение отражения. */
 .blysk { position:absolute; top:-25%; bottom:-25%; left:0; width:92%;
-  z-index:0; pointer-events:none; opacity:0; mix-blend-mode:screen;
+  z-index:0; pointer-events:none; opacity:0; mix-blend-mode:multiply;
   will-change:transform,opacity; filter:blur(46px);
-  background:linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(226,209,255,.13) 50%,
+  background:linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,74,28,.07) 50%,
     rgba(255,255,255,0) 100%); }
 
 .w { opacity:0; will-change:transform; }
-.duzy { font-weight:900; font-size:150px; line-height:0.95; letter-spacing:-4px;
-  text-transform:uppercase; color:#fff; text-shadow:0 8px 40px rgba(0,0,0,.45); }
-.maly { font-family:'Playfair Display',serif; font-style:italic; font-weight:400;
-  font-size:62px; line-height:1.25; color:#a78bfa; margin:8px 0 12px 8px; }
+.duzy { font-family:'Inter Tight','Inter',sans-serif; font-weight:900; font-size:150px; line-height:0.95; letter-spacing:-4px;
+  text-transform:uppercase; color:#111111; }
+.w[data-i="0"].duzy { color:#FF4A1C; }
+.maly { font-family:'Instrument Serif',serif; font-style:italic; font-weight:400;
+  font-size:76px; line-height:1.15; color:#55524C; margin:8px 0 12px 8px; }
 
 .stopka { position:absolute; left:96px; right:96px; bottom:190px;
   display:flex; align-items:center; gap:34px; opacity:0; }
 .logo { width:132px; height:132px; display:block;
-  filter:drop-shadow(0 10px 30px rgba(124,58,237,.55)); }
-.adres { font-weight:900; font-size:82px; letter-spacing:-2px; color:#fff; }
+  filter:drop-shadow(0 10px 30px rgba(255,74,28,.30)); }
+.adres { font-family:'Inter Tight','Inter',sans-serif; font-weight:900; font-size:82px; letter-spacing:-2px; color:#111111; }
 .kreska { position:absolute; left:96px; bottom:150px; height:4px; width:calc(100% - 192px);
-  background:linear-gradient(90deg, #7c3aed, #a78bfa); transform-origin:left center;
+  background:#FF4A1C; transform-origin:left center;
   transform:scaleX(0); border-radius:3px; }
 </style></head><body>
 <div class="blask"></div>
@@ -819,7 +826,7 @@ window.setT = (t) => {
     logoEl.style.transform = 'rotateY(' + ry.toFixed(2) + 'deg)';
     logoEl.style.filter =
       'drop-shadow(0 ' + (10 + 8 * wzlot).toFixed(1) + 'px ' +
-      (30 + 12 * wzlot).toFixed(1) + 'px rgba(124,58,237,' + (0.55 - 0.12 * wzlot).toFixed(2) + '))';
+      (30 + 12 * wzlot).toFixed(1) + 'px rgba(255,74,28,' + (0.30 - 0.08 * wzlot).toFixed(2) + '))';
   }
   if (blask) {
     // Дыхание свечения заметное, а не деликатное: карточка висит три с
@@ -892,11 +899,11 @@ export function plytyHtml(plyty, total, akcent = '#7c3aed', akcent2 = '#a78bfa')
   const meta = JSON.stringify(plyty.map((p) => ({ a: +p.a, b: +p.b })));
 
   return `<!doctype html><html><head><meta charset="utf-8">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@800;900&family=Inter+Tight:wght@800;900&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { width:${W}px; height:${H}px; }
-body { background:transparent; overflow:hidden; font-family:'Inter',sans-serif; }
+body { background:transparent; overflow:hidden; font-family:'${font}','Inter',sans-serif; }
 .plyta { position:absolute; left:60px; width:${W - 120}px; opacity:0; }
 
 /* Хук. Кегль 164 — крупнее караоке (118), и это правильно: в первые секунды
@@ -1272,10 +1279,12 @@ async function zbudujStuki(zdarzenia, total, tmp) {
   const wejscia = [];
   const czesci = [];
   zdarzenia.forEach((z, i) => {
-    wejscia.push('-i', z.typ === 'swist' ? swist : klik);
+    // Свой звук из dzwieki/ (удар, свист, разгон) — 29.10: эффекты на хуке и
+    // переходах. Без файла — прежний синтез.
+    wejscia.push('-i', z.plik && existsSync(z.plik) ? z.plik : z.typ === 'swist' ? swist : klik);
     const ms = Math.max(0, Math.round(z.t * 1000));
     const gl = z.glosnosc ?? 1;
-    czesci.push(`[${i}:a]volume=${gl},adelay=${ms}|${ms}[k${i}]`);
+    czesci.push(`[${i}:a]aformat=sample_rates=48000:channel_layouts=stereo,volume=${gl},adelay=${ms}|${ms}[k${i}]`);
   });
   const mix =
     zdarzenia.map((_, i) => `[k${i}]`).join('') +
@@ -1373,9 +1382,17 @@ export async function zbuduj(plan) {
       const dur = +(+klip.dlugosc).toFixed(3);
       const od = +(klip.od ?? 0);
       const out = path.join(tmp, `hero${i}.mp4`);
+      // Темп куска (29.10, «больше динамики»): удар в замедлении 0,8×,
+      // проходной план чуть быстрее 1,15×. Источника берём dur×tempo, а
+      // setpts растягивает его ровно в dur — длина куска не меняется.
+      // tpad держит последний кадр, если исходник короче, чем нужно.
+      const tempo = Math.max(0.5, Math.min(2, +(klip.tempo ?? 1)));
       await ffmpeg([
-        '-ss', od.toFixed(3), '-t', dur.toFixed(3), '-i', klip.plik,
-        '-vf', `scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},fps=${FPS},setsar=1`,
+        '-ss', od.toFixed(3), '-t', (dur * tempo + 0.2).toFixed(3), '-i', klip.plik,
+        '-vf',
+        (tempo !== 1 ? `setpts=(PTS-STARTPTS)/${tempo.toFixed(3)},` : '') +
+          `scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},fps=${FPS},setsar=1,` +
+          `tpad=stop_mode=clone:stop_duration=${dur.toFixed(3)},trim=duration=${dur.toFixed(3)}`,
         '-an',
         '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'veryfast', '-crf', '19',
         out,
@@ -1628,7 +1645,7 @@ export async function zbuduj(plan) {
     plan.skora
       ? skoraHtml(plan.skora.typ, plan.skora.dane, { W, H })
       : karaoke
-      ? karaokeHtml(frazy, totalHero, plan.akcent || '#a78bfa')
+      ? karaokeHtml(frazy, totalHero, plan.akcent || '#a78bfa', { gra: plan.karaokeKolor || '#ffd23f', font: plan.fontNaglowek || 'Inter' })
       : podpisyHtml(bloki2, totalHero),
     totalHero,
     capDir,
@@ -1754,6 +1771,37 @@ export async function zbuduj(plan) {
         `y='(in_h-out_h)/2+${(amp * 0.7).toFixed(1)}*sin(2*PI*t/5.1+1.1)',setsar=1[dryf]`
     );
     baza = '[dryf]';
+  }
+  // ── удары (29.10, Митя: «нет мощного хука, не динамично») ──────────
+  // Зум-панч на склейке/ударном слове: кадр прыгает вперёд на 10–25 % и
+  // за ~0,25 с возвращается; на настоящих ударах — ещё и тряска. Вспышка —
+  // яркость на 2–3 кадра. Только КАРТИНКА: текстовые слои ложатся сверху и
+  // стоят намертво, поэтому подписи не обрезаются никогда.
+  const udary = (plan.udary || []).filter((u) => Number.isFinite(+u.t)).slice(0, 40);
+  if (udary.length) {
+    const okno = (u, k) =>
+      `if(between(in_time,${(+u.t).toFixed(3)},${(+u.t + 0.6).toFixed(3)}),exp(-(in_time-${(+u.t).toFixed(3)})*${k}),0)`;
+    const zoom = '1+' + udary.map((u) => `${(+u.z || 0.14).toFixed(3)}*${okno(u, 9)}`).join('+');
+    const trzes = udary.filter((u) => +u.wstrzas > 0);
+    const tx = trzes.length
+      ? '+' + trzes.map((u) => `${(+u.wstrzas).toFixed(1)}*sin(in_time*83)*${okno(u, 7)}`).join('+')
+      : '';
+    const ty = trzes.length
+      ? '+' + trzes.map((u) => `${(+u.wstrzas * 0.7).toFixed(1)}*cos(in_time*67)*${okno(u, 7)}`).join('+')
+      : '';
+    filtr.push(
+      `${baza}zoompan=z='${zoom}':x='max(0,min(iw-iw/zoom,iw/2-iw/zoom/2${tx}))':` +
+        `y='max(0,min(ih-ih/zoom,ih/2-ih/zoom/2${ty}))':d=1:s=${W}x${H}:fps=${FPS},setsar=1[udary]`
+    );
+    baza = '[udary]';
+  }
+  const blyski = (plan.blyski || []).filter((t) => Number.isFinite(+t)).slice(0, 20);
+  if (blyski.length) {
+    const jasn = blyski
+      .map((t) => `0.45*if(between(t,${(+t).toFixed(3)},${(+t + 0.3).toFixed(3)}),exp(-(t-${(+t).toFixed(3)})*22),0)`)
+      .join('+');
+    filtr.push(`${baza}eq=brightness='${jasn}':eval=frame,setsar=1[blyski]`);
+    baza = '[blyski]';
   }
   // Скин обрабатывает видео под своим слоем: размыть, ужать в окно, разрезать.
   const filtrSkory = filtrSkoryPlanu(plan.skora);
@@ -2059,6 +2107,10 @@ export async function zbuduj(plan) {
       czasyStukow.push({ t: +w.start + 0.14 + i * 0.17, typ: 'klik', glosnosc: 0.7 })
     );
   }
+  // Звуки монтажа от сборщика: удар на нулевом кадре, свист на стыках.
+  for (const d of plan.dzwieki || []) {
+    if (Number.isFinite(+d.t) && +d.t < totalWideo - 0.1) czasyStukow.push({ t: +d.t, plik: d.plik, glosnosc: d.glosnosc ?? 0.8 });
+  }
   const stuki = await zbudujStuki(czasyStukow, totalWideo, tmp);
 
   if (music) {
@@ -2075,7 +2127,10 @@ export async function zbuduj(plan) {
     // у второго трека полсекунды тишины в начале, и проверка честно нашла
     // «провал звука на 0.00 с». Заодно это лечит вялые интро — вступление
     // с нарастанием под двадцатисекундный ролик не годится вовсе.
-    let odMuzyki = await poczatekDzwieku(music);
+    // muzykaStala (29.10): трек уже порезан с дропа и стоит на сетке долей —
+    // начало берём ровно как задано, иначе склейки по биту разъедутся.
+    const stala = plan.muzykaStala === true;
+    let odMuzyki = stala ? 0 : await poczatekDzwieku(music);
     if (odMuzyki > 0.05) console.log(`[awatar] музыка со звука: ${odMuzyki.toFixed(2)} с`);
 
     // Кусок трека выбирается по ХУДШЕЙ секунде, а не по средней.
@@ -2086,7 +2141,13 @@ export async function zbuduj(plan) {
     // как обрыв, сколько бы ни было среднее.
     const dlTracku = await ffprobeDuration(music).catch(() => 0);
     const kandydaci = [0, 27, 54, 81].map((x) => +(odMuzyki + x).toFixed(3));
-    const wybor = await wybierzWejscie(
+    const wybor = stala
+      ? await (async () => {
+          const od = +(plan.muzykaOd || 0);
+          const sr = await sredniaGlosnosc(music, od, Math.min(totalWideo, Math.max(1, dlTracku - od)));
+          return { od, srednia: Number.isFinite(sr) ? sr : -16, min: Number.isFinite(sr) ? sr : -16 };
+        })()
+      : await wybierzWejscie(
       music,
       kandydaci,
       totalWideo,

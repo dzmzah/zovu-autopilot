@@ -327,7 +327,14 @@ export function zywaMowa(frazy, doWymowy) {
 
 // С 19.10.2026 — подача слепой пробы, на которой Захар выбрал Iapetus:
 // голос выбирался вместе с ней, другая подача — это уже другой голос.
-const GOOGLE_PODANIE =
+// 29.10.2026 Митя: «голос какой-то ИИшный». Провайдера выбирает он; пока —
+// вариант подачи GLOS_STYL=energia: живее, быстрее, с напором, как автор
+// коротких видео, а не рассказчик за кофе. Без переменной — прежняя подача.
+const PODANIE_ENERGIA =
+  'Mów jak młody twórca krótkich filmików, który nagrywa rolkę telefonem: energicznie, pewnie, z uśmiechem, ' +
+  'szybko i rytmicznie, z naturalnym akcentem na najważniejszym słowie w zdaniu. Nie jak lektor, nie jak reklama radiowa. ' +
+  'Krótkie, żywe zdania jedno za drugim, bez zwalniania i bez długich przerw.';
+const GOOGLE_PODANIE = process.env.GLOS_STYL === 'energia' ? PODANIE_ENERGIA :
   'Mów jak zwykły chłopak, który opowiada coś znajomemu przy kawie: naturalnie i swobodnie, ' +
   'z lekkim uśmiechem w głosie, z oddechami i drobnymi zawahaniami. Nie jak lektor, nie jak reklama. ' +
   'Prowadź jedną myśl do końca, nie recytuj listy. ' +
@@ -338,7 +345,7 @@ const GOOGLE_PODANIE =
 // Насколько быстро говорит живой диктор в коротком видео. Ниже — тянет,
 // выше — тараторит. Порог взят с наших же замеров: принятые ролики шли
 // 3,5-4,5 слога в секунду.
-const TEMPO_DUBLA_MIN = 2.9;
+const TEMPO_DUBLA_MIN = process.env.GLOS_STYL === 'energia' ? 3.5 : 2.9;
 
 // Проверка произношения. 20.10 Захар: «иногда голос где-то не так
 // произнесёт». Whisper всё равно слушает каждый дубль ради времени слов —
