@@ -1544,8 +1544,8 @@ const plan = {
   muzykaOd: muz ? +(muz.siatka || 0) : [0, 27, 54, 81][wydanie % 4],
   muzykaStala: !!muz,
   // Без голоса музыка — главный звук ролика, а не подложка под речью.
-  podkladGlosnosc: BEZ_GLOSU ? 0.95 : 0.13,
-  podkladOgon: BEZ_GLOSU ? 0.95 : 0.3,
+  podkladGlosnosc: BEZ_GLOSU ? 0.8 : 0.13,
+  podkladOgon: BEZ_GLOSU ? 0.8 : 0.3,
   powietrzeTlo: 0.02,
   stukiGlosnosc: 0.5,
   najazd: 1.1,
@@ -1634,10 +1634,11 @@ if (SKORA) {
     style.split(',').filter(Boolean).forEach((t, i) => { wymus[i] = t; });
     przejscia.split(',').filter(Boolean).forEach((t, i) => { wymus['p' + (i + 1)] = t; });
     const ziarno = `${scen.nazwa}-${dzis}`;
-    let m = planMiksu(plan.skora.dane.frazy, ziarno, { wymus });
+    const bez = KLIENT ? ['split'] : [];
+    let m = planMiksu(plan.skora.dane.frazy, ziarno, { wymus, bez });
     // Режиссёр: из сорока раскладок — та, что меньше похожа на ленту.
     if (oprawa && !process.env.MIKS) {
-      const kand = Array.from({ length: 40 }, (_, k) => planMiksu(plan.skora.dane.frazy, `${ziarno}-${k}`));
+      const kand = Array.from({ length: 40 }, (_, k) => planMiksu(plan.skora.dane.frazy, `${ziarno}-${k}`, { bez }));
       m = wybierzMiks(kand, oprawa, historiaM).m;
     }
     Object.assign(plan.skora.dane, m);

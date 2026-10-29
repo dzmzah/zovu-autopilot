@@ -486,7 +486,7 @@ function losuj(ziarno) {
  * @param {string} ziarno — например имя сценария + дата
  * @param {{wymus?: Record<string,string>}} [o] — для проб: {0:'slowo', 1:'czat', p1:'iris'}
  */
-export function planMiksu(frazy, ziarno, { wymus = {} } = {}) {
+export function planMiksu(frazy, ziarno, { wymus = {}, bez = [] } = {}) {
   const los = losuj(ziarno);
   const wybierz = (lista) => lista[Math.floor(los() * lista.length)];
   const n = frazy.length;
@@ -521,7 +521,9 @@ export function planMiksu(frazy, ziarno, { wymus = {} } = {}) {
   const segmenty = [];
   kawalki.forEach((k, nr) => {
     const uzyte = segmenty.map((s) => s.typ);
-    const pula = PULE[k.czesc].filter((t) => t !== uzyte.at(-1));
+    // `bez` — стили, которые этому ролику не идут (кейс клиента: «NIE TAK»
+    // поверх его же гали читается как упрёк клиенту).
+    const pula = PULE[k.czesc].filter((t) => t !== uzyte.at(-1) && !bez.includes(t));
     const swieze = pula.filter((t) => !uzyte.includes(t));
     let typ = wymus[nr] || wybierz(swieze.length ? swieze : pula);
     // «Так / не так» без второй половины бессмысленен: сверху хук, снизу —
