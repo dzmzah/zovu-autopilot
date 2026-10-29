@@ -24,8 +24,12 @@ const KIND = (process.argv.find((a) => a.startsWith('--kind=')) || '').split('='
 const UKLAD = (process.argv.find((a) => a.startsWith('--uklad=')) || '').split('=')[1] || undefined;
 // --post=<id> — принудительно взять пост из банка (posty-bank.json).
 const POST_ID = (process.argv.find((a) => a.startsWith('--post=')) || '').split('=')[1] || undefined;
-// --stary — старый генератор (content-engine) вместо банка редакции. Только для проверок.
-const STARY = process.argv.includes('--stary');
+// 29.10.2026 Митя: «прошлые версии постов нравятся» — по умолчанию снова старый
+// генератор (content-engine + тёмный дизайн render.mjs), только с нормальным
+// подбором и постановкой фото (photo.mjs). Банк редакции и светлый дизайн
+// остаются: --bank или ZOVU_POSTY=bank. --stary оставлен для совместимости.
+const BANK = process.argv.includes('--bank') || String(process.env.ZOVU_POSTY || '').trim() === 'bank' || Boolean(POST_ID);
+const STARY = !BANK || process.argv.includes('--stary');
 
 const IG_API = 'https://graph.instagram.com/v23.0';
 // На сервере GitHub Actions картинки кладём в этот же репозиторий (он публичный),
@@ -471,9 +475,9 @@ if (!DRY && !KIND) {
   }
 }
 
-// Графика по умолчанию идёт из банка редакции (posty-redakcja.mjs) и новым
-// дизайном (posty-design.mjs). Старый генератор остаётся для рилса
-// (--kind=reel) и для проверок (--stary).
+// Графика по умолчанию — старый генератор и тёмный дизайн (см. BANK выше).
+// Банк редакции (posty-redakcja.mjs) и светлый дизайн (posty-design.mjs) —
+// по --bank / ZOVU_POSTY=bank / --post=<id>.
 let post;
 let files;
 let zBanku = null;

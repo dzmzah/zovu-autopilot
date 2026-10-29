@@ -1,0 +1,40 @@
+name: posty stary design — test zdjęć
+
+# Próba po zmianie doboru zdjęć (29.10.2026): generuje bez publikacji po jednym
+# poście na każdy układ i karuzelę, wrzuca obrazki do artefaktu.
+on:
+  push:
+    branches: [feature/posty-stary-foto]
+    paths: [photo.mjs, content-engine.mjs, render.mjs, .github/workflows/posty-stary-test.yml]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci || npm install
+      - run: npx playwright install --with-deps chromium
+      - name: Posty (dry)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_KEY: ${{ secrets.GROQ_KEY }}
+          PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
+          ZOVU_BG_DIR: ${{ github.workspace }}/bg
+          ZOVU_READY_DIR: ${{ github.workspace }}/out
+        run: |
+          mkdir -p out
+          for u in foto lista cytat foto lista; do
+            node run-once.mjs --dry --uklad=$u 2>&1 | tee -a out/log.txt || true
+          done
+          node run-once.mjs --dry --kind=carousel 2>&1 | tee -a out/log.txt || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: posty-stary-test
+          path: |
+            out/
+            bg-photo/
+          retention-days: 7

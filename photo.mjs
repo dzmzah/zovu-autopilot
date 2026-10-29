@@ -87,7 +87,7 @@ function jasnosc(hex) {
 // Затемнение держим ЛЁГКИМ. На рилсах уже наступали на эти грабли: притушили
 // «как надо» — и живой съёмки стало не видно вообще, то есть незачем было её
 // брать. Контраст букв даёт вуаль слева, а не заливка всего кадра.
-async function zloz(buf) {
+async function zloz(buf, okno = null) {
   const W = 1080;
   const H = 1350;
   const artW = W;
@@ -95,9 +95,11 @@ async function zloz(buf) {
   // Дуотон в меру. Живой кадр рядом с фиолетовым логотипом выглядел как
   // случайная картинка из интернета, полный дуотон синил лица. Смесь держит
   // палитру бренда и не убивает естественность кожи.
-  const naturalny = await sharp(buf)
-    // 'attention' оставляет в кадре главное — лицо или предмет, а не угол стены
-    .resize(artW, H, { fit: 'cover', position: 'attention' })
+  const naturalny = await (okno ? sharp(buf).rotate().extract(okno) : sharp(buf).rotate())
+    // Окно считает kadruj() по рамке главного объекта от модели: объект целиком
+    // и там, где его не закроет текст. Без рамки (модель молчит, свой кадр) —
+    // 'attention', как раньше.
+    .resize(artW, H, okno ? { fit: 'fill' } : { fit: 'cover', position: 'attention' })
     // Светлее, чем кажется правильным. Первая версия утонула в чёрном: Захар
     // сказал «темновато». В ленте пост конкурирует за взгляд, а тёмное пятно
     // пролистывают не читая.
@@ -183,6 +185,58 @@ async function zloz(buf) {
     .toBuffer();
 }
 
+// ── где в посте свободно от букв (29.10.2026) ─────────────────────
+// Митя: «чтобы фотки были нормально выбраны и нормально стояли». В старых
+// постах лицо сидело ровно под заголовком, а 'attention' резал кадр вслепую.
+// Теперь модель отдаёт рамку главного объекта, и окно кадра двигается так,
+// чтобы объект целиком попал в зону, где текста нет:
+//   • foto / item — текст прижат к низу, объект в верхней половине;
+//   • lista / cytat / cover — текст колонкой слева под тёмной вуалью,
+//     объект справа (там вуаль почти прозрачная).
+// Доли кадра 1080×1350.
+const STREFY = {
+  foto: { x0: 0.04, x1: 0.96, y0: 0.03, y1: 0.52 },
+  item: { x0: 0.04, x1: 0.96, y0: 0.03, y1: 0.5 },
+  lista: { x0: 0.46, x1: 0.99, y0: 0.03, y1: 0.97 },
+  cytat: { x0: 0.46, x1: 0.99, y0: 0.03, y1: 0.97 },
+  cover: { x0: 0.46, x1: 0.99, y0: 0.03, y1: 0.97 },
+};
+
+// Окно 4:5 в координатах снимка, в котором рамка объекта (box, доли 0–1)
+// целиком лежит в зоне. Сначала без зума, потом приближаем до ×1.6, но не
+// мельче 760 px по ширине (иначе апскейл мылит). null — не помещается:
+// такой кадр под этот макет не берём, а не режем объект.
+export function kadruj(W0, H0, box, uklad = 'foto') {
+  const Z = STREFY[uklad] || STREFY.foto;
+  const r = 1080 / 1350;
+  const bx0 = box[0] * W0, by0 = box[1] * H0, bx1 = box[2] * W0, by1 = box[3] * H0;
+  const bw = bx1 - bx0, bh = by1 - by0;
+  const chMax = Math.min(H0, W0 / r);
+  for (let z = 1; z <= 1.6001; z += 0.1) {
+    const ch = chMax / z;
+    const cw = ch * r;
+    if (cw < 760) break;
+    // объект с запасом 3% кадра со всех сторон
+    const m = 0.03;
+    if (bw > (Z.x1 - Z.x0 - 2 * m) * cw || bh > (Z.y1 - Z.y0 - 2 * m) * ch) continue;
+    const zcx = (Z.x0 + Z.x1) / 2, zcy = (Z.y0 + Z.y1) / 2;
+    let wx = (bx0 + bx1) / 2 - zcx * cw;
+    let wy = (by0 + by1) / 2 - zcy * ch;
+    wx = Math.max(0, Math.min(W0 - cw, wx));
+    wy = Math.max(0, Math.min(H0 - ch, wy));
+    const fx0 = (bx0 - wx) / cw, fx1 = (bx1 - wx) / cw;
+    const fy0 = (by0 - wy) / ch, fy1 = (by1 - wy) / ch;
+    if (fx0 >= Z.x0 && fx1 <= Z.x1 && fy0 >= Z.y0 && fy1 <= Z.y1) {
+      return { left: Math.round(wx), top: Math.round(wy), width: Math.round(cw), height: Math.round(ch) };
+    }
+  }
+  return null;
+}
+
+async function podglad(buf) {
+  return sharp(buf).rotate().resize(1024, 1024, { fit: 'inside' }).jpeg({ quality: 82 }).toBuffer();
+}
+
 // Чужой логотип в нашем посте — отдельная неприятность: первый же кадр из
 // поиска пришёл с читаемой надписью «dermalogica» на футболке. Стоки полны
 // брендов, глазами это не отсмотришь, поэтому спрашиваем зрение модели.
@@ -193,36 +247,38 @@ async function zloz(buf) {
 // давала до 36 вызовов и могла выесть дневной лимит, после чего пост не
 // напишется вовсе: картинка важна, но текст важнее. Кончился бюджет — кадры
 // идут без проверки, и об этом сказано в логе, а не тихо.
-let budzetOcen = Number(process.env.ZOVU_LIMIT_OCEN || 12);
+let budzetOcen = Number(process.env.ZOVU_LIMIT_OCEN || 40);
 
+// 29.10.2026: проверка больше НЕ пропускает кадр молча. Раньше при сбое модели,
+// без ключа или после конца бюджета кадр шёл в пост без глаз — так под текст
+// про шаблоны встала собака. Теперь null = «не проверен», и стоковый кадр
+// без проверки в ленту не идёт (движок возьмёт следующий или откатится).
+// Модель смотрит на СЫРОЙ снимок и отдаёт рамку главного объекта: по ней
+// kadruj() ставит объект туда, где нет букв.
 async function ocenKadr(buf, query) {
   const key = process.env.GEMINI_API_KEY;
-  if (!key) return { logo: false, kadr: true, temat: 2, stop: false };
+  if (!key) return null;
   if (budzetOcen <= 0) {
-    console.warn('[photo] limit sprawdzania kadrów wyczerpany — biorę kadr bez kontroli logo');
-    return { logo: false, kadr: true, temat: 2, stop: false };
+    console.warn('[photo] limit sprawdzania kadrów wyczerpany — kadrów bez kontroli nie biorę');
+    return null;
   }
   budzetOcen--;
 
   // Спрашиваем ЖЁСТКО и с перечнем мест, где знак прячется. Мягкая формулировка
-  // пропустила щит Lamborghini на стене автосервиса — крупный, читаемый, ровно
-  // тот случай, ради которого проверка и заведена. Модель отвечает «нет», когда
-  // сомневается, поэтому сомнение надо трактовать за нас: сказано «если не
-  // уверен — считай, что логотип есть».
+  // пропустила щит Lamborghini на стене автосервиса. Сомнение трактуем за нас.
   const pytanie =
     'Oceniasz kadr do posta agencji marketingowej. Odpowiedz TYLKO obiektem JSON:\n' +
-    '{"logo": true/false, "kadr": true/false, "temat": 0/1/2, "stop": true/false}\n' +
+    '{"logo": true/false, "kadr": true/false, "ostry": true/false, "temat": 0/1/2, "stop": true/false, "box_2d": [ymin, xmin, ymax, xmax]}\n' +
     `temat = jak blisko kadr jest tematu „${String(query || '').slice(0, 60)}":\n` +
-    '  2 = scena z tej samej dziedziny (nie musi być dosłowna zgodność),\n' +
-    '  1 = neutralna scena pracy, biura, miasta albo warsztatu — nie ten temat,\n' +
-    '      ale kadr pasowałby pod dowolny post o prowadzeniu firmy,\n' +
+    '  2 = na pierwszy rzut oka widać scenę z tej dziedziny (człowiek przy tej pracy, ten przedmiot),\n' +
+    '  1 = neutralna scena pracy, biura, sklepu albo warsztatu z człowiekiem lub narzędziem,\n' +
     '  0 = zupełnie inna bajka: zwierzęta, przyroda, sport, wakacje, wnętrza\n' +
-    '      prywatne, puste i opuszczone miejsca bez ludzi i bez pracy.\n' +
-    'W razie wątpliwości między 2 a 1 odpowiedz 2, między 1 a 0 odpowiedz 0.\n' +
+    '      prywatne, bałagan, puste i opuszczone miejsca bez ludzi i bez pracy.\n' +
+    'W razie wątpliwości między 2 a 1 odpowiedz 1, między 1 a 0 odpowiedz 0.\n' +
     'stop = czy w kadrze jest coś, czego marka nie postawi za tekstem NIGDY:\n' +
-    '  zwierzę, dziecko, klatka lub kraty, szpital, lekarstwa, cmentarz, broń,\n' +
+    '  zwierzę (także pies lub kot w tle), dziecko, klatka lub kraty, szpital, lekarstwa, cmentarz, broń,\n' +
     '  symbole religijne, polityka, alkohol, wypadek, przemoc, człowiek w złym\n' +
-    '  stanie albo smutna, przygnębiająca scena. Jeśli tak — true.\n' +
+    '  stanie, starość i bieda, bałagan, smutna lub przygnębiająca scena. Jeśli tak — true.\n' +
     'logo = czy w kadrze widać JAKIKOLWIEK cudzy znak firmowy. Szukaj wszędzie:\n' +
     '  • emblematy i logotypy aut (na masce, kierownicy, feldze, na ścianie warsztatu)\n' +
     '  • plakaty, szyldy, banery, naklejki, tablice reklamowe\n' +
@@ -232,10 +288,13 @@ async function ocenKadr(buf, query) {
     'rozpoznać. NIE liczy się tekst nieczytelny ani sam kształt bez marki.\n' +
     'Jeśli masz wątpliwość, czy to znak marki — odpowiedz true.\n' +
     'kadr = czy kadr jest czytelny: widać, co się dzieje, a jeśli jest człowiek, ' +
-    'to widać jego twarz lub całą sylwetkę, a nie sam fragment tułowia bez głowy.';
+    'to widać jego twarz lub całą sylwetkę, a nie sam fragment tułowia bez głowy.\n' +
+    'ostry = czy główny obiekt jest ostry i dobrze oświetlony (nie rozmyty, nie w ciemności, nie za szybą).\n' +
+    'box_2d = ramka GŁÓWNEGO obiektu w skali 0–1000: człowiek razem z głową i rękami przy pracy ' +
+    '(jeśli jest kilku, ramka obejmuje wszystkich ważnych), przedmiot w całości. Ramka ciasna, ale nic nie ucięte.';
 
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 20000);
+  const timer = setTimeout(() => ctrl.abort(), 30000);
   try {
     const r = await fetch(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' + key,
@@ -252,55 +311,83 @@ async function ocenKadr(buf, query) {
               ],
             },
           ],
-          generationConfig: { temperature: 0, maxOutputTokens: 60, responseMimeType: 'application/json' },
+          // запас по токенам: «думающая» flash тратит их до ответа, и при 60
+          // JSON обрывался — а оборванный ответ раньше считался «кадр годен»
+          generationConfig: { temperature: 0, maxOutputTokens: 2048, responseMimeType: 'application/json' },
         }),
       }
     );
-    if (!r.ok) return { logo: false, kadr: true, temat: 2, stop: false };
+    if (!r.ok) {
+      console.warn(`[photo] ocena kadru: Gemini ${r.status}`);
+      return null;
+    }
     const j = await r.json();
-    const tekst = j.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const tekst = (j.candidates?.[0]?.content?.parts || []).map((x) => x.text || '').join('');
     const o = JSON.parse(tekst);
-    // Старый ответ был булевым. Если модель по привычке пришлёт true/false,
-    // читаем его как 2/0 — иначе Number(true) даст 1 и кадр «не из той оперы»
-    // молча получит статус запасного.
     const temat =
       typeof o.temat === 'boolean' ? (o.temat ? 2 : 0) : Math.max(0, Math.min(2, Number(o.temat) || 0));
-    return { logo: o.logo === true, kadr: o.kadr !== false, temat, stop: o.stop === true };
-  } catch {
-    // модель не ответила или прислала не JSON — пропускаем кадр дальше:
-    // контроль страхует публикацию, а не решает за неё
-    return { logo: false, kadr: true, temat: 2, stop: false };
+    let box = null;
+    const b = Array.isArray(o.box_2d) ? o.box_2d.map(Number) : null;
+    if (b && b.length === 4 && b.every((v) => Number.isFinite(v))) {
+      const [y0, x0, y1, x1] = b.map((v) => Math.max(0, Math.min(1000, v)) / 1000);
+      if (x1 - x0 > 0.03 && y1 - y0 > 0.03) box = [x0, y0, x1, y1];
+    }
+    return {
+      logo: o.logo === true,
+      kadr: o.kadr !== false,
+      ostry: o.ostry !== false,
+      temat,
+      stop: o.stop === true,
+      box,
+    };
+  } catch (e) {
+    console.warn(`[photo] ocena kadru nie wyszła: ${e.message}`);
+    return null;
   } finally {
     clearTimeout(timer);
   }
 }
 
+// Рамка → окно кадра. Нет рамки — окно не задаём (сработает 'attention').
+async function oknoDla(buf, ocena, uklad) {
+  if (!ocena?.box) return { okno: null, pasuje: false };
+  const m = await sharp(buf).rotate().metadata();
+  // после rotate() metadata отдаёт размеры до поворота — для EXIF 5–8 меняем местами
+  const obrot = (m.orientation || 1) >= 5;
+  const W0 = obrot ? m.height : m.width;
+  const H0 = obrot ? m.width : m.height;
+  const okno = kadruj(W0, H0, ocena.box, uklad);
+  return { okno, pasuje: Boolean(okno) };
+}
+
 // Ищем кадр под запрос. Возвращаем null (а не бросаем), чтобы вызывающий
 // спокойно откатился на генерацию: пост важнее источника картинки.
-export async function findPhoto(query, { name, nth = 0 } = {}) {
+// uklad — макет поста (foto / lista / cytat / item / cover): от него зависит,
+// где в кадре свободно от текста и куда ставить главный объект.
+export async function findPhoto(query, { name, nth = 0, uklad = 'foto' } = {}) {
   const tryb = String(process.env.ZOVU_FOTO || '').trim().toLowerCase();
 
-  // Сначала своя папка. Кадр оттуда проходит ту же обработку, что и стоковый,
-  // поэтому в шаблоне он сидит один в один и ничего подкручивать не нужно.
+  // Сначала своя папка. Кадр одобрен человеком, поэтому без проверки модели
+  // он годен; модель спрашиваем только про рамку, чтобы правильно поставить.
   if (tryb !== 'stock') {
     const pliki = await wlasneKadry();
     if (pliki.length) {
       const wybrany = dopasuj(pliki, query, nth);
       try {
         const buf = await readFile(path.join(WLASNE_DIR, wybrany));
-        const gotowy = await zloz(buf);
+        const ocena = await ocenKadr(await podglad(buf), query);
+        const { okno } = await oknoDla(buf, ocena, uklad);
+        const gotowy = await zloz(buf, okno);
         await mkdir(PHOTO_DIR, { recursive: true });
         const safe = (name || `foto-${nth}`).replace(/[^a-zA-Z0-9._-]/g, '-');
         const file = path.join(PHOTO_DIR, `${safe}.jpg`);
         await writeFile(file, gotowy);
-        console.log(`[photo] własny kadr: ${wybrany}`);
+        console.log(`[photo] własny kadr: ${wybrany}${okno ? ' (kadr po obiekcie)' : ''}`);
         return { file, query, autor: 'ZOVU', zrodlo: 'foto/' + wybrany, wlasne: true };
       } catch (e) {
         console.warn(`[photo] własny kadr ${wybrany} nie wyszedł: ${e.message}`);
       }
     } else if (tryb === 'wlasne') {
-      // Режим «только свои», а папка пуста — молчать нельзя: движок откатится
-      // на генерённые фоны, и человек решит, что подбор сломался.
       console.warn('[photo] ZOVU_FOTO=wlasne, ale folder foto/ jest pusty — nie ma z czego wybierać');
       return null;
     }
@@ -309,17 +396,17 @@ export async function findPhoto(query, { name, nth = 0 } = {}) {
 
   const key = await klucz();
   if (!key || !query) return null;
+  // Без глаз модели сток не берём вовсе (см. ocenKadr): лучше генерённый фон,
+  // чем случайная картинка в ленте.
+  if (!process.env.GEMINI_API_KEY) {
+    console.warn('[photo] brak GEMINI_API_KEY — nie sprawdzę kadru, stocku nie biorę');
+    return null;
+  }
 
-  // locale=pl-PL — поиск в польском контексте. Клиент у нас в Катовицах, и
-  // кадр должен читаться как местный малый бизнес, а не как безликий сток из
-  // калифорнийского опенспейса: другие вывески, интерьеры, улицы, одежда.
-  // Отбор идёт по МЕСТУ И ОБСТАНОВКЕ. Людей по внешности не фильтруем.
-  // Запрос печатаем: когда 07.09 под текстом про ИИ встала собака, в логе
-  // были только имена фотографов — понять, ЧТО мы искали, стало нельзя.
-  console.log(`[photo] szukam w Pexels: "${query}"`);
+  console.log(`[photo] szukam w Pexels: "${query}" (układ ${uklad})`);
   const url =
     `${API}?query=${encodeURIComponent(query)}` +
-    '&orientation=portrait&size=medium&per_page=20&locale=pl-PL';
+    '&orientation=portrait&size=medium&per_page=30&locale=pl-PL';
 
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 20000);
@@ -334,10 +421,7 @@ export async function findPhoto(query, { name, nth = 0 } = {}) {
     clearTimeout(timer);
   }
 
-  // Целимся в СЕРЕДИНУ яркости, а не в самый тёмный кадр. Сначала брали
-  // «потемнее, чтобы буквы читались» — и посты вышли мрачными, Захар сказал
-  // «темновато». Контраст текста даёт вуаль, а кадр должен быть живым:
-  // тёмное пятно в ленте пролистывают, не читая.
+  // Целимся в СЕРЕДИНУ яркости: тёмное пятно в ленте пролистывают, не читая.
   const CEL = 0.46;
   const kandydaci = (dane.photos || []).filter((p) => {
     const j = jasnosc(p.avg_color);
@@ -347,15 +431,12 @@ export async function findPhoto(query, { name, nth = 0 } = {}) {
 
   kandydaci.sort((a, b) => Math.abs(jasnosc(a.avg_color) - CEL) - Math.abs(jasnosc(b.avg_color) - CEL));
 
-  // Идём по кандидатам, пока не попадётся кадр без чужого логотипа. Шесть, а
-  // не четыре: после ужесточения проверки отсев вырос, и на «брендовых» темах
-  // (авто, техника) четырёх кандидатов стало не хватать — движок откатывался
-  // на генерённый фон, хотя годный кадр стоял пятым.
-  // Запасной кадр: чужого логотипа нет, но сцена не в тему. Пригодится, если
-  // не подойдёт никто — иначе пост молча вернётся к 3D-заглушке.
+  // Запасной кадр: всё в порядке, но сцена рядом с темой (temat 1). Берётся,
+  // только если он сам по себе чистый: без логотипа, без стоп-сюжета, резкий,
+  // объект целиком и не под текстом.
   let zapasowy = null;
 
-  for (const wybrany of kandydaci.slice(0, 6)) {
+  for (const wybrany of kandydaci.slice(0, 8)) {
     const zrodlo = wybrany.src?.large2x || wybrany.src?.large || wybrany.src?.original;
     if (!zrodlo) continue;
 
@@ -367,44 +448,40 @@ export async function findPhoto(query, { name, nth = 0 } = {}) {
       const buf = Buffer.from(await r.arrayBuffer());
       if (buf.length < 20000) throw new Error('zdjęcie podejrzanie małe');
 
-      const gotowy = await zloz(buf);
-      // проверяем УЖЕ сложенный кадр: часть снимка растворяется к центру,
-      // поэтому и лого, и обрезка оцениваются ровно в том виде, в каком
-      // попадут в ленту
-      const ocena = await ocenKadr(gotowy, query);
-      if (ocena.logo) {
-        console.log(`[photo] pomijam: obce logo w kadrze (${wybrany.photographer})`);
+      const ocena = await ocenKadr(await podglad(buf), query);
+      if (!ocena) {
+        console.log(`[photo] pomijam: kadru nie udało się sprawdzić (${wybrany.photographer})`);
+        if (budzetOcen <= 0) break;
         continue;
       }
-      if (!ocena.kadr) {
-        console.log(`[photo] pomijam: kadr nieczytelny, np. tułów bez głowy (${wybrany.photographer})`);
-        continue;
-      }
-      // Сюжет, который бренд не поставит за текст ни при каких раскладах.
-      // Такой кадр не идёт даже в запас: 07.09 под постом про приложения ИИ
-      // вышла СОБАКА ЗА РЕШЁТКОЙ — запасным кадром, потому что запас брался
-      // без разбора. Одна такая публикация стоит дороже, чем день без фото.
       if (ocena.stop) {
         console.log(`[photo] odrzucam na amen: scena nie dla marki (${wybrany.photographer})`);
         continue;
       }
-      // Кадр «про отрасль», но не про сцену. Стоку всё равно: по запросу
-      // «мастерская» он отдаёт и заброшенную промзону — тема угадана, а
-      // происходящего в кадре нет. В посте это читается как случайная картинка.
-      //
-      // Такой кадр держим в запасе, а не выбрасываем: чужого логотипа в нём
-      // нет, значит он хуже подходящего, но лучше генерённой заглушки —
-      // а именно на неё движок откатывается, когда не подошёл никто.
-      // В ЗАПАС идёт только близкое (1). Совсем чужое (0) выбрасываем: между
-      // «случайной картинкой» и «картинкой из другой вселенной» разница не в
-      // степени, а в том, читается ли пост как наш.
+      if (ocena.logo) {
+        console.log(`[photo] pomijam: obce logo w kadrze (${wybrany.photographer})`);
+        continue;
+      }
+      if (!ocena.kadr || !ocena.ostry) {
+        console.log(`[photo] pomijam: kadr nieczytelny albo nieostry (${wybrany.photographer})`);
+        continue;
+      }
+      if (ocena.temat === 0) {
+        console.log(`[photo] pomijam: kadr z innej bajki (${wybrany.photographer})`);
+        continue;
+      }
+      // Главное целиком и не под буквами. Не поместился — не режем объект,
+      // а берём следующий кадр.
+      const { okno, pasuje } = await oknoDla(buf, ocena, uklad);
+      if (!pasuje) {
+        console.log(`[photo] pomijam: obiekt nie mieści się w wolnym miejscu układu ${uklad} (${wybrany.photographer})`);
+        continue;
+      }
+      const gotowy = await zloz(buf, okno);
+
       if (ocena.temat < 2) {
-        if (ocena.temat === 1) {
-          console.log(`[photo] do zapasu: scena obok tematu (${wybrany.photographer})`);
-          if (!zapasowy) zapasowy = { buf: gotowy, autor: wybrany.photographer, zrodlo: wybrany.url };
-        } else {
-          console.log(`[photo] pomijam: kadr z innej bajki (${wybrany.photographer})`);
-        }
+        console.log(`[photo] do zapasu: scena obok tematu (${wybrany.photographer})`);
+        if (!zapasowy) zapasowy = { buf: gotowy, autor: wybrany.photographer, zrodlo: wybrany.url };
         continue;
       }
 
@@ -412,6 +489,7 @@ export async function findPhoto(query, { name, nth = 0 } = {}) {
       const safe = (name || `foto-${Date.now()}`).replace(/[^a-zA-Z0-9._-]/g, '-');
       const file = path.join(PHOTO_DIR, `${safe}.jpg`);
       await writeFile(file, gotowy);
+      console.log(`[photo] biorę: ${wybrany.photographer}, okno ${okno.width}×${okno.height} od ${okno.left},${okno.top}`);
       return { file, query, autor: wybrany.photographer, zrodlo: wybrany.url };
     } catch {
       continue;
@@ -420,15 +498,13 @@ export async function findPhoto(query, { name, nth = 0 } = {}) {
     }
   }
 
-  // Никто не подошёл по теме. Живой кадр без чужого логотипа всё равно лучше
-  // генерённой стеклянной заглушки — именно за неё нас и ругали.
   if (zapasowy) {
     try {
       await mkdir(PHOTO_DIR, { recursive: true });
       const safe = (name || `foto-${nth}`).replace(/[^a-zA-Z0-9._-]/g, '-');
       const file = path.join(PHOTO_DIR, `${safe}.jpg`);
       await writeFile(file, zapasowy.buf);
-      console.log(`[photo] biorę kadr zapasowy (nikt nie pasował do tematu): ${zapasowy.autor}`);
+      console.log(`[photo] biorę kadr zapasowy (nikt nie pasował dokładnie do tematu): ${zapasowy.autor}`);
       return { file, query, autor: zapasowy.autor, zrodlo: zapasowy.zrodlo };
     } catch {
       /* не вышло — уходим в откат на генерацию */
@@ -440,7 +516,8 @@ export async function findPhoto(query, { name, nth = 0 } = {}) {
 
 // node photo.mjs "small business owner phone" — проверить поиск руками
 if (process.argv[1] && process.argv[1].endsWith('photo.mjs')) {
-  const q = process.argv.slice(2).join(' ') || 'small business owner smartphone';
-  const wynik = await findPhoto(q, { name: 'test' });
+  const ukl = (process.argv.find((a) => a.startsWith('--uklad=')) || '').split('=')[1] || 'foto';
+  const q = process.argv.slice(2).filter((a) => !a.startsWith('--')).join(' ') || 'small business owner smartphone';
+  const wynik = await findPhoto(q, { name: 'test', uklad: ukl });
   console.log(wynik || 'nic nie znaleziono');
 }
