@@ -41,6 +41,7 @@ import {
 import { ZAKONCZENIA } from './zakonczenia.mjs';
 import { historiaMontazu, wybierzOprawe, wybierzMiks } from './rezyser.mjs';
 import { SKORY, planMiksu, ruchSkory } from './skory.mjs';
+import { wybierzMuzyke, klientScenariusza, pulaKlienta, dobierzUjecie, siatkaCiec, planUdarow, krokSiatki } from './dynamika.mjs';
 
 const DIR = import.meta.dirname;
 const OUT = path.join(DIR, 'out');
@@ -1279,7 +1280,9 @@ console.log(`[rolka-auto] концовка: ${ZAKONCZENIE}${zakTekst.cta ? ' —
 const BEZ_GLOSU = process.argv.includes('--bez-glosu');
 
 function udawanyGlos(frazy, przedPierwsza = 0.45) {
-  const TEMPO = 4.6; // слогов в секунду — середина здоровой полосы 3,9-5,6
+  // Без голоса (вариант «текст + музыка», 29.10) фразу надо успеть ПРОЧИТАТЬ:
+  // 4,0 слога/с вместо 4,6.
+  const TEMPO = +(process.env.TEMPO_BEZ_GLOSU || 4.0); // слогов в секунду
   const sylaby = (s) => (String(s).toLowerCase().match(/[aeiouyąęó]/g) || []).length || 1;
   const meta = [];
   let czas = przedPierwsza;
@@ -1330,6 +1333,18 @@ if (BEZ_GLOSU) {
 }
 console.log(`[rolka-auto] голос: ${glos.dlugosc.toFixed(2)} с, слов ${glos.slowa.length}`);
 
+// 1б. Музыка по настроению (dynamika.mjs) — до подложки: склейки встают на
+//     её сетку долей. Трек уже порезан с дропа, стартует на сильной доле.
+const muz = await wybierzMuzyke(scen, { stanPlik: STAN, ziarno: dzis });
+if (muz) console.log(`[rolka-auto] музыка: ${path.basename(muz.plik)} · ${muz.gatunek}/${muz.nastroj} · ${muz.bpm} BPM`);
+// Кейс клиента — только его настоящий материал, сток не трогаем вообще.
+const KLIENT = klientScenariusza(scen);
+const PULA_KLIENTA = KLIENT ? await pulaKlienta(KLIENT) : [];
+if (KLIENT && !PULA_KLIENTA.length) {
+  throw new Error(`кейс «${scen.nazwa}»: нет своего материала wlasne/klienci/${KLIENT} — сток вместо клиента не подставляю`);
+}
+if (KLIENT) console.log(`[rolka-auto] материал клиента «${KLIENT}»: ${PULA_KLIENTA.length} кадров, сток выключен`);
+
 // 2. Подложка. Один кусок стока на одну фразу, длиной ровно в эту фразу
 //    вместе с паузой после неё — чтобы картинка менялась вместе со смыслом.
 const klipy = [];
@@ -1341,6 +1356,13 @@ const uzyteKlipy = new Set();
 const zSpizarni = new Set();
 let poprzedniRodzaj = null;
 for (const [i, c] of scen.czesci.entries()) {
+  if (KLIENT) {
+    // Подложку кейса раскладывает сетка ниже (2в) — из материала клиента.
+    const f0 = glos.frazy[i];
+    const nast0 = glos.frazy[i + 1];
+    klipy.push({ plik: null, dlugosc: +((nast0 ? nast0.a : glos.dlugosc) - (i === 0 ? 0 : f0.a)).toFixed(3), tekst: c.tekst, od: 0 });
+    continue;
+  }
   // СНАЧАЛА своя кладовая. Наш кадр с реального проекта стоит дороже любого
   // покупного стока: он единственный, чего у конкурентов нет, и именно из
   // такого материала собран тот ролик, который Захар назвал образцом.
@@ -1381,6 +1403,55 @@ for (const [i, c] of scen.czesci.entries()) {
   const dlugosc = (nastepna ? nastepna.a : glos.dlugosc) - (i === 0 ? 0 : f.a);
   klipy.push({ plik, dlugosc: +dlugosc.toFixed(3), tekst: c.tekst, od: 0.4 });
   console.log(`[rolka-auto] ${c.rola}: ${path.basename(plik)}  ${dlugosc.toFixed(2)} с`);
+}
+
+// 2в. Склейки по биту (29.10, «не динамично»). Фраза — граница смысла,
+//     внутри неё план меняется каждые ~0,7–1,2 с по сетке долей трека.
+//     Кейс: каждый план — новый настоящий кадр клиента (лучший под слова
+//     фразы; хук — самый сильный). Сток: второй/третий план фразы — следующий
+//     клип по тому же запросу, а если его нет — другой момент того же клипа.
+const ujecia = siatkaCiec(glos.frazy, glos.dlugosc, muz || { bpm: 120 });
+{
+  const zFraz = klipy.slice();
+  const uzycia = new Map();
+  let poprzedni = null;
+  const nowe = [];
+  for (const [k, u] of ujecia.entries()) {
+    const dl = +(u.do - u.od).toFixed(3);
+    const c = scen.czesci[u.fraza] || {};
+    if (KLIENT) {
+      const x = dobierzUjecie(PULA_KLIENTA, `${c.tytul || ''} ${c.tekst || ''}`, uzycia, { hak: k === 0, poprzedni });
+      uzycia.set(x.plik, (uzycia.get(x.plik) || 0) + 1);
+      poprzedni = x.plik;
+      const mocny = (x.sila || 1) >= 3;
+      // Удар — в лёгком замедлении, проходной план — чуть быстрее.
+      const tempo = mocny ? 0.8 : 1.12;
+      const zapas = Math.max(0, (x.dlugosc || 3) - dl * tempo - 0.1);
+      const raz = (uzycia.get(x.plik) - 1) % 3;
+      const od = +Math.min(zapas, raz * 0.9 + (mocny ? 0 : 0.3)).toFixed(3);
+      nowe.push({ plik: x.sciezka, dlugosc: dl, tekst: c.tekst, od, tempo, mocny, opis: x.plik });
+      continue;
+    }
+    const baza = zFraz[u.fraza];
+    if (u.pierwszy || !baza) {
+      nowe.push({ ...baza, dlugosc: dl, od: baza?.od ?? 0.4 });
+      continue;
+    }
+    let plik = null;
+    if (c.szukaj && !String(baza.plik).includes('wlasne')) {
+      plik = await podklad(c, u.fraza + 10 * k, scen.nazwa, uzyteKlipy).catch(() => null);
+    }
+    nowe.push(plik
+      ? { plik, dlugosc: dl, tekst: c.tekst, od: 0.3 }
+      : { ...baza, dlugosc: dl, od: +((baza.od ?? 0.4) + 1.6 * (k % 2 ? 1 : 2)).toFixed(2) });
+  }
+  const suma = nowe.reduce((s, x) => s + x.dlugosc, 0);
+  console.log(
+    `[rolka-auto] сетка: ${ujecia.length} планов на ${suma.toFixed(2)} с, шаг ${krokSiatki(muz?.bpm).krok.toFixed(2)} с` +
+      (KLIENT ? ` · кадры: ${nowe.map((x) => x.opis).join(', ')}` : '')
+  );
+  klipy.length = 0;
+  klipy.push(...nowe);
 }
 
 // 2б. Длинные планы режем надвое.
@@ -1466,12 +1537,15 @@ const wstawki = zaplataIdx >= 0
 
 const plan = {
   nazwa: `auto-${scen.nazwa}`,
-  muzyka: (await nastepnaMuzyka()) || path.join(DIR, 'music', 'pixabay-creative-technology-showreel.mp3'),
-  // Кусок трека тоже по кругу: четыре точки входа на выпуск. Трек вернётся
-  // через полторы недели, и вернётся другой своей частью.
-  muzykaOd: [0, 27, 54, 81][wydanie % 4],
-  podkladGlosnosc: 0.11,
-  podkladOgon: 0.17,
+  // Музыка: трек по настроению из каталога, порезан с дропа и стоит на сетке
+  // долей (muzykaStala — движок берёт начало ровно как задано). Каталога нет —
+  // прежний круг.
+  muzyka: muz?.plik || (await nastepnaMuzyka()) || path.join(DIR, 'music', 'pixabay-creative-technology-showreel.mp3'),
+  muzykaOd: muz ? +(muz.siatka || 0) : [0, 27, 54, 81][wydanie % 4],
+  muzykaStala: !!muz,
+  // Без голоса музыка — главный звук ролика, а не подложка под речью.
+  podkladGlosnosc: BEZ_GLOSU ? 0.8 : 0.13,
+  podkladOgon: BEZ_GLOSU ? 0.8 : 0.3,
   powietrzeTlo: 0.02,
   stukiGlosnosc: 0.5,
   najazd: 1.1,
@@ -1480,8 +1554,11 @@ const plan = {
   przejscie: 0,
   wjazdWstawki: 0.3,
   ogonPrzejscie: 0.4,
-  akcent: '#a78bfa',
-  akcentPas: '#7c3aed',
+  // Бренд ZOVU 2026: один акцент #FF4A1C, заголовки Inter Tight.
+  akcent: '#FF4A1C',
+  akcentPas: '#FF4A1C',
+  karaokeKolor: '#FF4A1C',
+  fontNaglowek: 'Inter Tight',
   dryf: true,
   karaoke: true,
   glos: { plik: glos.plik, slowa: glos.slowa },
@@ -1557,10 +1634,11 @@ if (SKORA) {
     style.split(',').filter(Boolean).forEach((t, i) => { wymus[i] = t; });
     przejscia.split(',').filter(Boolean).forEach((t, i) => { wymus['p' + (i + 1)] = t; });
     const ziarno = `${scen.nazwa}-${dzis}`;
-    let m = planMiksu(plan.skora.dane.frazy, ziarno, { wymus });
+    const bez = KLIENT ? ['split'] : [];
+    let m = planMiksu(plan.skora.dane.frazy, ziarno, { wymus, bez });
     // Режиссёр: из сорока раскладок — та, что меньше похожа на ленту.
     if (oprawa && !process.env.MIKS) {
-      const kand = Array.from({ length: 40 }, (_, k) => planMiksu(plan.skora.dane.frazy, `${ziarno}-${k}`));
+      const kand = Array.from({ length: 40 }, (_, k) => planMiksu(plan.skora.dane.frazy, `${ziarno}-${k}`, { bez }));
       m = wybierzMiks(kand, oprawa, historiaM).m;
     }
     Object.assign(plan.skora.dane, m);
@@ -1576,6 +1654,23 @@ if (SKORA) {
   plan.wstawki = [];
   delete plan.podsumowanie;
   delete plan.plakietka;
+}
+
+// Удары, вспышки, звуки монтажа (dynamika.mjs). Считаются после микса:
+// свист ставится на его переходы.
+{
+  const d = planUdarow({
+    ujecia: ujecia.map((u, i) => ({ ...u, mocny: !!klipy[i]?.mocny })),
+    frazy: glos.frazy,
+    slowa: glos.slowa,
+    klient: KLIENT,
+    przejscia: plan.skora?.dane?.przejscia || [],
+    bezGlosu: BEZ_GLOSU,
+  });
+  plan.udary = d.udary;
+  plan.blyski = d.blyski;
+  plan.dzwieki = d.dzwieki;
+  console.log(`[rolka-auto] удары: ${d.udary.length}, вспышки: ${d.blyski.length}, звуков монтажа: ${d.dzwieki.length}`);
 }
 
 await mkdir(OUT, { recursive: true });
@@ -1622,8 +1717,11 @@ await writeFile(
       // Паспорт монтажа — по нему режиссёр сравнивает следующий ролик с лентой.
       montaz: {
         format: SKORA || 'stok',
-        paleta: plan.skora?.dane.paleta || 'zovu',
-        font: plan.skora?.dane.font || 'bebas',
+        paleta: plan.skora?.dane.paleta || 'jasny',
+        font: plan.skora?.dane.font || 'tight',
+        muzyka: path.basename(plan.muzyka),
+        material: KLIENT || 'stok',
+        glos: BEZ_GLOSU ? 'brak' : process.env.GLOS_STYL || 'domyslny',
         zakonczenie: ZAKONCZENIE,
         ...(SKORA === 'miks'
           ? { style: plan.skora.dane.segmenty.map((s) => s.typ), przejscia: plan.skora.dane.przejscia.map((p) => p.typ) }
@@ -1672,7 +1770,10 @@ if (!BEZ_KONTROLI) {
         return acc;
       },
       { czas: 0, zakresy: [] }
-    ).zakresy.concat(ruchSkory(plan.skora)),
+    ).zakresy.concat(ruchSkory(plan.skora))
+      // Удары и вспышки — задуманное движение, не брак.
+      .concat((plan.udary || []).map((u) => [Math.max(0, u.t - 0.05), u.t + 0.55]))
+      .concat((plan.blyski || []).map((t) => [Math.max(0, t - 0.05), t + 0.35])),
   });
   console.log('[rolka-auto] проверка:', JSON.stringify(kontrola, null, 1));
   if (!kontrola.zdal) {

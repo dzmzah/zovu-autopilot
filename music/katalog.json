@@ -1,0 +1,442 @@
+[
+ {
+  "plik": "mx-chill-1023.mp3",
+  "gatunek": "chill",
+  "nastroj": "luz",
+  "bpm": 105.5,
+  "siatka": 0,
+  "puls": 19.0,
+  "bas": 0.134,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 1023, od 57.06 s"
+ },
+ {
+  "plik": "mx-chill-105.mp3",
+  "gatunek": "chill",
+  "nastroj": "luz",
+  "bpm": 100.0,
+  "siatka": 0,
+  "puls": 15.4,
+  "bas": 0.175,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 105, od 84.32 s"
+ },
+ {
+  "plik": "mx-chill-150.mp3",
+  "gatunek": "chill",
+  "nastroj": "luz",
+  "bpm": 138.0,
+  "siatka": 0,
+  "puls": 18.1,
+  "bas": 0.192,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 150, od 137.41 s"
+ },
+ {
+  "plik": "mx-chill-175.mp3",
+  "gatunek": "chill",
+  "nastroj": "luz",
+  "bpm": 128.5,
+  "siatka": 0,
+  "puls": 25.9,
+  "bas": 0.174,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 175, od 28.13 s"
+ },
+ {
+  "plik": "mx-chill-234.mp3",
+  "gatunek": "chill",
+  "nastroj": "luz",
+  "bpm": 140.0,
+  "siatka": 0,
+  "puls": 13.2,
+  "bas": 0.164,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 234, od 66.86 s"
+ },
+ {
+  "plik": "mx-elektro-111.mp3",
+  "gatunek": "elektro",
+  "nastroj": "groove",
+  "bpm": 161.0,
+  "siatka": 0,
+  "puls": 28.4,
+  "bas": 0.143,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 111, od 73.28 s"
+ },
+ {
+  "plik": "mx-elektro-115.mp3",
+  "gatunek": "elektro",
+  "nastroj": "groove",
+  "bpm": 117.0,
+  "siatka": 0,
+  "puls": 42.7,
+  "bas": 0.258,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 115, od 59.67 s"
+ },
+ {
+  "plik": "mx-elektro-132.mp3",
+  "gatunek": "elektro",
+  "nastroj": "groove",
+  "bpm": 121.0,
+  "siatka": 0,
+  "puls": 28.4,
+  "bas": 0.365,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 132, od 59.53 s"
+ },
+ {
+  "plik": "mx-energia-1004.mp3",
+  "gatunek": "energia",
+  "nastroj": "moc",
+  "bpm": 140.0,
+  "siatka": 0,
+  "puls": 24.5,
+  "bas": 0.203,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 1004, od 73.71 s"
+ },
+ {
+  "plik": "mx-energia-1068.mp3",
+  "gatunek": "energia",
+  "nastroj": "moc",
+  "bpm": 119.5,
+  "siatka": 0,
+  "puls": 28.6,
+  "bas": 0.177,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 1068, od 50.44 s"
+ },
+ {
+  "plik": "mx-energia-1082.mp3",
+  "gatunek": "energia",
+  "nastroj": "moc",
+  "bpm": 119.5,
+  "siatka": 0,
+  "puls": 37.4,
+  "bas": 0.195,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 1082, od 16.28 s"
+ },
+ {
+  "plik": "mx-energia-1085.mp3",
+  "gatunek": "energia",
+  "nastroj": "moc",
+  "bpm": 119.5,
+  "siatka": 0,
+  "puls": 19.9,
+  "bas": 0.133,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 1085, od 32.60 s"
+ },
+ {
+  "plik": "mx-energia-1103.mp3",
+  "gatunek": "energia",
+  "nastroj": "moc",
+  "bpm": 111.0,
+  "siatka": 0,
+  "puls": 21.8,
+  "bas": 0.153,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 1103, od 45.41 s"
+ },
+ {
+  "plik": "mx-energia-1116.mp3",
+  "gatunek": "energia",
+  "nastroj": "moc",
+  "bpm": 117.0,
+  "siatka": 0,
+  "puls": 34.3,
+  "bas": 0.157,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 1116, od 75.97 s"
+ },
+ {
+  "plik": "mx-funk-1003.mp3",
+  "gatunek": "funk",
+  "nastroj": "groove",
+  "bpm": 97.0,
+  "siatka": 0,
+  "puls": 28.5,
+  "bas": 0.102,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 1003, od 74.23 s"
+ },
+ {
+  "plik": "mx-funk-1029.mp3",
+  "gatunek": "funk",
+  "nastroj": "groove",
+  "bpm": 115.5,
+  "siatka": 0,
+  "puls": 42.5,
+  "bas": 0.144,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 1029, od 21.24 s"
+ },
+ {
+  "plik": "mx-funk-1054.mp3",
+  "gatunek": "funk",
+  "nastroj": "groove",
+  "bpm": 151.0,
+  "siatka": 0,
+  "puls": 46.1,
+  "bas": 0.163,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 1054, od 79.77 s"
+ },
+ {
+  "plik": "mx-funk-1060.mp3",
+  "gatunek": "funk",
+  "nastroj": "groove",
+  "bpm": 95.0,
+  "siatka": 0,
+  "puls": 33.3,
+  "bas": 0.193,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 1060, od 58.10 s"
+ },
+ {
+  "plik": "mx-funk-1077.mp3",
+  "gatunek": "funk",
+  "nastroj": "groove",
+  "bpm": 119.5,
+  "siatka": 0,
+  "puls": 27.0,
+  "bas": 0.189,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 1077, od 42.34 s"
+ },
+ {
+  "plik": "mx-funk-1109.mp3",
+  "gatunek": "funk",
+  "nastroj": "groove",
+  "bpm": 90.0,
+  "siatka": 0,
+  "puls": 34.9,
+  "bas": 0.106,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 1109, od 66.99 s"
+ },
+ {
+  "plik": "mx-hiphop-224.mp3",
+  "gatunek": "hiphop",
+  "nastroj": "moc",
+  "bpm": 150.0,
+  "siatka": 0,
+  "puls": 22.3,
+  "bas": 0.189,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 224, od 67.22 s"
+ },
+ {
+  "plik": "mx-hiphop-235.mp3",
+  "gatunek": "hiphop",
+  "nastroj": "moc",
+  "bpm": 135.5,
+  "siatka": 0,
+  "puls": 24.6,
+  "bas": 0.256,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 235, od 58.59 s"
+ },
+ {
+  "plik": "mx-hiphop-257.mp3",
+  "gatunek": "hiphop",
+  "nastroj": "moc",
+  "bpm": 128.5,
+  "siatka": 0,
+  "puls": 28.8,
+  "bas": 0.173,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 257, od 61.75 s"
+ },
+ {
+  "plik": "mx-hiphop-262.mp3",
+  "gatunek": "hiphop",
+  "nastroj": "moc",
+  "bpm": 140.0,
+  "siatka": 0,
+  "puls": 26.0,
+  "bas": 0.19,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 262, od 51.43 s"
+ },
+ {
+  "plik": "mx-hiphop-282.mp3",
+  "gatunek": "hiphop",
+  "nastroj": "moc",
+  "bpm": 151.0,
+  "siatka": 0,
+  "puls": 21.1,
+  "bas": 0.327,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 282, od 38.42 s"
+ },
+ {
+  "plik": "mx-house-1062.mp3",
+  "gatunek": "house",
+  "nastroj": "groove",
+  "bpm": 167.0,
+  "siatka": 0,
+  "puls": 44.2,
+  "bas": 0.201,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 1062, od 53.34 s"
+ },
+ {
+  "plik": "mx-house-124.mp3",
+  "gatunek": "house",
+  "nastroj": "groove",
+  "bpm": 124.0,
+  "siatka": 0,
+  "puls": 31.0,
+  "bas": 0.182,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 124, od 56.38 s"
+ },
+ {
+  "plik": "mx-house-161.mp3",
+  "gatunek": "house",
+  "nastroj": "groove",
+  "bpm": 128.0,
+  "siatka": 0,
+  "puls": 70.6,
+  "bas": 0.151,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 161, od 28.38 s"
+ },
+ {
+  "plik": "mx-kino-13.mp3",
+  "gatunek": "kino",
+  "nastroj": "kino",
+  "bpm": 115.0,
+  "siatka": 0,
+  "puls": 15.9,
+  "bas": 0.188,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 13, od 89.74 s"
+ },
+ {
+  "plik": "mx-kino-272.mp3",
+  "gatunek": "kino",
+  "nastroj": "kino",
+  "bpm": 150.0,
+  "siatka": 0,
+  "puls": 12.0,
+  "bas": 0.385,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 272, od 56.00 s"
+ },
+ {
+  "plik": "mx-kino-466.mp3",
+  "gatunek": "kino",
+  "nastroj": "kino",
+  "bpm": 116.5,
+  "siatka": 0,
+  "puls": 18.9,
+  "bas": 0.037,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 466, od 12.57 s"
+ },
+ {
+  "plik": "mx-kino-517.mp3",
+  "gatunek": "kino",
+  "nastroj": "kino",
+  "bpm": 128.0,
+  "siatka": 0,
+  "puls": 23.4,
+  "bas": 0.014,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 517, od 28.29 s"
+ },
+ {
+  "plik": "mx-sport-1091.mp3",
+  "gatunek": "sport",
+  "nastroj": "moc",
+  "bpm": 145.0,
+  "siatka": 0,
+  "puls": 18.1,
+  "bas": 0.137,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 1091, od 48.00 s"
+ },
+ {
+  "plik": "mx-sport-126.mp3",
+  "gatunek": "sport",
+  "nastroj": "moc",
+  "bpm": 139.0,
+  "siatka": 0,
+  "puls": 27.6,
+  "bas": 0.091,
+  "zrodlo": "https://mixkit.co (Mixkit Free License) id 126, od 13.86 s"
+ },
+ {
+  "plik": "pixabay-audio_3670b74de1.mp3",
+  "gatunek": "pop",
+  "nastroj": "groove",
+  "bpm": 113.0,
+  "siatka": 0.047,
+  "puls": 18.5,
+  "bas": 0.279,
+  "zrodlo": "Pixabay (biblioteka 01.09.2026)"
+ },
+ {
+  "plik": "pixabay-audio_5d25481bef.mp3",
+  "gatunek": "pop",
+  "nastroj": "groove",
+  "bpm": 97.0,
+  "siatka": 0.092,
+  "puls": 19.3,
+  "bas": 0.146,
+  "zrodlo": "Pixabay (biblioteka 01.09.2026)"
+ },
+ {
+  "plik": "pixabay-audio_b7259abb71.mp3",
+  "gatunek": "pop",
+  "nastroj": "groove",
+  "bpm": 90.0,
+  "siatka": 0.024,
+  "puls": 34.3,
+  "bas": 0.295,
+  "zrodlo": "Pixabay (biblioteka 01.09.2026)"
+ },
+ {
+  "plik": "pixabay-audio_ccedc34276.mp3",
+  "gatunek": "pop",
+  "nastroj": "groove",
+  "bpm": 97.0,
+  "siatka": 0.325,
+  "puls": 29.3,
+  "bas": 0.204,
+  "zrodlo": "Pixabay (biblioteka 01.09.2026)"
+ },
+ {
+  "plik": "pxb-beats-lofi-chill-chill.mp3",
+  "gatunek": "chill",
+  "nastroj": "luz",
+  "bpm": 90.0,
+  "siatka": 0.348,
+  "puls": 36.0,
+  "bas": 0.199,
+  "zrodlo": "Pixabay (biblioteka 01.09.2026)"
+ },
+ {
+  "plik": "pxb-beats-vlog.mp3",
+  "gatunek": "pop",
+  "nastroj": "groove",
+  "bpm": 128.5,
+  "siatka": 0.441,
+  "puls": 16.0,
+  "bas": 0.202,
+  "zrodlo": "Pixabay (biblioteka 01.09.2026)"
+ },
+ {
+  "plik": "pxb-beats-workout-34sec.mp3",
+  "gatunek": "sport",
+  "nastroj": "moc",
+  "bpm": 92.0,
+  "siatka": 0.023,
+  "puls": 28.6,
+  "bas": 0.155,
+  "zrodlo": "Pixabay (biblioteka 01.09.2026)"
+ },
+ {
+  "plik": "pxb-beats-workout-54sec.mp3",
+  "gatunek": "sport",
+  "nastroj": "moc",
+  "bpm": 92.0,
+  "siatka": 0.023,
+  "puls": 26.3,
+  "bas": 0.155,
+  "zrodlo": "Pixabay (biblioteka 01.09.2026)"
+ },
+ {
+  "plik": "pxb-beats-workout-66sec.mp3",
+  "gatunek": "sport",
+  "nastroj": "moc",
+  "bpm": 92.0,
+  "siatka": 0.023,
+  "puls": 25.0,
+  "bas": 0.155,
+  "zrodlo": "Pixabay (biblioteka 01.09.2026)"
+ },
+ {
+  "plik": "pxb-synthwave-action.mp3",
+  "gatunek": "elektro",
+  "nastroj": "groove",
+  "bpm": 124.0,
+  "siatka": 0.256,
+  "puls": 24.3,
+  "bas": 0.203,
+  "zrodlo": "Pixabay (biblioteka 01.09.2026)"
+ }
+]
