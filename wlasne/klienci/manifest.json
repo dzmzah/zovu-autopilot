@@ -1,0 +1,589 @@
+[
+ {
+  "plik": "fm/fm-nokaut-01.mp4",
+  "klient": "fm",
+  "tagi": [
+   "walka",
+   "nokaut",
+   "upadek",
+   "cios"
+  ],
+  "opis": "FM1: wymiana i zawodnik wylatuje przez liny z ringu",
+  "sila": 3,
+  "dlugosc": 2.3,
+  "zrodlo": "E:/Fight Mode/Gala/DLA MONTAZYSTY/FM1_CLEAN_50p.mp4 @ 3:55:29.0 (czysty fid FM1)"
+ },
+ {
+  "plik": "fm/fm-nokaut-02.mp4",
+  "klient": "fm",
+  "tagi": [
+   "walka",
+   "cios",
+   "nokaut",
+   "upadek"
+  ],
+  "opis": "FM1: cios na głowę i rywal pada na deski",
+  "sila": 3,
+  "dlugosc": 3.4,
+  "zrodlo": "E:/Fight Mode/Gala/DLA MONTAZYSTY/FM1_CLEAN_50p.mp4 @ 3:56:20.4 (czysty fid FM1)"
+ },
+ {
+  "plik": "fm/fm-nokaut-03.mp4",
+  "klient": "fm",
+  "tagi": [
+   "walka",
+   "nokaut",
+   "upadek",
+   "liny"
+  ],
+  "opis": "FM1: nokdaun - zawodnik leży w linach",
+  "sila": 3,
+  "dlugosc": 3.0,
+  "zrodlo": "E:/Fight Mode/Gala/DLA MONTAZYSTY/FM1_CLEAN_50p.mp4 @ 4:00:55.0 (czysty fid FM1)"
+ },
+ {
+  "plik": "fm/fm-nokaut-04.mp4",
+  "klient": "fm",
+  "tagi": [
+   "walka",
+   "nokaut",
+   "upadek"
+  ],
+  "opis": "FM1: zawodnik pada po ciosie, sędzia podbiega",
+  "sila": 3,
+  "dlugosc": 2.2,
+  "zrodlo": "E:/Fight Mode/Gala/DLA MONTAZYSTY/FM1_CLEAN_50p.mp4 @ 3:57:30.4 (czysty fid FM1)"
+ },
+ {
+  "plik": "fm/fm-zwyciezca-01.mp4",
+  "klient": "fm",
+  "tagi": [
+   "zwyciezca",
+   "emocje",
+   "publika"
+  ],
+  "opis": "FM1: zwycięzca z rękami w górze, zbliżenie",
+  "sila": 3,
+  "dlugosc": 3.6,
+  "zrodlo": "E:/Fight Mode/Gala/DLA MONTAZYSTY/FM1_CLEAN_50p.mp4 @ 3:52:40.6 (czysty fid FM1)"
+ },
+ {
+  "plik": "fm/fm-cios-01.mp4",
+  "klient": "fm",
+  "tagi": [
+   "walka",
+   "cios",
+   "kobiety"
+  ],
+  "opis": "FM1: walka kobiet - cios ląduje na twarzy, z bliska",
+  "sila": 2,
+  "dlugosc": 2.6,
+  "zrodlo": "E:/Fight Mode/Gala/DLA MONTAZYSTY/FM1_CLEAN_50p.mp4 @ 3:34:45.0 (czysty fid FM1)"
+ },
+ {
+  "plik": "fm/fm-krew-01.mp4",
+  "klient": "fm",
+  "tagi": [
+   "krew",
+   "cutman",
+   "kobiety",
+   "walka"
+  ],
+  "opis": "FM1: cutman wyciera twarz zawodniczki w narożniku",
+  "sila": 2,
+  "dlugosc": 3.0,
+  "zrodlo": "E:/Fight Mode/Gala/DLA MONTAZYSTY/FM1_CLEAN_50p.mp4 @ 3:37:28.0 (czysty fid FM1)"
+ },
+ {
+  "plik": "fm/fm-cios-03.mp4",
+  "klient": "fm",
+  "tagi": [
+   "walka",
+   "cios",
+   "liny"
+  ],
+  "opis": "FM1: atak i rywal zepchnięty na liny",
+  "sila": 2,
+  "dlugosc": 2.0,
+  "zrodlo": "E:/Fight Mode/Gala/DLA MONTAZYSTY/FM1_CLEAN_50p.mp4 @ 1:54:11.2 (czysty fid FM1)"
+ },
+ {
+  "plik": "fm/fm-cios-04.mp4",
+  "klient": "fm",
+  "tagi": [
+   "walka",
+   "cios",
+   "liny"
+  ],
+  "opis": "FM1: zawodnik wbity w liny pod gradem ciosów",
+  "sila": 2,
+  "dlugosc": 2.0,
+  "zrodlo": "E:/Fight Mode/Gala/DLA MONTAZYSTY/FM1_CLEAN_50p.mp4 @ 2:54:24.2 (czysty fid FM1)"
+ },
+ {
+  "plik": "fm/fm-zwyciezca-02.mp4",
+  "klient": "fm",
+  "tagi": [
+   "zwyciezca",
+   "puchar",
+   "sedzia"
+  ],
+  "opis": "FM1: sędzia podnosi rękę zwycięzcy, potem puchar",
+  "sila": 3,
+  "dlugosc": 2.4,
+  "zrodlo": "E:/Fight Mode/Gala/DLA MONTAZYSTY/FM1_CLEAN_50p.mp4 @ 4:16:15.4 (czysty fid FM1)"
+ },
+ {
+  "plik": "fm/fm-wejscie-01.mp4",
+  "klient": "fm",
+  "tagi": [
+   "wejscie",
+   "zawodnik",
+   "led",
+   "arena"
+  ],
+  "opis": "FM2: wejście zawodnika na tle ekranu LED z ogniem",
+  "sila": 3,
+  "dlugosc": 3.2,
+  "zrodlo": "E:/Fight Mode/FM2/VIDEO/EVS-PGM F 03-OCT-2026 19h29m00s00.mp4 @ 1:31:07.6 (PGM FM2)"
+ },
+ {
+  "plik": "fm/fm-wejscie-02.mp4",
+  "klient": "fm",
+  "tagi": [
+   "wejscie",
+   "zawodnik",
+   "led",
+   "publika"
+  ],
+  "opis": "FM2: zawodnik unosi ręce, potem idzie przez scenę w ogniu",
+  "sila": 3,
+  "dlugosc": 2.4,
+  "zrodlo": "E:/Fight Mode/FM2/VIDEO/EVS-PGM F 03-OCT-2026 19h29m00s00.mp4 @ 1:31:10.4 (PGM FM2)"
+ },
+ {
+  "plik": "fm/fm-arena-01.mp4",
+  "klient": "fm",
+  "tagi": [
+   "arena",
+   "publika",
+   "led",
+   "kibice"
+  ],
+  "opis": "FM2: pełna hala, ring i ściana LED z logo Fight Mode",
+  "sila": 3,
+  "dlugosc": 2.4,
+  "zrodlo": "E:/Fight Mode/FM2/VIDEO/EVS-PGM F 03-OCT-2026 19h29m00s00.mp4 @ 1:32:25.2 (PGM FM2)"
+ },
+ {
+  "plik": "fm/fm-arena-02.mp4",
+  "klient": "fm",
+  "tagi": [
+   "arena",
+   "led",
+   "publika",
+   "kibice"
+  ],
+  "opis": "FM2: światła i ekran LED nad tłumem przed wejściem",
+  "sila": 2,
+  "dlugosc": 2.3,
+  "zrodlo": "E:/Fight Mode/FM2/VIDEO/EVS-PGM F 03-OCT-2026 19h29m00s00.mp4 @ 1:33:14.4 (PGM FM2)"
+ },
+ {
+  "plik": "fm/fm-arena-03.mp4",
+  "klient": "fm",
+  "tagi": [
+   "arena",
+   "dym",
+   "wejscie",
+   "ring"
+  ],
+  "opis": "FM2: ring w słupach dymu z armatek",
+  "sila": 3,
+  "dlugosc": 2.6,
+  "zrodlo": "E:/Fight Mode/FM2/VIDEO/EVS-PGM F 03-OCT-2026 19h29m00s00.mp4 @ 2:36:05.0 (PGM FM2)"
+ },
+ {
+  "plik": "fm/fm-zwyciezca-03.mp4",
+  "klient": "fm",
+  "tagi": [
+   "zwyciezca",
+   "emocje",
+   "dym"
+  ],
+  "opis": "FM2: zwycięzca z ręką w górze, w tle dym",
+  "sila": 2,
+  "dlugosc": 3.0,
+  "zrodlo": "E:/Fight Mode/FM2/VIDEO/EVS-PGM F 03-OCT-2026 19h29m00s00.mp4 @ 1:05:25.4 (PGM FM2)"
+ },
+ {
+  "plik": "fm/fm-powtorka-01.mp4",
+  "klient": "fm",
+  "tagi": [
+   "powtorka",
+   "cios",
+   "walka"
+  ],
+  "opis": "FM2: powtórka TV - wymiana ciosów z bliska",
+  "sila": 2,
+  "dlugosc": 2.6,
+  "zrodlo": "E:/Fight Mode/FM2/VIDEO/EVS-PGM F 03-OCT-2026 19h29m00s00.mp4 @ 3:46:49.0 (PGM FM2)"
+ },
+ {
+  "plik": "fm/fm-zwyciezca-04.mp4",
+  "klient": "fm",
+  "tagi": [
+   "zwyciezca",
+   "emocje",
+   "krzyk"
+  ],
+  "opis": "FM2: zwycięzca krzyczy po ogłoszeniu werdyktu",
+  "sila": 3,
+  "dlugosc": 2.2,
+  "zrodlo": "E:/Fight Mode/FM2/VIDEO/EVS-PGM F 03-OCT-2026 19h29m00s00.mp4 @ 2:27:30.8 (PGM FM2)"
+ },
+ {
+  "plik": "amorki/amorki-randka-01.mp4",
+  "klient": "amorki",
+  "tagi": [
+   "randka",
+   "para",
+   "studio",
+   "odcinek"
+  ],
+  "opis": "Randka w ciemno: dziewczyna z opaską na oczach przy stoliku (blind date)",
+  "sila": 3,
+  "dlugosc": 4.0,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/Amorki/06_MATERIALY/TISERY NA REKLAME/NAJBARDZIEJ BRUTALNA RANDKA W CIEMNO!_tizer_16x9.mp4 @ 12.60s"
+ },
+ {
+  "plik": "amorki/amorki-randka-02.mp4",
+  "klient": "amorki",
+  "tagi": [
+   "randka",
+   "para",
+   "reakcja",
+   "studio"
+  ],
+  "opis": "Bartosz z tatuażami rozmawia z dziewczyną z opaską",
+  "sila": 2,
+  "dlugosc": 3.5,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/Amorki/06_MATERIALY/TISERY NA REKLAME/NAJBARDZIEJ BRUTALNA RANDKA W CIEMNO!_tizer_16x9.mp4 @ 14.60s"
+ },
+ {
+  "plik": "amorki/amorki-studio-01.mp4",
+  "klient": "amorki",
+  "tagi": [
+   "studio",
+   "publika",
+   "odcinek",
+   "para"
+  ],
+  "opis": "Para w łóżku na środku studia, za nimi pełna widownia uczestników",
+  "sila": 3,
+  "dlugosc": 3.37,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/Amorki/06_MATERIALY/TISERY NA REKLAME/NAJBARDZIEJ BRUTALNA RANDKA W CIEMNO!_tizer_16x9.mp4 @ 5.10s"
+ },
+ {
+  "plik": "amorki/amorki-reakcja-01.mp4",
+  "klient": "amorki",
+  "tagi": [
+   "reakcja",
+   "studio",
+   "publika",
+   "odcinek"
+  ],
+  "opis": "Uczestnicy podnoszą tabliczki NIE / TAK - reakcja grupy",
+  "sila": 3,
+  "dlugosc": 3.8,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/Amorki/06_MATERIALY/TISERY NA REKLAME/NAJBARDZIEJ BRUTALNA RANDKA W CIEMNO!_tizer_16x9.mp4 @ 8.60s"
+ },
+ {
+  "plik": "amorki/amorki-para-01.mp4",
+  "klient": "amorki",
+  "tagi": [
+   "para",
+   "studio",
+   "odcinek"
+  ],
+  "opis": "Troje uczestników w ciemnym studiu, rozmowa o zdradzie",
+  "sila": 2,
+  "dlugosc": 2.57,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/Amorki/06_MATERIALY/TISERY NA REKLAME/NAJBARDZIEJ BRUTALNA RANDKA W CIEMNO!_tizer_16x9.mp4 @ 0.05s"
+ },
+ {
+  "plik": "amorki/amorki-studio-02.mp4",
+  "klient": "amorki",
+  "tagi": [
+   "studio",
+   "odcinek",
+   "para"
+  ],
+  "opis": "Uczestnicy stoją w rzędzie w jasnym studiu z tabliczkami",
+  "sila": 1,
+  "dlugosc": 3.37,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/Amorki/06_MATERIALY/TISERY NA REKLAME/NAJBARDZIEJ BRUTALNA RANDKA W CIEMNO!_tizer_16x9.mp4 @ 19.90s"
+ },
+ {
+  "plik": "amorki/amorki-smiech-01.mp4",
+  "klient": "amorki",
+  "tagi": [
+   "smiech",
+   "reakcja",
+   "randka",
+   "studio"
+  ],
+  "opis": "Dwie dziewczyny przy stoliku uśmiechają się na randce po outficie",
+  "sila": 2,
+  "dlugosc": 2.17,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/Amorki/06_MATERIALY/TISERY NA REKLAME/SPICY RANDKI W CIEMNO NA BAZIE OUTFITU!_tizer_16x9.mp4 @ 10.10s"
+ },
+ {
+  "plik": "amorki/amorki-reakcja-02.mp4",
+  "klient": "amorki",
+  "tagi": [
+   "reakcja",
+   "smiech",
+   "shorts"
+  ],
+  "opis": "Chłopak w czapce z zadowoloną miną - reakcja na pytanie",
+  "sila": 2,
+  "dlugosc": 2.87,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/Amorki/06_MATERIALY/TISERY NA REKLAME/SPICY RANDKI W CIEMNO NA BAZIE OUTFITU!_tizer_16x9.mp4 @ 15.90s"
+ },
+ {
+  "plik": "no/no-modelka-01.mp4",
+  "klient": "no",
+  "tagi": [
+   "modelka",
+   "spacer",
+   "buty",
+   "sesja"
+  ],
+  "opis": "Modelka idzie jesiennym lasem z psem w butach New Orchard",
+  "sila": 3,
+  "dlugosc": 3.83,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/NEWORCHARD/material_drive/04 Foto 2026 Caramel/IMG_2300.MOV @ 5.00s"
+ },
+ {
+  "plik": "no/no-detal-01.mp4",
+  "klient": "no",
+  "tagi": [
+   "detal",
+   "buty",
+   "produkt",
+   "sesja"
+  ],
+  "opis": "Detal: but Caramel od tyłu z logo na pięcie, jesienne tło",
+  "sila": 3,
+  "dlugosc": 2.8,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/NEWORCHARD/material_drive/07 SOME 2026-27 ZOVU/07 Zdjęcia i wideo — surowe (sesja Zacha 14.10)/WIDEO/IMG_1315.MOV @ 0.10s"
+ },
+ {
+  "plik": "no/no-detal-02.mp4",
+  "klient": "no",
+  "tagi": [
+   "detal",
+   "produkt",
+   "buty"
+  ],
+  "opis": "Zbliżenie: białe futerko w środku buta i metka New Orchard",
+  "sila": 3,
+  "dlugosc": 2.3,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/NEWORCHARD/material_drive/07 SOME 2026-27 ZOVU/07 Zdjęcia i wideo — surowe (sesja Zacha 14.10)/WIDEO/IMG_1412.MOV @ 0.20s"
+ },
+ {
+  "plik": "no/no-spacer-01.mp4",
+  "klient": "no",
+  "tagi": [
+   "spacer",
+   "buty",
+   "sesja"
+  ],
+  "opis": "Wysokie buty w kroku, niska kamera, liście i drzewa",
+  "sila": 2,
+  "dlugosc": 2.6,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/NEWORCHARD/material_drive/07 SOME 2026-27 ZOVU/07 Zdjęcia i wideo — surowe (sesja Zacha 14.10)/WIDEO/IMG_1293.MOV @ 0.50s"
+ },
+ {
+  "plik": "no/no-buty-01.mp4",
+  "klient": "no",
+  "tagi": [
+   "buty",
+   "produkt",
+   "sesja"
+  ],
+  "opis": "Wysokie buty New Orchard stoją w jesiennych liściach",
+  "sila": 2,
+  "dlugosc": 3.8,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/NEWORCHARD/material_drive/07 SOME 2026-27 ZOVU/07 Zdjęcia i wideo — surowe (sesja Zacha 14.10)/WIDEO/IMG_1295.MOV @ 0.40s"
+ },
+ {
+  "plik": "no/no-paczka-01.mp4",
+  "klient": "no",
+  "tagi": [
+   "paczka",
+   "produkt",
+   "sklep"
+  ],
+  "opis": "Otwieranie pudełka New Orchard z góry, w środku buty",
+  "sila": 2,
+  "dlugosc": 3.6,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/NEWORCHARD/material_drive/07 SOME 2026-27 ZOVU/07 Zdjęcia i wideo — surowe (sesja Zacha 14.10)/WIDEO/IMG_1303.MOV @ 0.40s"
+ },
+ {
+  "plik": "no/no-paczka-02.mp4",
+  "klient": "no",
+  "tagi": [
+   "paczka",
+   "sklep"
+  ],
+  "opis": "Karton z logo New Orchard na jesiennych liściach",
+  "sila": 2,
+  "dlugosc": 2.7,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/NEWORCHARD/material_drive/07 SOME 2026-27 ZOVU/07 Zdjęcia i wideo — surowe (sesja Zacha 14.10)/WIDEO/IMG_1280.MOV @ 0.20s"
+ },
+ {
+  "plik": "no/no-sesja-01.mp4",
+  "klient": "no",
+  "tagi": [
+   "sesja",
+   "buty",
+   "modelka"
+  ],
+  "opis": "Sesja: nogi w szarych butach uniesione nad liśćmi, obok pudełko",
+  "sila": 2,
+  "dlugosc": 3.6,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/NEWORCHARD/material_drive/07 SOME 2026-27 ZOVU/07 Zdjęcia i wideo — surowe (sesja Zacha 14.10)/WIDEO/IMG_1391.MOV @ 0.20s"
+ },
+ {
+  "plik": "no/no-spacer-02.mp4",
+  "klient": "no",
+  "tagi": [
+   "spacer",
+   "buty"
+  ],
+  "opis": "Szare buty w kroku obok pudełka New Orchard",
+  "sila": 1,
+  "dlugosc": 3.5,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/NEWORCHARD/material_drive/07 SOME 2026-27 ZOVU/07 Zdjęcia i wideo — surowe (sesja Zacha 14.10)/WIDEO/IMG_1390.MOV @ 0.30s"
+ },
+ {
+  "plik": "no/no-produkt-01.mp4",
+  "klient": "no",
+  "tagi": [
+   "produkt",
+   "buty",
+   "modelka"
+  ],
+  "opis": "Buty Caramel na nogach, obok karton - pełna sylwetka bez głowy",
+  "sila": 1,
+  "dlugosc": 3.5,
+  "zrodlo": "E:/MAT LAPTOP/ZOVU/NEWORCHARD/material_drive/07 SOME 2026-27 ZOVU/07 Zdjęcia i wideo — surowe (sesja Zacha 14.10)/WIDEO/IMG_1308.MOV @ 3.60s"
+ },
+ {
+  "plik": "kulisy/kulisy-montaz-01.mp4",
+  "klient": "kulisy",
+  "tagi": [
+   "montaz",
+   "publikacja",
+   "kolejka",
+   "render"
+  ],
+  "opis": "Ściana miniatur prawdziwych rolek zrobionych przez autopilota",
+  "sila": 3,
+  "dlugosc": 4.0,
+  "zrodlo": "miniatury z rolki/auto-2026-*.mp4 (ostatnie 40), scena HTML"
+ },
+ {
+  "plik": "kulisy/kulisy-telefon-01.mp4",
+  "klient": "kulisy",
+  "tagi": [
+   "telefon",
+   "publikacja",
+   "montaz"
+  ],
+  "opis": "Telefon z gotową rolką autopilota (auto-2026-10-28-1), w kolejce na 30.10",
+  "sila": 3,
+  "dlugosc": 3.5,
+  "zrodlo": "rolki/auto-2026-10-28-1.mp4 @ 0.4s w makiecie telefonu"
+ },
+ {
+  "plik": "kulisy/kulisy-telefon-02.mp4",
+  "klient": "kulisy",
+  "tagi": [
+   "telefon",
+   "publikacja"
+  ],
+  "opis": "Telefon z opublikowaną rolką (auto-2026-10-25-1)",
+  "sila": 2,
+  "dlugosc": 3.5,
+  "zrodlo": "rolki/auto-2026-10-25-1.mp4 @ 1.0s w makiecie telefonu"
+ },
+ {
+  "plik": "kulisy/kulisy-kolejka-01.mp4",
+  "klient": "kulisy",
+  "tagi": [
+   "kolejka",
+   "harmonogram",
+   "publikacja",
+   "panel"
+  ],
+  "opis": "Kolejka publikacji z prawdziwymi rolkami i statusami (wyszło / w kolejce)",
+  "sila": 2,
+  "dlugosc": 4.2,
+  "zrodlo": "rolki/kolejka.json (ostatnie 9 pozycji), scena HTML"
+ },
+ {
+  "plik": "kulisy/kulisy-harmonogram-01.mp4",
+  "klient": "kulisy",
+  "tagi": [
+   "harmonogram",
+   "kolejka",
+   "publikacja"
+  ],
+  "opis": "Harmonogram tygodnia 44 - sloty rolek wypełniają się jeden po drugim",
+  "sila": 2,
+  "dlugosc": 4.0,
+  "zrodlo": "daty z rolki/kolejka.json, scena HTML"
+ },
+ {
+  "plik": "kulisy/kulisy-log-01.mp4",
+  "klient": "kulisy",
+  "tagi": [
+   "log",
+   "render",
+   "montaz"
+  ],
+  "opis": "Terminal: log budowy rolki pisze się na żywo",
+  "sila": 2,
+  "dlugosc": 4.6,
+  "zrodlo": "kroki z rolka-auto.mjs (komunikaty przetłumaczone na PL), wartości z kolejka.json/stan.json"
+ },
+ {
+  "plik": "kulisy/kulisy-render-01.mp4",
+  "klient": "kulisy",
+  "tagi": [
+   "render",
+   "montaz",
+   "log"
+  ],
+  "opis": "Pasek renderu 0-100% z podglądem klatek rolki",
+  "sila": 2,
+  "dlugosc": 4.0,
+  "zrodlo": "klatki rolki/auto-2026-10-28-1.mp4, scena HTML"
+ },
+ {
+  "plik": "kulisy/kulisy-panel-01.mp4",
+  "klient": "kulisy",
+  "tagi": [
+   "panel",
+   "kolejka",
+   "publikacja"
+  ],
+  "opis": "Prawdziwy panel.html - lista wydanych rolek i kolejka (napisy przetłumaczone na PL, bez statystyk)",
+  "sila": 1,
+  "dlugosc": 4.2,
+  "zrodlo": "panel.html, przewijanie Playwright; sekcja liczb i alert usunięte w przeglądarce"
+ }
+]

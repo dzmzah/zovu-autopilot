@@ -332,8 +332,10 @@ export function zywaMowa(frazy, doWymowy) {
 // коротких видео, а не рассказчик за кофе. Без переменной — прежняя подача.
 const PODANIE_ENERGIA =
   'Mów jak młody twórca krótkich filmików, który nagrywa rolkę telefonem: energicznie, pewnie, z uśmiechem, ' +
-  'szybko i rytmicznie, z naturalnym akcentem na najważniejszym słowie w zdaniu. Nie jak lektor, nie jak reklama radiowa. ' +
-  'Krótkie, żywe zdania jedno za drugim, bez zwalniania i bez długich przerw.';
+  'rytmicznie i wyraźnie, z naturalnym akcentem na najważniejszym słowie w zdaniu. Nie jak lektor, nie jak reklama radiowa. ' +
+  // Проба 29.10 с «szybko» дала 6,2 слога/с — тараторит. Просим живой темп
+  // разговора, а не скорость: норма коротких видео 4,5–5,5.
+  'Tempo żywej rozmowy, nie pośpiech: każde słowo ma być słychać, krótkie pauzy tylko między zdaniami.';
 const GOOGLE_PODANIE = process.env.GLOS_STYL === 'energia' ? PODANIE_ENERGIA :
   'Mów jak zwykły chłopak, który opowiada coś znajomemu przy kawie: naturalnie i swobodnie, ' +
   'z lekkim uśmiechem w głosie, z oddechami i drobnymi zawahaniami. Nie jak lektor, nie jak reklama. ' +
