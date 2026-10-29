@@ -255,9 +255,63 @@ let budzetOcen = Number(process.env.ZOVU_LIMIT_OCEN || 40);
 // без проверки в ленту не идёт (движок возьмёт следующий или откатится).
 // Модель смотрит на СЫРОЙ снимок и отдаёт рамку главного объекта: по ней
 // kadruj() ставит объект туда, где нет букв.
-async function ocenKadr(buf, query) {
+// Глаза модели: сначала Vertex (облако Google, кредит до 30.11, общей дневной
+// квоты нет), потом ключ Gemini. Ночью 29.10 бесплатная квота ключа кончилась
+// (рилсы выбрали её подбором кадров), и все кадры вернулись 429 — раньше в
+// такой момент фото шли в пост без проверки. Получил 429 — ключ до конца
+// прогона больше не дёргаем.
+let kluczWyczerpany = false;
+
+async function zapytajWzrok(pytanie, buf) {
+  const parts = [{ text: pytanie }, { inline_data: { mime_type: 'image/jpeg', data: buf.toString('base64') } }];
+  if (process.env.GCP_PROJECT && process.env.GCP_REFRESH_TOKEN) {
+    try {
+      const { vertex } = await import('./vertex.mjs');
+      return await vertex({
+        system: 'Oceniasz zdjęcia. Odpowiadasz wyłącznie obiektem JSON.',
+        parts: [{ text: pytanie }, { inlineData: { mimeType: 'image/jpeg', data: buf.toString('base64') } }],
+        temperatura: 0,
+      });
+    } catch (e) {
+      console.warn(`[photo] Vertex: ${e.message.slice(0, 120)} — próbuję klucz Gemini`);
+    }
+  }
   const key = process.env.GEMINI_API_KEY;
-  if (!key) return null;
+  if (!key || kluczWyczerpany) return null;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 30000);
+  try {
+    const r = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' + key,
+      {
+        method: 'POST',
+        signal: ctrl.signal,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts }],
+          // запас по токенам: «думающая» flash тратит их до ответа
+          generationConfig: { temperature: 0, maxOutputTokens: 2048, responseMimeType: 'application/json' },
+        }),
+      }
+    );
+    if (!r.ok) {
+      console.warn(`[photo] ocena kadru: Gemini ${r.status}`);
+      if (r.status === 429) kluczWyczerpany = true;
+      return null;
+    }
+    const j = await r.json();
+    return (j.candidates?.[0]?.content?.parts || []).map((x) => x.text || '').join('');
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export function wzrokDostepny() {
+  return Boolean((process.env.GCP_PROJECT && process.env.GCP_REFRESH_TOKEN) || process.env.GEMINI_API_KEY);
+}
+
+async function ocenKadr(buf, query) {
+  if (!wzrokDostepny()) return null;
   if (budzetOcen <= 0) {
     console.warn('[photo] limit sprawdzania kadrów wyczerpany — kadrów bez kontroli nie biorę');
     return null;
@@ -293,36 +347,9 @@ async function ocenKadr(buf, query) {
     'box_2d = ramka GŁÓWNEGO obiektu w skali 0–1000: człowiek razem z głową i rękami przy pracy ' +
     '(jeśli jest kilku, ramka obejmuje wszystkich ważnych), przedmiot w całości. Ramka ciasna, ale nic nie ucięte.';
 
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 30000);
   try {
-    const r = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' + key,
-      {
-        method: 'POST',
-        signal: ctrl.signal,
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: pytanie },
-                { inline_data: { mime_type: 'image/jpeg', data: buf.toString('base64') } },
-              ],
-            },
-          ],
-          // запас по токенам: «думающая» flash тратит их до ответа, и при 60
-          // JSON обрывался — а оборванный ответ раньше считался «кадр годен»
-          generationConfig: { temperature: 0, maxOutputTokens: 2048, responseMimeType: 'application/json' },
-        }),
-      }
-    );
-    if (!r.ok) {
-      console.warn(`[photo] ocena kadru: Gemini ${r.status}`);
-      return null;
-    }
-    const j = await r.json();
-    const tekst = (j.candidates?.[0]?.content?.parts || []).map((x) => x.text || '').join('');
+    const tekst = await zapytajWzrok(pytanie, buf);
+    if (!tekst) return null;
     const o = JSON.parse(tekst);
     const temat =
       typeof o.temat === 'boolean' ? (o.temat ? 2 : 0) : Math.max(0, Math.min(2, Number(o.temat) || 0));
@@ -343,8 +370,6 @@ async function ocenKadr(buf, query) {
   } catch (e) {
     console.warn(`[photo] ocena kadru nie wyszła: ${e.message}`);
     return null;
-  } finally {
-    clearTimeout(timer);
   }
 }
 
@@ -398,8 +423,8 @@ export async function findPhoto(query, { name, nth = 0, uklad = 'foto' } = {}) {
   if (!key || !query) return null;
   // Без глаз модели сток не берём вовсе (см. ocenKadr): лучше генерённый фон,
   // чем случайная картинка в ленте.
-  if (!process.env.GEMINI_API_KEY) {
-    console.warn('[photo] brak GEMINI_API_KEY — nie sprawdzę kadru, stocku nie biorę');
+  if (!wzrokDostepny()) {
+    console.warn('[photo] brak Vertex i GEMINI_API_KEY — nie sprawdzę kadru, stocku nie biorę');
     return null;
   }
 
@@ -451,7 +476,7 @@ export async function findPhoto(query, { name, nth = 0, uklad = 'foto' } = {}) {
       const ocena = await ocenKadr(await podglad(buf), query);
       if (!ocena) {
         console.log(`[photo] pomijam: kadru nie udało się sprawdzić (${wybrany.photographer})`);
-        if (budzetOcen <= 0) break;
+        if (budzetOcen <= 0 || (kluczWyczerpany && !process.env.GCP_PROJECT)) break;
         continue;
       }
       if (ocena.stop) {
