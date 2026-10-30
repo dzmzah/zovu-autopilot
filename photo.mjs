@@ -207,40 +207,47 @@ const STREFY = {
 // целиком лежит в зоне. Сначала без зума, потом приближаем до ×1.6, но не
 // мельче 760 px по ширине (иначе апскейл мылит). null — не помещается:
 // такой кадр под этот макет не берём, а не режем объект.
-// box — весь главный объект, klucz — его главная часть (лица, руки с
-// предметом, сам товар). Правило Мити «главное целиком»: klucz целиком в зоне
-// без текста; весь объект не режется сверху и по бокам, а вниз может уходить
-// под текст (человек в рост — ноги под подписью, это нормально).
-export function kadruj(W0, H0, box, uklad = 'foto', klucz = null) {
+// box — весь главный объект, twarz — рамка всех лиц (null, если людей нет).
+// Правило Мити «главное целиком и нормально стоит»:
+//   • лица целиком и в зоне без текста — буквы на лице недопустимы;
+//   • сам объект кадр почти не режет: сверху и по бокам не больше 8 % его
+//     размера (у человека низ может уходить под текст);
+//   • крупный план (объект на весь снимок) — нормально, он идёт под вуаль,
+//     как в старых постах, лишь бы лицо не попало под буквы.
+export function kadruj(W0, H0, box, uklad = 'foto', twarz = null) {
   const Z = STREFY[uklad] || STREFY.foto;
-  const k = klucz || box;
   const r = 1080 / 1350;
-  const px = (b) => [b[0] * W0, b[1] * H0, b[2] * W0, b[3] * H0];
-  const [bx0, by0, bx1] = px(box);
-  const [kx0, ky0, kx1, ky1] = px(k);
+  const [bx0, by0, bx1, by1] = [box[0] * W0, box[1] * H0, box[2] * W0, box[3] * H0];
+  const bw = bx1 - bx0, bh = by1 - by0;
+  const t = twarz ? [twarz[0] * W0, twarz[1] * H0, twarz[2] * W0, twarz[3] * H0] : null;
   const chMax = Math.min(H0, W0 / r);
-  const m = 0.015;
+  const zcx = (Z.x0 + Z.x1) / 2, zcy = (Z.y0 + Z.y1) / 2;
+  const tol = 0.08;
   for (let z = 1; z <= 1.6001; z += 0.1) {
     const ch = chMax / z;
     const cw = ch * r;
     if (cw < 760) break;
-    if (kx1 - kx0 > (Z.x1 - Z.x0 - 2 * m) * cw || ky1 - ky0 > (Z.y1 - Z.y0 - 2 * m) * ch) continue;
-    if (bx1 - bx0 > cw * 0.995) continue;
-    const zcx = (Z.x0 + Z.x1) / 2, zcy = (Z.y0 + Z.y1) / 2;
-    // по горизонтали держим весь объект, если он влезает, иначе ключ
-    let wx = (kx0 + kx1) / 2 - zcx * cw;
-    wx = Math.max(Math.min(bx0 - m * cw, wx), bx1 + m * cw - cw);
-    let wy = (ky0 + ky1) / 2 - zcy * ch;
-    wy = Math.min(wy, by0 - m * ch);
+    let wx, wy;
+    if (t) {
+      wx = (t[0] + t[2]) / 2 - zcx * cw;
+      wy = (t[1] + t[3]) / 2 - zcy * ch;
+    } else {
+      wx = (bx0 + bx1) / 2 - cw / 2;
+      wy = (by0 + by1) / 2 - ch / 2;
+    }
     wx = Math.max(0, Math.min(W0 - cw, wx));
     wy = Math.max(0, Math.min(H0 - ch, wy));
-    const f = (v, o, d) => (v - o) / d;
-    const kIn =
-      f(kx0, wx, cw) >= Z.x0 && f(kx1, wx, cw) <= Z.x1 && f(ky0, wy, ch) >= Z.y0 && f(ky1, wy, ch) <= Z.y1;
-    const bIn = f(bx0, wx, cw) >= -0.005 && f(bx1, wx, cw) <= 1.005 && f(by0, wy, ch) >= -0.005;
-    if (kIn && bIn) {
-      return { left: Math.round(wx), top: Math.round(wy), width: Math.round(cw), height: Math.round(ch) };
+    // сколько объекта срезано с каждой стороны, в долях его размера
+    const cutL = Math.max(0, wx - bx0) / bw;
+    const cutR = Math.max(0, bx1 - (wx + cw)) / bw;
+    const cutT = Math.max(0, wy - by0) / bh;
+    const cutB = Math.max(0, by1 - (wy + ch)) / bh;
+    if (cutL > tol || cutR > tol || cutT > tol || (!t && cutB > tol)) continue;
+    if (t) {
+      const fx0 = (t[0] - wx) / cw, fx1 = (t[2] - wx) / cw, fy0 = (t[1] - wy) / ch, fy1 = (t[3] - wy) / ch;
+      if (fx0 < Z.x0 || fx1 > Z.x1 || fy0 < Z.y0 || fy1 > Z.y1) continue;
     }
+    return { left: Math.round(wx), top: Math.round(wy), width: Math.round(cw), height: Math.round(ch) };
   }
   return null;
 }
@@ -334,7 +341,7 @@ async function ocenKadr(buf, query) {
   // пропустила щит Lamborghini на стене автосервиса. Сомнение трактуем за нас.
   const pytanie =
     'Oceniasz kadr do posta agencji marketingowej. Odpowiedz TYLKO obiektem JSON:\n' +
-    '{"logo": true/false, "kadr": true/false, "ostry": true/false, "temat": 0/1/2, "stop": true/false, "box_2d": [ymin, xmin, ymax, xmax], "klucz_2d": [ymin, xmin, ymax, xmax]}\n' +
+    '{"logo": true/false, "kadr": true/false, "ostry": true/false, "temat": 0/1/2, "stop": true/false, "box_2d": [ymin, xmin, ymax, xmax], "twarz_2d": [ymin, xmin, ymax, xmax] albo null}\n' +
     `temat = jak blisko kadr jest tematu „${String(query || '').slice(0, 60)}":\n` +
     '  2 = na pierwszy rzut oka widać scenę z tej dziedziny (człowiek przy tej pracy, ten przedmiot),\n' +
     '  1 = neutralna scena pracy, biura, sklepu albo warsztatu z człowiekiem lub narzędziem,\n' +
@@ -355,8 +362,7 @@ async function ocenKadr(buf, query) {
     'ostry = czy główny obiekt jest ostry i dobrze oświetlony (nie rozmyty, nie w ciemności, nie za szybą).\n' +
     'box_2d = ramka GŁÓWNEGO obiektu w skali 0–1000: człowiek razem z głową i rękami przy pracy ' +
     '(jeśli jest kilku, ramka obejmuje wszystkich ważnych), przedmiot w całości. Ramka ciasna, ale nic nie ucięte.\n' +
-    'klucz_2d = ramka NAJWAŻNIEJSZEJ części w tej samej skali: twarz (twarze) razem z rękami i przedmiotem, ' +
-    'którym człowiek pracuje; dla samego przedmiotu — cały przedmiot. Bez nóg i tułowia, jeśli nie są ważne.';
+    'twarz_2d = jedna ramka obejmująca WSZYSTKIE widoczne twarze (cała głowa z włosami i brodą), w tej samej skali; null, jeśli w kadrze nie ma twarzy.';
 
   try {
     const tekst = await zapytajWzrok(pytanie, buf);
@@ -371,9 +377,7 @@ async function ocenKadr(buf, query) {
       return x1 - x0 > 0.03 && y1 - y0 > 0.03 ? [x0, y0, x1, y1] : null;
     };
     const box = ramka(o.box_2d);
-    let klucz = ramka(o.klucz_2d);
-    // ключ обязан лежать внутри объекта; модель иногда путает — тогда без него
-    if (klucz && box && (klucz[0] < box[0] - 0.05 || klucz[2] > box[2] + 0.05 || klucz[1] < box[1] - 0.05 || klucz[3] > box[3] + 0.05)) klucz = null;
+    const twarz = ramka(o.twarz_2d);
     return {
       logo: o.logo === true,
       kadr: o.kadr !== false,
@@ -381,7 +385,7 @@ async function ocenKadr(buf, query) {
       temat,
       stop: o.stop === true,
       box,
-      klucz,
+      twarz,
     };
   } catch (e) {
     console.warn(`[photo] ocena kadru nie wyszła: ${e.message}`);
@@ -397,12 +401,12 @@ async function oknoDla(buf, ocena, uklad) {
   const obrot = (m.orientation || 1) >= 5;
   const W0 = obrot ? m.height : m.width;
   const H0 = obrot ? m.width : m.height;
-  let okno = kadruj(W0, H0, ocena.box, uklad, ocena.klucz);
+  let okno = kadruj(W0, H0, ocena.box, uklad, ocena.twarz);
   // Объект слева, а свободно справа (lista/cytat/cover) — зеркалим снимок.
   // Лицензия Pexels правки разрешает, надписей в кадре нет (их отсеивает проверка).
   if (!okno) {
     const lustro = (b) => (b ? [1 - b[2], b[1], 1 - b[0], b[3]] : null);
-    const o = kadruj(W0, H0, lustro(ocena.box), uklad, lustro(ocena.klucz));
+    const o = kadruj(W0, H0, lustro(ocena.box), uklad, lustro(ocena.twarz));
     if (o) okno = { ...o, lustro: true };
   }
   return { okno, pasuje: Boolean(okno) };
@@ -522,7 +526,7 @@ export async function findPhoto(query, { name, nth = 0, uklad = 'foto' } = {}) {
       // а берём следующий кадр.
       const { okno, pasuje } = await oknoDla(buf, ocena, uklad);
       if (!pasuje) {
-        console.log(`[photo] pomijam: obiekt nie mieści się w wolnym miejscu układu ${uklad} (${wybrany.photographer}) box=${(ocena.box || []).map((v) => v.toFixed(2))} klucz=${(ocena.klucz || []).map((v) => v.toFixed(2))}`);
+        console.log(`[photo] pomijam: obiekt nie mieści się w wolnym miejscu układu ${uklad} (${wybrany.photographer}) box=${(ocena.box || []).map((v) => v.toFixed(2))} twarz=${(ocena.twarz || []).map((v) => v.toFixed(2))}`);
         continue;
       }
       const gotowy = await zloz(buf, okno);
