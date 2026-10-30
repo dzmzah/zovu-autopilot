@@ -1,14 +1,15 @@
 {
-  "scenariusz": 50,
-  "kiedy": "2026-10-29T10:56:43.833Z",
+  "scenariusz": 58,
+  "kiedy": "2026-10-30T11:01:22.195Z",
   "muzyka": 3,
-  "wydanie": 74,
+  "wydanie": 75,
   "grafikaScen": 2,
   "tloGrafika": 1,
   "muzykaGrafika": 3,
   "typRolki": 0,
   "slotRolki": 0,
   "muzykaOstatnie": [
+    "pixabay-audio_b7259abb71.mp3",
     "mx-house-124.mp3"
   ]
 }
