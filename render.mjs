@@ -11,7 +11,9 @@ export const OUT_DIR = path.join(import.meta.dirname, 'out');
 // Библиотека фонов и готовые посты живут на диске D, в папке проекта ZOVU
 export const BG_DIR =
   process.env.ZOVU_BG_DIR || 'D:\\My AI\\Zovu.pl\\Автоматизация\\Посты\\Фоны';
-const LOGO_FILE = path.join(import.meta.dirname, 'logo-white.b64');
+// Тёмные посты держат свой фиолетовый знак: logo-white.b64 с 29.10 оранжевый
+// (бренд рилсов), а Mat оставил постам старый дизайн целиком.
+const LOGO_FILE = path.join(import.meta.dirname, 'logo-posty-stary.b64');
 
 let logoDataUri = null;
 async function logo() {

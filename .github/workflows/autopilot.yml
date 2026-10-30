@@ -108,6 +108,11 @@ jobs:
           ZOVU_UDAWAJ_BRAK_MODELU: ${{ inputs.udawaj }}
           # живые фото под посты; без него движок молча откатится на 3D-рендер
           PEXELS_KEY: ${{ secrets.PEXELS_KEY }}
+          # глаза для отбора фото (Vertex, кредит Google Cloud): без них сток не берётся
+          GCP_CLIENT_ID: ${{ secrets.GCP_CLIENT_ID }}
+          GCP_CLIENT_SECRET: ${{ secrets.GCP_CLIENT_SECRET }}
+          GCP_REFRESH_TOKEN: ${{ secrets.GCP_REFRESH_TOKEN }}
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
           INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
           FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
           FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}

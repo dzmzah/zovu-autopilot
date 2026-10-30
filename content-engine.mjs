@@ -253,7 +253,7 @@ async function buildSystemPrompt(format, reel = false, layout = 'lista') {
     rules = 'Agencja ZOVU. Ton konkretny, bez waty i bez wykrzykników.';
   }
 
-  return `Jesteś starszym copywriterem polskiej agencji ZOVU z Katowic.
+  return `Jesteś starszym copywriterem polskiej agencji ZOVU z Warszawy (działamy w całej Polsce).
 
 Poniżej zasady marki. Trzymaj się ich bezwzględnie:
 ${rules}
@@ -311,7 +311,7 @@ Zwróć WYŁĄCZNIE obiekt JSON:
 ━━━ ZASADY HASHTAGÓW ━━━
 Ogólne tagi (#marketing, #biznes, #reklama) mają miliony postów — mała firma
 nigdy się przez nie nie przebije. Dlatego mieszamy:
-- DWA lokalne: katowice, slask, firmakatowice, biznesslask, katowicebiznes
+- DWA lokalne: warszawa, warszawafirmy, biznespolska, polskibiznes, lokalnybiznes
 - DWA niszowe i konkretne: mala firma + branża, np. malafirma, lokalnybiznes,
   salonurody, gastronomiapl, warsztatsamochodowy, sklepinternetowy
 - JEDEN tematyczny, pasujący do treści posta
@@ -740,7 +740,11 @@ function clean(out) {
   out.caption = String(out.caption || '').replace(/!/g, '.').replace(/\.{2,}/g, '.').trim();
   out.hashtags = [...new Set((out.hashtags || [])
     .map((h) => String(h).replace(/^#/, '').replace(/[^\p{L}\p{N}]/gu, '').toLowerCase())
-    .filter((h) => h.length >= 4 && h.length <= 24))].slice(0, 5);
+    .filter((h) => h.length >= 4 && h.length <= 24)
+    // с 28.10.2026 ZOVU — Варшава и вся Польша, не Катовице
+    .filter((h) => !/katowic|slask|śląsk|gornyslask/.test(h)))].slice(0, 5);
+  // длинное тире в подписи выдаёт ИИ (правило Мити 28.10)
+  out.caption = out.caption.replace(/\s*—\s*/g, ', ');
   return out;
 }
 
@@ -1104,7 +1108,7 @@ export async function makePost({ topic, format, kind, uklad, trends = false, gen
         // семь слайдов в это укладываются с большим запасом.
         fotoSlajdow = [];
         for (const [i, it] of out.items.entries()) {
-          const f = it.photoQuery ? await findPhoto(it.photoQuery, { name: `${baseName}-${i}` }) : null;
+          const f = it.photoQuery ? await findPhoto(it.photoQuery, { name: `${baseName}-${i}`, uklad: 'item' }) : null;
           fotoSlajdow.push(f?.file || null);
         }
         // Либо живые фото на всех слайдах, либо ни на одном: карусель, где
@@ -1119,14 +1123,14 @@ export async function makePost({ topic, format, kind, uklad, trends = false, gen
           // единственной без съёмки — карусель показывала себя ровно тем
           // градиентом, от которого мы уходили. Отдельный запрос, а не
           // повтор первого пункта: обложка про тему целиком, пункт про частность.
-          zdjecie = out.photoQuery ? await findPhoto(out.photoQuery, { name: `${baseName}-cover` }) : null;
+          zdjecie = out.photoQuery ? await findPhoto(out.photoQuery, { name: `${baseName}-cover`, uklad: 'cover' }) : null;
           console.log(
             `[engine] zdjęcia do karuzeli: ${ile}/${out.items.length}` +
               (zdjecie ? ` + okładka (${out.photoQuery})` : ' — okładka bez zdjęcia, wezmę kadr z pierwszego punktu')
           );
         }
       } else if (out.photoQuery) {
-        zdjecie = await findPhoto(out.photoQuery, { name: baseName });
+        zdjecie = await findPhoto(out.photoQuery, { name: baseName, uklad: chosenLayout || 'foto' });
         if (zdjecie) console.log(`[engine] zdjęcie: ${out.photoQuery} (fot. ${zdjecie.autor})`);
       }
     } catch {
