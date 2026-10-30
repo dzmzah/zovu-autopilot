@@ -195,11 +195,11 @@ async function zloz(buf, okno = null) {
 //     объект справа (там вуаль почти прозрачная).
 // Доли кадра 1080×1350.
 const STREFY = {
-  foto: { x0: 0.04, x1: 0.96, y0: 0.03, y1: 0.52 },
-  item: { x0: 0.04, x1: 0.96, y0: 0.03, y1: 0.5 },
-  lista: { x0: 0.46, x1: 0.99, y0: 0.03, y1: 0.97 },
-  cytat: { x0: 0.46, x1: 0.99, y0: 0.03, y1: 0.97 },
-  cover: { x0: 0.46, x1: 0.99, y0: 0.03, y1: 0.97 },
+  foto: { x0: 0.02, x1: 0.98, y0: 0.02, y1: 0.6 },
+  item: { x0: 0.02, x1: 0.98, y0: 0.02, y1: 0.58 },
+  lista: { x0: 0.4, x1: 1, y0: 0.02, y1: 0.98 },
+  cytat: { x0: 0.4, x1: 1, y0: 0.02, y1: 0.98 },
+  cover: { x0: 0.4, x1: 1, y0: 0.02, y1: 0.98 },
 };
 
 // Окно 4:5 в координатах снимка, в котором рамка объекта (box, доли 0–1)
@@ -216,8 +216,8 @@ export function kadruj(W0, H0, box, uklad = 'foto') {
     const ch = chMax / z;
     const cw = ch * r;
     if (cw < 760) break;
-    // объект с запасом 3% кадра со всех сторон
-    const m = 0.03;
+    // объект с запасом 1,5% кадра со всех сторон
+    const m = 0.015;
     if (bw > (Z.x1 - Z.x0 - 2 * m) * cw || bh > (Z.y1 - Z.y0 - 2 * m) * ch) continue;
     const zcx = (Z.x0 + Z.x1) / 2, zcy = (Z.y0 + Z.y1) / 2;
     let wx = (bx0 + bx1) / 2 - zcx * cw;
@@ -333,14 +333,11 @@ async function ocenKadr(buf, query) {
     '  zwierzę (także pies lub kot w tle), dziecko, klatka lub kraty, szpital, lekarstwa, cmentarz, broń,\n' +
     '  symbole religijne, polityka, alkohol, wypadek, przemoc, człowiek w złym\n' +
     '  stanie, starość i bieda, bałagan, smutna lub przygnębiająca scena. Jeśli tak — true.\n' +
-    'logo = czy w kadrze widać JAKIKOLWIEK cudzy znak firmowy. Szukaj wszędzie:\n' +
-    '  • emblematy i logotypy aut (na masce, kierownicy, feldze, na ścianie warsztatu)\n' +
-    '  • plakaty, szyldy, banery, naklejki, tablice reklamowe\n' +
-    '  • napisy na ubraniu, fartuchu, kubku, opakowaniu, torbie\n' +
-    '  • logo na ekranie laptopa, telefonu, monitora\n' +
-    'Liczy się też znak częściowo zasłonięty albo lekko rozmyty, jeśli da się go ' +
-    'rozpoznać. NIE liczy się tekst nieczytelny ani sam kształt bez marki.\n' +
-    'Jeśli masz wątpliwość, czy to znak marki — odpowiedz true.\n' +
+    'logo = czy w kadrze jest WYRAŹNY, CZYTELNY cudzy znak firmowy, który widz od razu rozpozna:\n' +
+    '  nazwa marki lub logotyp na ubraniu, kubku, opakowaniu, szyldzie, plakacie, masce auta,\n' +
+    '  logo producenta na laptopie lub telefonie (jabłko Apple itp.), ikona znanej aplikacji duża na ekranie.\n' +
+    '  NIE liczy się: drobny, rozmyty albo nieczytelny napis, zwykły interfejs telefonu bez marki,\n' +
+    '  sam kształt urządzenia, tekst na kartce, cennik bez nazwy firmy.\n' +
     'kadr = czy kadr jest czytelny: widać, co się dzieje, a jeśli jest człowiek, ' +
     'to widać jego twarz lub całą sylwetkę, a nie sam fragment tułowia bez głowy.\n' +
     'ostry = czy główny obiekt jest ostry i dobrze oświetlony (nie rozmyty, nie w ciemności, nie za szybą).\n' +
