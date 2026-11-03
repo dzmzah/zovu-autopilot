@@ -3195,5 +3195,53 @@
     "tytulYT": "Rolki dla firmy bez nagrywania | prowadzenie social media",
     "opisYT": "Rolki dla firmy bez twojego czasu.\n\nWystarczy temat albo kilka zdjęć z telefonu, resztę robi zespół i nasz system. Dostajesz gotowy film do akceptacji, a publikacja idzie sama na wszystkie platformy.\n\nChcesz takie rolki dla swojej firmy? Napisz ROLKA w wiadomości.\n\nzovu.pl\n\n#socialmedia #wlasnafirma #montazwideo #rolkidlafirm #zovu",
     "podpisTT": "Rolki dla firmy bez twojego czasu.\n\nWystarczy temat albo kilka zdjęć z telefonu, resztę robi zespół i nasz system.\n\nChcesz takie rolki dla swojej firmy? Napisz ROLKA w wiadomości.\n\n#socialmedia #wlasnafirma #montazwideo #rolkidlafirm"
+  },
+  {
+    "plik": "auto-2026-11-03-1-2.mp4",
+    "kiedy": "2026-11-04T21:00:00+01:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Nasz system wyrzuca co piąty swój film.\n\nZanim rolka trafi do kolejki, maszyna mierzy obraz i dźwięk klatka po klatce. Jeśli coś nie gra, bierze inne ujęcia i składa film jeszcze raz, do trzech prób.\n\nNapisz ROLKA w wiadomości, a pokażemy, jak to zrobić u ciebie.\n\n#malafirma #marketing #automatyzacja #aiwmarketingu #zovu",
+    "opublikowano": null,
+    "zrodlo": "auto-kulisy-kontrola-co-piaty.mp4",
+    "scenariusz": "kulisy-kontrola-co-piaty",
+    "forma": "kulisy",
+    "temat": "kulisy: kontrola jakości naszych rolek",
+    "dlugosc": 21.26,
+    "planow": 22,
+    "tempo": [
+      3.3,
+      3.6,
+      3.6,
+      3.7,
+      4.4,
+      4.3
+    ],
+    "montaz": {
+      "format": "miks",
+      "paleta": "jasny",
+      "font": "miks",
+      "muzyka": "mx-funk-1054.mp3",
+      "material": "kulisy",
+      "glos": "domyslny",
+      "zakonczenie": "pytanie",
+      "style": [
+        "mem",
+        "notatka",
+        "czat"
+      ],
+      "przejscia": [
+        "blysk",
+        "szyba"
+      ]
+    },
+    "hak_typ": "wynik",
+    "tytulYT": "Jak sprawdzamy rolki przed publikacją | automatyzacja wideo",
+    "opisYT": "Nasz system wyrzuca co piąty swój film.\n\nZanim rolka trafi do kolejki, maszyna mierzy obraz i dźwięk klatka po klatce. Jeśli coś nie gra, bierze inne ujęcia i składa film jeszcze raz, do trzech prób.\n\nNapisz ROLKA w wiadomości, a pokażemy, jak to zrobić u ciebie.\n\nzovu.pl\n\n#malafirma #marketing #automatyzacja #aiwmarketingu #zovu",
+    "podpisTT": "Nasz system wyrzuca co piąty swój film.\n\nZanim rolka trafi do kolejki, maszyna mierzy obraz i dźwięk klatka po klatce.\n\nNapisz ROLKA w wiadomości, a pokażemy, jak to zrobić u ciebie.\n\n#malafirma #marketing #automatyzacja #aiwmarketingu"
   }
 ]
