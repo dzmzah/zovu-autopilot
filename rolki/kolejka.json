@@ -3294,5 +3294,52 @@
     "tytulYT": "86 rolek i zero zapisów. Co poprawiliśmy | rolki dla firm",
     "opisYT": "Policzyliśmy swoje rolki. Nie było przyjemnie.\n\nLudzie oglądali nasze filmy średnio około trzech sekund. Najsłabiej szły rolki, które zaczynały się od długiego wstępu. Zajrzyj w statystyki: średni czas oglądania powie ci więcej niż wyświetlenia.\n\nProwadzimy to za firmy w całej Polsce. Napisz ROLKA w wiadomości.\n\nzovu.pl\n\n#marketingdlafirm #rolki #aiwmarketingu #kulisypracy #zovu",
     "podpisTT": "Policzyliśmy swoje rolki. Nie było przyjemnie.\n\nLudzie oglądali nasze filmy średnio około trzech sekund.\n\nProwadzimy to za firmy w całej Polsce. Napisz ROLKA w wiadomości.\n\n#marketingdlafirm #rolki #aiwmarketingu #kulisypracy"
+  },
+  {
+    "plik": "auto-2026-11-05-1.mp4",
+    "kiedy": "2026-11-07T21:00:00+01:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Ai w małej firmie trzy zastosowania.\n\nZamiast zlecać AI pisanie całych postów, użyj jej do małych zadań. Potraktuj ją jak stażystę: da ci pomysły, zrobi pierwszy szkic, poprawi błędy. Ale to ty nadajesz ostateczny kształt i dodajesz ludzki głos.\n\nNie masz na to czasu? Napisz ROLKA w wiadomości.\n\n#wlasnafirma #reklama #kulisypracy #automatyzacja #zovu",
+    "opublikowano": null,
+    "zrodlo": "auto-lista-ai-w-firmie.mp4",
+    "scenariusz": "lista-ai-w-firmie",
+    "forma": "lista",
+    "temat": "trzy konkretne zadania, w których AI ci pomoże",
+    "dlugosc": 22.86,
+    "planow": 22,
+    "tempo": [
+      4.5,
+      5.2,
+      4.3,
+      4.1,
+      4.1,
+      3.9
+    ],
+    "montaz": {
+      "format": "miks",
+      "paleta": "jasny",
+      "font": "serif",
+      "muzyka": "mx-hiphop-257.mp3",
+      "material": "stok",
+      "glos": "domyslny",
+      "zakonczenie": "wyslij",
+      "style": [
+        "split",
+        "post",
+        "czat"
+      ],
+      "przejscia": [
+        "przelot",
+        "iris"
+      ]
+    },
+    "tytulYT": "Ai w małej firmie trzy zastosowania | automatyzacja marketingu",
+    "opisYT": "Ai w małej firmie trzy zastosowania.\n\nZamiast zlecać AI pisanie całych postów, użyj jej do małych zadań. Potraktuj ją jak stażystę: da ci pomysły, zrobi pierwszy szkic, poprawi błędy. Ale to ty nadajesz ostateczny kształt i dodajesz ludzki głos.\n\nNie masz na to czasu? Napisz ROLKA w wiadomości.\n\nzovu.pl\n\n#wlasnafirma #reklama #kulisypracy #automatyzacja #zovu",
+    "podpisTT": "Ai w małej firmie trzy zastosowania.\n\nZamiast zlecać AI pisanie całych postów, użyj jej do małych zadań.\n\nNie masz na to czasu? Napisz ROLKA w wiadomości.\n\n#wlasnafirma #reklama #kulisypracy #automatyzacja"
   }
 ]
