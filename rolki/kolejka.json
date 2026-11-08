@@ -3493,5 +3493,52 @@
     "tytulYT": "Jeden film na Instagram, YouTube i TikTok | automatyzacja",
     "opisYT": "Jeden film wychodzi u nas w czterech miejscach.\n\nKażda platforma dostaje swój podpis: w TikToku widać dwie linie, na YouTube liczy się tytuł pod wyszukiwanie. Publikacja idzie przez oficjalne API, bez klikania w aplikacjach.\n\nProwadzimy to za firmy w całej Polsce. Napisz ROLKA w wiadomości.\n\nzovu.pl\n\n#reklama #marketingdlafirm #montazwideo #automatyzacja #zovu",
     "podpisTT": "Jeden film wychodzi u nas w czterech miejscach.\n\nKażda platforma dostaje swój podpis: w TikToku widać dwie linie, na YouTube liczy się tytuł pod wyszukiwanie.\n\nProwadzimy to za firmy w całej Polsce. Napisz ROLKA w wiadomości.\n\n#reklama #marketingdlafirm #montazwideo #automatyzacja"
+  },
+  {
+    "plik": "auto-2026-11-08-1.mp4",
+    "kiedy": "2026-11-10T21:00:00+01:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Plan treści na cały miesiąc?\n\nBrzmi to dobrze, ale dla małej firmy to przepis na porażkę. Taki plan jest sztywny. Nie uwzględnia bieżących spraw.\n\nNie masz na to czasu? Napisz ROLKA w wiadomości.\n\n#socialmedia #wlasnafirma #instagramdlafirm #tresci #zovu",
+    "opublikowano": null,
+    "zrodlo": "auto-plan-na-tydzien-nie-na-miesiac.mp4",
+    "scenariusz": "plan-na-tydzien-nie-na-miesiac",
+    "forma": "pod-prad",
+    "temat": "Jak publikować regularnie i się nie wypalić?",
+    "dlugosc": 24.04,
+    "planow": 17,
+    "tempo": [
+      4.4,
+      4.3,
+      4.3,
+      4.2,
+      3.8,
+      4.9
+    ],
+    "montaz": {
+      "format": "miks",
+      "paleta": "ogien",
+      "font": "serif",
+      "muzyka": "mx-chill-1023.mp3",
+      "material": "stok",
+      "glos": "domyslny",
+      "zakonczenie": "marka",
+      "style": [
+        "split",
+        "slowo",
+        "czat"
+      ],
+      "przejscia": [
+        "szyba",
+        "paski"
+      ]
+    },
+    "tytulYT": "Plan treści na cały miesiąc? | marketing dla firm",
+    "opisYT": "Plan treści na cały miesiąc?\n\nBrzmi to dobrze, ale dla małej firmy to przepis na porażkę. Taki plan jest sztywny. Nie uwzględnia bieżących spraw.\n\nNie masz na to czasu? Napisz ROLKA w wiadomości.\n\nzovu.pl\n\n#socialmedia #wlasnafirma #instagramdlafirm #tresci #zovu",
+    "podpisTT": "Plan treści na cały miesiąc?\n\nBrzmi to dobrze, ale dla małej firmy to przepis na porażkę.\n\nNie masz na to czasu? Napisz ROLKA w wiadomości.\n\n#socialmedia #wlasnafirma #instagramdlafirm #tresci"
   }
 ]
