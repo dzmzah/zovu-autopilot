@@ -3546,5 +3546,52 @@
     "tytulYT": "Plan treści na cały miesiąc? | marketing dla firm",
     "opisYT": "Plan treści na cały miesiąc?\n\nBrzmi to dobrze, ale dla małej firmy to przepis na porażkę. Taki plan jest sztywny. Nie uwzględnia bieżących spraw.\n\nNie masz na to czasu? Napisz ROLKA w wiadomości.\n\nzovu.pl\n\n#socialmedia #wlasnafirma #instagramdlafirm #tresci #zovu",
     "podpisTT": "Plan treści na cały miesiąc?\n\nBrzmi to dobrze, ale dla małej firmy to przepis na porażkę.\n\nNie masz na to czasu? Napisz ROLKA w wiadomości.\n\n#socialmedia #wlasnafirma #instagramdlafirm #tresci"
+  },
+  {
+    "plik": "auto-2026-11-09-1.mp4",
+    "kiedy": "2026-11-11T21:00:00+01:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Miejsce na zdjęcie w twoim lokalu.\n\nChcesz, by klienci o tobie mówili i przyprowadzali kolejnych? Daj im powód i miejsce. Zamiast nijakiego wnętrza, stwórz jeden mały punkt, przy którym chce się zrobić zdjęcie.\n\nChcesz takie rolki dla swojej firmy? Napisz ROLKA w wiadomości.\n\n#malafirma #marketing #metaads #kampaniareklamowa #zovu",
+    "opublikowano": null,
+    "zrodlo": "auto-wnetrze-ktore-robi-reklame.mp4",
+    "scenariusz": "wnetrze-ktore-robi-reklame",
+    "forma": "przed-po",
+    "temat": "Jak sprawić, by klienci sami robili ci reklamę",
+    "dlugosc": 25.42,
+    "planow": 24,
+    "tempo": [
+      3.4,
+      3.7,
+      4,
+      4.6,
+      4.5,
+      6.1
+    ],
+    "montaz": {
+      "format": "miks",
+      "paleta": "jasny",
+      "font": "tight8",
+      "muzyka": "mx-funk-1077.mp3",
+      "material": "stok",
+      "glos": "domyslny",
+      "zakonczenie": "pytanie",
+      "style": [
+        "mem",
+        "notatka",
+        "post"
+      ],
+      "przejscia": [
+        "iris",
+        "przelot"
+      ]
+    },
+    "tytulYT": "Miejsce na zdjęcie w twoim lokalu | reklama w social media",
+    "opisYT": "Miejsce na zdjęcie w twoim lokalu.\n\nChcesz, by klienci o tobie mówili i przyprowadzali kolejnych? Daj im powód i miejsce. Zamiast nijakiego wnętrza, stwórz jeden mały punkt, przy którym chce się zrobić zdjęcie.\n\nChcesz takie rolki dla swojej firmy? Napisz ROLKA w wiadomości.\n\nzovu.pl\n\n#malafirma #marketing #metaads #kampaniareklamowa #zovu",
+    "podpisTT": "Miejsce na zdjęcie w twoim lokalu.\n\nChcesz, by klienci o tobie mówili i przyprowadzali kolejnych?\n\nChcesz takie rolki dla swojej firmy? Napisz ROLKA w wiadomości.\n\n#malafirma #marketing #metaads #kampaniareklamowa"
   }
 ]
