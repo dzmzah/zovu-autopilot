@@ -1,19 +1,19 @@
 {
   "scenariusz": 41,
-  "kiedy": "2026-11-15T16:04:33.425Z",
+  "kiedy": "2026-11-15T18:29:00.585Z",
   "muzyka": 3,
-  "wydanie": 108,
+  "wydanie": 109,
   "grafikaScen": 7,
   "tloGrafika": 0,
   "muzykaGrafika": 6,
   "typRolki": 0,
   "slotRolki": 0,
   "muzykaOstatnie": [
+    "pixabay-audio_ccedc34276.mp3",
     "mx-house-161.mp3",
     "pxb-beats-vlog.mp3",
     "mx-house-124.mp3",
     "pixabay-audio_5d25481bef.mp3",
-    "mx-funk-1054.mp3",
-    "pixabay-audio_3670b74de1.mp3"
+    "mx-funk-1054.mp3"
   ]
 }
