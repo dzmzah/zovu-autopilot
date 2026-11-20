@@ -1934,8 +1934,18 @@ export async function zbuduj(plan) {
     if (nowaKoncowka) {
       const kadr = path.join(tmp, 'koncowka-tlo.jpg');
       const dl = await ffprobeDuration(wynikV);
-      for (const t of [dl - 0.08, dl - 0.3, dl - 0.6]) {
-        await ffmpeg(['-ss', Math.max(0, t).toFixed(3), '-i', wynikV, '-frames:v', '1', '-q:v', '3', kadr]);
+      // 20.11: длина контейнера бывает больше видеодорожки — -ss у самого
+      // конца не находит кадра, ffmpeg падает, и падение роняло ВСЮ сборку
+      // (рилсы 20.11 дважды по 3 попытки). Каждая попытка в try, последняя —
+      // от конца файла через -sseof.
+      const proby = [dl - 0.08, dl - 0.3, dl - 0.6, dl - 1.5].map((t) => ['-ss', Math.max(0, t).toFixed(3)]);
+      proby.push(['-sseof', '-2']);
+      for (const p of proby) {
+        try {
+          await ffmpeg([...p, '-i', wynikV, '-update', '1', '-frames:v', '1', '-q:v', '3', kadr]);
+        } catch {
+          continue;
+        }
         if (existsSync(kadr) && statSync(kadr).size > 1024) break;
       }
       const tlo = existsSync(kadr) ? 'data:image/jpeg;base64,' + (await readFile(kadr)).toString('base64') : '';
