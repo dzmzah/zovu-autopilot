@@ -3631,5 +3631,52 @@
     "tytulYT": "Ile kosztuje rolka, jeśli robisz ją sam? | rolki dla firm",
     "opisYT": "Ile kosztuje rolka, jeśli robisz ją sam?\n\nNie masz na to czasu?\n\nChcesz takie rolki dla swojej firmy? Napisz ROLKA w wiadomości.\n\nzovu.pl\n\n#wlasnafirma #reklama #montazwideo #rolkidlafirm #zovu",
     "podpisTT": "Ile kosztuje rolka, jeśli robisz ją sam?\n\nNie masz na to czasu?\n\nChcesz takie rolki dla swojej firmy? Napisz ROLKA w wiadomości.\n\n#wlasnafirma #reklama #montazwideo #rolkidlafirm"
+  },
+  {
+    "plik": "auto-2026-11-20-1-2.mp4",
+    "kiedy": "2026-11-21T21:00:00+01:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Przed: efekt po: kulisy.\n\nTakie zdjęcia wyglądają jak z katalogu. A w małej firmie najważniejszy jest człowiek: twoja wiedza, ręce i zaangażowanie. Pokaż narzędzia, trochę bałaganu, pot na czole.\n\nProwadzimy to za firmy w całej Polsce. Napisz ROLKA w wiadomości.\n\n#reklama #marketingdlafirm #tresci #prowadzeniesocialmedia #zovu",
+    "opublikowano": null,
+    "zrodlo": "auto-przed-po-kulisy-pracy.mp4",
+    "scenariusz": "przed-po-kulisy-pracy",
+    "forma": "przed-po",
+    "temat": "jedna zmiana w postach: pokaż kulisy zamiast efektu",
+    "dlugosc": 19.1,
+    "planow": 18,
+    "tempo": [
+      4.9,
+      5.7,
+      4.6,
+      4.9,
+      5,
+      6.1
+    ],
+    "montaz": {
+      "format": "miks",
+      "paleta": "papier",
+      "font": "miks",
+      "muzyka": "pxb-synthwave-action.mp3",
+      "material": "stok",
+      "glos": "domyslny",
+      "zakonczenie": "blysk",
+      "style": [
+        "slowo",
+        "notatka",
+        "czat"
+      ],
+      "przejscia": [
+        "blysk",
+        "szyba"
+      ]
+    },
+    "tytulYT": "Przed: efekt po: kulisy | social media dla firmy",
+    "opisYT": "Przed: efekt po: kulisy.\n\nTakie zdjęcia wyglądają jak z katalogu. A w małej firmie najważniejszy jest człowiek: twoja wiedza, ręce i zaangażowanie. Pokaż narzędzia, trochę bałaganu, pot na czole.\n\nProwadzimy to za firmy w całej Polsce. Napisz ROLKA w wiadomości.\n\nzovu.pl\n\n#reklama #marketingdlafirm #tresci #prowadzeniesocialmedia #zovu",
+    "podpisTT": "Przed: efekt po: kulisy.\n\nTakie zdjęcia wyglądają jak z katalogu.\n\nProwadzimy to za firmy w całej Polsce. Napisz ROLKA w wiadomości.\n\n#reklama #marketingdlafirm #tresci #prowadzeniesocialmedia"
   }
 ]
