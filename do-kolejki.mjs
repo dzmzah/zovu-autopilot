@@ -127,8 +127,19 @@ async function wybierzGodziny(kolejka) {
   const ile = (g) => (poGodzinie.get(g) || []).length;
   const reszta = krag.filter((g) => !najlepszy || g !== najlepszy[0]);
   reszta.sort((a, b) => ile(a) - ile(b) || a - b);
-  const kolejnosc = reszta.length ? [...reszta, ...krag.filter((g) => !reszta.includes(g))]
+  let kolejnosc = reszta.length ? [...reszta, ...krag.filter((g) => !reszta.includes(g))]
     : [...krag.slice(licznik % krag.length), ...krag.slice(0, licznik % krag.length)];
+  // 20.11: все кандидаты выбыли, а лучший час (21) в кандидатах не стоит —
+  // список выходил ПУСТЫМ, слот «undefined:00», и рилсы 11 дней молча
+  // оставались в out/. Очередь не росла, счётчик не двигался — разведка
+  // повторялась вечно. Разведывать нечего → ставим в лучший час.
+  if (!kolejnosc.length) {
+    if (najlepszy) {
+      console.log(`[kolejka] разведывать нечего — все кандидаты выбыли, ставлю в лучший ${najlepszy[0]}:00`);
+      return [najlepszy[0]];
+    }
+    kolejnosc = [...KANDYDACI];
+  }
   console.log(
     najlepszy
       ? `[kolejka] разведка: беру ${kolejnosc[0]}:00 вместо лучшего ${najlepszy[0]}:00 (зрелых роликов там ${ile(kolejnosc[0])})`
@@ -137,7 +148,8 @@ async function wybierzGodziny(kolejka) {
   return kolejnosc;
 }
 
-const GODZINY = SLOTY_JAWNE || (await wybierzGodziny(kolejka));
+const GODZINY = (SLOTY_JAWNE || (await wybierzGodziny(kolejka))).filter((g) => Number.isFinite(g));
+if (!GODZINY.length) GODZINY.push(...KANDYDACI);
 
 const juzWKolejce = new Set(kolejka.map((p) => p.plik));
 // Какие сценарии уже ждут выкладки. Повтор ловим по ИСТОЧНИКУ, а не по имени
@@ -213,7 +225,10 @@ for (const [i, f] of pliki.entries()) {
     if (!zajete.has(Date.parse(kandydat))) kiedy = kandydat;
   }
   if (!kiedy) {
-    console.log(`[kolejka] свободного слота на десять дней вперёд нет — ${nazwa} оставляю в out/`);
+    // Тихо выбрасывать собранный рилс нельзя (см. 20.11) — валим прогон,
+    // GitHub пришлёт письмо.
+    console.log(`::error::свободного слота на десять дней вперёд нет — ${nazwa} не поставлен (часы: ${GODZINY.join(",")})`);
+    process.exitCode = 1;
     continue;
   }
 
