@@ -1,19 +1,19 @@
 {
-  "scenariusz": 54,
-  "kiedy": "2026-11-24T14:55:53.907Z",
+  "scenariusz": 47,
+  "kiedy": "2026-11-25T14:28:31.189Z",
   "muzyka": 3,
-  "wydanie": 148,
+  "wydanie": 149,
   "grafikaScen": 7,
   "tloGrafika": 0,
   "muzykaGrafika": 12,
   "typRolki": 0,
   "slotRolki": 0,
   "muzykaOstatnie": [
+    "pxb-beats-workout-34sec.mp3",
     "mx-hiphop-224.mp3",
     "mx-energia-1082.mp3",
     "mx-funk-1029.mp3",
     "pixabay-audio_5d25481bef.mp3",
-    "mx-elektro-111.mp3",
-    "mx-funk-1003.mp3"
+    "mx-elektro-111.mp3"
   ]
 }

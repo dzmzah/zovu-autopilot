@@ -3927,5 +3927,52 @@
     "tytulYT": "Co sprzedaje transmisję gali | marketing wydarzeń sportowych",
     "opisYT": "Transmisję gali sprzedają ludzie, nie grafika.\n\nWidz kupuje walkę, kiedy zna zawodnika i ma swojego faworyta. Krótkie odcinki z treningu i rozmowy przed walką budują to szybciej niż kolejny plakat z datą.\n\nChcesz takie rolki dla swojej firmy? Napisz ROLKA w wiadomości.\n\nzovu.pl\n\n#rolki #malafirma #kampaniareklamowa #prowadzeniesocialmedia #zovu",
     "podpisTT": "Transmisję gali sprzedają ludzie, nie grafika.\n\nWidz kupuje walkę, kiedy zna zawodnika i ma swojego faworyta.\n\nChcesz takie rolki dla swojej firmy? Napisz ROLKA w wiadomości.\n\n#rolki #malafirma #kampaniareklamowa #prowadzeniesocialmedia"
+  },
+  {
+    "plik": "auto-2026-11-25-1.mp4",
+    "kiedy": "2026-11-27T21:00:00+01:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Reklama za 20 zł która nie działa.\n\nProblem leży w domyślnych ustawieniach. Facebook chce dotrzeć do jak największej liczby osób, więc pokazuje reklamę wszystkim. Także ludziom z drugiego końca Polski, którzy nie skorzystają z twoich usług.\n\nNapisz ROLKA w wiadomości, a pokażemy, jak to zrobić u ciebie.\n\n#reklama #marketingdlafirm #prowadzeniesocialmedia #reklamanafacebooku #zovu",
+    "opublikowano": null,
+    "zrodlo": "auto-blad-tania-reklama-fb.mp4",
+    "scenariusz": "blad-tania-reklama-fb",
+    "forma": "blad",
+    "temat": "błąd w taniej reklamie na Facebooku, który kosztuje najwięcej",
+    "dlugosc": 24.78,
+    "planow": 32,
+    "tempo": [
+      5.6,
+      3.6,
+      5.7,
+      3.8,
+      4,
+      3.6
+    ],
+    "montaz": {
+      "format": "miks",
+      "paleta": "papier",
+      "font": "tight",
+      "muzyka": "pxb-beats-workout-34sec.mp3",
+      "material": "stok",
+      "glos": "domyslny",
+      "zakonczenie": "pytanie",
+      "style": [
+        "slowo",
+        "notatka",
+        "post"
+      ],
+      "przejscia": [
+        "przelot",
+        "blysk"
+      ]
+    },
+    "tytulYT": "Reklama za 20 zł która nie działa | reklama w social media",
+    "opisYT": "Reklama za 20 zł która nie działa.\n\nProblem leży w domyślnych ustawieniach. Facebook chce dotrzeć do jak największej liczby osób, więc pokazuje reklamę wszystkim. Także ludziom z drugiego końca Polski, którzy nie skorzystają z twoich usług.\n\nNapisz ROLKA w wiadomości, a pokażemy, jak to zrobić u ciebie.\n\nzovu.pl\n\n#reklama #marketingdlafirm #prowadzeniesocialmedia #reklamanafacebooku #zovu",
+    "podpisTT": "Reklama za 20 zł która nie działa.\n\nProblem leży w domyślnych ustawieniach.\n\nNapisz ROLKA w wiadomości, a pokażemy, jak to zrobić u ciebie.\n\n#reklama #marketingdlafirm #prowadzeniesocialmedia #reklamanafacebooku"
   }
 ]
