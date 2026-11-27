@@ -249,6 +249,6 @@
     "podpis": "Jak sprawić, by klienci sami robili ci reklamę.",
     "status": "blad",
     "blad": "me/media: {\"message\":\"Application does not have permission for this action\",\"type\":\"OAuthException\",\"code\":10,\"error_subcode\":2207081,\"is_transient\":false,\"error_user_title\":\"Trial Reel Not Enough Followers\",\"error_user_msg\":\"The instagram account does not meet the trial reel follower requirement to",
-    "kiedy": "2026-11-26T23:14:28.480Z"
+    "kiedy": "2026-11-27T22:53:35.763Z"
   }
 ]
