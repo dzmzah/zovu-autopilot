@@ -4034,5 +4034,53 @@
     "tytulYT": "Agencja marketingowa zdalnie, cała Polska | social media i reklama",
     "opisYT": "Marketing dla firmy z drugiego końca Polski? Bez problemu.\n\nBiuro mamy w Warszawie, a marki prowadzimy także spoza Polski, na przykład ze Szwajcarii. Na start wystarczy rozmowa online i dostęp do twoich kont.\n\nProwadzimy to za firmy w całej Polsce. Napisz ROLKA w wiadomości.\n\nzovu.pl\n\n#socialmedia #wlasnafirma #marketingdlafirm #instagramdlafirm #zovu",
     "podpisTT": "Marketing dla firmy z drugiego końca Polski? Bez problemu.\n\nBiuro mamy w Warszawie, a marki prowadzimy także spoza Polski, na przykład ze Szwajcarii.\n\nProwadzimy to za firmy w całej Polsce. Napisz ROLKA w wiadomości.\n\n#socialmedia #wlasnafirma #marketingdlafirm #instagramdlafirm"
+  },
+  {
+    "plik": "auto-2026-11-27-1.mp4",
+    "kiedy": "2026-11-29T21:00:00+01:00",
+    "sieci": [
+      "ig",
+      "fb",
+      "yt",
+      "tt"
+    ],
+    "tekst": "Ile razy wysyłać newsletter, żeby nie wypisywali.\n\nDo całej listy piszemy mniej więcej co siedem dni. Przypomnienie o promocji idzie tylko do tych, którzy otworzyli poprzedni mail. Treść daj do sprawdzenia dzień wcześniej, nie w dniu wysyłki.\n\nNie masz na to czasu? Napisz ROLKA w wiadomości.\n\n#malafirma #marketing #emailmarketing #newsletter #zovu",
+    "opublikowano": null,
+    "zrodlo": "auto-newsletter-raz-w-tygodniu.mp4",
+    "scenariusz": "newsletter-raz-w-tygodniu",
+    "forma": "blad",
+    "temat": "newsletter: jak często wysyłać",
+    "dlugosc": 19.54,
+    "planow": 16,
+    "tempo": [
+      5.4,
+      6.2,
+      5.4,
+      4.6,
+      3.6,
+      6.3
+    ],
+    "montaz": {
+      "format": "miks",
+      "paleta": "ogien",
+      "font": "serif",
+      "muzyka": "mx-energia-1103.mp3",
+      "material": "stok",
+      "glos": "domyslny",
+      "zakonczenie": "marka",
+      "style": [
+        "split",
+        "notatka",
+        "czat"
+      ],
+      "przejscia": [
+        "przelot",
+        "iris"
+      ]
+    },
+    "hak_typ": "zakaz",
+    "tytulYT": "Jak często wysyłać newsletter | email marketing dla firm",
+    "opisYT": "Ile razy wysyłać newsletter, żeby nie wypisywali.\n\nDo całej listy piszemy mniej więcej co siedem dni. Przypomnienie o promocji idzie tylko do tych, którzy otworzyli poprzedni mail. Treść daj do sprawdzenia dzień wcześniej, nie w dniu wysyłki.\n\nNie masz na to czasu? Napisz ROLKA w wiadomości.\n\nzovu.pl\n\n#malafirma #marketing #emailmarketing #newsletter #zovu",
+    "podpisTT": "Ile razy wysyłać newsletter, żeby nie wypisywali.\n\nDo całej listy piszemy mniej więcej co siedem dni.\n\nNie masz na to czasu? Napisz ROLKA w wiadomości.\n\n#malafirma #marketing #emailmarketing #newsletter"
   }
 ]
